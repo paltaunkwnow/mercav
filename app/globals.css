@@ -1,0 +1,652 @@
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ===== DARK MODE (DEFAULT) ===== */
+    --color-bg-primary: #050505;
+    --color-bg-secondary: #0C0C0C;
+    --color-bg-tertiary: #141414;
+    --color-gold: #D4AF37;
+    --color-gold-light: #E8CC6A;
+    --color-gold-dim: rgba(212,175,55,0.12);
+    --color-white: #FFFFFF;
+    --color-white-soft: #F5F0E8;
+    --color-gray-400: #888888;
+    --color-gray-600: #444444;
+    --color-border: #1A1A1A;
+    --color-border-gold: rgba(212,175,55,0.25);
+    
+    --background: var(--color-bg-primary);
+    --foreground: var(--color-white);
+    
+    --card: var(--color-bg-secondary);
+    --card-foreground: var(--color-white);
+    
+    --popover: var(--color-bg-secondary);
+    --popover-foreground: var(--color-white);
+    
+    --primary: var(--color-gold);
+    --primary-foreground: #000000;
+    
+    --secondary: var(--color-bg-tertiary);
+    --secondary-foreground: var(--color-gold);
+    
+    --muted: var(--color-bg-tertiary);
+    --muted-foreground: var(--color-gray-400);
+    
+    --accent: var(--color-gold-dim);
+    --accent-foreground: var(--color-gold);
+    
+    --destructive: #ff3333;
+    --destructive-foreground: var(--color-white);
+
+    --border: var(--color-border);
+    --input: var(--color-bg-tertiary);
+    --ring: var(--color-gold);
+    
+    --radius: 0.5rem;
+
+    /* Text colors for theme-aware usage */
+    --text-primary: #FFFFFF;
+    --text-secondary: #A0A0A0;
+    --text-tertiary: #666666;
+    --text-inverted: #000000;
+    
+    /* Surface overlays */
+    --surface-glass: rgba(255,255,255,0.03);
+    --surface-glass-border: rgba(255,255,255,0.06);
+    --surface-elevated: rgba(255,255,255,0.05);
+
+    /* Shadow */
+    --shadow-gold: 0 4px 30px rgba(212,175,55,0.15);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.4);
+  }
+
+  /* ===== LIGHT MODE ===== */
+  .light {
+    --color-bg-primary: #FAF9F6;
+    --color-bg-secondary: #FFFFFF;
+    --color-bg-tertiary: #F0EDE6;
+    --color-gold: #A07A14;
+    --color-gold-light: #C49B26;
+    --color-gold-dim: rgba(160,122,20,0.08);
+    --color-white: #1A1714;
+    --color-white-soft: #2E2A22;
+    --color-gray-400: #5C564A;
+    --color-gray-600: #9E978B;
+    --color-border: #E5E0D5;
+    --color-border-gold: rgba(160,122,20,0.35);
+    
+    --background: var(--color-bg-primary);
+    --foreground: var(--color-white);
+    
+    --card: var(--color-bg-secondary);
+    --card-foreground: var(--color-white);
+    
+    --popover: #FFFFFF;
+    --popover-foreground: #1A1714;
+    
+    --primary: var(--color-gold);
+    --primary-foreground: #FFFFFF;
+    
+    --secondary: var(--color-bg-tertiary);
+    --secondary-foreground: var(--color-gold);
+    
+    --muted: var(--color-bg-tertiary);
+    --muted-foreground: var(--color-gray-400);
+    
+    --accent: var(--color-gold-dim);
+    --accent-foreground: var(--color-gold);
+    
+    --destructive: #DC2626;
+    --destructive-foreground: #FFFFFF;
+    
+    --border: var(--color-border);
+    --input: #FFFFFF;
+    --ring: var(--color-gold);
+
+    --text-primary: #1A1714;
+    --text-secondary: #4A453C;
+    --text-tertiary: #8A8478;
+    --text-inverted: #FFFFFF;
+    
+    --surface-glass: rgba(255,255,255,0.85);
+    --surface-glass-border: rgba(0,0,0,0.06);
+    --surface-elevated: rgba(255,255,255,0.95);
+
+    --shadow-gold: 0 4px 30px rgba(160,122,20,0.15);
+    --shadow-lg: 0 12px 50px rgba(0,0,0,0.08);
+  }
+
+  .dark {
+    /* Dark is the default :root, no overrides needed */
+  }
+
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    color: var(--text-primary);
+    background-color: var(--color-bg-primary);
+    transition: background-color 0.5s ease, color 0.4s ease;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.2);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.5);
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(184, 148, 30, 0.25);
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(184, 148, 30, 0.5);
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .glassmorphism {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--surface-glass-border);
+  }
+  .card-hover-premium {
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .card-hover-premium:hover {
+    border-color: var(--color-border-gold);
+    box-shadow: var(--shadow-gold);
+    transform: translateY(-4px) scale(1.01);
+  }
+
+  /* Animated gradient text */
+  .gradient-text-gold {
+    background: linear-gradient(135deg, #D4AF37, #E8CC6A, #D4AF37, #B8941E);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 6s ease infinite;
+  }
+
+  /* Floating animation */
+  .float-gentle {
+    animation: floatGentle 6s ease-in-out infinite;
+  }
+
+  /* Shimmer effect */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(212,175,55,0.05), transparent);
+    animation: shimmerSlide 3s ease-in-out infinite;
+  }
+
+  /* Glass card variant */
+  .glass-card {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--surface-glass-border);
+    box-shadow: var(--shadow-lg);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glass-card:hover {
+    border-color: var(--color-border-gold);
+    box-shadow: var(--shadow-gold);
+    transform: translateY(-4px);
+  }
+
+  /* Section fade transition */
+  .section-transition {
+    transition: background-color 0.5s ease, border-color 0.5s ease;
+  }
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes floatGentle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shimmerSlide {
+  0% { left: -100%; }
+  50%, 100% { left: 200%; }
+}
+
+/* Hide number input spinners globally */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Hide reCAPTCHA badge */
+.grecaptcha-badge { 
+  visibility: hidden !important; 
+}
+
+/* ============================================
+   LIGHT MODE — COMPREHENSIVE OVERRIDES
+   ============================================ */
+
+/* --- TEXT COLORS --- */
+.light .text-white { color: var(--text-primary) !important; }
+.light .text-gray-200 { color: #444 !important; }
+.light .text-gray-300 { color: #555 !important; }
+.light .text-gray-400 { color: var(--text-secondary) !important; }
+.light .text-gray-500 { color: var(--text-tertiary) !important; }
+.light .text-gray-600 { color: #888 !important; }
+.light .text-gray-700 { color: #aaa !important; }
+.light .text-gold { color: var(--color-gold) !important; }
+.light .text-gold\/90 { color: rgba(184,148,30,0.9) !important; }
+.light .text-gold\/80 { color: rgba(184,148,30,0.8) !important; }
+.light .text-gold\/70 { color: rgba(184,148,30,0.7) !important; }
+.light .text-gold\/50 { color: rgba(184,148,30,0.5) !important; }
+.light .text-gold\/40 { color: rgba(184,148,30,0.4) !important; }
+.light .text-gold\/30 { color: rgba(184,148,30,0.3) !important; }
+.light .placeholder\:text-gray-600::placeholder { color: #bbb !important; }
+.light .placeholder-gray-600::placeholder { color: #bbb !important; }
+
+/* Hover text */
+.light .hover\:text-white:hover { color: var(--text-primary) !important; }
+.light .hover\:text-gray-300:hover { color: #333 !important; }
+.light .group:hover .group-hover\:text-white { color: var(--text-primary) !important; }
+.light .group:hover .group-hover\:text-gold { color: var(--color-gold) !important; }
+.light .group:hover .group-hover\:text-gray-300 { color: #444 !important; }
+
+/* Focus text */
+.light .group:focus-within .group-focus-within\:text-gold { color: var(--color-gold) !important; }
+
+/* --- BACKGROUND COLORS --- */
+.light .bg-black { background-color: var(--color-bg-primary) !important; }
+.light .bg-black\/60 { background-color: rgba(255,255,255,0.9) !important; }
+.light .bg-black\/80 { background-color: rgba(255,255,255,0.95) !important; }
+.light .bg-bg-primary { background-color: var(--color-bg-primary) !important; }
+.light .bg-bg-secondary { background-color: var(--color-bg-secondary) !important; }
+.light .bg-bg-tertiary { background-color: var(--color-bg-tertiary) !important; }
+
+/* Fractional white backgrounds -> subtle dark */
+.light .bg-white\/\[0\.02\] { background-color: rgba(0,0,0,0.02) !important; }
+.light .bg-white\/\[0\.03\] { background-color: rgba(0,0,0,0.02) !important; }
+.light .bg-white\/\[0\.04\] { background-color: rgba(0,0,0,0.03) !important; }
+.light .bg-white\/\[0\.05\] { background-color: rgba(0,0,0,0.03) !important; }
+.light .bg-white\/\[0\.06\] { background-color: rgba(0,0,0,0.04) !important; }
+.light .bg-white\/3 { background-color: rgba(0,0,0,0.02) !important; }
+.light .bg-white\/5 { background-color: rgba(0,0,0,0.03) !important; }
+.light .bg-white\/10 { background-color: rgba(0,0,0,0.05) !important; }
+
+/* Hover backgrounds */
+.light .hover\:bg-white\/5:hover { background-color: rgba(0,0,0,0.05) !important; }
+.light .hover\:bg-white\/10:hover { background-color: rgba(0,0,0,0.06) !important; }
+.light .hover\:bg-white\/\[0\.03\]:hover { background-color: rgba(0,0,0,0.04) !important; }
+.light .hover\:bg-white\/\[0\.04\]:hover { background-color: rgba(0,0,0,0.04) !important; }
+.light .hover\:bg-white\/\[0\.06\]:hover { background-color: rgba(0,0,0,0.05) !important; }
+.light .hover\:bg-bg-tertiary:hover { background-color: var(--color-bg-tertiary) !important; }
+.light .group:hover .group-hover\:bg-gold\/5 { background-color: rgba(184,148,30,0.06) !important; }
+
+/* Gold backgrounds */
+.light .bg-gold\/5 { background-color: rgba(184,148,30,0.06) !important; }
+.light .bg-gold\/10 { background-color: rgba(184,148,30,0.08) !important; }
+.light .bg-gold\/\[0\.02\] { background-color: rgba(184,148,30,0.03) !important; }
+.light .bg-gold\/\[0\.015\] { background-color: rgba(184,148,30,0.02) !important; }
+.light .hover\:bg-gold\/5:hover { background-color: rgba(184,148,30,0.08) !important; }
+.light .hover\:bg-gold\/10:hover { background-color: rgba(184,148,30,0.1) !important; }
+
+/* bg-secondary/bg-tertiary fractional */
+.light .bg-bg-secondary\/50 { background-color: rgba(242,240,236,0.6) !important; }
+.light .bg-bg-secondary\/60 { background-color: rgba(242,240,236,0.7) !important; }
+.light .bg-bg-secondary\/70 { background-color: rgba(242,240,236,0.8) !important; }
+.light .bg-bg-secondary\/80 { background-color: rgba(242,240,236,0.9) !important; }
+.light .bg-bg-secondary\/90 { background-color: rgba(242,240,236,0.95) !important; }
+.light .bg-bg-tertiary\/50 { background-color: rgba(232,230,224,0.6) !important; }
+.light .bg-bg-primary\/50 { background-color: rgba(250,250,248,0.6) !important; }
+.light .bg-bg-primary\/80 { background-color: rgba(250,250,248,0.85) !important; }
+
+/* --- BORDER COLORS --- */
+.light .border-white\/5 { border-color: rgba(0,0,0,0.06) !important; }
+.light .border-white\/10 { border-color: rgba(0,0,0,0.1) !important; }
+.light .border-white\/15 { border-color: rgba(0,0,0,0.12) !important; }
+.light .border-white\/\[0\.05\] { border-color: rgba(0,0,0,0.06) !important; }
+.light .border-white\/\[0\.06\] { border-color: rgba(0,0,0,0.06) !important; }
+.light .border-white\/\[0\.08\] { border-color: rgba(0,0,0,0.08) !important; }
+.light .border-white\/\[0\.10\] { border-color: rgba(0,0,0,0.1) !important; }
+.light .border-gold\/20 { border-color: rgba(184,148,30,0.25) !important; }
+.light .border-gold\/30 { border-color: rgba(184,148,30,0.35) !important; }
+.light .border-gold\/40 { border-color: rgba(184,148,30,0.4) !important; }
+
+/* Hover borders */
+.light .hover\:border-white\/10:hover { border-color: rgba(0,0,0,0.1) !important; }
+.light .hover\:border-white\/15:hover { border-color: rgba(0,0,0,0.12) !important; }
+.light .hover\:border-white\/20:hover { border-color: rgba(0,0,0,0.15) !important; }
+.light .hover\:border-gold\/30:hover { border-color: rgba(184,148,30,0.35) !important; }
+.light .hover\:border-gold\/50:hover { border-color: rgba(184,148,30,0.5) !important; }
+.light .hover\:border-gold\/60:hover { border-color: rgba(184,148,30,0.6) !important; }
+.light .group:hover .group-hover\:border-gold\/20 { border-color: rgba(184,148,30,0.25) !important; }
+
+/* Focus borders */
+.light .focus\:border-gold\/50:focus { border-color: rgba(184,148,30,0.5) !important; }
+
+/* --- RING / FOCUS --- */
+.light .focus\:ring-gold\/10:focus { --tw-ring-color: rgba(184,148,30,0.1) !important; }
+.light .focus\:ring-gold\/20:focus { --tw-ring-color: rgba(184,148,30,0.2) !important; }
+
+/* --- INPUTS --- */
+.light input, .light textarea, .light select {
+  color: var(--text-primary) !important;
+}
+.light input::placeholder, .light textarea::placeholder {
+  color: #bbb !important;
+}
+
+/* --- SHADOWS --- */
+.light .shadow-black\/40 { --tw-shadow-color: rgba(0,0,0,0.06) !important; }
+.light .shadow-black\/20 { --tw-shadow-color: rgba(0,0,0,0.04) !important; }
+.light .shadow-black\/10 { --tw-shadow-color: rgba(0,0,0,0.03) !important; }
+
+/* --- HEADER --- */
+.light header { 
+  background-color: rgba(250,250,248,0.88) !important; 
+  border-bottom-color: rgba(0,0,0,0.06) !important;
+}
+.light header .border-white\/\[0\.05\] { border-color: rgba(0,0,0,0.06) !important; }
+
+/* --- FOOTER --- */
+.light footer { 
+  background-color: var(--color-bg-secondary) !important; 
+  border-color: var(--color-border) !important; 
+}
+.light footer h4 { color: var(--text-primary) !important; }
+
+/* --- BOTTOM NAV --- */
+.light nav.fixed.bottom-0 { 
+  background-color: rgba(250,250,248,0.95) !important;
+  border-top-color: var(--color-border) !important;
+}
+
+/* --- GLASSMORPHISM in light mode --- */
+.light .glassmorphism {
+  background: var(--surface-glass) !important;
+  border-color: var(--surface-glass-border) !important;
+}
+
+/* --- GRADIENT OVERLAYS (reduce in light mode) --- */
+.light .bg-gradient-to-t.from-bg-secondary { --tw-gradient-from: rgba(242,240,236,0.8) !important; }
+.light .from-gold\/\[0\.04\] { --tw-gradient-from: rgba(184,148,30,0.03) !important; }
+
+/* --- SPECIFIC COMPONENT FIXES --- */
+
+/* Receipt/feature card on home page */
+.light .bg-black\/60.backdrop-blur-2xl {
+  background-color: rgba(255,255,255,0.92) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+
+/* Opacity-based decorative elements — reduce in light */
+.light .opacity-\[0\.03\] { opacity: 0.06 !important; }
+.light .opacity-20 { opacity: 0.15 !important; }
+.light .opacity-30 { opacity: 0.25 !important; }
+.light .opacity-50 { opacity: 0.4 !important; }
+
+/* Fill gold stays same */
+.light .fill-gold { fill: var(--color-gold) !important; }
+.light .fill-gold\/20 { fill: rgba(184,148,30,0.2) !important; }
+
+/* Drop shadows */
+.light .drop-shadow-\[0_0_6px_rgba\(212\,175\,55\,0\.4\)\] {
+  filter: drop-shadow(0 0 6px rgba(184,148,30,0.3)) !important;
+}
+.light .drop-shadow-\[0_0_15px_rgba\(212\,175\,55\,0\.3\)\] {
+  filter: drop-shadow(0 0 15px rgba(184,148,30,0.2)) !important;
+}
+
+/* Shadow gold */
+.light .shadow-\[0_0_30px_rgba\(212\,175\,55\,0\.1\)\] {
+  box-shadow: 0 0 30px rgba(184,148,30,0.08) !important;
+}
+.light .shadow-\[0_0_8px_rgba\(212\,175\,55\,0\.6\)\] {
+  box-shadow: 0 0 8px rgba(184,148,30,0.4) !important;
+}
+.light .hover\:shadow-gold\/20:hover {
+  --tw-shadow-color: rgba(184,148,30,0.15) !important;
+}
+
+/* Active gold dot glow for BottomNav */
+.light .shadow-\[0_0_8px_rgba\(34\,197\,94\,0\.5\)\] {
+  box-shadow: 0 0 8px rgba(34,197,94,0.3) !important;
+}
+
+/* Gradient text stays the same in light */
+.light .gradient-text-gold {
+  background: linear-gradient(135deg, #B8941E, #D4AF37, #B8941E, #957614) !important;
+  background-size: 300% 300% !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+/* Red/Green/Blue accent colors stay readable */
+.light .text-red-400 { color: #dc2626 !important; }
+.light .text-red-500 { color: #b91c1c !important; }
+.light .text-green-400 { color: #16a34a !important; }
+.light .text-green-500 { color: #15803d !important; }
+.light .text-blue-400 { color: #2563eb !important; }
+.light .text-purple-400 { color: #7c3aed !important; }
+.light .text-orange-400 { color: #ea580c !important; }
+.light .text-emerald-400 { color: #059669 !important; }
+.light .text-yellow-400 { color: #ca8a04 !important; }
+
+/* Colored backgrounds */
+.light .bg-red-500\/10 { background-color: rgba(220,38,38,0.08) !important; }
+.light .bg-red-500\/5 { background-color: rgba(220,38,38,0.04) !important; }
+.light .bg-green-500\/10 { background-color: rgba(22,163,74,0.08) !important; }
+.light .bg-blue-500\/10 { background-color: rgba(37,99,235,0.08) !important; }
+.light .bg-purple-500\/10 { background-color: rgba(124,58,237,0.08) !important; }
+.light .bg-orange-500\/10 { background-color: rgba(234,88,12,0.08) !important; }
+.light .bg-emerald-500\/10 { background-color: rgba(5,150,105,0.08) !important; }
+
+/* Colored borders */
+.light .border-red-500\/30 { border-color: rgba(220,38,38,0.2) !important; }
+.light .border-red-500\/10 { border-color: rgba(220,38,38,0.1) !important; }
+.light .border-red-500\/20 { border-color: rgba(220,38,38,0.15) !important; }
+.light .border-green-500\/30 { border-color: rgba(22,163,74,0.2) !important; }
+.light .border-blue-500\/20 { border-color: rgba(37,99,235,0.15) !important; }
+.light .border-gold\/10 { border-color: rgba(184,148,30,0.12) !important; }
+
+/* Hover red */
+.light .hover\:text-red-300:hover { color: #ef4444 !important; }
+.light .hover\:bg-red-400\/5:hover { background-color: rgba(248,113,113,0.06) !important; }
+.light .hover\:border-red-400\/20:hover { border-color: rgba(248,113,113,0.2) !important; }
+
+/* Gray border tints */
+.light .border-gray-700 { border-color: #ddd !important; }
+.light .group:hover .group-hover\:border-gray-500 { border-color: #bbb !important; }
+
+/* Dashed borders */
+.light .border-dashed { border-style: dashed !important; }
+
+/* ============================================
+   LIGHT MODE — PREMIUM VISUAL ENHANCEMENTS
+   ============================================ */
+
+/* Cards get real shadow depth instead of just borders */
+.light .glassmorphism {
+  background: rgba(255,255,255,0.92) !important;
+  border-color: rgba(0,0,0,0.05) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 30px rgba(0,0,0,0.04) !important;
+}
+
+.light .card-hover-premium:hover {
+  box-shadow: 0 8px 40px rgba(160,122,20,0.12), 0 2px 8px rgba(0,0,0,0.06) !important;
+  border-color: rgba(160,122,20,0.3) !important;
+  transform: translateY(-4px) scale(1.01) !important;
+}
+
+/* Premium sections get subtle warm background tinting */
+.light .bg-bg-secondary {
+  background-color: #FFFFFF !important;
+  box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
+}
+
+/* Glass card has a warmer feel */
+.light .glass-card {
+  background: rgba(255,255,255,0.9) !important;
+  border-color: rgba(0,0,0,0.06) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.03) !important;
+}
+.light .glass-card:hover {
+  box-shadow: 0 12px 40px rgba(160,122,20,0.12), 0 2px 8px rgba(0,0,0,0.04) !important;
+}
+
+/* Gradient text uses deeper gold for readability on light bg */
+.light .gradient-text-gold {
+  background: linear-gradient(135deg, #8B6914, #A07A14, #C49B26, #8B6914) !important;
+  background-size: 300% 300% !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+/* Outline buttons visible in light mode */
+.light .border-white\/10 { border-color: rgba(0,0,0,0.12) !important; }
+.light .text-white\/70 { color: rgba(26,23,20,0.7) !important; }
+.light .text-white\/80 { color: rgba(26,23,20,0.8) !important; }
+.light .hover\:text-white:hover { color: var(--text-primary) !important; }
+.light .hover\:bg-white\/5:hover { background-color: rgba(0,0,0,0.04) !important; }
+.light .hover\:border-white\/20:hover { border-color: rgba(0,0,0,0.18) !important; }
+.light .opacity-50 { opacity: 0.6 !important; }
+
+/* Scroll indicator & trust badges */
+.light .text-white\/80 { color: rgba(26,23,20,0.75) !important; }
+.light .border-white\/5 { border-color: rgba(0,0,0,0.06) !important; }
+
+/* Header search bar */
+.light .bg-bg-tertiary\/50 {
+  background-color: rgba(240,237,230,0.6) !important;
+}
+
+/* Bottom border gradient */
+.light .via-gold\/30 { --tw-gradient-via: rgba(160,122,20,0.2) !important; }
+.light .via-gold\/20 { --tw-gradient-via: rgba(160,122,20,0.15) !important; }
+.light .via-gold\/15 { --tw-gradient-via: rgba(160,122,20,0.12) !important; }
+.light .via-gold\/10 { --tw-gradient-via: rgba(160,122,20,0.08) !important; }
+
+/* Feature section icon containers */
+.light .bg-bg-tertiary\/50 {
+  background-color: rgba(240,237,230,0.7) !important;
+}
+
+/* Nebula glows reduced in light mode */
+.light .bg-gold\/\[0\.03\] { background-color: rgba(160,122,20,0.02) !important; }
+.light .bg-gold\/\[0\.04\] { background-color: rgba(160,122,20,0.025) !important; }
+
+/* Stats section gold values */
+.light .text-gold.font-display { color: var(--color-gold) !important; }
+
+/* Buttons get better shadow depth */
+.light .bg-gold {
+  background-color: var(--color-gold) !important;
+  box-shadow: 0 2px 8px rgba(160,122,20,0.25), 0 1px 2px rgba(0,0,0,0.08) !important;
+}
+.light .bg-gold:hover {
+  background-color: var(--color-gold-light) !important;
+  box-shadow: 0 4px 16px rgba(160,122,20,0.3), 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+/* Receipt card in light mode */
+.light .bg-bg-secondary\/90 {
+  background-color: rgba(255,255,255,0.95) !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.03) !important;
+}
+
+/* Section separators — use warm tone */
+.light .border-border { border-color: #E5E0D5 !important; }
+.light .border-t.border-border { border-color: #E5E0D5 !important; }
+
+/* Badge pills */
+.light .bg-blue-500\/50 { background-color: rgba(37,99,235,0.12) !important; }
+.light .bg-purple-500\/50 { background-color: rgba(124,58,237,0.12) !important; }
+.light .bg-green-500\/50 { background-color: rgba(22,163,74,0.12) !important; }
+
+/* Image overlays lighter */
+.light .from-bg-secondary { --tw-gradient-from: rgba(255,255,255,0.9) !important; }
+
+/* CTA section warm gradient */
+.light .from-gold\/10 { --tw-gradient-from: rgba(160,122,20,0.06) !important; }
+
+/* --- MISSING LIGHT MODE OVERLAYS & CONTRAST FIXES --- */
+.light .bg-black\/40 { background-color: var(--color-bg-tertiary) !important; }
+.light .bg-black\/20 { background-color: var(--color-bg-secondary) !important; }
+.light .bg-black\/10 { background-color: rgba(0, 0, 0, 0.03) !important; }
+.light .bg-black\/30 { background-color: var(--color-bg-tertiary) !important; }
+.light .bg-black\/50 { background-color: var(--color-bg-tertiary) !important; }
+.light .bg-black\/95 { background-color: rgba(26,23,20,0.85) !important; }
+.light .bg-black\/90 { background-color: rgba(26,23,20,0.8) !important; }
+
+/* Force readable white text and icon colors on gold buttons/badges in light theme */
+.light .bg-gold {
+  background-color: var(--color-gold) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(160,122,20,0.25), 0 1px 2px rgba(0,0,0,0.08) !important;
+}
+.light .bg-gold * {
+  color: #FFFFFF !important;
+}
+
+/* Beautiful soft shadows for sticky bottom bar in light theme */
+.light .shadow-\[0_-10px_30px_rgba\(0\,0\,0\,0\.3\)\] {
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.03) !important;
+}

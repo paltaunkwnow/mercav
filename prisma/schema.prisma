@@ -1,0 +1,1078 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String          @id @default(uuid())
+  email               String          @unique
+  password            String?
+  name                String
+  username            String          @unique
+  avatar              String?
+  coverImage          String?
+  bio                 String?         @db.VarChar(600)
+  location            String?
+  country             String?
+  countryCode         String?
+  timezone            String?
+  isVerified          Boolean         @default(false)
+  twoFactorSecret     String?
+  twoFactorEnabled    Boolean         @default(false)
+  profileCompleteness Int             @default(0)
+  plan                Plan            @default(FREE)
+  planExpiresAt       DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  applications        Application[]
+  following           Follow[]        @relation("UserFollowing")
+  followers           Follow[]        @relation("UserFollowers")
+  sentMessages        Message[]       @relation("SenderMessages")
+  jobPosts            JobPost[]       @relation("UserJobPosts")
+  notifications       Notification[]
+  posts               Post[]
+  postComments        PostComment[]
+  postLikes           PostLike[]
+  profile             Profile?
+  reportsMade         Report[]
+  reservations        Reservation[]
+  savedJobs           SavedJob[]
+  services            Service[]
+  clientOrders        ServiceOrder[]  @relation("ClientOrders")
+  reviewsGivenService ServiceReview[]
+  spaces              Space[]
+  reviewsGivenSpace   SpaceReview[]
+  subscriptions       Subscription[]
+  suspensions         Suspension[]
+  uploadedFiles       ProjectFile[]
+  toolUsages          ToolUsage[]
+  roles               UserRole[]
+  savedSpaces         SavedSpace[]
+  savedServices       SavedService[]
+  conversations       Conversation[]  @relation("UserConversations")
+  companyMemberships  CompanyMember[]
+  transactions        Transaction[]
+  tickets             Ticket[] @relation("UserTickets")
+  involvedTickets     Ticket[] @relation("InvolvedUserTickets")
+  ticketReplies       TicketReply[]
+  posConfig           POSConfig?
+  badges              Badge[]         @relation("UserBadges")
+  
+  // Sanction System
+  isSanctioned        Boolean   @default(false)
+  sanctionReason      String?
+  sanctionExpiresAt   DateTime?
+  nit                 String?
+  ci                  String?
+  adminLogs           AdminLog[]              @relation("AdminLogs")
+  deletedContents     DeletedContentHistory[] @relation("DeletedContents")
+}
+
+model Company {
+  id          String          @id @default(uuid())
+  name        String          @unique
+  logo        String?
+  website     String?
+  description String?
+  isVerified  Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  members     CompanyMember[]
+  jobPosts    JobPost[]       @relation("OfficialCompanyJobs")
+}
+
+model CompanyMember {
+  id        String       @id @default(uuid())
+  companyId String
+  userId    String
+  role      String       @default("MEMBER")
+  status    MemberStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  company   Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId])
+}
+
+enum MemberStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model UserRole {
+  id        String   @id @default(uuid())
+  userId    String
+  role      RoleType
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+}
+
+model Profile {
+  id                 String              @id @default(uuid())
+  userId             String              @unique
+  headline           String?
+  publicEmail        String?
+  website            String?
+  profileType        String?             @default("PERSONAL")
+  availabilityStatus AvailabilityStatus?
+  availabilityWeeks  Int?
+  workMode           WorkMode?
+  salaryMin          Int?
+  salaryMax          Int?
+  salaryVisible      Boolean             @default(false)
+  salaryCurrency     String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  certifications     Certification[]
+  educations         Education[]
+  experiences        Experience[]
+  languages          Language[]
+  portfolioItems     PortfolioItem[]
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills             Skill[]
+}
+
+model Experience {
+  id          String    @id @default(uuid())
+  profileId   String
+  company     String
+  position    String
+  startDate   DateTime
+  endDate     DateTime?
+  currentJob  Boolean   @default(false)
+  description String?
+  location    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model Education {
+  id                String   @id @default(uuid())
+  profileId         String
+  institution       String
+  degree            String
+  field             String?
+  startYear         Int
+  endYear           Int?
+  currentlyStudying Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  profile           Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model Skill {
+  id        String     @id @default(uuid())
+  profileId String
+  name      String
+  level     SkillLevel
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  profile   Profile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model Language {
+  id        String        @id @default(uuid())
+  profileId String
+  name      String
+  level     LanguageLevel
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  profile   Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model Certification {
+  id        String   @id @default(uuid())
+  profileId String
+  name      String
+  issuer    String
+  year      Int
+  url       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model PortfolioItem {
+  id          String            @id @default(uuid())
+  profileId   String
+  title       String
+  description String?
+  imageUrl    String?
+  projectUrl  String?
+  category    PortfolioCategory
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  profile     Profile           @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model Space {
+  id                String        @id @default(uuid())
+  ownerId           String
+  title             String
+  description       String
+  type              SpaceType
+  address           String
+  city              String
+  country           String
+  latitude          Float?
+  longitude         Float?
+  width             Float
+  height            Float
+  unit              Unit
+  hasLighting       Boolean
+  trafficEstimate   Int?
+  pricePerDay       Decimal?
+  pricePerWeek      Decimal?
+  pricePerMonth     Decimal?
+  currency          String
+  orientation       String?       @default("Horizontal")
+  material          String?       @default("Lona")
+  minContractMonths Int?          @default(1)
+  isActive          Boolean       @default(true)
+  isFirstRentalFree Boolean       @default(true)
+  isUnderReview     Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  posts             Post[]
+  reservations      Reservation[]
+  owner             User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  images            SpaceImage[]
+  reviews           SpaceReview[]
+  savedBy           SavedSpace[]
+}
+
+model SpaceImage {
+  id        String   @id @default(uuid())
+  spaceId   String
+  url       String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  space     Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+}
+
+model Reservation {
+  id                String            @id @default(uuid())
+  spaceId           String
+  advertiserId      String
+  startDate         DateTime
+  endDate           DateTime
+  basePrice         Decimal
+  advertiserFee     Decimal
+  ownerFee          Decimal
+  totalPrice        Decimal
+  status            ReservationStatus @default(PENDING)
+  isFirstRentalFree Boolean           @default(false)
+  paymentId         String?
+  briefing          String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  advertiser        User              @relation(fields: [advertiserId], references: [id])
+  space             Space             @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+}
+
+model SpaceReview {
+  id        String   @id @default(uuid())
+  spaceId   String
+  authorId  String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  author    User     @relation(fields: [authorId], references: [id])
+  space     Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+}
+
+model Service {
+  id           String           @id @default(uuid())
+  providerId   String
+  title        String
+  description  String
+  category     ServiceCategory
+  subcategory  String?
+  deliveryDays Int?
+  revisions    Int?
+  isActive     Boolean          @default(true)
+  isUnderReview Boolean         @default(false)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  images       ServiceImage[]
+  posts        Post[]
+  provider     User             @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  orders       ServiceOrder[]
+  packages     ServicePackage[]
+  reviews      ServiceReview[]
+  savedBy      SavedService[]
+}
+
+model ServiceImage {
+  id        String   @id @default(uuid())
+  serviceId String
+  url       String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+}
+
+model ServicePackage {
+  id           String         @id @default(uuid())
+  serviceId    String
+  type         PackageType
+  name         String
+  description  String
+  price        Decimal
+  deliveryDays Int
+  revisions    Int
+  features     String[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  orders       ServiceOrder[]
+  service      Service        @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+}
+
+model ServiceOrder {
+  id             String          @id @default(uuid())
+  serviceId      String
+  packageId      String
+  clientId       String
+  providerId     String
+  status         OrderStatus     @default(PENDING)
+  totalPrice     Decimal
+  platformFee    Decimal
+  providerPayout Decimal
+  startDate      DateTime?
+  dueDate        DateTime?
+  completedAt    DateTime?
+  briefing       String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  milestones     Milestone[]
+  client         User            @relation("ClientOrders", fields: [clientId], references: [id])
+  package        ServicePackage  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  service        Service         @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  reviews        ServiceReview[]
+  tickets        Ticket[]
+  files          ProjectFile[]
+  transactions   Transaction[]
+}
+
+model ProjectFile {
+  id           String       @id @default(uuid())
+  orderId      String
+  name         String
+  url          String
+  size         String
+  type         String
+  uploadedById String
+  createdAt    DateTime     @default(now())
+  order        ServiceOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  uploadedBy   User         @relation(fields: [uploadedById], references: [id])
+}
+
+model Milestone {
+  id          String          @id @default(uuid())
+  orderId     String
+  title       String
+  description String?
+  amount      Decimal
+  status      MilestoneStatus @default(PENDING)
+  dueDate     DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  order       ServiceOrder    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model ServiceReview {
+  id        String       @id @default(uuid())
+  serviceId String
+  orderId   String
+  authorId  String
+  rating    Int
+  comment   String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  author    User         @relation(fields: [authorId], references: [id])
+  order     ServiceOrder @relation(fields: [orderId], references: [id])
+  service   Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+}
+
+model JobPost {
+  id               String                @id @default(uuid())
+  companyId        String
+  officialCompanyId String?
+  title            String
+  description      String
+  requirements     String
+  responsibilities String?
+  benefits         String?
+  employmentType   EmploymentType
+  workMode         WorkMode
+  city             String
+  country          String
+  salaryMin        Int?
+  salaryMax        Int?
+  salaryCurrency   String?
+  salaryVisible    Boolean               @default(false)
+  experienceLevel  ExperienceLevel
+  expiresAt        DateTime?
+  isActive         Boolean               @default(true)
+  isUnderReview    Boolean               @default(false)
+  viewCount        Int                   @default(0)
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  applications     Application[]
+  questions        ApplicationQuestion[]
+  company          User                  @relation("UserJobPosts", fields: [companyId], references: [id], onDelete: Cascade)
+  officialCompany  Company?              @relation("OfficialCompanyJobs", fields: [officialCompanyId], references: [id])
+  posts            Post[]
+  savedBy          SavedJob[]
+}
+
+model ApplicationQuestion {
+  id         String              @id @default(uuid())
+  jobPostId  String
+  question   String
+  type       QuestionType
+  options    String[]
+  isRequired Boolean             @default(true)
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+  answers    ApplicationAnswer[]
+  jobPost    JobPost             @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+}
+
+model Application {
+  id          String              @id @default(uuid())
+  jobPostId   String
+  applicantId String
+  coverLetter String?
+  status      ApplicationStatus   @default(RECIBIDO)
+  notes       String?
+  chatEnabled Boolean             @default(false)
+  appliedAt   DateTime            @default(now())
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  applicant   User                @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  jobPost     JobPost             @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+  answers     ApplicationAnswer[]
+
+  @@unique([jobPostId, applicantId])
+}
+
+model ApplicationAnswer {
+  id            String              @id @default(uuid())
+  applicationId String
+  questionId    String
+  answer        String
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  application   Application         @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  question      ApplicationQuestion @relation(fields: [questionId], references: [id])
+}
+
+model SavedJob {
+  id        String   @id @default(uuid())
+  userId    String
+  jobPostId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  jobPost   JobPost  @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobPostId])
+}
+
+model SavedSpace {
+  id        String   @id @default(uuid())
+  userId    String
+  spaceId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  space     Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, spaceId])
+}
+
+model SavedService {
+  id        String   @id @default(uuid())
+  userId    String
+  serviceId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, serviceId])
+}
+
+model Conversation {
+  id        String              @id @default(uuid())
+  context   ConversationContext
+  contextId String?
+  isEnabled Boolean             @default(true)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  messages  Message[]
+  participants User[]           @relation("UserConversations")
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  senderId       String
+  content        String
+  attachmentUrl  String?
+  attachmentType String?
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation("SenderMessages", fields: [senderId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+model Post {
+  id              String        @id @default(uuid())
+  authorId        String
+  content         String
+  images          String[]
+  videoUrl        String?
+  linkUrl         String?
+  module          PostModule    @default(GENERAL)
+  isActive        Boolean       @default(true)
+  isUnderReview   Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  jobId           String?
+  serviceId       String?
+  spaceId         String?
+  linkDescription String?
+  linkImage       String?
+  linkTitle       String?
+  author          User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  job             JobPost?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  service         Service?      @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  space           Space?        @relation(fields: [spaceId], references: [id], onDelete: SetNull)
+  comments        PostComment[]
+  likes           PostLike[]
+}
+
+model PostLike {
+  id        String       @id @default(uuid())
+  postId    String
+  userId    String
+  type      ReactionType
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+}
+
+model PostComment {
+  id        String        @id @default(uuid())
+  postId    String
+  authorId  String
+  content   String
+  parentId  String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent    PostComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   PostComment[] @relation("CommentReplies")
+  post      Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id        String             @id @default(uuid())
+  userId    String
+  plan      Plan
+  status    SubscriptionStatus
+  startDate DateTime
+  endDate   DateTime?
+  paymentId String?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id          String       @id @default(uuid())
+  reporterId  String
+  targetType  TargetType
+  targetId    String
+  reason      String
+  description String
+  status      ReportStatus @default(PENDING)
+  resolvedBy  String?
+  resolvedAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  reporter    User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+}
+
+model ToolUsage {
+  id         String   @id @default(uuid())
+  userId     String
+  toolName   String
+  inputData  Json
+  outputData Json?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model InvestorContact {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  company   String?
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Suspension {
+  id          String    @id @default(uuid())
+  userId      String
+  reason      String
+  suspendedBy String
+  startDate   DateTime
+  endDate     DateTime?
+  isPermanent Boolean   @default(false)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GlobalConfig {
+  id                    String   @id @default("singleton")
+  platformFeePercentage Float    @default(10.0)
+  maintenanceMode       Boolean  @default(false)
+  minVerificationScore  Int      @default(70)
+  supportEmail          String   @default("soporte@mercav.lat")
+  
+  // Practical Admin Tools
+  announcementText      String?
+  announcementLink      String?
+  allowNewRegistrations Boolean  @default(true)
+  featuredServiceId     String?
+  featuredSpaceId       String?
+  maintenanceMessage    String?  @default("El sistema está bajo mantenimiento programado. Volveremos pronto.")
+  
+  updatedAt             DateTime @updatedAt
+}
+
+enum Plan {
+  FREE
+  PROFESSIONAL
+  EMPRESA
+  ELITE
+}
+
+enum RoleType {
+  ANUNCIANTE
+  DUENO_ESPACIO
+  FREELANCER
+  CANDIDATO
+  ADMIN
+}
+
+enum AvailabilityStatus {
+  INMEDIATA
+  EN_SEMANAS
+  NO_DISPONIBLE
+}
+
+enum WorkMode {
+  PRESENCIAL
+  REMOTO
+  HIBRIDO
+}
+
+enum SkillLevel {
+  BASICO
+  INTERMEDIO
+  AVANZADO
+}
+
+enum LanguageLevel {
+  BASICO
+  INTERMEDIO
+  AVANZADO
+  NATIVO
+}
+
+enum PortfolioCategory {
+  ADS
+  SERVICES
+  GENERAL
+}
+
+enum SpaceType {
+  LETRERO
+  VALLA
+  VIDRIERA
+  REVISTA
+  PACKAGING
+  AUTO
+  PANTALLA
+  OTRO
+}
+
+enum Unit {
+  CM
+  M
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum ServiceCategory {
+  DESARROLLO_WEB
+  DISENO
+  MARKETING
+  SEO
+  REDACCION
+  VIDEO
+  FOTOGRAFIA
+  IA
+  CONSULTORIA
+  OTRO
+}
+
+enum PackageType {
+  BASICO
+  ESTANDAR
+  PREMIUM
+}
+
+enum OrderStatus {
+  PENDING
+  IN_PROGRESS
+  IN_REVIEW
+  REVISION
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum MilestoneStatus {
+  PENDING
+  COMPLETED
+  PAID
+}
+
+enum EmploymentType {
+  TIEMPO_COMPLETO
+  PART_TIME
+  FREELANCE
+  PASANTIA
+}
+
+enum ExperienceLevel {
+  SIN_EXPERIENCIA
+  JUNIOR
+  SEMI_SENIOR
+  SENIOR
+}
+
+enum QuestionType {
+  TEXTO
+  SELECCION_MULTIPLE
+  SI_NO
+}
+
+enum ApplicationStatus {
+  RECIBIDO
+  EN_REVISION
+  ENTREVISTA
+  OFERTA
+  CONTRATADO
+  DESCARTADO
+}
+
+enum ConversationContext {
+  GENERAL
+  JOB_APPLICATION
+  SERVICE_ORDER
+  SPACE_INQUIRY
+}
+
+enum PostModule {
+  ADS
+  SERVICES
+  JOBS
+  GENERAL
+}
+
+enum ReactionType {
+  INTERESA
+  UTIL
+  INSPIRADOR
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum TargetType {
+  USER
+  POST
+  JOB
+  SPACE
+  SERVICE
+}
+
+model Transaction {
+  id              String            @id @default(uuid())
+  stripeId        String            @unique
+  amount          Decimal
+  currency        String
+  status          TransactionStatus @default(PENDING)
+  metadata        Json?
+  userId          String?
+  user            User?             @relation(fields: [userId], references: [id])
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  tickets         Ticket[]
+  orderId         String?
+  order           ServiceOrder?     @relation(fields: [orderId], references: [id])
+}
+
+enum TransactionStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+}
+
+model Ticket {
+  id            String         @id @default(uuid())
+  userId        String
+  subject       String
+  message       String
+  category      TicketCategory
+  status        TicketStatus   @default(OPEN)
+  orderId       String?
+  transactionId String?
+  involvedUserId String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  user          User           @relation("UserTickets", fields: [userId], references: [id], onDelete: Cascade)
+  involvedUser  User?          @relation("InvolvedUserTickets", fields: [involvedUserId], references: [id])
+  order         ServiceOrder?  @relation(fields: [orderId], references: [id])
+  transaction   Transaction?   @relation(fields: [transactionId], references: [id])
+  replies       TicketReply[]
+}
+
+model TicketReply {
+  id        String   @id @default(uuid())
+  ticketId  String
+  userId    String
+  message   String
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum TicketCategory {
+  PAYMENT_ERROR
+  DOUBLE_PAYMENT
+  FRAUD
+  SCAM
+  TECHNICAL_ISSUE
+  OTHER
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model POSConfig {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  shopName      String?
+  logoUrl       String?
+  currency      String   @default("USD")
+  country       String?
+  department    String?
+  city          String?
+  address       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categories    POSCategory[]
+  products      POSProduct[]
+  sales         POSSale[]
+  cashSessions  POSCashSession[]
+}
+
+model POSCategory {
+  id          String       @id @default(uuid())
+  posConfigId String
+  name        String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  posConfig   POSConfig    @relation(fields: [posConfigId], references: [id], onDelete: Cascade)
+  products    POSProduct[]
+}
+
+model POSProduct {
+  id           String         @id @default(uuid())
+  posConfigId  String
+  categoryId   String?
+  name         String
+  description  String?
+  price        Decimal
+  costPrice    Decimal        @default(0)
+  stock        Int            @default(0)
+  imageUrl     String?
+  isActive     Boolean        @default(true)
+  isKosher     Boolean        @default(false)
+  isHalal      Boolean        @default(false)
+  isVegan      Boolean        @default(false)
+  isGlutenFree Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  posConfig    POSConfig      @relation(fields: [posConfigId], references: [id], onDelete: Cascade)
+  category     POSCategory?   @relation(fields: [categoryId], references: [id])
+  saleItems    POSSaleItem[]
+}
+
+model POSSale {
+  id              String         @id @default(uuid())
+  posConfigId     String
+  cashSessionId   String
+  totalAmount     Decimal
+  discountAmount  Decimal        @default(0)
+  discountType    String?        // PERCENTAGE or FIXED
+  orderType       String         // TABLE, TOGO, EMPLOYEE
+  deliveryChannel String?        // Rappi, PedidosYa, etc.
+  receivedAmount  Decimal        @default(0)
+  changeAmount    Decimal        @default(0)
+  transactionId   String         @unique @default(cuid())
+  clientNit       String?
+  clientName      String?
+  createdAt       DateTime       @default(now())
+  posConfig       POSConfig      @relation(fields: [posConfigId], references: [id], onDelete: Cascade)
+  cashSession     POSCashSession @relation(fields: [cashSessionId], references: [id])
+  items           POSSaleItem[]
+}
+
+model POSSaleItem {
+  id         String     @id @default(uuid())
+  saleId     String
+  productId  String
+  quantity   Int
+  unitPrice  Decimal
+  subtotal   Decimal
+  sale       POSSale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product    POSProduct @relation(fields: [productId], references: [id])
+}
+
+model POSCashSession {
+  id              String    @id @default(uuid())
+  posConfigId     String
+  openingAmount   Decimal
+  closingAmount   Decimal?
+  expectedAmount  Decimal?
+  difference      Decimal?
+  status          String    @default("OPEN") // OPEN, CLOSED
+  openedAt        DateTime  @default(now())
+  closedAt        DateTime?
+  posConfig       POSConfig @relation(fields: [posConfigId], references: [id], onDelete: Cascade)
+  sales           POSSale[]
+}
+model Badge {
+  id          String   @id @default(uuid())
+  name        String
+  icon        String   // URL del logo (PNG)
+  description String?
+  createdAt   DateTime @default(now())
+  users       User[]   @relation("UserBadges")
+}
+
+model BillingClient {
+  id        String   @id @default(uuid())
+  nit       String   @unique
+  name      String
+  email     String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AdminLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  action    String
+  details   String
+  createdAt DateTime @default(now())
+  admin     User     @relation("AdminLogs", fields: [adminId], references: [id], onDelete: Cascade)
+}
+
+model DeletedContentHistory {
+  id           String   @id @default(uuid())
+  contentType  String   // POST, SERVICE, SPACE, JOB
+  contentId    String
+  contentOwner String
+  contentData  Json
+  reason       String
+  deletedById  String
+  deletedAt    DateTime @default(now())
+  deletedBy    User     @relation("DeletedContents", fields: [deletedById], references: [id], onDelete: Cascade)
+}
