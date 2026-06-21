@@ -35,11 +35,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const space = await prisma.space.findUnique({ where: { id: params.id } });
     if (!space) return NextResponse.json({ success: false, error: "No encontrado" }, { status: 404 });
 
-    const isAdmin = await prisma.userRole.findFirst({
-      where: { userId: user.id, role: "ADMIN" }
-    }) !== null;
-
-    if (space.ownerId !== user.id && !isAdmin) {
+    if (space.ownerId !== user.id && user.role !== "ADMIN") {
       return NextResponse.json({ success: false, error: "No autorizado" }, { status: 403 });
     }
 
@@ -98,10 +94,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     const space = await prisma.space.findUnique({ where: { id: params.id } });
 
     if (!space) return NextResponse.json({ success: false, error: "No encontrado" }, { status: 404 });
-    const isAdmin = user ? (await prisma.userRole.findFirst({
-      where: { userId: user.id, role: "ADMIN" }
-    }) !== null) : false;
-    if (space.ownerId !== user?.id && !isAdmin) return NextResponse.json({ success: false, error: "No autorizado" }, { status: 403 });
+    if (space.ownerId !== user?.id && user?.role !== "ADMIN") return NextResponse.json({ success: false, error: "No autorizado" }, { status: 403 });
 
     await prisma.space.delete({ where: { id: params.id } });
     return NextResponse.json({ success: true });

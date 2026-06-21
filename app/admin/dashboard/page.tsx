@@ -554,7 +554,7 @@ async function CompaniesTab() {
                     </div>
                     <div>
                       <p className="text-white font-bold">{req.company.name}</p>
-                      <p className="text-[10px] text-gray-500">{req.company.website || "Empresa"}</p>
+                      <p className="text-[10px] text-gray-500">{req.company.industry || "General"}</p>
                     </div>
                   </div>
                 </td>

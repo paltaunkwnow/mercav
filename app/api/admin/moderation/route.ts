@@ -28,7 +28,7 @@ export async function POST(req: Request) {
           data: {
             userId: targetId,
             reason: reason || "Infracción de los términos de servicio",
-            suspendedBy: (session.user as any).id || "ADMIN",
+            suspendedBy: session.user.id || "ADMIN",
             startDate: new Date(),
             endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10),
             isActive: true

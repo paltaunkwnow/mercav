@@ -11,7 +11,7 @@ export async function GET(req: Request, { params }: { params: { username: string
       orderBy: { createdAt: "desc" },
       include: {
         author: { select: { id: true, name: true, username: true, avatar: true, bio: true, location: true, country: true, isVerified: true, profile: { select: { headline: true, profileType: true } } } },
-        likes: { select: { type: true, userId: true } },
+        postLikes: { select: { type: true, userId: true } },
         _count: { select: { comments: true, likes: true } },
         job: { select: { id: true, title: true, city: true, country: true, salaryMin: true, salaryMax: true, salaryCurrency: true, company: { select: { id: true, name: true, avatar: true, isVerified: true } } } },
         service: { select: { id: true, title: true, provider: { select: { id: true, name: true, avatar: true, isVerified: true } }, packages: { take: 1, orderBy: { price: "asc" }, select: { price: true } } } },

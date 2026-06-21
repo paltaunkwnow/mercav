@@ -91,7 +91,6 @@ export default function EditarPerfilPage() {
     salaryMax: "",
     salaryCurrency: "USD",
     salaryVisible: false,
-    twoFactorEnabled: false,
   });
 
   const completeness = useMemo(() => {

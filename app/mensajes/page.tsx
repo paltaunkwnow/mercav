@@ -135,8 +135,8 @@ function MensajesUI() {
   };
 
   useEffect(() => {
-    const convId = searchParams?.get("convId");
-    const toUserId = searchParams?.get("to");
+    const convId = searchParams.get("convId");
+    const toUserId = searchParams.get("to");
 
     if (!isAuthLoading && currentUserId) {
       if (convId) {

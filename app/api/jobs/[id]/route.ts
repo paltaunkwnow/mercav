@@ -13,11 +13,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             id: true,
             name: true,
             avatar: true,
-            profile: {
-              select: {
-                headline: true
-              }
-            }
+            headline: true
           }
         },
         _count: {

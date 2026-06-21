@@ -27,7 +27,7 @@ export async function POST(
     await prisma.ticketReply.create({
       data: {
         ticketId: params.id,
-        userId: (session.user as any).id as string,
+        userId: session.user.id as string,
         message: "El equipo de soporte ha invitado a la contraparte a este ticket para mediar en la resolución.",
         isAdmin: true
       }

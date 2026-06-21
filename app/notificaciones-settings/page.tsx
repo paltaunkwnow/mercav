@@ -17,14 +17,14 @@ export default function NotificacionesPage() {
     emailNotifications: true
   });
 
-  const handleToggle = (key: keyof typeof notifications) => {
+  const handleToggle = (key: string) => {
     setNotifications(prev => ({
       ...prev,
       [key]: !prev[key]
     }));
   };
 
-  const categories: { title: string; items: { key: keyof typeof notifications; label: string }[] }[] = [
+  const categories = [
     {
       title: "Mensajería",
       items: [

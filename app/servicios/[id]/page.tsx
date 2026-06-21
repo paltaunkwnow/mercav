@@ -17,8 +17,7 @@ import {
   Target,
   Trophy,
   History,
-  Crown,
-  MonitorPlay
+  Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SaveButton } from "@/components/ui/SaveButton";

@@ -139,7 +139,7 @@ export default async function ClientesPage() {
                   <div className="flex items-center gap-6">
                     <div className="text-right">
                       <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black">Monto</p>
-                      <p className="text-white font-mono font-bold text-xl">${client.price.toString()}</p>
+                      <p className="text-white font-mono font-bold text-xl">${client.price}</p>
                     </div>
                     <div className="flex gap-2">
                        <Button variant="outline" size="icon" asChild className="rounded-xl border-border hover:border-gold h-12 w-12">

@@ -281,8 +281,10 @@ export default function OrderDashboardClient({
               </Button>
             )}
             <DropdownMenu>
-              <DropdownMenuTrigger className="w-14 h-14 rounded-2xl border border-white/10 hover:bg-white/5 p-0 focus:ring-0 flex items-center justify-center bg-transparent text-gray-500 cursor-pointer">
-                <MoreVertical size={20} />
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-14 h-14 rounded-2xl border-white/10 hover:bg-white/5 p-0 focus:ring-0">
+                  <MoreVertical size={20} className="text-gray-500" />
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-[#0c0c0c] border-white/10 text-white rounded-2xl p-2 shadow-2xl">
                 <DropdownMenuItem className="rounded-xl hover:bg-white/5 py-3 cursor-pointer">

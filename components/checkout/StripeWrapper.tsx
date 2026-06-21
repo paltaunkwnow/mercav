@@ -25,12 +25,6 @@ export default function StripeWrapper({ clientSecret, amount }: StripeWrapperPro
           theme: 'night',
           variables: {
             colorPrimary: '#D4AF37',
-            colorBackground: '#111111',
-            colorText: '#ffffff',
-            colorDanger: '#ff3333',
-            fontFamily: 'var(--font-sans)',
-            spacingUnit: '4px',
-            borderRadius: '8px',
           },
         },
       }}

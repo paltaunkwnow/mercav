@@ -23,7 +23,7 @@ import Link from "next/link";
 function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const initialQuery = searchParams?.get("q") || "";
+  const initialQuery = searchParams.get("q") || "";
   
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<any>(null);

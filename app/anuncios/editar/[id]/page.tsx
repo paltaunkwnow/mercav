@@ -26,7 +26,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 
 export default function EditarEspacioPage() {
-  const { id } = useParams() as { id: string };
+  const { id } = useParams();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

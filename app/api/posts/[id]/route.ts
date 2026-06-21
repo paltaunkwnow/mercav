@@ -23,9 +23,8 @@ export async function DELETE(
 
     if (!post) return NextResponse.json({ success: false, error: "Publicación no encontrada" }, { status: 404 });
 
-    const isAdmin = await prisma.userRole.findFirst({
-      where: { userId: user.id, role: "ADMIN" }
-    }) !== null;
+    // Check if user is author OR admin
+    const isAdmin = user.role === "ADMIN";
     const isAuthor = post.authorId === user.id;
 
     if (!isAuthor && !isAdmin) {

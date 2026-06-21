@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth";
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user || !(session.user as any).roles?.includes("ADMIN")) {
+    if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
@@ -28,7 +28,7 @@ export async function GET(req: Request) {
         id: true,
         username: true,
         name: true,
-        avatar: true,
+        image: true,
       },
       take: 5,
     });

@@ -31,7 +31,7 @@ export function FollowButton({ userId, username, initialFollowed = false }: { us
 
   return (
     <Button
-      variant={isFollowing ? "default" : "outline"}
+      variant={isFollowing ? "solid" : "outline"}
       onClick={handleFollow}
       disabled={loading}
       className={`h-11 px-6 rounded-xl ${isFollowing ? 'bg-bg-tertiary text-white border-border hover:bg-bg-secondary' : 'border-border text-white hover:border-gold hover:text-gold bg-bg-tertiary'}`}

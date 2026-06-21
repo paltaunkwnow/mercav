@@ -86,42 +86,39 @@ export async function GET(req: Request) {
       };
     });
 
-    const suggestedUsersConditions: any[] = [];
-    if (me.location) suggestedUsersConditions.push({ location: { contains: me.location, mode: "insensitive" } });
-    if (me.country) suggestedUsersConditions.push({ country: { contains: me.country, mode: "insensitive" } });
-
     const suggestedUsers = await prisma.user.findMany({
       where: {
         id: { not: me.id, notIn: followedUserIds },
-        ...(suggestedUsersConditions.length > 0 ? { OR: suggestedUsersConditions } : {})
+        OR: [
+          me.location ? { location: { contains: me.location, mode: "insensitive" } } : undefined,
+          me.country ? { country: { contains: me.country, mode: "insensitive" } } : undefined
+        ].filter(Boolean)
       },
       take: 5,
       select: { id: true, name: true, username: true, avatar: true, bio: true, location: true, badges: true, profile: { select: { headline: true } } }
     });
 
-    const recommendedJobsConditions: any[] = [];
-    if (me.location) recommendedJobsConditions.push({ city: { contains: me.location, mode: "insensitive" } });
-    if (me.country) recommendedJobsConditions.push({ country: { contains: me.country, mode: "insensitive" } });
-
     const recommendedJobs = await prisma.jobPost.findMany({
       where: {
         isActive: true,
         isUnderReview: false,
-        ...(recommendedJobsConditions.length > 0 ? { OR: recommendedJobsConditions } : {})
+        OR: [
+          me.location ? { city: { contains: me.location, mode: "insensitive" } } : undefined,
+          me.country ? { country: { contains: me.country, mode: "insensitive" } } : undefined,
+        ].filter(Boolean)
       },
       take: 5,
       include: { company: { select: { id: true, name: true, avatar: true, isVerified: true } } }
     });
 
-    const featuredSpacesConditions: any[] = [];
-    if (me.location) featuredSpacesConditions.push({ city: { contains: me.location, mode: "insensitive" } });
-    if (me.country) featuredSpacesConditions.push({ country: { contains: me.country, mode: "insensitive" } });
-
     const featuredSpaces = await prisma.space.findMany({
       where: {
         isActive: true,
         isUnderReview: false,
-        ...(featuredSpacesConditions.length > 0 ? { OR: featuredSpacesConditions } : {})
+        OR: [
+          me.location ? { city: { contains: me.location, mode: "insensitive" } } : undefined,
+          me.country ? { country: { contains: me.country, mode: "insensitive" } } : undefined,
+        ].filter(Boolean)
       },
       take: 5,
       include: { images: { take: 1, orderBy: { order: "asc" } }, owner: { select: { id: true, name: true, avatar: true, isVerified: true } } }

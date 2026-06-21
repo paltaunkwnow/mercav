@@ -58,6 +58,7 @@ export default async function PedidosPage({
   const spacePurchases = await prisma.reservation.findMany({
     where: { advertiserId: user.id },
     include: {
+      space: true,
       space: {
         include: {
           owner: { select: { name: true, avatar: true } }
