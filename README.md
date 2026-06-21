@@ -1,115 +1,144 @@
-# Mercav | Ecosistema Digital Latinoamericano
+# 🌌 Mercav | Ecosistema Digital Latinoamericano
 
-![Mercav Preview](https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070&auto=format&fit=crop)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38bdf8?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-123a50?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/License-Proprietary-gold?style=for-the-badge)](#)
 
-Mercav es una plataforma integral diseñada para conectar profesionales, empresas y anunciantes en toda Latinoamérica. Combina un marketplace de publicidad exterior, una plataforma de servicios freelance, una bolsa de empleo y una red social profesional en un solo ecosistema digital premium.
-
----
-
-## 🚀 Tecnologías Core
-
-- **Framework**: [Next.js 14](https://nextjs.org/) (App Router & Server Components)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) (Custom "Black & Gold" Design System)
-- **Animations**: [Framer Motion](https://www.framer.com/motion/) (High-end cinematic transitions)
-- **Database**: [Prisma ORM](https://www.prisma.io/) + PostgreSQL
-- **Auth**: [NextAuth.js](https://next-auth.js.org/)
-- **Real-time**: [Socket.io](https://socket.io/) (Messaging & Notifications)
+> **Mercav** es una plataforma integral de última generación diseñada para digitalizar, conectar y potenciar profesionales, empresas y anunciantes en toda Latinoamérica. Unifica un marketplace de publicidad exterior, un directorio de servicios freelance con sistema de escrow, una bolsa de empleo avanzada y una red social corporativa bajo una experiencia de usuario cinematográfica premium.
 
 ---
 
-## 🗂️ Estructura del Proyecto
+## 🎨 Filosofía de Diseño: "Seamless Cinematic Experience"
 
-El proyecto sigue una arquitectura moderna de Next.js centrada en la escalabilidad y el rendimiento.
+Mercav no es solo una herramienta, es una experiencia visual. Diseñado con una estética **Black & Gold**, combina:
+- **Modo Oscuro Profundo (Deep Dark Mode)**: Interfaces de alto contraste y baja fatiga visual.
+- **Glassmorphism**: Componentes translúcidos con desenfoque de fondo dinámico.
+- **Micro-animaciones fluidas**: Desarrolladas con **Framer Motion** para transiciones suaves y naturales.
+- **Tipografía moderna**: Jerarquías visuales limpias para una lectura óptima y un sentimiento exclusivo.
+
+---
+
+## 🚀 Módulos Principales de la Plataforma
+
+| Módulo | Descripción | Características Clave |
+| :--- | :--- | :--- |
+| **📢 Mercav Ads (Spaces)** | Marketplace digital para publicidad exterior (Vallas, Pantallas LED, Totems). | • Búsqueda geográfica y filtros.<br>• Reserva en tiempo real.<br>• Visualización de impacto y alcance métrico. |
+| **🛠️ Mercav Services** | Directorio de talentos freelance y agencias verificadas en Latinoamérica. | • Portafolios interactivos.<br>• Contratación directa segura.<br>• Calificaciones y reseñas auditadas. |
+| **💼 Mercav Jobs** | Bolsa de trabajo moderna optimizada para reclutadores y aplicantes. | • Postulación ágil en un clic.<br>• Perfiles de empresas interactivos.<br>• Seguimiento de candidaturas en tiempo real. |
+| **🤝 Mercav Comunidad** | Red social corporativa para networking y el movimiento *Build in Public*. | • Feed interactivo con soporte multimedia.<br>• Reacciones personalizadas.<br>• Mensajería directa fluida. |
+
+---
+
+## 🗂️ Estructura y Arquitectura del Proyecto
+
+El proyecto sigue las directrices del **App Router de Next.js**, separando de forma clara la lógica de servidor de la interactividad del cliente:
 
 ```bash
-mercavgemini/
-├── app/                    # Directorio principal (App Router)
-│   ├── (auth)/             # Rutas de autenticación (Login, Registro)
-│   ├── anuncios/           # Marketplace de Publicidad Exterior
-│   ├── api/                # Endpoints de API (Backend logic)
-│   ├── checkout/           # Proceso de reserva y pagos
-│   ├── comunidad/          # Red Social Profesional (Feed, Posts)
-│   ├── empleos/            # Bolsa de Trabajo
-│   ├── herramientas/       # Suite de herramientas empresariales
-│   ├── inversores/         # Sección de oportunidad de inversión
-│   ├── mensajes/           # Sistema de mensajería en tiempo real
-│   ├── nosotros/           # Manifiesto y equipo (Founder Story)
-│   ├── perfil/             # Gestión de perfiles (Pro vs Empresa)
-│   ├── servicios/          # Directorio de Talentos Freelance
-│   └── layout.tsx          # Layout global (Header, Footer, Providers)
-├── components/             # Biblioteca de componentes UI
-│   ├── home/               # Componentes específicos de la Home
-│   ├── layout/             # Header, Footer, Navigations
-│   ├── profile/            # UI relacionada con perfiles de usuario
-│   └── ui/                 # Componentes base (Shadcn + Custom)
-├── lib/                    # Lógica de negocio y utilidades
-│   ├── prisma.ts           # Cliente de Base de Datos
-│   ├── auth.ts             # Configuración de NextAuth
-│   ├── socket.ts           # Cliente de WebSockets
-│   └── utils.ts            # Helper functions
-├── prisma/                 # Esquema y Migraciones de Base de Datos
-│   └── schema.prisma       # Definición del modelo de datos
-├── public/                 # Assets estáticos (Imágenes, SVGs, Lotties)
-└── types/                  # Definiciones de TypeScript globales
+Mercav/
+├── app/                    # Directorio raíz del App Router
+│   ├── (auth)/             # Flujos de login, registro y recuperación de contraseña
+│   ├── admin/              # Panel de administración, moderación y soporte
+│   ├── anuncios/           # Vistas y flujos para el marketplace de publicidad exterior
+│   ├── api/                # Endpoints de API REST (Backend en Next.js)
+│   ├── buscar/             # Motor de búsqueda global unificado
+│   ├── checkout/           # Integración y flujo de pasarela de pagos
+│   ├── comunidad/          # Red social (Feeds, posts, interacciones)
+│   ├── dashboard/          # Dashboards del cliente, pedidos y ventas
+│   ├── empleos/            # Módulo de bolsa de empleo y postulaciones
+│   ├── herramientas/       # Herramientas internas y utilidades premium
+│   ├── mensajes/           # Módulo de chat en tiempo real y mensajería
+│   ├── perfil/             # Configuración y visualización de perfiles
+│   └── servicios/          # Directorio de profesionales freelance
+├── components/             # Componentes de React reutilizables
+│   ├── checkout/           # Componentes específicos de Stripe/pagos
+│   ├── ui/                 # Componentes base y primitivas de UI (Shadcn modificados)
+│   └── ...                 # Componentes organizados por dominio
+├── lib/                    # Lógica común, clientes y utilidades
+│   ├── prisma.ts           # Inicialización y cliente de Prisma ORM
+│   ├── stripe.ts           # Integración con Stripe API
+│   └── utils.ts            # Helper functions globales
+├── prisma/                 # Modelos de base de datos
+│   └── schema.prisma       # Esquema principal de la base de datos
+├── public/                 # Recursos estáticos (Logotipos, imágenes, HTMLs estáticos)
+└── package.json            # Dependencias del proyecto y scripts de ejecución
 ```
 
 ---
 
-## 📦 Módulos Principales
+## 🛠️ Stack Tecnológico Completo
 
-### 📢 Mercav Ads (Spaces)
-Marketplace de publicidad exterior que digitaliza la gestión de vallas y pantallas LED.
-- Sistema de reservas con verificación en tiempo real.
-- Visualización de impacto y ubicación geográfica.
-
-### 🛠️ Mercav Services
-Directorio de talentos enfocado en la calidad y la verificación de habilidades.
-- Sistema de categorías inteligente.
-- Perfiles de proveedores con portafolio integrado.
-
-### 💼 Mercav Jobs
-Plataforma de reclutamiento para el nuevo mercado laboral latinoamericano.
-- Gestión de vacantes y postulaciones simplificada.
-- Perfiles de empresa optimizados para marca empleadora.
-
-### 🤝 Mercav Comunidad
-Red social profesional que fomenta la colaboración y el "Build in Public".
-- Sistema de reacciones personalizadas.
-- Mensajería directa segura y fluida.
+*   **Frontend**: React 18, Next.js 14, Framer Motion, Tailwind CSS, Lucide React (Iconos).
+*   **Backend & APIs**: Next.js Server Actions, Route Handlers, Node.js.
+*   **Base de Datos**: PostgreSQL / MySQL, persistencia gestionada mediante **Prisma ORM**.
+*   **Autenticación**: NextAuth.js con soporte para correo/contraseña y OAuth.
+*   **Pagos**: Stripe API (Soporte para tarjetas globales y flujos de cobro).
 
 ---
 
-## 🛠️ Configuración para Desarrolladores
+## 🚀 Guía de Configuración e Instalación Local
 
-1. **Instalar dependencias**: `npm install`
-2. **Variables de Entorno**: Configurar `.env` con `DATABASE_URL` y `NEXTAUTH_SECRET`.
-3. **Database Setup**: `npx prisma db push`
-4. **Dev Mode**: `npm run dev`
+Sigue estos pasos para desplegar el entorno de desarrollo en tu máquina local:
+
+### 1. Requisitos Previos
+*   Node.js (versión 18 o superior recomendada)
+*   NPM, Yarn o PNPM
+*   Una instancia activa de base de datos (PostgreSQL o compatible)
+
+### 2. Clonar el repositorio e instalar dependencias
+```bash
+git clone https://github.com/invertilo/mercav.git
+cd mercav
+npm install
+```
+
+### 3. Configuración de Variables de Entorno
+Crea un archivo `.env` en la raíz del proyecto basándote en la siguiente plantilla:
+```env
+# Configuración de Base de Datos (Prisma)
+DATABASE_URL="postgresql://usuario:contraseña@localhost:5432/mercav_db?schema=public"
+
+# Configuración de Autenticación (NextAuth)
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="tu_secreto_super_seguro_aqui"
+
+# Pasarela de Pagos (Stripe)
+STRIPE_SECRET_KEY="sk_test_..."
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+```
+
+### 4. Configurar la Base de Datos
+Genera el cliente de Prisma y aplica el esquema actual a tu base de datos local:
+```bash
+npx prisma db push
+```
+
+### 5. Iniciar el Servidor de Desarrollo
+```bash
+npm run dev
+```
+Accede a [http://localhost:3000](http://localhost:3000) en tu navegador para ver la aplicación en ejecución.
 
 ---
 
-## 🗺️ Roadmap de Desarrollo (Tareas Pendientes)
+## 🗺️ Plan de Desarrollo y Roadmap de Funcionalidades
 
-### 💳 Fase 1: Transacciones y Pagos
-- [ ] **Pasarela de Pagos**: Integración de Stripe y métodos locales (Mercado Pago, transferencia bancaria).
-- [ ] **Sistema de Escrow**: Retención de fondos segura para servicios freelance hasta la entrega.
-- [ ] **Facturación**: Generación automática de recibos y facturas PDF premium.
+### 💳 Fase 1: Transacciones y Flujo Monetario
+*   [x] Integración base de la pasarela Stripe.
+*   [ ] Desarrollo del sistema de **Escrow** (Garantía de fondos para proyectos freelance).
+*   [ ] Panel de facturación automatizada con exportación a PDF premium.
 
-### 🔔 Fase 2: Experiencia de Usuario Pro
-- [ ] **Notificaciones Push**: Alertas en tiempo real para mensajes y actualizaciones de estado.
-- [ ] **Dashboard de Administración**: Panel de control avanzado para moderación y métricas.
-- [ ] **Modo Offline**: Cache inteligente para la sección de comunidad en dispositivos móviles.
+### 🔔 Fase 2: Interactividad & Experiencia Pro
+*   [ ] Notificaciones push web en tiempo real para mensajes y compras.
+*   [ ] Panel de control administrativo avanzado (KPIs, moderación rápida, suspensión de cuentas).
+*   [ ] Optimización de SEO dinámico y velocidad con Server Side Rendering avanzado.
 
-### 🚀 Fase 3: Expansión y Ecosistema
-- [ ] **Kerem Gastronomía**: Integración completa del módulo de reservas y delivery para Kerem by Mercav.
-- [ ] **App Móvil Nativa**: Desarrollo de la versión Android/iOS utilizando React Native o PWA avanzada.
-- [ ] **IA Matchmaking**: Algoritmo para conectar perfiles con las mejores oportunidades de empleo/servicios.
-
----
-
-## 💎 Filosofía de Diseño
-Mercav se construye bajo el estándar de **"Seamless Cinematic Experience"**. Cada interacción debe sentirse fluida, premium y libre de distracciones, utilizando una paleta de colores **Black & Gold** que transmite exclusividad y confianza.
+### 🤖 Fase 3: Ecosistema Inteligente e Integración
+*   [ ] Algoritmo de recomendación IA para empleos y freelancing.
+*   [ ] Integración del módulo de reservas y delivery gastronómico *Kerem by Mercav*.
+*   [ ] Optimización como Progressive Web App (PWA) e inicio de app nativa.
 
 ---
 
-Desarrollado con ❤️ para el futuro de Latinoamérica.
+Desarrollado con pasión para transformar el ecosistema profesional de Latinoamérica. 🚀
