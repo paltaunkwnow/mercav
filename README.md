@@ -28,6 +28,8 @@ Mercav no es solo una herramienta, es una experiencia visual. Diseñado con una 
 | **🛠️ Mercav Services** | Directorio de talentos freelance y agencias verificadas en Latinoamérica. | • Portafolios interactivos.<br>• Contratación directa segura.<br>• Calificaciones y reseñas auditadas. |
 | **💼 Mercav Jobs** | Bolsa de trabajo moderna optimizada para reclutadores y aplicantes. | • Postulación ágil en un clic.<br>• Perfiles de empresas interactivos.<br>• Seguimiento de candidaturas en tiempo real. |
 | **🤝 Mercav Comunidad** | Red social corporativa para networking y el movimiento *Build in Public*. | • Feed interactivo con soporte multimedia.<br>• Reacciones personalizadas.<br>• Mensajería directa fluida. |
+| **🧰 Mercav Tools** | Suite de herramientas empresariales y utilidades premium para profesionales y negocios. | • Herramientas de productividad integradas.<br>• Plantillas y utilidades para empresas.<br>• Automatizaciones y soporte para flujos de trabajo. |
+
 
 ---
 
