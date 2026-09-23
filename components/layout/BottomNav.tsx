@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Compass, PlusSquare, MessageSquare, User, Rss } from "lucide-react";
+import { Home, Compass, PlusSquare, MessageSquare, User, Rss, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function BottomNav() {
@@ -15,6 +15,7 @@ export function BottomNav() {
     { icon: PlusSquare, label: "Publicar", href: "/publicar" },
     { icon: MessageSquare, label: "Mensajes", href: "/mensajes" },
     { icon: User, label: "Perfil", href: "/perfil" },
+    { icon: Shield, label: "Pwn", href: "/pwn" },
   ];
 
   return (

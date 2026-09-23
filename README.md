@@ -29,6 +29,7 @@ Mercav no es solo una herramienta, es una experiencia visual. Diseñado con una 
 | **💼 Mercav Jobs** | Bolsa de trabajo moderna optimizada para reclutadores y aplicantes. | • Postulación ágil en un clic.<br>• Perfiles de empresas interactivos.<br>• Seguimiento de candidaturas en tiempo real. |
 | **🤝 Mercav Comunidad** | Red social corporativa para networking y el movimiento *Build in Public*. | • Feed interactivo con soporte multimedia.<br>• Reacciones personalizadas.<br>• Mensajería directa fluida. |
 | **🧰 Mercav Tools** | Suite de herramientas empresariales y utilidades premium para profesionales y negocios. | • Herramientas de productividad integradas.<br>• Plantillas y utilidades para empresas.<br>• Automatizaciones y soporte para flujos de trabajo. |
+| **🛡️ Mercav Pwn** | Inteligencia defensiva y monitoreo de exposición en [pwn.mercav.lat](https://pwn.mercav.lat). | • Búsqueda de exposición con HIBP, sin guardar contraseñas ni correos ajenos.<br>• Contraseñas solo por k-anonimato (el hash se calcula en el navegador).<br>• Vulnerabilidades de NVD y CISA KEV, alertas in-app y verificación DNS de dominios. |
 
 
 ---
@@ -50,14 +51,18 @@ Mercav/
 │   ├── dashboard/          # Dashboards del cliente, pedidos y ventas
 │   ├── empleos/            # Módulo de bolsa de empleo y postulaciones
 │   ├── herramientas/       # Herramientas internas y utilidades premium
+│   ├── pwn/                # Mercav Pwn (pwn.mercav.lat): exposición, monitoreo y alertas
 │   ├── mensajes/           # Módulo de chat en tiempo real y mensajería
 │   ├── perfil/             # Configuración y visualización de perfiles
 │   └── servicios/          # Directorio de profesionales freelance
 ├── components/             # Componentes de React reutilizables
 │   ├── checkout/           # Componentes específicos de Stripe/pagos
 │   ├── ui/                 # Componentes base y primitivas de UI (Shadcn modificados)
+│   ├── pwn/                # Pantallas y cliente de Mercav Pwn
 │   └── ...                 # Componentes organizados por dominio
 ├── lib/                    # Lógica común, clientes y utilidades
+│   ├── pwn/                # Motores de riesgo, confianza y redacción
+│   ├── integrations/pwn/   # Conectores HIBP, NVD y CISA KEV
 │   ├── prisma.ts           # Inicialización y cliente de Prisma ORM
 │   ├── stripe.ts           # Integración con Stripe API
 │   └── utils.ts            # Helper functions globales
@@ -73,9 +78,10 @@ Mercav/
 
 *   **Frontend**: React 18, Next.js 14, Framer Motion, Tailwind CSS, Lucide React (Iconos).
 *   **Backend & APIs**: Next.js Server Actions, Route Handlers, Node.js.
-*   **Base de Datos**: PostgreSQL / MySQL, persistencia gestionada mediante **Prisma ORM**.
+*   **Base de Datos**: PostgreSQL, persistencia gestionada mediante **Prisma ORM**. El procedimiento de Pwn está en [migrate.md](migrate.md).
 *   **Autenticación**: NextAuth.js con soporte para correo/contraseña y OAuth.
 *   **Pagos**: Stripe API (Soporte para tarjetas globales y flujos de cobro).
+*   **Mercav Pwn**: Have I Been Pwned, NVD API 2.0 y el catálogo CISA KEV. El host `pwn.mercav.lat` sirve el mismo despliegue y reescribe la raíz a `/pwn`.
 
 ---
 
@@ -102,25 +108,44 @@ Crea un archivo `.env` en la raíz del proyecto basándote en la siguiente plant
 DATABASE_URL="postgresql://usuario:contraseña@localhost:5432/mercav_db?schema=public"
 
 # Configuración de Autenticación (NextAuth)
-NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_URL="http://localhost:1337"
 NEXTAUTH_SECRET="tu_secreto_super_seguro_aqui"
 
 # Pasarela de Pagos (Stripe)
 STRIPE_SECRET_KEY="sk_test_..."
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+
+# Mercav Pwn (apagado hasta que PWN_ENABLED sea "true")
+PWN_ENABLED="false"
+PWN_IDENTIFIER_PEPPER="un_secreto_largo_y_aleatorio"
+HIBP_API_KEY=""
+NVD_API_KEY=""
+CRON_SECRET=""
 ```
 
+`PWN_IDENTIFIER_PEPPER` es obligatorio para buscar con sesión o crear objetivos. `HIBP_API_KEY` habilita las filtraciones. `CRON_SECRET` autoriza `POST /api/pwn/internal/cycle`, que revisa dominios verificados, abre alertas y guarda el catálogo público de CISA KEV. NVD y CISA KEV no exigen clave; `NVD_API_KEY` solo sube el cupo del proveedor.
+
 ### 4. Configurar la Base de Datos
-Genera el cliente de Prisma y aplica el esquema actual a tu base de datos local:
+En local, con una base desechable:
+
 ```bash
+npx prisma generate
 npx prisma db push
 ```
+
+En un entorno que ya tiene datos, no uses `db push` ni `migrate dev`. Sigue [migrate.md](migrate.md): backup y `npx prisma migrate deploy`.
 
 ### 5. Iniciar el Servidor de Desarrollo
 ```bash
 npm run dev
 ```
-Accede a [http://localhost:3000](http://localhost:3000) en tu navegador para ver la aplicación en ejecución.
+Accede a [http://localhost:1337](http://localhost:1337) en tu navegador. Mercav Pwn está en [http://localhost:1337/pwn](http://localhost:1337/pwn). En producción el mismo módulo responde en [https://pwn.mercav.lat](https://pwn.mercav.lat).
+
+Los tests de los motores de Pwn (redacción, confianza y riesgo) no necesitan la base:
+
+```bash
+npm run test:pwn
+```
 
 ---
 

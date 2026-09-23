@@ -20,11 +20,46 @@ const publicPaths = [
   '/faq',
 ];
 
+// Only these Pwn API calls may run without a session (exposure returns a boolean only).
+const pwnPublicApi: Array<{ method: string; path: string }> = [
+  { method: 'POST', path: '/api/pwn/exposure' },
+  { method: 'POST', path: '/api/pwn/passwords/range' },
+];
+
+function isPwnPublicApi(req: NextRequest, pathname: string) {
+  const path = pathname.replace(/\/$/, '');
+  return pwnPublicApi.some((route) => route.method === req.method && route.path === path);
+}
+
 export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const { pathname } = req.nextUrl;
+  const host = req.headers.get('host')?.split(':')[0]?.toLowerCase();
+  let { pathname } = req.nextUrl;
 
-  const isPublicPath = publicPaths.includes(pathname) || 
+  if (
+    host === 'pwn.mercav.lat' &&
+    !pathname.startsWith('/api') &&
+    !pathname.startsWith('/_next') &&
+    !pathname.startsWith('/pwn') &&
+    pathname !== '/login' &&
+    pathname !== '/register'
+  ) {
+    const url = req.nextUrl.clone();
+    url.pathname = pathname === '/' ? '/pwn' : `/pwn${pathname}`;
+    return NextResponse.rewrite(url);
+  }
+
+  if (pathname === '/api/pwn' || pathname.startsWith('/api/pwn/')) {
+    const cronPath = pathname.replace(/\/$/, '') === '/api/pwn/internal/cycle';
+    if (!token && !cronPath && !isPwnPublicApi(req, pathname)) {
+      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
+    }
+    if (!token) return NextResponse.next();
+  }
+
+  const isPublicPath = publicPaths.includes(pathname) ||
+                       pathname === '/pwn' ||
+                       pathname.startsWith('/pwn/') ||
                        pathname.startsWith('/api/auth') ||
                        pathname.startsWith('/api/location') ||
                        pathname.startsWith('/_next') ||

@@ -30,6 +30,7 @@ export function Header() {
               { href: "/servicios", label: "Servicios" },
               { href: "/empleos", label: "Empleos" },
               { href: "/herramientas", label: "Tools" },
+              { href: "/pwn", label: "Pwn" },
             ].map((item) => {
               const isActive = pathname === item.href;
               return (
