@@ -6,11 +6,11 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q') || '';
     const tipo = searchParams.get('tipo') || 'all';
-    const take = Number(searchParams.get('take') || 3);
-    const page = Number(searchParams.get('page') || 1);
+    const take = Math.min(12, Math.max(1, Number(searchParams.get('take') || 3) || 3));
+    const page = Math.min(20, Math.max(1, Number(searchParams.get('page') || 1) || 1));
     const skip = (page - 1) * take;
 
-    if (!q) return NextResponse.json({ success: true, data: {} });
+    if (q.trim().length < 2) return NextResponse.json({ success: true, data: {} });
 
     if (tipo === 'users') {
       const users = await prisma.user.findMany({ where: { OR: [ { name: { contains: q, mode: 'insensitive' } }, { username: { contains: q, mode: 'insensitive' } }, { location: { contains: q, mode: 'insensitive' } } ] }, take, skip, select: { id:true, name:true, username:true, avatar:true, location:true, country:true, profile: { select: { headline:true, profileType:true } } } });

@@ -5,10 +5,13 @@ import nodemailer from 'nodemailer';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const name = body.name;
-    const email = body.email;
-    const company = body.company;
-    const message = body.message;
+    const name = String(body.name || "").trim().slice(0, 120);
+    const email = String(body.email || "").trim().slice(0, 180);
+    const company = String(body.company || "").trim().slice(0, 160);
+    const message = String(body.message || "").trim().slice(0, 2000);
+    if (name.length < 2 || !email.includes("@") || message.length < 8) {
+      return NextResponse.json({ success: false, error: "Datos incompletos" }, { status: 400 });
+    }
 
     const record = await prisma.investorContact.create({ data: { name, email, company, message } });
 

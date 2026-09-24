@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { checkToolAccess } from "@/lib/toolAccess";
+import { assertPublicHttpUrl } from "@/lib/security/safe-url";
 
 function normalizeUrl(url: string) {
   return /^https?:\/\//i.test(url) ? url : `https://${url}`;
@@ -23,10 +24,13 @@ export async function POST(req: Request) {
     if (!access.allowed) return NextResponse.json({ success: false, error: access.message }, { status: 403 });
 
     const body = await req.json();
-    const url = normalizeUrl(String(body.url || ""));
-    if (!url) return NextResponse.json({ success: false, error: "URL requerida" }, { status: 400 });
+    const url = assertPublicHttpUrl(normalizeUrl(String(body.url || ""))).toString();
 
-    const response = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 Mercav SEO Analyzer" } });
+    const response = await fetch(url, {
+      headers: { "User-Agent": "MercavSEO/1.0" },
+      redirect: "manual",
+      signal: AbortSignal.timeout(8000),
+    });
     const html = await response.text();
     const textOnly = html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 

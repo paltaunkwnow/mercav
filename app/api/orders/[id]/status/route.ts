@@ -15,7 +15,8 @@ export async function PATCH(
     if (!user) return NextResponse.json({ success: false, error: "Usuario no encontrado" }, { status: 404 });
 
     const { status } = await req.json();
-    if (!status) return NextResponse.json({ success: false, error: "Estado no proporcionado" }, { status: 400 });
+    const allowed = new Set(["IN_PROGRESS", "IN_REVIEW", "REVISION", "COMPLETED", "CANCELLED", "DISPUTED"]);
+    if (!allowed.has(status)) return NextResponse.json({ success: false, error: "Estado no permitido" }, { status: 400 });
 
     const order = await prisma.serviceOrder.findUnique({
       where: { id: params.id },

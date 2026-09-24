@@ -12,22 +12,47 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const amount = Number(body.amount);
-    const currency = body.currency || 'usd';
-    const metadata = body.metadata || {};
-
-    if (!amount || amount < 0.5) {
-      return new NextResponse('El monto debe ser al menos $0.50', { status: 400 });
+    const currency = typeof body.currency === "string" && body.currency.length === 3 ? body.currency.toLowerCase() : "usd";
+    const metadata = body.metadata && typeof body.metadata === "object" ? body.metadata : {};
+    const userId = (session.user as { id?: string }).id;
+    const orderId = typeof metadata.orderId === "string" ? metadata.orderId : "";
+    if (!orderId || !userId) {
+      return new NextResponse("Pedido no verificable", { status: 400 });
     }
+
+    const order = await prisma.serviceOrder.findUnique({
+      where: { id: orderId },
+      select: { totalPrice: true, clientId: true },
+    });
+    const reservation = order
+      ? null
+      : await prisma.reservation.findUnique({
+          where: { id: orderId },
+          select: { totalPrice: true, advertiserId: true },
+        });
+    const owned =
+      (order && order.clientId === userId) || (reservation && reservation.advertiserId === userId);
+    if (!owned) {
+      return new NextResponse("No autorizado para este pedido", { status: 403 });
+    }
+
+    const amount = Number(order?.totalPrice ?? reservation?.totalPrice);
+    if (!Number.isFinite(amount) || amount < 0.5 || amount > 100_000) {
+      return new NextResponse("Monto del pedido inválido", { status: 400 });
+    }
+
+    const safeMetadata = {
+      type: typeof metadata.type === "string" ? metadata.type.slice(0, 40) : "",
+      id: typeof metadata.id === "string" ? metadata.id.slice(0, 80) : "",
+      orderId,
+      userId,
+    };
 
     // Create PaymentIntent in Stripe
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100), // Stripe expects cents
       currency,
-      metadata: {
-        ...metadata,
-        userId: (session.user as any).id,
-      },
+      metadata: safeMetadata,
       payment_method_types: ['card'],
     });
 
@@ -38,8 +63,8 @@ export async function POST(req: Request) {
         amount: amount,
         currency: currency.toUpperCase(),
         status: 'PENDING',
-        userId: (session.user as any).id,
-        metadata: metadata,
+        userId,
+        metadata: safeMetadata,
       },
     });
 
@@ -48,6 +73,6 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error('[STRIPE_CREATE_INTENT]', error);
-    return new NextResponse(error.message || 'Internal Error', { status: 500 });
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }

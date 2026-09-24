@@ -39,11 +39,14 @@ export async function PATCH(req: Request) {
         where: { user: { email: session.user.email }, isRead: false },
         data: { isRead: true }
       });
-    } else if (id) {
-      await prisma.notification.update({
-        where: { id },
-        data: { isRead: true }
+    } else if (id && typeof id === "string") {
+      const result = await prisma.notification.updateMany({
+        where: { id, user: { email: session.user.email } },
+        data: { isRead: true },
       });
+      if (result.count === 0) {
+        return NextResponse.json({ success: false, error: "No autorizado" }, { status: 403 });
+      }
     }
 
     return NextResponse.json({ success: true });

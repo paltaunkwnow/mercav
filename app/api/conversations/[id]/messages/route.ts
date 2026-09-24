@@ -14,6 +14,12 @@ export async function GET(
     const user = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!user) return NextResponse.json({ success: false, error: "Usuario no encontrado" }, { status: 404 });
 
+    const member = await prisma.conversation.findFirst({
+      where: { id: params.id, participants: { some: { id: user.id } } },
+      select: { id: true },
+    });
+    if (!member) return NextResponse.json({ success: false, error: "No autorizado" }, { status: 403 });
+
     const messages = await prisma.message.findMany({
       where: { conversationId: params.id },
       include: {
@@ -42,8 +48,16 @@ export async function POST(
     const user = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!user) return NextResponse.json({ success: false, error: "Usuario no encontrado" }, { status: 404 });
 
+    const member = await prisma.conversation.findFirst({
+      where: { id: params.id, participants: { some: { id: user.id } } },
+      select: { id: true },
+    });
+    if (!member) return NextResponse.json({ success: false, error: "No autorizado" }, { status: 403 });
+
     const { content } = await req.json();
-    if (!content) return NextResponse.json({ success: false, error: "Contenido vacío" }, { status: 400 });
+    if (!content || typeof content !== "string" || content.length > 4000) {
+      return NextResponse.json({ success: false, error: "Contenido inválido" }, { status: 400 });
+    }
 
     const message = await prisma.message.create({
       data: {

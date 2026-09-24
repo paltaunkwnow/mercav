@@ -11,23 +11,26 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("q") || "";
 
+    const q = query.trim();
+    if (q.length < 3) {
+      return NextResponse.json({ success: true, data: [] });
+    }
+
     const clients = await prisma.billingClient.findMany({
-      where: query
-        ? {
-            OR: [
-              { nit: { contains: query, mode: "insensitive" } },
-              { name: { contains: query, mode: "insensitive" } }
-            ]
-          }
-        : {},
+      where: {
+        OR: [
+          { nit: { equals: q, mode: "insensitive" } },
+          { name: { equals: q, mode: "insensitive" } },
+        ],
+      },
       orderBy: { name: "asc" },
-      take: 10
+      take: 5,
     });
 
     return NextResponse.json({ success: true, data: clients });
   } catch (error: any) {
     console.error("CLIENTS_GET_ERROR", error);
-    return NextResponse.json({ success: false, error: "Internal Error", details: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });
   }
 }
 
@@ -53,16 +56,7 @@ export async function POST(req: Request) {
     });
 
     if (existing) {
-      // Update details if they are provided and different, or just return existing
-      const updated = await prisma.billingClient.update({
-        where: { nit: cleanNit },
-        data: {
-          name: cleanName,
-          email: email || existing.email,
-          phone: phone || existing.phone
-        }
-      });
-      return NextResponse.json({ success: true, data: updated, isNew: false });
+      return NextResponse.json({ success: true, data: existing, isNew: false });
     }
 
     const newClient = await prisma.billingClient.create({
@@ -77,6 +71,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, data: newClient, isNew: true });
   } catch (error: any) {
     console.error("CLIENTS_POST_ERROR", error);
-    return NextResponse.json({ success: false, error: "Internal Error", details: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });
   }
 }

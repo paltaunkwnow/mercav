@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, X } from "lucide-react";
 import { Button } from "./button";
+import { SlideConfirm } from "@/components/motion/SlideConfirm";
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -31,12 +32,6 @@ export function ConfirmationModal({
     info: "text-blue-400 bg-blue-400/10 border-blue-400/20"
   };
 
-  const btnColors = {
-    danger: "bg-red-500 hover:bg-red-600 text-white",
-    warning: "bg-gold hover:bg-gold-light text-black font-black",
-    info: "bg-blue-500 hover:bg-blue-600 text-white"
-  };
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -47,7 +42,7 @@ export function ConfirmationModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] bg-black/45"
           />
 
           {/* Modal Container */}
@@ -57,7 +52,7 @@ export function ConfirmationModal({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="w-full max-w-md bg-bg-secondary border border-white/10 rounded-[2.5rem] p-8 shadow-2xl pointer-events-auto relative overflow-hidden"
+              className="liquid-glass liquid-glass-lens w-full max-w-md rounded-[2.5rem] p-8 pointer-events-auto relative overflow-hidden"
             >
               {/* Background Glow */}
               <div className={`absolute -top-24 -right-24 w-48 h-48 blur-[80px] opacity-20 rounded-full ${variant === 'danger' ? 'bg-red-500' : 'bg-gold'}`} />
@@ -77,22 +72,20 @@ export function ConfirmationModal({
                 <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
                 <p className="text-gray-500 text-sm leading-relaxed mb-8">{message}</p>
 
-                <div className="flex gap-3 w-full">
+                <div className="flex w-full flex-col gap-3">
+                  <SlideConfirm
+                    label={confirmText}
+                    onConfirm={() => {
+                      onConfirm();
+                      window.setTimeout(onClose, 480);
+                    }}
+                  />
                   <Button 
                     variant="ghost" 
                     onClick={onClose}
-                    className="flex-1 h-14 rounded-2xl text-gray-400 hover:text-white hover:bg-white/5 border border-white/5"
+                    className="h-12 rounded-2xl text-gray-400 hover:text-white hover:bg-white/5 border border-white/5"
                   >
                     {cancelText}
-                  </Button>
-                  <Button 
-                    onClick={() => {
-                      onConfirm();
-                      onClose();
-                    }}
-                    className={`flex-1 h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] ${btnColors[variant]}`}
-                  >
-                    {confirmText}
                   </Button>
                 </div>
               </div>

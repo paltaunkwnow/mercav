@@ -19,6 +19,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { SeekField } from "@/components/motion/SeekField";
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -51,12 +52,6 @@ function SearchContent() {
     }
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-    router.push(`/buscar?q=${encodeURIComponent(query)}`);
-  };
-
   const tabs = [
     { id: "all", label: "Todo", icon: Search },
     { id: "users", label: "Personas", icon: Users },
@@ -78,19 +73,17 @@ function SearchContent() {
   return (
     <div className="max-w-6xl mx-auto py-12 px-4">
       {/* Search Header */}
-      <div className="mb-12">
-         <form onSubmit={handleSearchSubmit} className="relative group max-w-2xl mx-auto">
-          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-gold transition-colors w-6 h-6" />
-          <input 
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="¿Qué estás buscando en Mercav?"
-            className="w-full bg-white/[0.03] border border-white/5 rounded-[2rem] h-20 pl-16 pr-8 text-xl text-white focus:outline-none focus:border-gold/30 transition-all placeholder:text-gray-600 shadow-2xl"
-          />
-          <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 bg-gold text-primary-foreground h-12 px-6 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-gold-light transition-all active:scale-95">
-            Buscar
-          </button>
-        </form>
+      <div className="mb-12 flex justify-center">
+        <SeekField
+          defaultOpen
+          value={query}
+          onValueChange={setQuery}
+          onSubmit={(next) => router.push(`/buscar?q=${encodeURIComponent(next)}`)}
+          placeholder="¿Qué estás buscando en Mercav?"
+          shut={64}
+          openWidth={640}
+          persistent
+        />
       </div>
 
       {/* Tabs */}

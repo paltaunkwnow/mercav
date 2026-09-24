@@ -7,10 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Mail, Lock, User, AtSign, Loader2, ArrowRight, CheckCircle2, Eye, EyeOff, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { authCardClass, authFieldClass, authFieldClassTrailing, authLabelClassSpaced } from '@/components/auth/fieldStyles';
+import { useCookieConsent } from '@/components/legal/CookieConsentProvider';
 
 export default function Register() {
   const router = useRouter();
   const { executeRecaptcha } = useGoogleReCaptcha();
+  const { thirdPartyAllowed, openCookieSettings } = useCookieConsent();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -57,6 +60,13 @@ export default function Register() {
     setLoading(true);
     setError('');
 
+    if (process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && !thirdPartyAllowed) {
+      setError('Para registrarte debes aceptar cookies de terceros (Google reCAPTCHA).');
+      openCookieSettings();
+      setLoading(false);
+      return;
+    }
+
     if (!executeRecaptcha) {
       setError('ReCAPTCHA no disponible. Intenta de nuevo.');
       setLoading(false);
@@ -70,7 +80,15 @@ export default function Register() {
     }
 
     try {
-      const token = await executeRecaptcha('register');
+      let token: string;
+      try {
+        token = await executeRecaptcha('register');
+      } catch {
+        setError('Activa cookies de terceros para completar el registro.');
+        openCookieSettings();
+        setLoading(false);
+        return;
+      }
       
       const res = await fetch('/api/auth/register', {
         method: 'POST',
@@ -89,7 +107,7 @@ export default function Register() {
       setError(err.message);
       setLoading(false);
     }
-  }, [executeRecaptcha, formData, router]);
+  }, [executeRecaptcha, formData, router, thirdPartyAllowed, openCookieSettings]);
 
   const passwordStrength = formData.password.length === 0 ? 0 : formData.password.length < 6 ? 1 : formData.password.length < 10 ? 2 : 3;
   const strengthLabels = ['', 'Débil', 'Aceptable', 'Fuerte'];
@@ -111,16 +129,22 @@ export default function Register() {
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-md relative z-10"
       >
-        <div className="bg-bg-secondary/70 backdrop-blur-2xl border border-white/[0.08] p-8 md:p-10 rounded-3xl shadow-2xl shadow-black/40 glassmorphism relative overflow-hidden">
+        <div className={authCardClass}>
           {/* Top accent line */}
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
           
           <div className="text-center mb-8">
-            <Link href="/" className="inline-block mb-6 group">
-              <span className="font-display font-black text-3xl gradient-text-gold">MERCAV</span>
+            <Link href="/" className="mb-6 inline-flex justify-center group rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary">
+              <img
+                src="/images/logo.png"
+                alt="Mercav"
+                className="h-14 w-14 object-contain transition-transform duration-300 group-hover:scale-105"
+                width={56}
+                height={56}
+              />
             </Link>
-            <h1 className="font-display text-2xl font-bold text-white mb-2">Crear Cuenta</h1>
-            <p className="text-gray-400 text-sm">Únete al ecosistema Mercav</p>
+            <h1 className="font-display text-2xl font-bold text-white light:text-[#1a1714] mb-2">Crear Cuenta</h1>
+            <p className="text-sm text-gray-400 light:text-gray-600">Únete al ecosistema Mercav</p>
           </div>
 
           {error && (
@@ -135,30 +159,30 @@ export default function Register() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Nombre Completo</label>
+              <label className={authLabelClassSpaced}>Nombre completo</label>
               <div className="relative group">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 group-focus-within:text-gold transition-colors duration-300" />
+                <User className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500 transition-colors duration-300 group-focus-within:text-gold" />
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full bg-bg-tertiary/50 border border-white/[0.08] rounded-xl h-12 pl-11 pr-4 text-white focus:outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/10 transition-all duration-300 placeholder:text-gray-600 backdrop-blur-sm"
+                  className={authFieldClass}
                   placeholder="Juan Pérez"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Nombre de Usuario</label>
+              <label className={authLabelClassSpaced}>Nombre de usuario</label>
               <div className="relative group">
-                <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 group-focus-within:text-gold transition-colors duration-300" />
+                <AtSign className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500 transition-colors duration-300 group-focus-within:text-gold" />
                 <input
                   type="text"
                   required
                   value={formData.username}
                   onChange={(e) => handleUsernameChange(e.target.value)}
-                  className="w-full bg-bg-tertiary/50 border border-white/[0.08] rounded-xl h-12 pl-11 pr-11 text-white focus:outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/10 transition-all duration-300 placeholder:text-gray-600 backdrop-blur-sm"
+                  className={authFieldClassTrailing}
                   placeholder="juanperez"
                   minLength={3}
                 />
@@ -175,30 +199,30 @@ export default function Register() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+              <label className={authLabelClassSpaced}>Email</label>
               <div className="relative group">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 group-focus-within:text-gold transition-colors duration-300" />
+                <Mail className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500 transition-colors duration-300 group-focus-within:text-gold" />
                 <input
                   type="email"
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="w-full bg-bg-tertiary/50 border border-white/[0.08] rounded-xl h-12 pl-11 pr-4 text-white focus:outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/10 transition-all duration-300 placeholder:text-gray-600 backdrop-blur-sm"
+                  className={authFieldClass}
                   placeholder="tu@email.com"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Contraseña</label>
+              <label className={authLabelClassSpaced}>Contraseña</label>
               <div className="relative group">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 group-focus-within:text-gold transition-colors duration-300" />
+                <Lock className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500 transition-colors duration-300 group-focus-within:text-gold" />
                 <input
                   type={showPassword ? "text" : "password"}
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  className="w-full bg-bg-tertiary/50 border border-white/[0.08] rounded-xl h-12 pl-11 pr-11 text-white focus:outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/10 transition-all duration-300 placeholder:text-gray-600 backdrop-blur-sm"
+                  className={authFieldClassTrailing}
                   placeholder="••••••••"
                   minLength={6}
                 />
@@ -240,9 +264,11 @@ export default function Register() {
           <div className="mt-5 text-center">
             <p className="text-xs text-gray-500">
               Al registrarte, aceptas nuestros{' '}
-              <Link href="/terminos" className="text-gold/70 hover:text-gold transition-colors">Términos de Servicio</Link>
-              {' '}y{' '}
-              <Link href="/privacidad" className="text-gold/70 hover:text-gold transition-colors">Política de Privacidad</Link>
+              <Link href="/terminos" className="text-gold/70 hover:text-gold transition-colors">Términos</Link>
+              {', '}
+              <Link href="/privacidad" className="text-gold/70 hover:text-gold transition-colors">Privacidad</Link>
+              {' y '}
+              <Link href="/cookies" className="text-gold/70 hover:text-gold transition-colors">Cookies</Link>
             </p>
           </div>
 

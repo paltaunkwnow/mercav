@@ -8,14 +8,14 @@ export async function verifyRecaptchaToken(token?: string) {
   const secret = process.env.RECAPTCHA_SECRET_KEY;
   
   // Skip reCAPTCHA verification if secret is not configured
+  const isDev = process.env.NODE_ENV !== "production";
   if (!secret) {
-    console.log("RECAPTCHA: Skipping verification (no secret)");
-    return { success: true, score: 1 };
+    if (isDev) return { success: true, score: 1 };
+    return { success: false, score: 0 };
   }
-  
-  if (!token || token === 'skip') {
-    console.log("RECAPTCHA: Skipping verification (no token or skip)");
-    return { success: true, score: 1 };
+
+  if (!token || token === "skip") {
+    return { success: false, score: 0 };
   }
 
   try {
@@ -30,8 +30,7 @@ export async function verifyRecaptchaToken(token?: string) {
     });
 
     const data = await res.json();
-    console.log("RECAPTCHA RESPONSE:", data);
-    
+
     return { 
       success: !!data.success, 
       score: data.score ?? 0.5, // Default to 0.5 if no score (some v3 configs)
@@ -98,17 +97,12 @@ export const authOptions: AuthOptions = {
             throw new Error("2FA_REQUIRED");
           }
           
-          console.log(`2FA Login Attempt: User ${user.email}, Token: ${token}`);
-          
           const { verify } = await import("otplib");
-          
+
           if (!user.twoFactorSecret) {
-            console.error(`2FA Error: Secret missing for user ${user.email}`);
             throw new Error("Error de configuración de seguridad");
           }
 
-          console.log(`2FA Login Attempt: User ${user.email}, Token: ${token}`);
-          
           const result = await verify({
             token: token,
             secret: user.twoFactorSecret

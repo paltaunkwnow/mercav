@@ -6,7 +6,7 @@ export async function GET(req: Request, { params }: { params: { username: string
     const target = await prisma.user.findUnique({ where: { username: params.username } });
     if (!target) return NextResponse.json({ success: false, error: "Usuario no encontrado" }, { status: 404 });
 
-    const following = await prisma.follow.findMany({ where: { followerId: target.id }, include: { following: { select: { id: true, name: true, username: true, avatar: true } } }, orderBy: { createdAt: 'desc' } });
+    const following = await prisma.follow.findMany({ where: { followerId: target.id }, include: { following: { select: { id: true, name: true, username: true, avatar: true } } }, orderBy: { createdAt: 'desc' }, take: 50 });
 
     return NextResponse.json({ success: true, data: following.map(f => f.following) });
   } catch (error) {

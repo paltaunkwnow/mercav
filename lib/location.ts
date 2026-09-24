@@ -1,7 +1,8 @@
 export async function detectLocation(ip: string) {
   try {
-    const url = ip && ip !== "::1" && ip !== "127.0.0.1" 
-      ? `https://ipapi.co/${ip}/json/` 
+    const safeIp = /^(?:\d{1,3}\.){3}\d{1,3}$|^[a-f0-9:]+$/i.test(ip) ? ip : "";
+    const url = safeIp && safeIp !== "::1" && safeIp !== "127.0.0.1"
+      ? `https://ipapi.co/${encodeURIComponent(safeIp)}/json/`
       : `https://ipapi.co/json/`;
       
     const response = await fetch(url, { cache: "no-store" });

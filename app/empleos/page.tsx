@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, MapPin, Briefcase, DollarSign, Clock, Building, ArrowRight, Sparkles, ChevronDown, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { TiltCard } from "@/components/motion/TiltCard";
 
 const normalizeStr = (str: string) => {
   if (!str) return "";
@@ -171,7 +172,7 @@ export default function EmpleosPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="max-w-5xl mx-auto relative flex flex-col md:flex-row items-stretch bg-bg-secondary/70 backdrop-blur-2xl p-2 rounded-2xl md:rounded-3xl border border-white/[0.08] shadow-2xl glassmorphism gap-2 md:gap-0 z-30"
+              className="liquid-glass-lens max-w-5xl mx-auto relative flex flex-col md:flex-row items-stretch p-2 rounded-2xl md:rounded-3xl glassmorphism gap-2 md:gap-0 z-30"
             >
               {/* Search Cargo */}
               <div className="flex-[1.2] min-w-0 flex items-center px-4 border-b md:border-b-0 md:border-r border-white/5 py-2 md:py-0">
@@ -368,8 +369,8 @@ export default function EmpleosPage() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.08, duration: 0.4 }}
                 key={job.id}
-                className="bg-bg-secondary/60 border border-white/5 p-5 md:p-6 rounded-2xl hover:border-gold/30 hover:bg-white/[0.03] transition-all duration-500 group flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center cursor-pointer glassmorphism card-hover-premium"
               >
+              <TiltCard className="bg-bg-secondary/60 border border-white/5 p-5 md:p-6 rounded-2xl hover:border-gold/30 hover:bg-white/[0.03] transition-colors duration-500 group flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center cursor-pointer glassmorphism">
                 <img src={job.company?.avatar || "https://ui-avatars.com/api/?name=Company&background=random"} alt={job.company?.name || "Empresa"} className="w-14 h-14 md:w-16 md:h-16 rounded-xl object-cover border border-white/5 group-hover:border-gold/20 transition-all duration-300" />
                 
                 <div className="flex-1 min-w-0">
@@ -397,6 +398,7 @@ export default function EmpleosPage() {
                     </Link>
                   </Button>
                 </div>
+              </TiltCard>
               </motion.div>
             ))}
           </div>

@@ -1,42 +1,44 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Bell, Menu, User, Rss, LogOut, Settings, LayoutDashboard, ShieldAlert } from "lucide-react";
+import { useState } from "react";
+import { Bell, User, Rss, LayoutDashboard, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import NotificationBell from "./NotificationBell";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { SeekField } from "@/components/motion/SeekField";
 
 export function Header() {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
+  const [search, setSearch] = useState("");
 
   if (pathname?.includes('/pos') || pathname?.includes('/admin')) return null;
 
   return (
-    <header className="fixed top-0 z-[100] w-full border-b border-border bg-bg-primary/80 backdrop-blur-xl transition-all duration-500 section-transition">
-      <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo and Desktop Nav */}
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2 group">
-            <img src="/logo.png" alt="MERCAV" className="h-8 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
-          </Link>
-          
-          <nav className="hidden md:flex items-center gap-1">
+    <header className="liquid-glass liquid-glass-lens fixed top-3 left-3 right-3 z-[100] mx-auto max-w-7xl rounded-full transition-all duration-500 section-transition">
+      <div className="container mx-auto flex h-16 min-w-0 items-center gap-2 px-3 sm:gap-3 sm:px-4">
+        <Link href="/" className="shrink-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-gold" aria-label="Mercav, inicio">
+          <img src="/images/logo.png" alt="" className="h-9 w-9 object-contain" width={36} height={36} />
+        </Link>
+
+        <nav className="scrollbar-hide hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto lg:flex" aria-label="Secciones">
             {[
               { href: "/anuncios", label: "Anuncios" },
               { href: "/servicios", label: "Servicios" },
               { href: "/empleos", label: "Empleos" },
               { href: "/herramientas", label: "Tools" },
+              { href: "/pwn", label: "Pwn" },
             ].map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link 
                   key={item.href}
                   href={item.href} 
-                  className={`text-sm font-medium px-3 py-2 rounded-lg transition-all duration-300 ${
+                  className={`shrink-0 whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium transition-all duration-300 xl:px-3 ${
                     isActive 
                       ? 'text-gold bg-gold/5' 
                       : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -47,21 +49,27 @@ export function Header() {
               );
             })}
             {session && (
-              <Link href="/feed" className="text-sm font-medium text-gold hover:text-gold-light transition-colors flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-gold/5">
+              <Link href="/feed" className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold/5 hover:text-gold-light xl:px-3">
                 <Rss className="h-3.5 w-3.5" />
                 Feed
               </Link>
             )}
-            <Link href="/inversores" className="text-sm font-medium text-gold/80 hover:text-gold transition-colors px-3 py-2 rounded-lg hover:bg-gold/5">Inversores</Link>
-          </nav>
-        </div>
+            <Link href="/inversores" className="shrink-0 whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-gold/80 transition-colors hover:bg-gold/5 hover:text-gold xl:px-3">Inversores</Link>
+        </nav>
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-2 md:gap-3">
-          <Link href="/buscar" className="hidden md:flex items-center gap-2 w-52 h-9 px-3 rounded-xl bg-bg-tertiary/50 border border-border text-sm text-gray-400 hover:border-gold/30 hover:text-white transition-all duration-300 backdrop-blur-sm">
-            <Search className="h-4 w-4 text-gray-500" />
-            <span>Buscar en Mercav...</span>
-          </Link>
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <SeekField
+            value={search}
+            onValueChange={setSearch}
+            onSubmit={(query) => router.push(`/buscar?q=${encodeURIComponent(query)}`)}
+            placeholder="Buscar"
+            shut={36}
+            openWidth={156}
+            defaultOpen
+            persistent
+            anchor="end"
+            className="hidden shrink-0 md:block"
+          />
 
           {/* Theme Toggle */}
           <ThemeToggle />
@@ -94,17 +102,24 @@ export function Header() {
                 <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-white/5 rounded-xl">
                   <Bell className="h-5 w-5" />
                 </Button>
-                <Button asChild variant="ghost" className="hidden md:flex text-gray-300 hover:text-white text-sm rounded-xl">
+                <Button asChild variant="ghost" className="hidden shrink-0 rounded-xl text-sm text-gray-300 hover:text-white md:inline-flex">
                   <Link href="/login">Iniciar sesión</Link>
                 </Button>
-                <Button asChild className="hidden md:flex bg-gold text-black hover:bg-gold-light rounded-xl h-9 px-5 text-sm font-semibold transition-all hover:shadow-lg hover:shadow-gold/20 hover:scale-105">
+                <Button asChild className="hidden h-9 shrink-0 rounded-xl bg-gold px-3 text-sm font-semibold text-black transition-all hover:bg-gold-light hover:shadow-lg hover:shadow-gold/20 sm:inline-flex xl:px-5">
                   <Link href="/register">Empezar gratis</Link>
                 </Button>
               </>
             )}
-            <Button asChild variant="ghost" size="icon" className="md:hidden text-gray-400 rounded-xl">
-              <Link href="/buscar"><Search className="h-5 w-5" /></Link>
-            </Button>
+            <SeekField
+              value={search}
+              onValueChange={setSearch}
+              onSubmit={(query) => router.push(`/buscar?q=${encodeURIComponent(query)}`)}
+              placeholder="Buscar"
+              shut={36}
+              openWidth={168}
+              anchor="end"
+              className="shrink-0 md:hidden"
+            />
           </div>
         </div>
       </div>

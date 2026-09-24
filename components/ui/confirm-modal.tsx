@@ -5,6 +5,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X, AlertTriangle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { SlideConfirm } from "@/components/motion/SlideConfirm"
 
 const Dialog = DialogPrimitive.Root
 const DialogTrigger = DialogPrimitive.Trigger
@@ -18,7 +19,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-black/45 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}
@@ -35,7 +36,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-white/10 bg-bg-secondary p-8 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-3xl",
+        "liquid-glass liquid-glass-lens fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 p-8 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-3xl",
         className
       )}
       {...props}
@@ -90,29 +91,22 @@ export function ConfirmModal({
             {description}
           </DialogPrimitive.Description>
           
-          <div className="flex w-full gap-3">
+          <div className="flex w-full flex-col gap-3">
+            <SlideConfirm
+              label={confirmText}
+              onConfirm={() => {
+                onConfirm()
+                window.setTimeout(() => setIsOpen(false), 480)
+              }}
+            />
             <button
               onClick={() => {
                 onCancel?.()
                 setIsOpen(false)
               }}
-              className="flex-1 py-3 px-4 rounded-xl border border-white/5 bg-white/5 text-sm font-medium text-gray-300 hover:bg-white/10 transition-all"
+              className="w-full py-3 px-4 rounded-xl border border-white/5 bg-white/5 text-sm font-medium text-gray-300 hover:bg-white/10 transition-all"
             >
               {cancelText}
-            </button>
-            <button
-              onClick={() => {
-                onConfirm()
-                setIsOpen(false)
-              }}
-              className={cn(
-                "flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all shadow-lg",
-                variant === 'danger' ? "bg-red-500 text-white hover:bg-red-600" : 
-                variant === 'warning' ? "bg-yellow-500 text-black hover:bg-yellow-600" : 
-                "bg-gold text-black hover:bg-gold-light"
-              )}
-            >
-              {confirmText}
             </button>
           </div>
         </div>

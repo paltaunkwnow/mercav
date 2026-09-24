@@ -21,9 +21,9 @@ export const metadata: Metadata = {
   title: "Mercav | Ecosistema Digital Latinoamericano",
   description: "Publicidad offline, servicios digitales, empleo y herramientas. Todo en una sola plataforma.",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: "/images/logo.png",
+    shortcut: "/images/logo.png",
+    apple: "/images/logo.png",
   }
 };
 

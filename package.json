@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test:pwn": "node --experimental-strip-types --import ./scripts/pwn-test-register.mjs --test lib/pwn/__tests__/*.test.ts",
     "seed": "npx ts-node prisma/seed-admin.ts"
   },
   "prisma": {

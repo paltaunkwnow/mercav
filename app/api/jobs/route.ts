@@ -16,7 +16,8 @@ export async function GET(req: Request) {
       include: {
         company: { select: { id: true, name: true, avatar: true } }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: 80,
     });
 
     return NextResponse.json({ success: true, data: jobs });

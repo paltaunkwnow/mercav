@@ -21,7 +21,8 @@ export async function GET(req: Request) {
         owner: { select: { id: true, name: true, avatar: true } },
         reviews: { select: { rating: true } }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: 80,
     });
 
     return NextResponse.json({ success: true, data: spaces });

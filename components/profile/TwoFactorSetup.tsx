@@ -61,16 +61,24 @@ export function TwoFactorSetup({ isEnabledInitial }: { isEnabledInitial: boolean
   }
 
   const [showConfirmDisable, setShowConfirmDisable] = useState(false)
+  const [disablePassword, setDisablePassword] = useState("")
+  const [disableCode, setDisableCode] = useState("")
 
   const disable2FA = async () => {
-    setShowConfirmDisable(false)
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch("/api/user/2fa/disable", { method: "POST" })
+      const res = await fetch("/api/user/2fa/disable", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: disablePassword, code: disableCode }),
+      })
       if (res.ok) {
         setIsEnabled(false)
         setSuccess(false)
+        setShowConfirmDisable(false)
+        setDisablePassword("")
+        setDisableCode("")
       } else {
         const data = await res.json()
         setError(data.error || "Error al desactivar")
@@ -105,9 +113,25 @@ export function TwoFactorSetup({ isEnabledInitial }: { isEnabledInitial: boolean
               <AlertTriangle className="h-8 w-8" />
             </div>
             <h3 className="text-2xl font-bold text-white text-center mb-3">¿Desactivar 2FA?</h3>
-            <p className="text-gray-400 text-center text-sm leading-relaxed mb-8">
-              Tu cuenta será menos segura. Tendrás que re-configurarlo si decides activarlo después.
+            <p className="text-gray-400 text-center text-sm leading-relaxed mb-4">
+              Confirma con tu contraseña y un código de tu app de autenticación.
             </p>
+            <input
+              type="password"
+              value={disablePassword}
+              onChange={(e) => setDisablePassword(e.target.value)}
+              placeholder="Contraseña"
+              className="mb-3 h-11 w-full rounded-xl border border-white/10 bg-[#141416] px-3 text-sm text-white"
+              autoComplete="current-password"
+            />
+            <input
+              type="text"
+              inputMode="numeric"
+              value={disableCode}
+              onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="Código 2FA"
+              className="mb-6 h-11 w-full rounded-xl border border-white/10 bg-[#141416] px-3 text-sm text-white"
+            />
             <div className="flex gap-3">
               <Button 
                 onClick={() => setShowConfirmDisable(false)} 

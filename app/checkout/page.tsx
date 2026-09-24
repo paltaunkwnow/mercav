@@ -5,6 +5,7 @@ import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import StripeWrapper from '@/components/checkout/StripeWrapper';
 import { Metadata } from 'next';
+import { planChargeUsd } from '@/lib/billing/plans';
 
 export const metadata: Metadata = {
   title: 'Checkout | Mercav',
@@ -22,7 +23,23 @@ export default async function CheckoutPage({
     redirect(`/login?callbackUrl=/checkout?amount=${searchParams.amount}&plan=${searchParams.plan}&interval=${searchParams.interval}`);
   }
 
-  const amount = parseFloat(searchParams.amount || '100');
+  const userId = (session.user as { id?: string }).id;
+  if (!userId) redirect('/precios');
+
+  let amount: number | null = null;
+  if (searchParams.reservationId) {
+    const reservation = await prisma.reservation.findUnique({
+      where: { id: searchParams.reservationId },
+      select: { totalPrice: true, advertiserId: true },
+    });
+    if (!reservation || reservation.advertiserId !== userId) redirect('/precios');
+    amount = Number(reservation.totalPrice);
+  } else {
+    amount = planChargeUsd(searchParams.plan, searchParams.interval);
+  }
+  if (amount == null || !Number.isFinite(amount) || amount < 0.5) {
+    redirect('/precios');
+  }
   const currency = 'usd';
 
   try {

@@ -1,10 +1,12 @@
 "use client";
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
-import { Loader2, ArrowRight, LayoutDashboard } from 'lucide-react';
+import { Loader2, LayoutDashboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SlideConfirm } from '@/components/motion/SlideConfirm';
 
 interface AuthHeroButtonProps {
   label?: string;
@@ -12,6 +14,7 @@ interface AuthHeroButtonProps {
 }
 
 export function AuthHeroButton({ label = "Empezar gratis", className }: AuthHeroButtonProps) {
+  const router = useRouter();
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -52,10 +55,11 @@ export function AuthHeroButton({ label = "Empezar gratis", className }: AuthHero
   }
 
   return (
-    <Button asChild size="lg" className={cn("bg-gradient-to-r from-gold to-yellow-300 text-black hover:scale-[1.05] h-18 md:h-20 px-12 rounded-[2rem] font-black uppercase tracking-widest text-xs md:text-sm w-full transition-all duration-500 shadow-[0_0_50px_rgba(212,175,55,0.4)] hover:shadow-[0_0_80px_rgba(212,175,55,0.6)] border-none", className)}>
-      <Link href="/register" className="flex items-center justify-center gap-4">
-        {label} <ArrowRight className="h-6 w-6" />
-      </Link>
-    </Button>
+    <SlideConfirm
+      variant="gold"
+      label={label}
+      className={cn("rounded-[2rem]", className)}
+      onConfirm={() => router.push("/register")}
+    />
   );
 }

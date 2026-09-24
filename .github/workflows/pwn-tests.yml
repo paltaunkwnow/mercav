@@ -1,0 +1,16 @@
+name: Pwn tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Domain unit tests
+        run: node --experimental-strip-types --import ./scripts/pwn-test-register.mjs --test lib/pwn/__tests__/*.test.ts
