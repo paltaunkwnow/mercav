@@ -33,7 +33,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const cursor = searchParams.get("cursor");
     const module = searchParams.get("module") || "ALL";
-    const take = Number(searchParams.get("take") || 10);
+    const take = Math.min(20, Math.max(1, Number(searchParams.get("take") || 10) || 10));
 
     const followingIds = await prisma.follow.findMany({
       where: { followerId: me.id },

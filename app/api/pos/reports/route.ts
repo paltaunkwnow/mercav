@@ -166,6 +166,6 @@ export async function GET(req: Request) {
 
   } catch (error: any) {
     console.error("POS_REPORTS_ERROR", error);
-    return NextResponse.json({ success: false, error: "Internal Error", details: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });
   }
 }

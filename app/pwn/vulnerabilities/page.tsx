@@ -8,7 +8,7 @@ import { SourceBadge } from "@/components/pwn/SourceBadge";
 import { RiskBadge } from "@/components/pwn/RiskBadge";
 import { DisabledState, EmptyState, ErrorState, LoadingState, UnauthorizedState } from "@/components/pwn/EmptyState";
 import { FadeIn } from "@/components/pwn/PwnShell";
-import { formatWhen } from "@/components/pwn/format";
+import { formatWhen, pwnPanelClass } from "@/components/pwn/format";
 
 type Status =
   | { kind: "idle" }
@@ -70,7 +70,7 @@ export default function VulnerabilitiesPage() {
         </p>
       </header>
 
-      <section className="rounded-3xl border border-white/5 bg-bg-secondary/70 p-5 md:p-6">
+      <section className={pwnPanelClass}>
         <SearchForm
           id="cve-search"
           label="Identificador CVE"

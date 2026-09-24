@@ -11,6 +11,7 @@ const NAV = [
   { href: "/pwn/exposure", label: "Exposición" },
   { href: "/pwn/breaches", label: "Filtraciones" },
   { href: "/pwn/vulnerabilities", label: "Vulnerabilidades" },
+  { href: "/pwn/signals", label: "Señales" },
   { href: "/pwn/organizations", label: "Organizaciones" },
   { href: "/pwn/monitor", label: "Monitoreo" },
   { href: "/pwn/alerts", label: "Alertas" },
@@ -48,6 +49,9 @@ export function PwnShell({ children }: { children: ReactNode }) {
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-gold">Mercav Pwn</p>
               <p className="mt-1 text-sm text-gray-400">Cyber Intelligence & Exposure Monitoring</p>
+              <Link href="/pwn/terminos" className={`mt-2 inline-block text-xs text-gray-500 underline-offset-4 hover:text-gold hover:underline ${focusRing}`}>
+                Términos de uso de Pwn
+              </Link>
             </div>
             <p className="font-display text-sm tracking-wide text-white-soft">Detect. Investigate. Protect.</p>
           </div>

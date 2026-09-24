@@ -1,8 +1,6 @@
 "use client";
 
-import { focusRing } from "@/components/pwn/format";
-
-const inputClass = `h-11 w-full rounded-xl border border-white/10 bg-bg-tertiary/70 px-3 text-sm text-white ${focusRing}`;
+import { focusRing, pwnFieldClass, pwnFieldLabelClass, pwnPanelClass } from "@/components/pwn/format";
 
 export function ListControls({
   query,
@@ -36,20 +34,20 @@ export function ListControls({
   onPage: (page: number) => void;
 }) {
   return (
-    <div className="mb-5 space-y-4">
+    <div className={`mb-5 space-y-4 ${pwnPanelClass}`}>
       <div className="grid gap-3 md:grid-cols-3">
         <div className="space-y-2 md:col-span-1">
-          <label htmlFor="pwn-list-query" className="block text-xs font-medium uppercase tracking-[0.14em] text-gray-400">
+          <label htmlFor="pwn-list-query" className={pwnFieldLabelClass}>
             {queryLabel}
           </label>
-          <input id="pwn-list-query" value={query} onChange={(event) => onQuery(event.target.value)} className={inputClass} type="search" />
+          <input id="pwn-list-query" value={query} onChange={(event) => onQuery(event.target.value)} className={pwnFieldClass} type="search" />
         </div>
         {filterOptions && onFilter ? (
           <div className="space-y-2">
-            <label htmlFor="pwn-list-filter" className="block text-xs font-medium uppercase tracking-[0.14em] text-gray-400">
+            <label htmlFor="pwn-list-filter" className={pwnFieldLabelClass}>
               {filterLabel ?? "Filtro"}
             </label>
-            <select id="pwn-list-filter" value={filter} onChange={(event) => onFilter(event.target.value)} className={inputClass}>
+            <select id="pwn-list-filter" value={filter} onChange={(event) => onFilter(event.target.value)} className={pwnFieldClass}>
               {filterOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -59,10 +57,10 @@ export function ListControls({
           </div>
         ) : null}
         <div className="space-y-2">
-          <label htmlFor="pwn-list-sort" className="block text-xs font-medium uppercase tracking-[0.14em] text-gray-400">
+          <label htmlFor="pwn-list-sort" className={pwnFieldLabelClass}>
             Orden
           </label>
-          <select id="pwn-list-sort" value={sort} onChange={(event) => onSort(event.target.value)} className={inputClass}>
+          <select id="pwn-list-sort" value={sort} onChange={(event) => onSort(event.target.value)} className={pwnFieldClass}>
             {sortOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

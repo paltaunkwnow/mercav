@@ -13,6 +13,13 @@ const publicPaths = [
   '/nosotros',
   '/terminos',
   '/privacidad',
+  '/cookies',
+  '/aviso-legal',
+  '/contacto',
+  '/soporte',
+  '/explorar',
+  '/buscar',
+  '/herramientas',
   '/login',
   '/register',
   '/inversores',
@@ -23,12 +30,68 @@ const publicPaths = [
 // Only these Pwn API calls may run without a session (exposure returns a boolean only).
 const pwnPublicApi: Array<{ method: string; path: string }> = [
   { method: 'POST', path: '/api/pwn/exposure' },
-  { method: 'POST', path: '/api/pwn/passwords/range' },
 ];
 
 function isPwnPublicApi(req: NextRequest, pathname: string) {
   const path = pathname.replace(/\/$/, '');
   return pwnPublicApi.some((route) => route.method === req.method && route.path === path);
+}
+
+type HitBucket = { count: number; resetAt: number };
+const apiHits = new Map<string, HitBucket>();
+
+function clientAddress(req: NextRequest) {
+  return (
+    req.headers.get('x-vercel-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('cf-connecting-ip')?.trim() ||
+    req.ip ||
+    'local'
+  );
+}
+
+function apiBudget(pathname: string) {
+  if (pathname.startsWith('/api/auth') || pathname.startsWith('/api/contact') || pathname.startsWith('/api/location')) return 20;
+  if (pathname.startsWith('/api/pwn/exposure')) return 12;
+  if (
+    pathname.startsWith('/api/search') ||
+    pathname.startsWith('/api/jobs') ||
+    pathname.startsWith('/api/services') ||
+    pathname.startsWith('/api/spaces') ||
+    pathname.startsWith('/api/users') ||
+    pathname.startsWith('/api/posts') ||
+    pathname.startsWith('/api/feed')
+  ) {
+    return 40;
+  }
+  return 120;
+}
+
+function rateLimited(req: NextRequest, pathname: string) {
+  const now = Date.now();
+  const key = `${pathname.split('/').slice(0, 4).join('/')}:${clientAddress(req)}`;
+  const bucket = apiHits.get(key);
+  if (!bucket || now > bucket.resetAt) {
+    if (apiHits.size > 5000) apiHits.clear();
+    apiHits.set(key, { count: 1, resetAt: now + 60_000 });
+    return false;
+  }
+  bucket.count += 1;
+  return bucket.count > apiBudget(pathname);
+}
+
+function apiMaySkipSession(req: NextRequest, pathname: string) {
+  const path = pathname.replace(/\/$/, '');
+  if (req.method === 'GET') {
+    const publicReads = ['/api/jobs', '/api/services', '/api/spaces', '/api/search', '/api/posts', '/api/users'];
+    if (publicReads.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) return true;
+  }
+  return (
+    path.startsWith('/api/auth') ||
+    path.startsWith('/api/location') ||
+    path === '/api/webhook/stripe' ||
+    path === '/api/pwn/internal/cycle' ||
+    isPwnPublicApi(req, pathname)
+  );
 }
 
 export async function middleware(req: NextRequest) {
@@ -49,6 +112,20 @@ export async function middleware(req: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
+  if (pathname.startsWith('/api/') && rateLimited(req, pathname)) {
+    return NextResponse.json(
+      { success: false, error: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' },
+      { status: 429, headers: { 'Retry-After': '60', 'Cache-Control': 'no-store' } },
+    );
+  }
+
+  if (pathname.startsWith('/api/') && !token && !apiMaySkipSession(req, pathname)) {
+    return NextResponse.json(
+      { success: false, error: 'No autorizado' },
+      { status: 401, headers: { 'Cache-Control': 'private, no-store' } },
+    );
+  }
+
   if (pathname === '/api/pwn' || pathname.startsWith('/api/pwn/')) {
     const cronPath = pathname.replace(/\/$/, '') === '/api/pwn/internal/cycle';
     if (!token && !cronPath && !isPwnPublicApi(req, pathname)) {
@@ -58,6 +135,7 @@ export async function middleware(req: NextRequest) {
   }
 
   const isPublicPath = publicPaths.includes(pathname) ||
+                       pathname.startsWith('/legal/') ||
                        pathname === '/pwn' ||
                        pathname.startsWith('/pwn/') ||
                        pathname.startsWith('/api/auth') ||
@@ -115,5 +193,5 @@ export async function middleware(req: NextRequest) {
 
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|images).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|images|uploads|logo.png|404.html|index.html).*)'],
 };

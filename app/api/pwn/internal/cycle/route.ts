@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { disabledResponse, internalError } from "../../_lib/http";
 import { ensureSource } from "../../_lib/persistence";
 import { runDomainCycle, syncKevCatalog } from "../../_lib/cycle";
+import { syncForumFeeds } from "../../_lib/forum-sync";
 
 function authorized(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -33,11 +34,18 @@ export async function POST(request: NextRequest) {
     jobId = job.id;
     const domains = await runDomainCycle();
     const kev = await syncKevCatalog();
+    const forums = await syncForumFeeds().catch(() => ({
+      configured: false,
+      fetched: 0,
+      upserted: 0,
+      sources: [] as string[],
+      error: true as const,
+    }));
     await prisma.pwnIngestionJob.update({
       where: { id: job.id },
       data: { status: "SUCCESS", finishedAt: new Date() },
     });
-    return NextResponse.json({ success: true, data: { domains, kev } });
+    return NextResponse.json({ success: true, data: { domains, kev, forums } });
   } catch (error) {
     if (jobId) {
       await prisma.pwnIngestionJob

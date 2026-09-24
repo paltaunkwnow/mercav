@@ -9,7 +9,7 @@ import { RiskBadge } from "@/components/pwn/RiskBadge";
 import { DisabledState, EmptyState, LoadingState, UnauthorizedState } from "@/components/pwn/EmptyState";
 import { FadeIn } from "@/components/pwn/PwnShell";
 import { Button } from "@/components/ui/button";
-import { focusRing, formatWhen } from "@/components/pwn/format";
+import { focusRing, formatWhen, pwnFieldClass, pwnFieldLabelClass, pwnPanelClass } from "@/components/pwn/format";
 
 const RECENT_ALERTS = 50;
 
@@ -121,7 +121,7 @@ export default function OrganizationsPage() {
       </header>
 
       <form
-        className="space-y-4 rounded-3xl border border-white/5 bg-bg-secondary/70 p-5"
+        className={`space-y-5 ${pwnPanelClass}`}
         onSubmit={(event) => {
           event.preventDefault();
           void (async () => {
@@ -147,21 +147,39 @@ export default function OrganizationsPage() {
           })();
         }}
       >
-        <h2 className="font-display text-2xl text-white">Nueva organización</h2>
-        <div className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-2 text-sm text-white">
-            Nombre
-            <input className={`h-11 w-full rounded-xl border border-white/10 bg-bg-tertiary/70 px-3 ${focusRing}`} value={name} onChange={(event) => setName(event.target.value)} />
+        <div>
+          <h2 className="font-display text-2xl text-white">Nueva organización</h2>
+          <p className="mt-1 text-sm text-gray-500">Agrupa dominios y objetivos de monitoreo bajo un mismo cliente o equipo.</p>
+        </div>
+        <div className="grid gap-5 md:grid-cols-2">
+          <label className="block space-y-2">
+            <span className={pwnFieldLabelClass}>Nombre</span>
+            <input
+              className={pwnFieldClass}
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              autoComplete="organization"
+              placeholder="Acme Corp"
+            />
           </label>
-          <label className="space-y-2 text-sm text-white">
-            Dominio (opcional)
-            <input className={`h-11 w-full rounded-xl border border-white/10 bg-bg-tertiary/70 px-3 ${focusRing}`} value={domain} onChange={(event) => setDomain(event.target.value)} placeholder="empresa.com" />
+          <label className="block space-y-2">
+            <span className={pwnFieldLabelClass}>Dominio (opcional)</span>
+            <input
+              className={pwnFieldClass}
+              value={domain}
+              onChange={(event) => setDomain(event.target.value)}
+              placeholder="empresa.com"
+              autoComplete="off"
+              spellCheck={false}
+            />
           </label>
         </div>
         {formError ? <p role="alert" className="text-sm text-red-200">{formError}</p> : null}
-        <Button type="submit" disabled={saving} className={`rounded-xl bg-gold font-semibold text-black hover:bg-gold-light ${focusRing}`}>
-          {saving ? "Guardando…" : "Crear organización"}
-        </Button>
+        <div className="flex flex-wrap items-center gap-3 pt-1">
+          <Button type="submit" disabled={saving} className={`rounded-xl bg-gold px-5 font-semibold text-black hover:bg-gold-light ${focusRing}`}>
+            {saving ? "Guardando…" : "Crear organización"}
+          </Button>
+        </div>
       </form>
 
       {loading ? <LoadingState label="Cargando organizaciones…" /> : null}

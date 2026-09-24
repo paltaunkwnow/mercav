@@ -13,7 +13,7 @@ import { DisabledState, EmptyState, ErrorState, LoadingState, UnauthorizedState 
 import { ListControls, pageWindow } from "@/components/pwn/ListControls";
 import { FadeIn } from "@/components/pwn/PwnShell";
 import { Button } from "@/components/ui/button";
-import { focusRing, formatWhen } from "@/components/pwn/format";
+import { focusRing, formatWhen, pwnFieldClass, pwnFieldLabelClass, pwnPanelClass } from "@/components/pwn/format";
 
 type TargetType = "email" | "domain";
 
@@ -36,8 +36,6 @@ type Status =
 type Instructions = { targetId: string; display: string; verification: TargetVerification };
 
 type VerifyState = { domain: string; pending: boolean; message: string | null; tone: "error" | "ok" | null };
-
-const inputClass = `h-11 w-full rounded-xl border border-white/10 bg-bg-tertiary/70 px-3 text-sm text-white ${focusRing}`;
 
 function normalize(value: string, type: TargetType) {
   const trimmed = value.trim().toLowerCase();
@@ -211,7 +209,7 @@ export default function MonitorPage() {
       {status.kind === "ready" ? (
         <>
           <form
-            className="space-y-5 rounded-3xl border border-white/5 bg-bg-secondary/70 p-5 md:p-6"
+            className={`space-y-5 ${pwnPanelClass}`}
             onSubmit={(event) => {
               event.preventDefault();
               void createTarget();
@@ -220,10 +218,10 @@ export default function MonitorPage() {
             <h2 className="font-display text-2xl text-white">Nuevo objetivo</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <label htmlFor="monitor-type" className="block text-sm font-medium text-white">
+                <label htmlFor="monitor-type" className={pwnFieldLabelClass}>
                   Tipo
                 </label>
-                <select id="monitor-type" className={inputClass} value={targetType} onChange={(event) => setTargetType(event.target.value as TargetType)}>
+                <select id="monitor-type" className={pwnFieldClass} value={targetType} onChange={(event) => setTargetType(event.target.value as TargetType)}>
                   {TYPE_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -232,12 +230,12 @@ export default function MonitorPage() {
                 </select>
               </div>
               <div className="space-y-2">
-                <label htmlFor="monitor-target" className="block text-sm font-medium text-white">
+                <label htmlFor="monitor-target" className={pwnFieldLabelClass}>
                   {targetType === "domain" ? "Dominio" : "Correo"}
                 </label>
                 <input
                   id="monitor-target"
-                  className={inputClass}
+                  className={pwnFieldClass}
                   value={target}
                   onChange={(event) => setTarget(event.target.value)}
                   placeholder={targetType === "domain" ? "empresa.com" : "ana@empresa.com"}
@@ -351,7 +349,7 @@ export default function MonitorPage() {
                             </label>
                             <input
                               id={`verify-${item.id}`}
-                              className={inputClass}
+                              className={pwnFieldClass}
                               value={v.domain}
                               onChange={(event) => patchVerify(item.id, v, { domain: event.target.value, message: null, tone: null })}
                               placeholder="empresa.com"

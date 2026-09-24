@@ -36,6 +36,7 @@ import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Toast } from "@/components/ui/toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { ReportModal } from "@/components/ui/ReportModal";
+import { LiquidArrange } from "@/components/motion/LiquidArrange";
 
 type ModuleFilter = "ALL" | "GENERAL" | "ADS" | "SERVICES" | "JOBS";
 
@@ -309,22 +310,9 @@ export function FeedClient({ currentUser }: { currentUser: any }) {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-white/5 bg-bg-secondary p-4 space-y-1 shadow-xl shadow-black/20">
-          {[
-            { href: "/perfil/editar", label: "Mi perfil", icon: Star },
-            { href: "/anuncios", label: "Publicidad", icon: Megaphone },
-            { href: "/servicios", label: "Servicios", icon: MonitorPlay },
-            { href: "/empleos", label: "Empleos", icon: Briefcase },
-            { href: "/herramientas", label: "Mercav Tools", icon: Wrench },
-          ].map((item) => (
-            <Link key={item.href} href={item.href} className="group flex items-center justify-between p-3 rounded-2xl text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-              <div className="flex items-center gap-3">
-                <item.icon className="h-4 w-4 text-gold/60 group-hover:text-gold" />
-                <span className="text-sm font-medium">{item.label}</span>
-              </div>
-              <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-            </Link>
-          ))}
+        <div className="rounded-3xl border border-white/5 bg-bg-secondary p-4 shadow-xl shadow-black/20">
+          <p className="px-3 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Comunidad</p>
+          <CommunityShortcuts />
         </div>
       </aside>
 
@@ -564,12 +552,67 @@ function SidebarCard({ title, children }: { title: string; children: React.React
   );
 }
 
+const COMMUNITY_LINKS = [
+  { id: "perfil", href: "/perfil/editar", label: "Mi perfil", icon: Star },
+  { id: "anuncios", href: "/anuncios", label: "Publicidad", icon: Megaphone },
+  { id: "servicios", href: "/servicios", label: "Servicios", icon: MonitorPlay },
+  { id: "empleos", href: "/empleos", label: "Empleos", icon: Briefcase },
+  { id: "tools", href: "/herramientas", label: "Mercav Tools", icon: Wrench },
+];
+
+function CommunityShortcuts() {
+  const [items, setItems] = useState(COMMUNITY_LINKS);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("mercav-community-order");
+    if (!saved) return;
+    try {
+      const ids = JSON.parse(saved) as string[];
+      const rank = (id: string) => {
+        const index = ids.indexOf(id);
+        return index === -1 ? ids.length : index;
+      };
+      setItems([...COMMUNITY_LINKS].sort((a, b) => rank(a.id) - rank(b.id)));
+    } catch {
+      /* keep the default order */
+    }
+  }, []);
+
+  return (
+    <LiquidArrange
+      items={items}
+      onReorder={(next) => {
+        setItems(next);
+        localStorage.setItem("mercav-community-order", JSON.stringify(next.map((item) => item.id)));
+      }}
+      renderItem={(item) => (
+        <Link href={item.href} className="group flex items-center justify-between rounded-2xl p-3 text-gray-400 transition-all hover:bg-white/5 hover:text-white">
+          <div className="flex items-center gap-3">
+            <item.icon className="h-4 w-4 text-gold/60 group-hover:text-gold" />
+            <span className="text-sm font-medium">{item.label}</span>
+          </div>
+          <ArrowRight className="h-4 w-4 opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100" />
+        </Link>
+      )}
+    />
+  );
+}
+
 function SuggestionList({ kind, items }: { kind: string; items: any[] }) {
+  const [order, setOrder] = useState(items);
+  const signature = items.map((item) => item.id).join("|");
+
+  useEffect(() => {
+    setOrder(items);
+  }, [signature]);
+
   if (!items.length) return <div className="text-xs text-gray-600 italic">Sin sugerencias por ahora.</div>;
   return (
-    <div className="space-y-4">
-      {items.map((item) => (
-        <div key={item.id} className="group transition-all">
+    <LiquidArrange
+      items={order}
+      onReorder={setOrder}
+      renderItem={(item) => (
+        <div className="group transition-all">
           {kind === "user" && (
             <Link href={`/perfil/${item.username}`} className="flex items-center gap-3">
               <div className="h-11 w-11 overflow-hidden rounded-xl bg-bg-tertiary border border-white/5 group-hover:border-gold/30 transition-all">{item.avatar ? <img src={item.avatar} className="h-full w-full object-cover" /> : null}</div>
@@ -602,8 +645,8 @@ function SuggestionList({ kind, items }: { kind: string; items: any[] }) {
             </Link>
           )}
         </div>
-      ))}
-    </div>
+      )}
+    />
   );
 }
 
@@ -816,7 +859,7 @@ function PostCard({ post, currentUser, onDelete, showToast }: { post: FeedPost; 
                 </button>
               </DropdownMenu.Trigger>
               <DropdownMenu.Portal>
-                <DropdownMenu.Content align="end" className="z-[100] min-w-[160px] overflow-hidden rounded-2xl border border-white/5 bg-bg-secondary/95 p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in duration-200">
+                <DropdownMenu.Content align="end" className="liquid-glass liquid-glass-lens z-[100] min-w-[160px] overflow-hidden rounded-2xl p-1.5 animate-in fade-in zoom-in duration-200">
                   {currentUser?.id === post.authorId && (
                     <DropdownMenu.Item 
                       onClick={() => setIsEditing(true)}

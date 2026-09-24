@@ -4,8 +4,11 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = "admin@mercav.lat";
-  const password = "8dejunioxD!";
+  const email = process.env.SEED_ADMIN_EMAIL;
+  const password = process.env.SEED_ADMIN_PASSWORD;
+  if (!email || !password || password.length < 12) {
+    throw new Error("Define SEED_ADMIN_EMAIL y SEED_ADMIN_PASSWORD (mínimo 12 caracteres). No uses una contraseña en el código.");
+  }
   const hashedPassword = await bcrypt.hash(password, 12);
 
   console.log("Creando super-administrador...");

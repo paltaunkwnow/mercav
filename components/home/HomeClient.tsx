@@ -6,6 +6,7 @@ import { HeroBackground3D } from '@/components/ui/HeroBackground3D';
 import { ArrowRight, Megaphone, MonitorPlay, Briefcase, Wrench, CheckCircle2, Star, MapPin, Clock, Sparkles, Zap, Globe, Shield, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AuthHeroButton } from '@/components/ui/AuthHeroButton';
+import { TiltCard } from '@/components/motion/TiltCard';
 
 interface ActivityItem {
   id: string;
@@ -36,6 +37,7 @@ export function HomeHero() {
     <section className="relative w-full min-h-screen flex items-center justify-center pt-20 overflow-hidden">
       {/* 3D Animated Background */}
       <HeroBackground3D />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-40 bg-gradient-to-b from-transparent to-bg-primary" />
       
       {/* Cinematic Lighting Overlays */}
       <div className="absolute inset-0 z-0 pointer-events-none">
@@ -53,9 +55,8 @@ export function HomeHero() {
           initial={{ opacity: 0, y: -20, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-10 inline-flex items-center rounded-full border border-gold/20 bg-gold/5 px-6 py-2.5 text-[10px] font-black uppercase tracking-[0.4em] text-gold/90 backdrop-blur-md shadow-[0_0_30px_rgba(212,175,55,0.08)] hover:shadow-[0_0_50px_rgba(212,175,55,0.12)] transition-shadow duration-700"
+          className="mb-10 mt-16 inline-flex items-center rounded-full border border-gold/20 bg-gold/5 px-6 py-2.5 text-[10px] font-black uppercase tracking-[0.4em] text-gold/90 backdrop-blur-md md:mt-24"
         >
-          <span className="flex h-2 w-2 rounded-full bg-gold mr-3 animate-pulse shadow-[0_0_12px_#d4af37]"></span>
           Construido para Latinoamérica
         </motion.div>
         
@@ -95,7 +96,7 @@ export function HomeHero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-col sm:flex-row gap-4 md:gap-6 w-full justify-center max-w-2xl mx-auto mb-20"
+          className="flex flex-col sm:flex-row gap-4 md:gap-6 w-full justify-center max-w-2xl mx-auto"
         >
           <AuthHeroButton className="flex-1" />
           <Button asChild variant="outline" size="lg" className="flex-1 border-border text-foreground/70 hover:text-foreground hover:bg-foreground/5 hover:border-foreground/20 h-16 md:h-20 px-8 md:px-10 rounded-[2rem] font-black uppercase tracking-widest text-[11px] md:text-sm bg-transparent transition-all duration-500 backdrop-blur-sm shadow-sm">
@@ -105,41 +106,7 @@ export function HomeHero() {
             </Link>
           </Button>
         </motion.div>
-
-        {/* Trust badges */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.2 }}
-          className="pt-8 border-t border-border w-full max-w-4xl"
-        >
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 opacity-40 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-700">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Respaldado por tecnología de élite</p>
-            <div className="flex flex-wrap justify-center gap-6 md:gap-10 items-center">
-              {["PRISMA", "NEXT.JS", "POSTGRES", "STRIPE"].map((tech) => (
-                <span key={tech} className="text-lg md:text-xl font-display font-black tracking-tighter text-foreground/80 hover:text-gold transition-colors duration-300">{tech}</span>
-              ))}
-            </div>
-          </div>
-        </motion.div>
       </div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 1 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-500 z-10"
-      >
-        <span className="text-[9px] uppercase tracking-[0.3em] font-bold">Scroll</span>
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className="w-5 h-8 rounded-full border border-white/10 flex items-start justify-center p-1.5"
-        >
-          <div className="w-1 h-2 rounded-full bg-gold/60" />
-        </motion.div>
-      </motion.div>
     </section>
   );
 }
@@ -153,11 +120,9 @@ export function HomeModules() {
   ];
 
   return (
-    <section className="w-full py-24 md:py-32 bg-bg-secondary relative overflow-hidden section-transition">
+    <section className="w-full py-24 md:py-32 bg-bg-primary relative overflow-hidden section-transition">
       {/* Background decoration */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/10 to-transparent" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gold/[0.015] blur-[200px] rounded-full" />
       </div>
 
@@ -197,7 +162,8 @@ export function HomeModules() {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.6, delay: i * 0.12 }}
             >
-              <Link href={mod.href} className="group flex flex-col p-7 md:p-8 rounded-2xl bg-bg-tertiary/50 border border-border hover:border-gold/40 transition-all duration-500 card-hover-premium relative overflow-hidden h-full glassmorphism">
+              <TiltCard className="h-full rounded-2xl">
+              <Link href={mod.href} className="group flex flex-col p-7 md:p-8 rounded-2xl bg-bg-tertiary/50 border border-border hover:border-gold/40 transition-colors duration-500 relative overflow-hidden h-full glassmorphism">
                 {/* Gradient accent on hover */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${mod.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
                 
@@ -212,6 +178,7 @@ export function HomeModules() {
                   </div>
                 </div>
               </Link>
+              </TiltCard>
             </motion.div>
           ))}
         </div>
@@ -222,10 +189,7 @@ export function HomeModules() {
 
 export function HomeLatestActivity({ items }: { items: ActivityItem[] }) {
   return (
-    <section className="w-full py-24 md:py-32 bg-bg-primary relative section-transition">
-      {/* Top decoration */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/10 to-transparent" />
-      
+    <section className="blend-from-secondary w-full py-24 md:py-32 bg-bg-primary relative section-transition">
       <div className="container mx-auto px-4">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -343,7 +307,7 @@ export function HomeStats() {
   ];
 
   return (
-    <section className="w-full py-24 md:py-28 bg-bg-primary border-y border-border relative overflow-hidden section-transition">
+    <section className="w-full py-24 md:py-28 bg-bg-primary relative overflow-hidden section-transition">
       {/* Subtle background pattern */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gold/[0.02] blur-[180px] rounded-full" />
@@ -375,11 +339,10 @@ export function HomeStats() {
 
 export function HomeCTA() {
   return (
-    <section className="w-full py-28 md:py-36 bg-bg-secondary border-t border-border relative overflow-hidden section-transition">
+    <section className="blend-from-primary blend-to-primary w-full py-28 md:py-36 bg-bg-secondary relative overflow-hidden section-transition">
       {/* Background effects */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-gold/10 via-transparent to-transparent opacity-50" />
-        <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
         {/* Floating orbs */}
         <div className="absolute top-20 left-[15%] w-32 h-32 bg-gold/[0.03] rounded-full blur-[80px] float-gentle" style={{ animationDelay: '0s' }} />
         <div className="absolute bottom-20 right-[20%] w-24 h-24 bg-gold/[0.04] rounded-full blur-[60px] float-gentle" style={{ animationDelay: '3s' }} />
@@ -411,7 +374,7 @@ export function HomeCTA() {
             Únete a miles de empresas y profesionales en toda Latinoamérica que ya usan Mercav para crecer y conectar sin límites.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <AuthHeroButton label="Crear cuenta gratis" />
+            <AuthHeroButton label="Crear cuenta gratis" className="w-full max-w-xl" />
           </div>
         </motion.div>
       </div>

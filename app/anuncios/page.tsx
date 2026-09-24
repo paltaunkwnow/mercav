@@ -6,6 +6,7 @@ import { Search, MapPin, MonitorPlay, Maximize, Filter, ArrowRight, Star, X, Che
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { CustomSelect } from "@/components/ui/CustomSelect";
+import { TiltCard } from "@/components/motion/TiltCard";
 
 const normalizeStr = (str: string) => {
   if (!str) return "";
@@ -218,7 +219,7 @@ export default function AnunciosPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.15 }}
-            className="max-w-5xl mx-auto relative flex flex-col md:flex-row items-stretch bg-bg-secondary/70 backdrop-blur-2xl p-2 rounded-2xl md:rounded-3xl border border-white/[0.08] shadow-2xl glassmorphism gap-2 md:gap-0 z-30"
+            className="liquid-glass-lens max-w-5xl mx-auto relative flex flex-col md:flex-row items-stretch p-2 rounded-2xl md:rounded-3xl glassmorphism gap-2 md:gap-0 z-30"
           >
             {/* Search Input */}
             <div className="flex-[1.2] min-w-0 flex items-center px-4 md:px-6 border-b md:border-b-0 md:border-r border-white/5">
@@ -496,7 +497,7 @@ export default function AnunciosPage() {
                       className="group relative"
                     >
                       <div className="absolute -inset-0.5 bg-gradient-to-r from-gold/0 via-gold/15 to-gold/0 rounded-3xl opacity-0 group-hover:opacity-100 transition duration-500 blur-xl"></div>
-                      <div className="relative bg-bg-secondary/60 border border-white/5 rounded-3xl overflow-hidden transition-all duration-500 hover:border-gold/30 hover:-translate-y-1 h-full flex flex-col shadow-xl glassmorphism card-hover-premium">
+                      <TiltCard className="bg-bg-secondary/60 border border-white/5 rounded-3xl overflow-hidden transition-colors duration-500 hover:border-gold/30 h-full flex flex-col shadow-xl glassmorphism">
                         {/* Image Header */}
                         <div className="relative h-52 md:h-64 w-full overflow-hidden bg-bg-tertiary">
                           <img 
@@ -558,7 +559,7 @@ export default function AnunciosPage() {
                             </Button>
                           </div>
                         </div>
-                      </div>
+                      </TiltCard>
                     </motion.div>
                   ))}
                 </AnimatePresence>

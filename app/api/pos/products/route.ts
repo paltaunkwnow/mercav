@@ -32,7 +32,7 @@ export async function GET() {
     return NextResponse.json({ success: true, data: products });
   } catch (error: any) {
     console.error("POS_PRODUCT_GET_ERROR", error);
-    return NextResponse.json({ success: false, error: "Internal Error", details: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });
   }
 }
 
@@ -79,11 +79,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, data: product });
   } catch (error: any) {
     console.error("POS_PRODUCT_POST_ERROR", error);
-    return NextResponse.json({ 
-      success: false, 
-      error: "Internal Error", 
-      details: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });
   }
 }

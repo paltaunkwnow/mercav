@@ -20,7 +20,8 @@ export async function GET(req: Request) {
         reviews: { select: { rating: true } },
         images: { orderBy: { order: 'asc' } }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: 80,
     });
 
     return NextResponse.json({ success: true, data: services });

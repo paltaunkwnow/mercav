@@ -72,3 +72,25 @@ export function isClosedStatus(status: string | null | undefined): boolean {
 
 export const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary";
+
+/** Shared Pwn inputs — soft dark fill, readable in light theme on pwn pages. */
+export const pwnFieldClass = [
+  "h-11 w-full rounded-xl border px-3.5 text-sm",
+  "border-white/10 bg-[#141416] text-white",
+  "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]",
+  "placeholder:text-gray-500",
+  "light:border-black/10 light:bg-[#e8e6e0] light:text-[#1a1714] light:shadow-none light:placeholder:text-gray-500",
+  "transition-[border-color,box-shadow] hover:border-white/15 light:hover:border-black/15",
+  "focus:border-gold/40 focus:outline-none focus:ring-2 focus:ring-gold/15",
+  focusRing,
+].join(" ");
+
+export const pwnFieldClassLg = pwnFieldClass.replace("h-11", "h-12").replace("px-3.5", "px-4");
+
+export const pwnFieldLabelClass = "block text-xs font-medium uppercase tracking-wide text-gray-400";
+
+export const pwnFormLabelClass = "block text-xs font-medium uppercase tracking-wide text-gray-400";
+
+/** Primary form / search panels on Pwn pages. */
+export const pwnPanelClass =
+  "rounded-3xl border border-dashed border-white/15 bg-bg-secondary/50 p-6 md:p-7 backdrop-blur-sm";

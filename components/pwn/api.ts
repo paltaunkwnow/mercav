@@ -80,6 +80,35 @@ export type VulnerabilityView = {
   references: { label: string; href: string }[];
 };
 
+export type ForumSignalKind = "DATABASE" | "CREDENTIALS" | "MIXED" | "OTHER";
+
+export type ForumSignalStats = {
+  total: number;
+  database: number;
+  mixed: number;
+  credentials: number;
+  other: number;
+  government: number;
+  data: number;
+};
+
+export type ForumSignalView = {
+  id: string;
+  title: string;
+  link: string;
+  author: string | null;
+  category: string | null;
+  forum: string | null;
+  signalKind: ForumSignalKind;
+  priorityRank: number;
+  isGovernment: boolean;
+  breachName: string | null;
+  publishedAt: string | null;
+  lastSeenAt: string | null;
+  verificationStatus: string | null;
+  source: string | null;
+};
+
 export type MonitoringTarget = {
   id: string;
   organizationId: string | null;
@@ -435,6 +464,70 @@ export function readReport(body: unknown): ReportView | null {
       averageConfidence: asNumber(metrics?.averageConfidence),
       highestRisk: highest ? { score: asNumber(highest.score), level: asString(highest.level, 20) } : null,
     },
+  };
+}
+
+export function readForumSignals(body: unknown): {
+  items: ForumSignalView[];
+  pagination: Pagination | null;
+  stats: ForumSignalStats | null;
+  sync: { lastFinishedAt: string | null; lastStatus: string | null } | null;
+} | null {
+  const envelope = asRecord(body);
+  const data = asRecord(envelope?.data);
+  if (!data) return null;
+  const itemsRaw = Array.isArray(data.items) ? data.items : [];
+  const items = itemsRaw.flatMap((item, index): ForumSignalView[] => {
+    const row = asRecord(item);
+    const id = asString(row?.id, 80);
+    const title = asString(row?.title, 500);
+    const link = safeHttpUrl(row?.link);
+    if (!id || !title || !link) return [];
+    const kindRaw = asString(row?.signalKind, 20)?.toUpperCase();
+    const signalKind: ForumSignalKind =
+      kindRaw === "DATABASE" || kindRaw === "CREDENTIALS" || kindRaw === "MIXED" ? kindRaw : "OTHER";
+    const priorityRank = Number(row?.priorityRank ?? 0) || 0;
+    return [
+      {
+        id,
+        title,
+        link,
+        author: asString(row?.author, 120),
+        category: asString(row?.category, 120),
+        forum: asString(row?.forum, 120),
+        signalKind,
+        priorityRank,
+        isGovernment: row?.isGovernment === true,
+        breachName: asString(row?.breachName, 120),
+        publishedAt: asString(row?.publishedAt, 40),
+        lastSeenAt: asString(row?.lastSeenAt, 40),
+        verificationStatus: asString(row?.verificationStatus, 40),
+        source: asString(row?.source, 80),
+      },
+    ];
+  });
+  const statsRaw = asRecord(data.stats);
+  const syncRaw = asRecord(data.sync);
+  return {
+    items,
+    pagination: readPagination({ pagination: data.pagination }),
+    stats: statsRaw
+      ? {
+          total: Number(statsRaw.total ?? 0) || 0,
+          database: Number(statsRaw.database ?? 0) || 0,
+          mixed: Number(statsRaw.mixed ?? 0) || 0,
+          credentials: Number(statsRaw.credentials ?? 0) || 0,
+          other: Number(statsRaw.other ?? 0) || 0,
+          government: Number(statsRaw.government ?? 0) || 0,
+          data: Number(statsRaw.data ?? 0) || 0,
+        }
+      : null,
+    sync: syncRaw
+      ? {
+          lastFinishedAt: asString(syncRaw.lastFinishedAt, 40),
+          lastStatus: asString(syncRaw.lastStatus, 40),
+        }
+      : null,
   };
 }
 

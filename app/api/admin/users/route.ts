@@ -28,7 +28,8 @@ export async function GET(req: Request) {
       take: 100,
     });
 
-    return NextResponse.json({ success: true, data: users });
+    const safeUsers = users.map(({ password: _password, twoFactorSecret: _secret, ...user }) => user);
+    return NextResponse.json({ success: true, data: safeUsers });
   } catch (error) {
     console.error("Admin users error", error);
     return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 });

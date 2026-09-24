@@ -16,7 +16,9 @@ import { SourceBadge } from "@/components/pwn/SourceBadge";
 import { RiskBadge, VerificationBadge, verificationMeta } from "@/components/pwn/RiskBadge";
 import { DisabledState, EmptyState, ErrorState, LoadingState } from "@/components/pwn/EmptyState";
 import { FadeIn } from "@/components/pwn/PwnShell";
-import { focusRing, formatScore, formatWhen } from "@/components/pwn/format";
+import { NextSteps } from "@/components/pwn/NextSteps";
+import { RecentLookups, rememberLookup } from "@/components/pwn/RecentLookups";
+import { focusRing, formatScore, formatWhen, pwnPanelClass } from "@/components/pwn/format";
 
 type QueryType = "email" | "domain";
 
@@ -79,6 +81,7 @@ export default function ExposurePage() {
       if (response.reason === "aborted") return;
       if (response.reason === "disabled") setExposure({ kind: "disabled" });
       else if (nextType === "domain" && (response.reason === "unauthorized" || response.reason === "forbidden")) {
+        rememberLookup(nextType, value);
         setExposure({ kind: "domainLocked", signedIn: response.reason === "forbidden", message: response.message });
       } else if (response.reason === "unauthorized") {
         setExposure({ kind: "error", message: "Inicia sesión para hacer esta consulta." });
@@ -90,6 +93,7 @@ export default function ExposurePage() {
       setExposure({ kind: "error", message: "La respuesta de exposición no tiene el formato esperado." });
       return;
     }
+    rememberLookup(nextType, value);
     if (result.scope === "boolean") {
       setExposure({ kind: "boolean", exposed: result.exposed });
       return;
@@ -177,9 +181,9 @@ export default function ExposurePage() {
         </p>
       </header>
 
-      <section className="rounded-3xl border border-white/5 bg-bg-secondary/70 p-5 md:p-6">
+      <section className={pwnPanelClass}>
         <fieldset className="mb-5">
-          <legend className="mb-3 text-sm font-medium text-white">Tipo de consulta</legend>
+          <legend className="mb-3 text-xs font-medium uppercase tracking-wide text-gray-400">Tipo de consulta</legend>
           <div className="flex flex-wrap gap-3">
             {(
               [
@@ -216,9 +220,11 @@ export default function ExposurePage() {
         />
       </section>
 
-      <ExposureResults state={exposure} onRetry={() => void runSearch(type, query)} />
+      <ExposureResults state={exposure} queryType={type} onRetry={() => void runSearch(type, query)} />
 
-      <section className="rounded-3xl border border-white/5 bg-bg-secondary/70 p-5 md:p-6" aria-labelledby="password-check-title">
+      <RecentLookups />
+
+      <section className={pwnPanelClass} aria-labelledby="password-check-title">
         <h2 id="password-check-title" className="font-display text-2xl text-white">
           Comprobación de contraseña
         </h2>
@@ -248,7 +254,7 @@ export default function ExposurePage() {
   );
 }
 
-function ExposureResults({ state, onRetry }: { state: ExposureState; onRetry: () => void }) {
+function ExposureResults({ state, queryType, onRetry }: { state: ExposureState; queryType: QueryType; onRetry: () => void }) {
   if (state.kind === "idle") return null;
   if (state.kind === "loading") return <LoadingState label="Consultando exposición…" />;
   if (state.kind === "disabled") return <DisabledState title="Búsqueda no configurada" />;
@@ -279,6 +285,11 @@ function ExposureResults({ state, onRetry }: { state: ExposureState; onRetry: ()
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-gray-400">
           Para objetivos que no son tuyos solo se indica si hay exposición. El detalle de las filtraciones está disponible para el correo de tu propia cuenta o para objetivos verificados en Monitoreo.
         </p>
+        {state.exposed ? (
+          <div className="mt-5">
+            <NextSteps kind={queryType} />
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -336,6 +347,7 @@ function ExposureResults({ state, onRetry }: { state: ExposureState; onRetry: ()
           );
         })}
       </ul>
+      {state.exposed ? <NextSteps kind={queryType} /> : null}
     </div>
   );
 }
@@ -357,6 +369,11 @@ function PasswordResult({ state }: { state: PasswordState }) {
           : "No hay coincidencias en el rango devuelto por la fuente."}
       </p>
       <p className="mt-2 text-xs text-gray-500">La comparación se hizo en este navegador. La contraseña no se envió.</p>
+      {state.count > 0 ? (
+        <div className="mt-4">
+          <NextSteps kind="password" />
+        </div>
+      ) : null}
     </div>
   );
 }

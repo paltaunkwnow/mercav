@@ -12,11 +12,12 @@
 
 ## 🎨 Filosofía de Diseño: "Seamless Cinematic Experience"
 
-Mercav no es solo una herramienta, es una experiencia visual. Diseñado con una estética **Black & Gold**, combina:
-- **Modo Oscuro Profundo (Deep Dark Mode)**: Interfaces de alto contraste y baja fatiga visual.
-- **Glassmorphism**: Componentes translúcidos con desenfoque de fondo dinámico.
-- **Micro-animaciones fluidas**: Desarrolladas con **Framer Motion** para transiciones suaves y naturales.
-- **Tipografía moderna**: Jerarquías visuales limpias para una lectura óptima y un sentimiento exclusivo.
+Mercav no es solo una herramienta, es una experiencia visual. La paleta es **crema y oro en modo claro** y **negro y oro en modo oscuro**. El tema se guarda en el navegador.
+- **Liquid Glass**: el header, la barra inferior, la búsqueda, los menús y las hojas flotantes usan desenfoque, saturación y un borde luminoso. En Chrome el borde también refracta el fondo; Safari y Firefox quedan en el vidrio esmerilado. Si el sistema pide menos transparencia, esas piezas pasan a un fondo sólido.
+- **Transiciones de sección**: el cambio de color entre bloques del inicio es un degradado, sin línea de corte.
+- **Confirmar deslizando**: borrar y «Crear cuenta gratis» se confirman arrastrando el control hasta el final.
+- **Interacciones**: búsqueda que se abre en una cápsula, tarjetas que se hunden bajo el puntero, gráfica que se recorre con el dedo y listas de comunidad que se reordenan.
+- **Legal**: aviso legal, términos, privacidad, cookies, uso aceptable, reembolsos y derechos. El aviso de cookies bloquea reCAPTCHA y Google hasta que la persona acepta terceros.
 
 ---
 
@@ -121,12 +122,23 @@ PWN_IDENTIFIER_PEPPER="un_secreto_largo_y_aleatorio"
 HIBP_API_KEY=""
 NVD_API_KEY=""
 CRON_SECRET=""
+PWN_FORUM_SCRAPE="true"
 ```
 
 `PWN_IDENTIFIER_PEPPER` es obligatorio para buscar con sesión o crear objetivos. `HIBP_API_KEY` habilita las filtraciones. `CRON_SECRET` autoriza `POST /api/pwn/internal/cycle`, que revisa dominios verificados, abre alertas y guarda el catálogo público de CISA KEV. NVD y CISA KEV no exigen clave; `NVD_API_KEY` solo sube el cupo del proveedor.
 
 ### 4. Configurar la Base de Datos
-En local, con una base desechable:
+Si no tienes PostgreSQL instalado, un contenedor desechable basta:
+
+```bash
+docker run -d --name mercav-postgres \
+  -e POSTGRES_USER=mercav \
+  -e POSTGRES_PASSWORD=mercav \
+  -e POSTGRES_DB=mercav_db \
+  -p 5432:5432 postgres:16
+```
+
+Esa contraseña es solo para la máquina local. En local, con esa base vacía:
 
 ```bash
 npx prisma generate
@@ -146,6 +158,26 @@ Los tests de los motores de Pwn (redacción, confianza y riesgo) no necesitan la
 ```bash
 npm run test:pwn
 ```
+
+### Errores al arrancar esta rama
+
+El push de Pwn dejó el chequeo de GitHub Actions en `startup_failure` (run `35821748515`): cero jobs y el aviso de que el archivo de workflow no es válido. El bloque `on` declaraba `push` y `pull_request` sin valor, y YAML lo lee como `null`. El workflow ahora usa `on: [push, pull_request]` y `permissions: contents: read`. Ese arreglo entra en GitHub cuando se vuelva a pushear la rama `pwn`.
+
+En el editor, TypeScript marcaba el código nuevo de Pwn con `TS2802` (no se puede iterar un `Map`, un `Set` ni `URLSearchParams`). `tsconfig.json` no tenía `target`, así que el compilador usa ES5. Quedó en `ES2017`, que es el valor que usa Next.js. La ruta `POST /api/pwn/ingest` además infería `verificationStatus` como `string` y Prisma no lo acepta en el enum `PwnVerificationStatus`; ahora el valor está anotado con ese enum.
+
+`prisma.config.ts` importa `prisma/config`, módulo que Prisma 5.14 no publica (aparece en Prisma 6.13). El archivo se excluyó del `tsconfig` para que el editor no lo marque. `npx prisma generate` de esta versión no lo necesita.
+
+El middleware mandaba `/logo.png` a `/login` porque el `matcher` no excluía ese archivo público. El navegador guardaba esa respuesta y el header mostraba el icono roto junto al texto alternativo «MERCAV». El logo del header, el footer y el icono de la pestaña salen de `/images/logo.png`, una ruta que el middleware no intercepta. El matcher también deja pasar `uploads`, `404.html` e `index.html`.
+
+### Qué se tomó de LeakGuard
+
+Se revisó [LeakGuard](https://github.com/paltaunkwnow/LEAKGUARD) en una carpeta temporal, fuera del repositorio. Pasaron tres piezas que encajan con Pwn y se reescribieron al estilo negro y oro:
+
+- Guía «Qué hacer para protegerte» en el resumen.
+- Pasos siguientes cuando un correo, un dominio o una contraseña aparecen expuestos.
+- Historial de la sesión con botón para borrarlo. El correo se guarda solo como `j***@g***` y no sale del navegador.
+
+No se copiaron el chat, el mapa de incidentes ni la búsqueda por teléfono. Sí se adaptó el **scrape defensivo de foros/RSS**: DarkNetArmy, Hackread y **23 feeds RSS** de medios y labs (ver `lib/integrations/pwn/feed-catalog.ts`) → `PwnForumSignal` con `signalKind`, `priorityRank` (filtraciones **gubernamentales** arriba del resto), deduplicación por titular, correlación opcional con brechas **HIBP** (`breachId`) y alertas in-app si el titular menciona un **dominio verificado** en monitoreo. Filtros: `GET /api/pwn/forum-signals?kind=DATA`, `?gov=true`. Admins pueden apagar feeds en `/pwn/sources`. Ciclo horario: `POST /api/pwn/internal/cycle` (`vercel.json`, `CRON_SECRET`). Sin cuerpos de hilo ni volcados. `PWN_FORUM_SCRAPE=false` desactiva el scrape.
 
 ---
 

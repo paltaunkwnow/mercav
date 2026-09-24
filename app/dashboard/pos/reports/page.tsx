@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { 
   TrendingUp, 
@@ -21,6 +21,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import * as XLSX from "xlsx";
+import { PullChart } from "@/components/motion/PullChart";
 
 export default function POSReportsPage() {
   const [range, setRange] = useState("day");
@@ -29,6 +30,15 @@ export default function POSReportsPage() {
   const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState("BOB");
   const [mounted, setMounted] = useState(false);
+
+  const incomeSeries = useMemo(() => {
+    const buckets = new Map<string, number>();
+    for (const sale of data?.sales || []) {
+      const label = format(new Date(sale.createdAt), "d MMM", { locale: es });
+      buckets.set(label, (buckets.get(label) || 0) + Number(sale.totalAmount || 0));
+    }
+    return [...buckets.entries()].map(([label, value]) => ({ label, value }));
+  }, [data]);
 
   useEffect(() => {
     setMounted(true);
@@ -224,6 +234,14 @@ export default function POSReportsPage() {
             ))}
           </div>
         )}
+
+        <PullChart
+          title="Ingresos del POS"
+          caption="Arrastrá la curva para ver cada día. Hacia abajo, actualiza el reporte."
+          points={incomeSeries}
+          formatValue={(value) => `${currency} ${value.toLocaleString("es-BO", { maximumFractionDigits: 2 })}`}
+          onRefresh={fetchData}
+        />
 
         {/* Tab content */}
         {activeTab === 'sales' ? (

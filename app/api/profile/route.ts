@@ -25,7 +25,8 @@ export async function GET() {
 
     if (!user) return NextResponse.json({ success: false, error: "Usuario no encontrado" }, { status: 404 });
 
-    return NextResponse.json({ success: true, data: user });
+    const { password: _password, twoFactorSecret: _secret, ...safeUser } = user;
+    return NextResponse.json({ success: true, data: safeUser });
   } catch (error) {
     console.error("Error fetching profile:", error);
     return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 });

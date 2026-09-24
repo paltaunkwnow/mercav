@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth";
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
     const { searchParams } = new URL(req.url);
-    const take = Number(searchParams.get('take') || 3);
+    const take = Math.min(20, Math.max(1, Number(searchParams.get('take') || 3) || 3));
 
     const comments = await prisma.postComment.findMany({
       where: { postId: params.id, parentId: null },

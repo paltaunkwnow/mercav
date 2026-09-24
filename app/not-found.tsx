@@ -1,3 +1,5 @@
+"use client";
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Home, ArrowLeft } from 'lucide-react';
@@ -24,10 +26,8 @@ export default function NotFound() {
           Lo sentimos, no pudimos encontrar la página que estás buscando. Puede que haya sido movida o que la dirección sea incorrecta.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button asChild variant="outline" className="border-white/10 text-gray-300 hover:text-white hover:border-white/20 rounded-xl">
-            <Link href="javascript:history.back()">
-              <ArrowLeft className="h-4 w-4 mr-2" /> Volver atrás
-            </Link>
+          <Button type="button" variant="outline" onClick={() => history.back()} className="border-white/10 text-gray-300 hover:text-white hover:border-white/20 rounded-xl">
+            <ArrowLeft className="h-4 w-4 mr-2" /> Volver atrás
           </Button>
           <Button asChild className="bg-gold text-black hover:bg-gold-light rounded-xl hover:scale-105 transition-transform hover:shadow-lg hover:shadow-gold/20">
             <Link href="/">

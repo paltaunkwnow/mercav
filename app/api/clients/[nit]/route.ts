@@ -21,6 +21,6 @@ export async function GET(req: Request, { params }: { params: { nit: string } })
     return NextResponse.json({ success: true, data: client });
   } catch (error: any) {
     console.error("CLIENT_GET_NIT_ERROR", error);
-    return NextResponse.json({ success: false, error: "Internal Error", details: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });
   }
 }

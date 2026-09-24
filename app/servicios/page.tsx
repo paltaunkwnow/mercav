@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Search, Code, PenTool, TrendingUp, Video, Camera, Cpu, Star, CheckCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { TiltCard } from "@/components/motion/TiltCard";
 
 const CATEGORIES_BASE = [
   { icon: Code, name: "Desarrollo Web", key: "DESARROLLO_WEB" },
@@ -91,7 +92,7 @@ export default function ServiciosPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="flex bg-bg-primary/50 backdrop-blur-xl p-2 rounded-xl md:rounded-2xl border border-white/[0.08] max-w-2xl mx-auto glassmorphism shadow-xl"
+              className="liquid-glass-lens flex p-2 rounded-xl md:rounded-2xl max-w-2xl mx-auto glassmorphism"
             >
               <Search className="h-5 w-5 text-gray-500 my-auto ml-4 mr-2" />
               <input 
@@ -123,13 +124,15 @@ export default function ServiciosPage() {
                 transition={{ delay: i * 0.06 }}
                 key={cat.name}
                 onClick={() => setSearchQuery(cat.name.split(' ')[0])}
-                className="bg-bg-secondary/50 border border-white/5 rounded-xl md:rounded-2xl p-5 md:p-6 text-center hover:border-gold/30 hover:bg-white/[0.03] transition-all duration-300 cursor-pointer group glassmorphism card-hover-premium"
+                className="h-full"
               >
+              <TiltCard className="bg-bg-secondary/50 border border-white/5 rounded-xl md:rounded-2xl p-5 md:p-6 text-center hover:border-gold/30 transition-colors duration-300 cursor-pointer group glassmorphism h-full">
                 <div className="w-11 h-11 md:w-12 md:h-12 mx-auto bg-bg-primary/80 rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 group-hover:bg-gold/5 transition-all duration-300 border border-white/5">
                   <Icon className="h-5 w-5 md:h-6 md:w-6 text-gray-400 group-hover:text-gold transition-colors duration-300" />
                 </div>
                 <h3 className="font-medium text-white text-xs md:text-sm mb-1 group-hover:text-gold transition-colors duration-300">{cat.name}</h3>
                 <p className="text-[10px] md:text-xs text-gray-500">{count} servicios</p>
+              </TiltCard>
               </motion.div>
             )
           })}
@@ -168,8 +171,9 @@ export default function ServiciosPage() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
                 key={service.id}
-                className="bg-bg-secondary/60 border border-white/5 rounded-2xl overflow-hidden hover:border-gold/30 transition-all duration-500 flex flex-col h-full group glassmorphism card-hover-premium"
+                className="h-full"
               >
+              <TiltCard className="bg-bg-secondary/60 border border-white/5 rounded-2xl overflow-hidden hover:border-gold/30 transition-colors duration-500 flex flex-col h-full group glassmorphism">
                 <div className="p-6 flex-1">
                   <div className="flex items-center gap-3 mb-4 border-b border-white/5 pb-4">
                     <img src={service.provider?.avatar || "https://ui-avatars.com/api/?name=User&background=random"} alt={service.provider?.name || "Usuario"} className="w-10 h-10 rounded-xl border border-white/10" />
@@ -199,6 +203,7 @@ export default function ServiciosPage() {
                     <Link href={`/servicios/${service.id}`}>Ver Detalles</Link>
                   </Button>
                 </div>
+              </TiltCard>
               </motion.div>
             ))}
           </div>

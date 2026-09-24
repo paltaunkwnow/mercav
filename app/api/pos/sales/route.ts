@@ -74,11 +74,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, data: sale });
   } catch (error: any) {
     console.error("POS_SALE_POST_ERROR", error);
-    return NextResponse.json({ 
-      success: false, 
-      error: "Internal Error", 
-      details: error.message,
-      stack: error.stack 
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });
   }
 }

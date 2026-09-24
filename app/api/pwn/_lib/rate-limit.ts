@@ -17,7 +17,7 @@ type RateLimitOptions = {
   userId?: string | null;
 };
 
-export const ANONYMOUS_SEARCH_PER_MINUTE = 10;
+export const ANONYMOUS_SEARCH_PER_MINUTE = 3;
 export const AUTHENTICATED_SEARCH_PER_MINUTE = 60;
 
 /** Limits for the exposure and password-range routes, which accept anonymous callers. */

@@ -1,21 +1,16 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  BarChart,
-  Bar,
   Cell,
   PieChart,
   Pie
 } from "recharts";
-import { TrendingUp, Users, DollarSign, Zap, CreditCard, Activity } from "lucide-react";
+import { DollarSign, Zap, CreditCard, Activity } from "lucide-react";
+import { PullChart } from "@/components/motion/PullChart";
 
 interface FinancialMetricsProps {
   revenueData: { month: string; amount: number }[];
@@ -37,6 +32,8 @@ interface FinancialMetricsProps {
 }
 
 export function FinancialMetrics({ revenueData, growthData, planDistribution, recentTransactions, summary, operationalStats }: FinancialMetricsProps) {
+  const router = useRouter();
+  const money = (value: number) => `$${value.toLocaleString("es-BO")}`;
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Quick Operational Stats */}
@@ -84,105 +81,21 @@ export function FinancialMetrics({ revenueData, growthData, planDistribution, re
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Chart */}
-        <div className="rounded-3xl border border-white/5 bg-black/40 p-6 backdrop-blur-xl">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h3 className="font-bold text-lg flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-gold" />
-                Tendencia de Ingresos
-              </h3>
-              <p className="text-xs text-gray-500">Histórico de facturación mensual</p>
-            </div>
-            <select className="bg-white/5 border border-white/10 rounded-lg px-3 py-1 text-[10px] outline-none">
-              <option>Últimos 6 meses</option>
-              <option>Último año</option>
-            </select>
-          </div>
-          
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueData}>
-                <defs>
-                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#FFD700" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#FFD700" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
-                <XAxis 
-                  dataKey="month" 
-                  stroke="#666" 
-                  fontSize={10} 
-                  tickLine={false} 
-                  axisLine={false} 
-                />
-                <YAxis 
-                  stroke="#666" 
-                  fontSize={10} 
-                  tickLine={false} 
-                  axisLine={false} 
-                  tickFormatter={(value) => `$${value}`}
-                />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#000', border: '1px solid #ffffff10', borderRadius: '12px', fontSize: '12px' }}
-                  itemStyle={{ color: '#FFD700' }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="amount" 
-                  stroke="#FFD700" 
-                  strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorRev)" 
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* User Growth Chart */}
-        <div className="rounded-3xl border border-white/5 bg-black/40 p-6 backdrop-blur-xl">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h3 className="font-bold text-lg flex items-center gap-2">
-                <Users className="h-5 w-5 text-blue-400" />
-                Crecimiento de Usuarios
-              </h3>
-              <p className="text-xs text-gray-500">Nuevos registros por mes</p>
-            </div>
-          </div>
-          
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={growthData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
-                <XAxis 
-                  dataKey="month" 
-                  stroke="#666" 
-                  fontSize={10} 
-                  tickLine={false} 
-                  axisLine={false} 
-                />
-                <YAxis 
-                  stroke="#666" 
-                  fontSize={10} 
-                  tickLine={false} 
-                  axisLine={false} 
-                />
-                <Tooltip 
-                  cursor={{fill: '#ffffff05'}}
-                  contentStyle={{ backgroundColor: '#000', border: '1px solid #ffffff10', borderRadius: '12px', fontSize: '12px' }}
-                />
-                <Bar dataKey="users" radius={[4, 4, 0, 0]}>
-                  {growthData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index === growthData.length - 1 ? '#60A5FA' : '#3B82F640'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <PullChart
+          title="Ingresos de la página"
+          caption="Arrastrá la curva para ver cada mes. Hacia abajo, actualiza."
+          points={revenueData.map((point) => ({ label: point.month, value: point.amount }))}
+          formatValue={money}
+          onRefresh={() => router.refresh()}
+        />
+        <PullChart
+          title="Usuarios"
+          caption="Registros nuevos por mes"
+          points={growthData.map((point) => ({ label: point.month, value: point.users }))}
+          accent="#60A5FA"
+          formatValue={(value) => value.toLocaleString("es-BO")}
+          onRefresh={() => router.refresh()}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

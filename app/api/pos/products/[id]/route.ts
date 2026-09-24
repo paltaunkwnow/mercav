@@ -56,7 +56,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     return NextResponse.json({ success: true, data: updatedProduct });
   } catch (error: any) {
     console.error("POS_PRODUCT_PUT_ERROR", error);
-    return NextResponse.json({ success: false, error: "Internal Error", details: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });
   }
 }
 
@@ -104,6 +104,6 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     return NextResponse.json({ success: true, message: "Product deleted successfully" });
   } catch (error: any) {
     console.error("POS_PRODUCT_DELETE_ERROR", error);
-    return NextResponse.json({ success: false, error: "Internal Error", details: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });
   }
 }

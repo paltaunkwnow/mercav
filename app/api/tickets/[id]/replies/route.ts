@@ -13,8 +13,16 @@ export async function POST(
     const user = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!user) return NextResponse.json({ success: false, error: "Usuario no encontrado" }, { status: 404 });
 
+    const ticket = await prisma.ticket.findUnique({ where: { id: params.id }, select: { userId: true } });
+    if (!ticket || ticket.userId !== user.id) {
+      return NextResponse.json({ success: false, error: "No autorizado" }, { status: 403 });
+    }
+
     const body = await req.json();
-    const { message } = body;
+    const message = typeof body?.message === "string" ? body.message.trim() : "";
+    if (!message || message.length > 4000) {
+      return NextResponse.json({ success: false, error: "Mensaje inválido" }, { status: 400 });
+    }
 
     const reply = await prisma.ticketReply.create({
       data: {

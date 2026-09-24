@@ -45,7 +45,8 @@ export async function POST(req: Request) {
     } catch (e) {}
 
     // Create a unique filename
-    const filename = `logo-${user.id}-${Date.now()}${path.extname(file.name)}`;
+    const ext = file.type === "image/png" ? "png" : "jpg";
+    const filename = `logo-${user.id}-${Date.now()}.${ext}`;
     const uploadPath = path.join(uploadsDir, filename);
 
     await writeFile(uploadPath, buffer);

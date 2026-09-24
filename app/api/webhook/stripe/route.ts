@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     );
   } catch (error: any) {
     console.error(`[STRIPE_WEBHOOK_ERROR]: ${error.message}`);
-    return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 });
+    return new NextResponse("Webhook Error", { status: 400 });
   }
 
   const session = event.data.object as any;

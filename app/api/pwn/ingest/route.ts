@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { PwnVerificationStatus } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { scoreConfidence } from "@/lib/pwn/confidence-engine";
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
         data: { sourceId: source.id, status: "RUNNING" },
       });
       jobId = job.id;
-      const verificationStatus = breach.isVerified ? "CORROBORATED" : "UNVERIFIED";
+      const verificationStatus: PwnVerificationStatus = breach.isVerified ? "CORROBORATED" : "UNVERIFIED";
       const confidence = scoreConfidence({
         sourceReliability: source.historicalReliability,
         verificationStatus,

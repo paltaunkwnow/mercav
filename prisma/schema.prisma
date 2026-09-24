@@ -1134,6 +1134,7 @@ model PwnSource {
   vulnerabilities       PwnVulnerability[]
   alerts                PwnAlert[]
   ingestionJobs         PwnIngestionJob[]
+  forumSignals          PwnForumSignal[]
 }
 
 model PwnBreach {
@@ -1156,6 +1157,7 @@ model PwnBreach {
   updatedAt           DateTime              @updatedAt
   source              PwnSource?            @relation(fields: [sourceId], references: [id], onDelete: SetNull)
   exposures           PwnExposure[]
+  forumSignals        PwnForumSignal[] @relation("ForumSignalBreach")
 
   @@unique([name, sourceId])
   @@index([sourceId])
@@ -1319,6 +1321,37 @@ model PwnIngestionJob {
 
   @@index([sourceId])
   @@index([status])
+}
+
+// Public thread titles and links from allowlisted forums — never post bodies, dumps or credentials.
+model PwnForumSignal {
+  id                 String                @id @default(uuid())
+  sourceId           String?
+  externalKey        String                @unique
+  title              String
+  link               String
+  author             String?
+  category           String?
+  forum              String?
+  signalKind         String                @default("OTHER")
+  priorityRank       Int                   @default(0)
+  titleKey           String?
+  breachId           String?
+  publishedAt        DateTime?
+  verificationStatus PwnVerificationStatus @default(UNVERIFIED)
+  lastSeenAt         DateTime              @default(now())
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  source             PwnSource?            @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  breach             PwnBreach?            @relation("ForumSignalBreach", fields: [breachId], references: [id], onDelete: SetNull)
+
+  @@index([sourceId])
+  @@index([lastSeenAt])
+  @@index([publishedAt])
+  @@index([signalKind])
+  @@index([priorityRank])
+  @@index([titleKey])
+  @@index([breachId])
 }
 
 // Shared rate-limit buckets so every app instance counts the same caller.

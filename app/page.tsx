@@ -118,10 +118,9 @@ export default async function Home() {
       <HomeStats />
 
       {/* Feature Split Section */}
-      <section className="w-full py-24 md:py-32 bg-bg-secondary overflow-hidden relative section-transition">
+      <section className="blend-from-primary w-full py-24 md:py-32 bg-bg-secondary overflow-hidden relative section-transition">
         {/* Background effects */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/15 to-transparent" />
           <div className="absolute top-1/2 left-[60%] -translate-y-1/2 w-[500px] h-[500px] bg-gold/[0.02] blur-[180px] rounded-full" />
         </div>
 

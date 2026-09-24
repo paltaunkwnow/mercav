@@ -1,7 +1,7 @@
 import { redactSubject } from "./redaction";
 import { isSeverity, isVerificationStatus, type PwnSeverity, type PwnVerificationStatus } from "./types";
 
-export type PwnAlertKind = "BREACH" | "VULNERABILITY" | "EXPOSURE";
+export type PwnAlertKind = "BREACH" | "VULNERABILITY" | "EXPOSURE" | "FORUM_SIGNAL";
 
 export interface BuildAlertInput {
   kind: PwnAlertKind;
@@ -14,6 +14,10 @@ export interface BuildAlertInput {
   dataTypes?: string[];
   sourceName?: string;
   kev?: boolean;
+  forumTitle?: string;
+  forumLink?: string;
+  forumSignalKey?: string;
+  isGovernment?: boolean;
 }
 
 export interface BuiltAlert {
@@ -81,7 +85,24 @@ export function buildAlert(input: BuildAlertInput): BuiltAlert {
   const lines: string[] = [];
   let title: string;
 
-  if (input.kind === "VULNERABILITY") {
+  if (input.kind === "FORUM_SIGNAL") {
+    const headline = clean(input.forumTitle) || "filtración pública";
+    const key = clean(input.forumSignalKey)?.slice(0, 16) || "sig";
+    const subject = target || "tu dominio verificado";
+    title = input.isGovernment
+      ? `Prioridad gubernamental · ${subject} · ${key}`
+      : `Señal de filtración · ${subject} · ${key}`;
+    lines.push(
+      input.isGovernment
+        ? `Titular público con posible impacto gubernamental vinculado a ${subject}: «${headline}».`
+        : `Nuevo titular público relacionado con ${subject}: «${headline}».`,
+    );
+    if (input.breachName) lines.push(`Posible relación con la brecha conocida «${clean(input.breachName)}».`);
+    lines.push("Mercav solo indexa metadatos (titular y enlace). No descargamos volcados ni credenciales.");
+    lines.push("Recomendación: revisa logs, refuerza credenciales de servicios críticos y valida con fuentes oficiales.");
+    const link = clean(input.forumLink);
+    if (link.startsWith("https://")) lines.push(`Enlace externo: ${link}`);
+  } else if (input.kind === "VULNERABILITY") {
     const cve = clean(input.cveId) || "vulnerabilidad";
     title = input.kev ? `${cve} está siendo explotada activamente` : `Nueva vulnerabilidad relevante: ${cve}`;
     lines.push(

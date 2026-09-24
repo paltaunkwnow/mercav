@@ -6,17 +6,31 @@ export async function ensureSource(input: {
   historicalReliability: number;
   verificationMethod: string;
 }) {
+  return upsertPwnSource({ ...input, touchEnabled: true });
+}
+
+/** Upserts a connector row without forcing `enabled` back on (admins can disable feeds). */
+export async function upsertPwnSource(input: {
+  name: string;
+  sourceType: string;
+  historicalReliability: number;
+  verificationMethod: string;
+  touchEnabled?: boolean;
+}) {
   return prisma.pwnSource.upsert({
     where: { name: input.name },
     update: {
       sourceType: input.sourceType,
       historicalReliability: input.historicalReliability,
       verificationMethod: input.verificationMethod,
-      enabled: true,
       lastEvaluatedAt: new Date(),
+      ...(input.touchEnabled ? { enabled: true } : {}),
     },
     create: {
-      ...input,
+      name: input.name,
+      sourceType: input.sourceType,
+      historicalReliability: input.historicalReliability,
+      verificationMethod: input.verificationMethod,
       enabled: true,
       lastEvaluatedAt: new Date(),
     },

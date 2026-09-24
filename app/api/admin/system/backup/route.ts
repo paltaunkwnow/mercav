@@ -13,7 +13,17 @@ export async function GET() {
     }
 
     // 1. Fetch tables data
-    const users = await prisma.user.findMany()
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        username: true,
+        isVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })
     const posts = await prisma.post.findMany()
     const services = await prisma.service.findMany()
     const spaces = await prisma.space.findMany()

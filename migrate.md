@@ -11,6 +11,9 @@ Hay tres migraciones nuevas, en este orden:
 | `prisma/migrations/20260923043000_pwn_mvp` | Crea las tablas de Pwn: fuentes, filtraciones, exposiciones, vulnerabilidades, organizaciones, objetivos, alertas, informes, auditoría e ingesta. |
 | `prisma/migrations/20260923050000_pwn_target_verification` | Añade el estado de verificación del objetivo (`PENDING` / `VERIFIED`), el hash del token DNS y `verifiedAt`. |
 | `prisma/migrations/20260923060000_pwn_ops` | Guarda el dominio que el dueño monitorea (`targetLookup`), el contador compartido de límite de uso (`PwnRateBucket`) y las claves únicas de filtración y exposición. |
+| `prisma/migrations/20260923210000_pwn_forum_signals` | Tabla `PwnForumSignal`: titulares y enlaces de foros allowlisted (sin cuerpo del hilo ni credenciales). |
+| `prisma/migrations/20260923213000_pwn_forum_signal_kind` | Columna `signalKind` (`DATABASE`, `MIXED`, `CREDENTIALS`, `OTHER`). |
+| `prisma/migrations/20260923220000_pwn_forum_signal_enrichment` | `priorityRank` (gobierno primero), `titleKey` (dedupe), `breachId` (correlación HIBP). |
 
 Los correos no se guardan en claro. `targetLookup` solo se llena para dominios. El hash de identificadores es HMAC-SHA256 con `PWN_IDENTIFIER_PEPPER`. Si esa clave cambia, los objetivos ya guardados dejan de coincidir y hay que crearlos de nuevo.
 
@@ -58,8 +61,15 @@ Si la base local está vacía y el historial de migraciones no alcanza para crea
 En local, con una base desechable, la vía que ya usaba el proyecto es:
 
 ```bash
+docker run -d --name mercav-postgres \
+  -e POSTGRES_USER=mercav \
+  -e POSTGRES_PASSWORD=mercav \
+  -e POSTGRES_DB=mercav_db \
+  -p 5432:5432 postgres:16
 npx prisma db push
 ```
+
+El contenedor es solo para desarrollo. La contraseña de ese ejemplo no sirve en producción.
 
 Eso alinea el esquema completo, incluido Pwn, sin pasar por el historial incompleto. No lo uses en producción.
 
@@ -69,4 +79,5 @@ Eso alinea el esquema completo, incluido Pwn, sin pasar por el historial incompl
 - Sin `PWN_IDENTIFIER_PEPPER`, crear un objetivo o buscar con sesión devuelve error. No hay un hash sin clave de respaldo.
 - El límite de uso lee `PwnRateBucket`. Si esa tabla todavía no existe, las rutas vuelven a un contador en memoria de esa instancia.
 - El ciclo de dominios verificados es `POST /api/pwn/internal/cycle` con `Authorization: Bearer $CRON_SECRET`. No guarda correos y no reconsulta correos: la alerta de un correo sale cuando su dueño lo busca.
+- Ese mismo ciclo sincroniza señales (`PwnForumSignal`) desde foros allowlisted y RSS (catálogo en `feed-catalog.ts`: DarkNetArmy, Hackread, BleepingComputer, THN, SecurityWeek, Dark Reading, Krebs, Security Affairs, The Record, Cybersecurity Dive, Help Net Security, Infosecurity Magazine, CSO, ZDNet, The Register, WeLiveSecurity, Talos, Malwarebytes, Unit 42, CyberScoop, InformationWeek, IT Security Guru, TechRadar, SentinelOne, CrowdStrike). Solo metadatos; reclasifica en lote, correlaciona titulares con brechas HIBP y puede crear alertas si el titular menciona un dominio verificado. Prioridad: sector gubernamental (`priorityRank ≥ 200`). API: `GET /api/pwn/forum-signals?kind=DATA`, `?gov=true`. Admins: `/pwn/sources` (activar/desactivar feeds). Cron horario en `vercel.json`. `PWN_FORUM_SCRAPE=false` apaga el scrape.
 - `pwn.mercav.lat` es el mismo despliegue. El middleware reescribe `/` a `/pwn`. No hace falta una base distinta.

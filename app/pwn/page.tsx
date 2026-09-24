@@ -9,19 +9,23 @@ import {
   readAlerts,
   readBreaches,
   readPagination,
+  readForumSignals,
   readTargets,
   type AlertView,
   type BreachView,
+  type ForumSignalView,
   type Paged,
   type PwnResult,
 } from "@/components/pwn/api";
+import { ForumSignalsPanel } from "@/components/pwn/ForumSignalsPanel";
 import { StatCard } from "@/components/pwn/StatCard";
 import { SearchForm } from "@/components/pwn/SearchForm";
 import { SourceBadge } from "@/components/pwn/SourceBadge";
 import { RiskBadge } from "@/components/pwn/RiskBadge";
 import { DisabledState, EmptyState, ErrorState, LoadingState } from "@/components/pwn/EmptyState";
 import { FadeIn } from "@/components/pwn/PwnShell";
-import { focusRing, formatRelative } from "@/components/pwn/format";
+import { ProtectionGuide } from "@/components/pwn/ProtectionGuide";
+import { focusRing, formatRelative, pwnPanelClass } from "@/components/pwn/format";
 
 type LoadState = {
   loading: boolean;
@@ -29,6 +33,7 @@ type LoadState = {
   alerts: PwnResult<Paged<AlertView>> | null;
   unread: PwnResult<number | null> | null;
   verifiedTargets: PwnResult<number> | null;
+  forumSignals: PwnResult<{ items: ForumSignalView[] }> | null;
 };
 
 function totalOf(result: PwnResult<Paged<unknown>> | null): number | null {
@@ -39,17 +44,26 @@ export default function PwnDashboardPage() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [state, setState] = useState<LoadState>({ loading: true, breaches: null, alerts: null, unread: null, verifiedTargets: null });
+  const [state, setState] = useState<LoadState>({
+    loading: true,
+    breaches: null,
+    alerts: null,
+    unread: null,
+    verifiedTargets: null,
+    forumSignals: null,
+  });
 
   const load = useCallback(async (signal?: AbortSignal) => {
     setState((current) => ({ ...current, loading: true }));
-    const [breachesRes, alertsRes, unreadRes, monitoringRes] = await Promise.all([
+    const [breachesRes, alertsRes, unreadRes, monitoringRes, forumRes] = await Promise.all([
       pwnFetch("/api/pwn/breaches?page=1&limit=20", { signal }),
       pwnFetch("/api/pwn/alerts?page=1&limit=8", { signal }),
       pwnFetch("/api/pwn/alerts?page=1&limit=1&unread=true", { signal }),
       pwnFetch("/api/pwn/monitoring", { signal }),
+      pwnFetch("/api/pwn/forum-signals?page=1&limit=5&kind=DATA", { signal }),
     ]);
     if (signal?.aborted) return;
+    const forumParsed = forumRes.ok ? readForumSignals(forumRes.data) : null;
     setState({
       loading: false,
       breaches: breachesRes.ok ? { ok: true, data: readBreaches(breachesRes.data) } : breachesRes,
@@ -58,6 +72,11 @@ export default function PwnDashboardPage() {
       verifiedTargets: monitoringRes.ok
         ? { ok: true, data: readTargets(monitoringRes.data).filter((target) => target.verificationStatus === "VERIFIED").length }
         : monitoringRes,
+      forumSignals: forumRes.ok
+        ? forumParsed
+          ? { ok: true, data: { items: forumParsed.items } }
+          : { ok: false, reason: "error", message: "Señales con formato inesperado." }
+        : forumRes,
     });
   }, []);
 
@@ -123,7 +142,7 @@ export default function PwnDashboardPage() {
         </div>
       </header>
 
-      <section aria-label="Buscar exposición" className="rounded-3xl border border-white/5 bg-bg-secondary/70 p-5 backdrop-blur-xl md:p-6">
+      <section aria-label="Buscar exposición" className={pwnPanelClass}>
         <SearchForm
           id="pwn-dashboard-search"
           label="Buscar correo, dominio o CVE"
@@ -156,7 +175,13 @@ export default function PwnDashboardPage() {
 
       {!state.loading ? <FeedPanel alerts={state.alerts} onRetry={() => void load()} /> : null}
 
+      {!state.loading ? (
+        <ForumSignalsPanel result={state.forumSignals} loading={false} onRetry={() => void load()} />
+      ) : null}
+
       {!state.loading && state.breaches?.ok ? <VerifiedPanel items={state.breaches.data.items} /> : null}
+
+      <ProtectionGuide />
 
       <section className="grid gap-4 md:grid-cols-2">
         <article className="rounded-3xl border border-white/5 bg-bg-secondary/60 p-6">

@@ -52,9 +52,6 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     console.error("2FA SETUP ERROR:", error);
-    return NextResponse.json({ 
-      error: "Error interno al configurar 2FA",
-      details: error instanceof Error ? error.message : String(error)
-    }, { status: 500 });
+    return NextResponse.json({ error: "Error interno al configurar 2FA" }, { status: 500 });
   }
 }

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { focusRing } from "@/components/pwn/format";
+import { focusRing, pwnFieldClassLg, pwnFormLabelClass } from "@/components/pwn/format";
 
 export function SearchForm({
   id,
@@ -42,12 +42,12 @@ export function SearchForm({
         onSubmit();
       }}
       autoComplete={type === "password" ? "off" : undefined}
-      className="space-y-2"
+      className="space-y-3"
     >
-      <label htmlFor={id} className="block text-sm font-medium text-white">
+      <label htmlFor={id} className={pwnFormLabelClass}>
         {label}
       </label>
-      <div className="flex flex-col gap-3 sm:flex-row">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
         <input
           id={id}
           name={name ?? id}
@@ -62,7 +62,7 @@ export function SearchForm({
           spellCheck={type === "password" ? false : undefined}
           aria-invalid={error ? true : undefined}
           aria-describedby={[hintId, errorId].filter(Boolean).join(" ") || undefined}
-          className={`h-12 w-full rounded-xl border border-white/10 bg-bg-tertiary/70 px-4 text-sm text-white placeholder:text-gray-500 ${focusRing}`}
+          className={pwnFieldClassLg}
         />
         <Button
           type="submit"
@@ -89,7 +89,7 @@ export function SearchForm({
 export function Field({ label, htmlFor, children, hint }: { label: string; htmlFor: string; children: ReactNode; hint?: string }) {
   return (
     <div className="space-y-2">
-      <label htmlFor={htmlFor} className="block text-sm font-medium text-white">
+      <label htmlFor={htmlFor} className={pwnFormLabelClass}>
         {label}
       </label>
       {children}
