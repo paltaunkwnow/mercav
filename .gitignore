@@ -48,3 +48,6 @@ next-env.d.ts
 /scratch/
 home_debug.html
 
+# notas personales de Obsidian; no van al repositorio
+/obsidian/
+
