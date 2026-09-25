@@ -3,9 +3,14 @@ import Link from "next/link";
 import { Bell } from "lucide-react";
 
 export async function AnnouncementBar() {
-  const config = await prisma.globalConfig.findUnique({
-    where: { id: "singleton" }
-  });
+  let config: any = null;
+  try {
+    config = await prisma.globalConfig.findUnique({
+      where: { id: "singleton" }
+    });
+  } catch (e) {
+    return null;
+  }
 
   if (!config?.announcementText) return null;
 

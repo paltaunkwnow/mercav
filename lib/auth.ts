@@ -162,17 +162,22 @@ export const authOptions: AuthOptions = {
       }
       
       if (token.id) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { isSanctioned: true }
-        });
-        token.isSanctioned = dbUser?.isSanctioned || false;
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { isSanctioned: true }
+          });
+          token.isSanctioned = dbUser?.isSanctioned || false;
 
-        const dbRoles = await prisma.userRole.findMany({
-          where: { userId: token.id as string },
-          select: { role: true }
-        });
-        token.roles = dbRoles.map(r => r.role);
+          const dbRoles = await prisma.userRole.findMany({
+            where: { userId: token.id as string },
+            select: { role: true }
+          });
+          token.roles = dbRoles.map(r => r.role);
+        } catch (dbErr) {
+          token.isSanctioned = false;
+          token.roles = [];
+        }
       }
       
       return token;
