@@ -11,4 +11,4 @@ async function main() {
 }
 
 main().finally(() => prisma.$disconnect());
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

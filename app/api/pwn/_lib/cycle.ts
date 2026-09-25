@@ -176,4 +176,4 @@ export async function syncKevCatalog() {
   }
   return { configured: true, upserted };
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

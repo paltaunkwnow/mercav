@@ -72,4 +72,4 @@ export function clearThirdPartyStorage() {
     /* ignore */
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

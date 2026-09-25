@@ -1088,4 +1088,4 @@ function PostCard({ post, currentUser, onDelete, showToast }: { post: FeedPost; 
     </article>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

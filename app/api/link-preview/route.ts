@@ -38,4 +38,4 @@ export async function GET(req: Request) {
     return NextResponse.json({ success: false, error: "No se pudo previsualizar el enlace" }, { status: 400 });
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

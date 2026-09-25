@@ -422,4 +422,4 @@ export default function CheckoutPage({ params }: { params: { type: string, id: s
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

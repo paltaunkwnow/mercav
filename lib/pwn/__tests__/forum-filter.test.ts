@@ -46,4 +46,4 @@ describe("isLeakMonitoringText shim", () => {
     assert.equal(isLeakMonitoringText("Weekly announcement from staff"), false);
   });
 });
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

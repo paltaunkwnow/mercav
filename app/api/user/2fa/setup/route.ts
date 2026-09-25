@@ -55,4 +55,4 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Error interno al configurar 2FA" }, { status: 500 });
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

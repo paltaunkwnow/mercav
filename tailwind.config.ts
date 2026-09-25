@@ -97,4 +97,4 @@ const config: Config = {
   plugins: [],
 };
 export default config;
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

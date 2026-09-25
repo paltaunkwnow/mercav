@@ -18,4 +18,4 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
 }
 
 export { Input }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

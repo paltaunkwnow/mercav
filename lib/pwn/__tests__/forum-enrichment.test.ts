@@ -37,4 +37,4 @@ describe("domain mention", () => {
     assert.equal(domainMentionedInText("Leak for other.org", "acme.gov"), false);
   });
 });
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

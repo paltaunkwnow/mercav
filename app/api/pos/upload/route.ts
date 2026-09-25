@@ -58,4 +58,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: "Error al subir el logo" }, { status: 500 });
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

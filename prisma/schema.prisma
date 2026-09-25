@@ -1360,4 +1360,4 @@ model PwnRateBucket {
   tokens    Float
   updatedAt DateTime @updatedAt
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

@@ -45,4 +45,4 @@ export async function checkPlanLimit(userId: string, action: string) {
   // PROFESSIONAL and above have fewer limits (can adjust per action)
   return { allowed: true };
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

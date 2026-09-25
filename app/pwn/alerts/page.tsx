@@ -197,4 +197,4 @@ export default function AlertsPage() {
     </FadeIn>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

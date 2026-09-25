@@ -84,4 +84,4 @@ export function kindRank(kind: ForumSignalKind): number {
   if (kind === "CREDENTIALS") return 1;
   return 0;
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

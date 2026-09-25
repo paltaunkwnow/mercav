@@ -54,4 +54,4 @@ export function BottomNav() {
     </nav>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

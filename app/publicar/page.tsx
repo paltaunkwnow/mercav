@@ -78,4 +78,4 @@ export default function PublicarPage() {
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

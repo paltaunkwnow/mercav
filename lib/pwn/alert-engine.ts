@@ -137,4 +137,4 @@ export function buildAlert(input: BuildAlertInput): BuiltAlert {
 
   return { title: clean(title), body: lines.join("\n"), severity };
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

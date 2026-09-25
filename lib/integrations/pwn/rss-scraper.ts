@@ -104,4 +104,4 @@ export async function scrapeRssFeeds(enabledSources: Set<string>): Promise<Forum
   const chunks = await mapInPool(feeds, RSS_FETCH_CONCURRENCY, (feed) => fetchFeed(feed, RSS_ITEMS_PER_FEED));
   return chunks.flat();
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

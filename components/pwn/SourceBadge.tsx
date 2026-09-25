@@ -20,4 +20,4 @@ export function SourceBadge({ source, href }: { source?: string | null; href?: s
 
   return <span className={className}>{content}</span>;
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

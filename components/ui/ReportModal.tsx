@@ -272,4 +272,4 @@ export function ReportModal({ isOpen, onClose, targetId, targetType, onSuccess }
     </AnimatePresence>
   )
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

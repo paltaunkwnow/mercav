@@ -83,4 +83,4 @@ export function PwnShell({ children }: { children: ReactNode }) {
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

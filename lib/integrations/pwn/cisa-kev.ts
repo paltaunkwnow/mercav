@@ -84,4 +84,4 @@ export const cisaKevConnector: PwnConnector<{ cveId: string }, CisaKevEntry[]> =
     return { configured: true, data: catalog.data.filter((item) => item.cveId.toUpperCase() === target) };
   },
 };
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

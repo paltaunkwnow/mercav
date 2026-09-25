@@ -205,4 +205,4 @@ export default function PostularPage({ params }: { params: { id: string } }) {
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

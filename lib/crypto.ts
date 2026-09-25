@@ -26,4 +26,4 @@ export function decryptMessage(encrypted: string): string {
     return "Error al descifrar mensaje";
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

@@ -2446,4 +2446,5 @@ What should I do next?
 ```
 
 That is the core product definition of Mercav Pwn.
-<!-- creado por Patodev y Invertilo -->
+<! -->
+<!-- creado por pato dev y askforvini -->

@@ -394,4 +394,4 @@ function GoldCard({ icon: Icon, title, text, fullWidth = false }: { icon: any; t
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

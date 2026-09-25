@@ -178,4 +178,4 @@ export default function Precios() {
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

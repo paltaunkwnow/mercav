@@ -131,4 +131,4 @@ export function SeekField({
     </motion.form>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

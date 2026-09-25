@@ -295,4 +295,4 @@ export default function ProfileTabs({ user, posts }: { user: any, posts: any[] }
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

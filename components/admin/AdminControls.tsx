@@ -384,4 +384,4 @@ export function AdminTicketActions({ ticketId, currentStatus, otherParty, isPart
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

@@ -4,4 +4,4 @@ import { authOptions } from "@/lib/auth";
 const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

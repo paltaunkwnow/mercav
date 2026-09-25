@@ -586,4 +586,4 @@ export default function POSReportsPage() {
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

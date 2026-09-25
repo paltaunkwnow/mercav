@@ -414,4 +414,4 @@ function VerificationPanel({ instructions, onDismiss }: { instructions: Instruct
     </section>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

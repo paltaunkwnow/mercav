@@ -58,4 +58,4 @@ export async function POST(request: NextRequest) {
     return internalError("pwn cycle", error);
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

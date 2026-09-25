@@ -98,4 +98,4 @@ export async function POST(request: NextRequest) {
     return internalError("organization create", error);
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

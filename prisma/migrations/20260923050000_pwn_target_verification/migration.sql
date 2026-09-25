@@ -8,4 +8,4 @@ ADD COLUMN     "verifiedAt" TIMESTAMP(3);
 
 -- CreateIndex
 CREATE INDEX "PwnMonitoringTarget_verificationStatus_idx" ON "PwnMonitoringTarget"("verificationStatus");
--- creado por Patodev y Invertilo
+-- creado por pato dev y askforvini

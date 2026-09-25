@@ -21,4 +21,4 @@ export async function detectLocation(ip: string) {
     return null;
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

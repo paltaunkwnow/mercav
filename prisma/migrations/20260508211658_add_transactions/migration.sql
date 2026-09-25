@@ -152,4 +152,4 @@ ALTER TABLE "_UserConversations" ADD CONSTRAINT "_UserConversations_A_fkey" FORE
 
 -- AddForeignKey
 ALTER TABLE "_UserConversations" ADD CONSTRAINT "_UserConversations_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
--- creado por Patodev y Invertilo
+-- creado por pato dev y askforvini

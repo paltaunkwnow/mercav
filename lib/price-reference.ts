@@ -28,4 +28,4 @@ export const PRICE_REFERENCE: Record<string, Record<string, { min: number; avg: 
     chile: { min: 20, avg: 32, premium: 58, hourly: 24 },
   },
 };
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

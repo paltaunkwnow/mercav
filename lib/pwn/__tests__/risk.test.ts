@@ -46,4 +46,4 @@ test("is deterministic and bounded 0-100", () => {
 test("INFO severity stays INFO", () => {
   assert.equal(scoreRisk({ severity: "INFO", confidence: 100 }).level, "INFO");
 });
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

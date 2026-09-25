@@ -31,4 +31,4 @@ export async function getRecommendationsForUser(userId: string) {
     return [];
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

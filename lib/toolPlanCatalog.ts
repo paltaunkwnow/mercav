@@ -11,4 +11,4 @@ export const TOOL_REQUIREMENTS: Record<string, Array<string>> = {
 export function toolPlanLabel(toolName: string) {
   return TOOL_REQUIREMENTS[toolName]?.join(" / ") || "FREE+";
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

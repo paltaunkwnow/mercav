@@ -59,4 +59,4 @@ export async function GET(request: NextRequest) {
     return internalError("vulnerability lookup", error);
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

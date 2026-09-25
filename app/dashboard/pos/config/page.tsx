@@ -214,4 +214,4 @@ export default function POSConfigPage() {
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

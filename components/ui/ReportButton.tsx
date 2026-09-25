@@ -43,4 +43,4 @@ export function ReportButton({ targetId, targetType, variant = "flag" }: ReportB
     </>
   )
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

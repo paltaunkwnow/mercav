@@ -52,4 +52,4 @@ export async function POST(request: NextRequest) {
     return internalError("alerts mark read", error);
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

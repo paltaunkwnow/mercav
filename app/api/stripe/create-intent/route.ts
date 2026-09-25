@@ -76,4 +76,4 @@ export async function POST(req: Request) {
     return new NextResponse('Internal Error', { status: 500 });
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

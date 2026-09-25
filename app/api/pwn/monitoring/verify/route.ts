@@ -130,4 +130,4 @@ export async function POST(request: NextRequest) {
     return internalError("monitoring verify", error);
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

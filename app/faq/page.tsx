@@ -202,4 +202,4 @@ export default function FAQPage() {
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

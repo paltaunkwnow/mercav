@@ -18,4 +18,4 @@ export class PwnProviderError extends Error {
     this.provider = provider;
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

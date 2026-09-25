@@ -79,4 +79,4 @@ export function getSourceDefinition(key: PwnSourceKey, env: Env = process.env): 
 export function isSourceEnabled(key: PwnSourceKey, env: Env = process.env): boolean {
   return getSourceDefinition(key, env)?.enabled ?? false;
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

@@ -23,4 +23,4 @@ export function sameEmail(a: string | null | undefined, b: string | null | undef
   if (!a || !b) return false;
   return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

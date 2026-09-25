@@ -231,4 +231,4 @@ export default function ChangelogPage() {
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

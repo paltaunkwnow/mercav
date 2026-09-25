@@ -69,4 +69,4 @@ export function severityFromCvss(score: number | null): "INFO" | "LOW" | "MEDIUM
   if (score > 0) return "LOW";
   return "INFO";
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

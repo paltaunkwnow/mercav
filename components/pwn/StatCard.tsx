@@ -12,4 +12,4 @@ export function StatCard({ label, value, hint }: { label: string; value: number 
     </article>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

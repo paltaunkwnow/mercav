@@ -477,4 +477,4 @@ export default function POSTerminalPage() {
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

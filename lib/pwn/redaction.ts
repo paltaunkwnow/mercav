@@ -42,4 +42,4 @@ export function redactSubject(input: string): string {
   const redacted = value.length <= 2 ? REDACTED : `${value[0]}${REDACTED}`;
   return redacted === value ? REDACTED : redacted;
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

@@ -98,4 +98,4 @@ export function VerificationBadge({ status }: { status?: string | null }) {
     </span>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

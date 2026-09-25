@@ -18,4 +18,4 @@ export function Providers({ children }: { children: React.ReactNode }) {
     </SessionProvider>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

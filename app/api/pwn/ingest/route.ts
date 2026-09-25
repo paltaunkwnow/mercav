@@ -200,4 +200,4 @@ export async function POST(request: NextRequest) {
     return upstream ?? internalError("admin ingestion", error);
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

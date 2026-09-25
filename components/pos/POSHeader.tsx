@@ -53,4 +53,4 @@ export default function POSHeader() {
     </nav>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

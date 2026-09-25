@@ -366,4 +366,4 @@ export function GlobalSettingsForm({ initialConfig }: { initialConfig: any }) {
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

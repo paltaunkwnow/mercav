@@ -23,4 +23,4 @@ const nextConfig = {
 };
 
 export default nextConfig;
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

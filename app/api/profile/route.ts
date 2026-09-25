@@ -155,4 +155,4 @@ export async function PUT(req: Request) {
     return NextResponse.json({ success: false, error: "Error interno: " + (error as any).message }, { status: 500 });
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

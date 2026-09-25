@@ -130,4 +130,4 @@ export default function PremiumPage() {
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

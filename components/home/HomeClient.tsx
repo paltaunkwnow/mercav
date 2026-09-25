@@ -381,4 +381,4 @@ export function HomeCTA() {
     </section>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

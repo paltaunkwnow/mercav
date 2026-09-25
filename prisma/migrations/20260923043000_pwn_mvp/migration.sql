@@ -291,4 +291,4 @@ ALTER TABLE "PwnReport" ADD CONSTRAINT "PwnReport_organizationId_fkey" FOREIGN K
 
 -- AddForeignKey
 ALTER TABLE "PwnIngestionJob" ADD CONSTRAINT "PwnIngestionJob_sourceId_fkey" FOREIGN KEY ("sourceId") REFERENCES "PwnSource"("id") ON DELETE SET NULL ON UPDATE CASCADE;
--- creado por Patodev y Invertilo
+-- creado por pato dev y askforvini

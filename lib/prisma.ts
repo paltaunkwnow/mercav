@@ -7,4 +7,4 @@ export const prisma = globalForPrisma.prisma || new PrismaClient();
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 export default prisma;
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

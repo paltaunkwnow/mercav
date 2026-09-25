@@ -20,4 +20,4 @@ export const SUBPROCESSORS = [
   { name: "Google LLC", purpose: "reCAPTCHA, inicio de sesión con Google", region: "EE. UU. / global", url: "https://policies.google.com/privacy" },
   { name: "Have I Been Pwned (Troy Hunt)", purpose: "Consultas de exposición (Mercav Pwn)", region: "Australia / API", url: "https://haveibeenpwned.com/Privacy" },
 ] as const;
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

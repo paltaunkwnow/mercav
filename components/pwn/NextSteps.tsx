@@ -39,4 +39,4 @@ export function NextSteps({ kind }: { kind: "email" | "domain" | "password" }) {
     </section>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

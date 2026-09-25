@@ -14,4 +14,4 @@ export default defineConfig({
     url: process.env["DATABASE_URL"],
   },
 });
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

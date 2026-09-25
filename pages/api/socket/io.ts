@@ -44,4 +44,4 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIO) => {
 };
 
 export default ioHandler;
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

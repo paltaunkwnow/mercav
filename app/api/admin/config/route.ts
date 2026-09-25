@@ -69,4 +69,4 @@ export async function GET() {
 
   return NextResponse.json(config);
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

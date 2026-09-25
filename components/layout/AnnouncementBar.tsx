@@ -34,4 +34,4 @@ export async function AnnouncementBar() {
 
   return <div className="sticky top-0 z-[110]">{content}</div>;
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

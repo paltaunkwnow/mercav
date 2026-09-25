@@ -68,4 +68,4 @@ export async function GET() {
     return new Response(error.message || "Error interno", { status: 500 })
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

@@ -100,4 +100,4 @@ export function isForumSignalWorthy(title: string, category?: string | null, for
   if (isGovernmentRelatedSignal(title, category, forum)) return true;
   return false;
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

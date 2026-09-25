@@ -39,4 +39,4 @@ export default function NotFound() {
     </div>
   );
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini

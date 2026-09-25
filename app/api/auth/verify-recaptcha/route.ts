@@ -15,4 +15,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: 'Internal error' }, { status: 500 });
   }
 }
-// creado por Patodev y Invertilo
+// creado por pato dev y askforvini
