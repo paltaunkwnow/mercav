@@ -99,3 +99,4 @@ test("buildAlert describes KEV vulnerabilities in Spanish", () => {
   assert.match(alert.body, /CISA KEV/);
   assert.equal(alert.severity, "CRITICAL");
 });
+// creado por Patodev y Invertilo

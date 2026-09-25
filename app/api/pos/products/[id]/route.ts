@@ -107,3 +107,4 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });
   }
 }
+// creado por Patodev y Invertilo

@@ -274,3 +274,4 @@ export const ORDER_TYPES = [
   { id: "TOGO", name: "Para llevar", icon: "🥡" },
   { id: "EMPLOYEE", name: "Descuento empleado", icon: "👨‍🍳" },
 ];
+// creado por Patodev y Invertilo

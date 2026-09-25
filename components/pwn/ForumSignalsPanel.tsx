@@ -71,3 +71,4 @@ export function ForumSignalsPanel({
     </section>
   );
 }
+// creado por Patodev y Invertilo

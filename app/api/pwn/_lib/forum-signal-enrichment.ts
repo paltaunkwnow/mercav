@@ -162,3 +162,4 @@ export async function forumSignalStats(where: Record<string, unknown> = {}) {
   }
   return { total, database, mixed, credentials, other, government, data: database + mixed };
 }
+// creado por Patodev y Invertilo

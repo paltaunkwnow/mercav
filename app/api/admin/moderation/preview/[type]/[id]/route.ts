@@ -56,3 +56,4 @@ export async function GET(
     return NextResponse.json({ success: false, error: error.message || "Error interno" }, { status: 500 })
   }
 }
+// creado por Patodev y Invertilo

@@ -44,3 +44,4 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 });
   }
 }
+// creado por Patodev y Invertilo

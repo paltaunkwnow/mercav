@@ -706,3 +706,4 @@ export default function POSInventoryPage() {
     </div>
   );
 }
+// creado por Patodev y Invertilo

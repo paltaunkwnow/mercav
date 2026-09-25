@@ -9,3 +9,4 @@ CREATE INDEX "PwnForumSignal_titleKey_idx" ON "PwnForumSignal"("titleKey");
 
 -- AddForeignKey
 ALTER TABLE "PwnForumSignal" ADD CONSTRAINT "PwnForumSignal_breachId_fkey" FOREIGN KEY ("breachId") REFERENCES "PwnBreach"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+-- creado por Patodev y Invertilo

@@ -535,3 +535,4 @@ export function isCriticalLevel(value: string | null | undefined): boolean {
   if (!value) return false;
   return /crit/i.test(value);
 }
+// creado por Patodev y Invertilo

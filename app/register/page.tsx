@@ -283,3 +283,4 @@ export default function Register() {
     </div>
   );
 }
+// creado por Patodev y Invertilo

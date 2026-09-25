@@ -204,3 +204,4 @@ export default function ForumSignalsPage() {
     </FadeIn>
   );
 }
+// creado por Patodev y Invertilo

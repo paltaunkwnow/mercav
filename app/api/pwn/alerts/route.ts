@@ -62,3 +62,4 @@ export async function GET(request: NextRequest) {
     return internalError("alerts list", error);
   }
 }
+// creado por Patodev y Invertilo

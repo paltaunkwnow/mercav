@@ -110,3 +110,4 @@ export default function StripePaymentForm({ amount, disabled }: StripePaymentFor
     </form>
   );
 }
+// creado por Patodev y Invertilo

@@ -31,3 +31,4 @@ CREATE INDEX "PwnForumSignal_publishedAt_idx" ON "PwnForumSignal"("publishedAt")
 
 -- AddForeignKey
 ALTER TABLE "PwnForumSignal" ADD CONSTRAINT "PwnForumSignal_sourceId_fkey" FOREIGN KEY ("sourceId") REFERENCES "PwnSource"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+-- creado por Patodev y Invertilo

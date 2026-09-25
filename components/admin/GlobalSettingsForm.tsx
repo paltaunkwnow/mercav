@@ -366,3 +366,4 @@ export function GlobalSettingsForm({ initialConfig }: { initialConfig: any }) {
     </div>
   );
 }
+// creado por Patodev y Invertilo

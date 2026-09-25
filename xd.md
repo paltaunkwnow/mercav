@@ -16,3 +16,4 @@ Haz clic en "Add New" -> "Project" y selecciona tu repositorio mercav.
 En la configuración de variables de entorno de Vercel, copia y pega las variables de tu archivo .env (como la base de datos y las claves de Stripe/NextAuth).
 Haz clic en "Deploy" y ¡listo! Tu web estará funcionando completamente con backend y frontend.
 Antes de que hagas eso, voy a revertir la configuración estática local para que el proyecto vuelva a estar 100% listo para producción en Vercel o en cualquier servidor normal (eliminando output: 'export' de next.config.mjs y dejando firebase.json limpio). ¿Te parece bien?
+<!-- creado por Patodev y Invertilo -->

@@ -48,3 +48,4 @@ test("is deterministic, bounded and tolerant of bad numbers", () => {
     assert.ok(Number.isInteger(score) && score >= 0 && score <= 100);
   }
 });
+// creado por Patodev y Invertilo

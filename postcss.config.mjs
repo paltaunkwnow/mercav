@@ -6,3 +6,4 @@ const config = {
 };
 
 export default config;
+// creado por Patodev y Invertilo

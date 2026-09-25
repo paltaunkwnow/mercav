@@ -89,3 +89,4 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ success: false, error: "Error al obtener archivos" }, { status: 500 });
   }
 }
+// creado por Patodev y Invertilo

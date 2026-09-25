@@ -15,3 +15,4 @@ export async function GET() {
   
   return NextResponse.json({ success: false, error: "No se pudo detectar la ubicación" }, { status: 500 });
 }
+// creado por Patodev y Invertilo

@@ -128,3 +128,4 @@ export default function POSProductGrid({ products, categories, onAdd, currency }
     </div>
   );
 }
+// creado por Patodev y Invertilo

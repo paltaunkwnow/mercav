@@ -8,3 +8,4 @@ export async function resolve(specifier, context, nextResolve) {
   }
   return nextResolve(specifier, context);
 }
+// creado por Patodev y Invertilo

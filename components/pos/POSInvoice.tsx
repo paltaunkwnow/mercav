@@ -196,3 +196,4 @@ export default function POSInvoice({ sale, config, onClose }: InvoiceProps) {
     document.body
   );
 }
+// creado por Patodev y Invertilo

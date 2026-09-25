@@ -477,3 +477,4 @@ export default function POSTerminalPage() {
     </div>
   );
 }
+// creado por Patodev y Invertilo

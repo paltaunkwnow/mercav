@@ -3329,3 +3329,4 @@ function generatePalette(base: string, mode: string) {
     return hslToHex(h, s, l);
   });
 }
+// creado por Patodev y Invertilo

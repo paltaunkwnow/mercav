@@ -22,3 +22,4 @@ export const authLabelClassSpaced = `${authLabelClass} mb-2`;
 
 export const authCardClass =
   "relative overflow-hidden rounded-3xl border border-border bg-bg-secondary/80 p-8 shadow-lg md:p-10";
+// creado por Patodev y Invertilo

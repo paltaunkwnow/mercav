@@ -299,3 +299,4 @@ export async function POST(request: NextRequest) {
     return upstream ?? internalError("exposure search", error);
   }
 }
+// creado por Patodev y Invertilo

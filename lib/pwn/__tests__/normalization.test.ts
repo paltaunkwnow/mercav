@@ -44,3 +44,4 @@ test("source catalog flags depend on env presence only", () => {
   assert.equal(getSourceCatalog({ HIBP_API_KEY: "x" }).find((s) => s.key === "HIBP")?.enabled, true);
   assert.equal(getSourceCatalog({ HIBP_API_KEY: "   " }).find((s) => s.key === "HIBP")?.enabled, false);
 });
+// creado por Patodev y Invertilo

@@ -11,3 +11,4 @@ export function planChargeUsd(plan: string | undefined, interval: string | undef
   if (interval === "annual") return Math.round(monthly * 0.8 * 100) / 100;
   return monthly;
 }
+// creado por Patodev y Invertilo

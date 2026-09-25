@@ -10,3 +10,4 @@ export async function sha1Hex(value: string): Promise<string> {
     .join("")
     .toUpperCase();
 }
+// creado por Patodev y Invertilo

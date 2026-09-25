@@ -266,3 +266,4 @@ export default function OrganizationsPage() {
     </FadeIn>
   );
 }
+// creado por Patodev y Invertilo

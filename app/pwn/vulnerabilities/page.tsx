@@ -137,3 +137,4 @@ export default function VulnerabilitiesPage() {
     </FadeIn>
   );
 }
+// creado por Patodev y Invertilo

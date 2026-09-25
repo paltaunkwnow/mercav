@@ -40,3 +40,4 @@ export function safeCallbackPath(raw: string | null | undefined): string {
   }
   return raw;
 }
+// creado por Patodev y Invertilo

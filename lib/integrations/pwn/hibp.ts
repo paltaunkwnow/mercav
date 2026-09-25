@@ -238,3 +238,4 @@ export function passwordPrefixFromSha1(sha1: string): string {
   if (!/^[A-F0-9]{40}$/i.test(sha1)) throw new TypeError("SHA-1 inválido");
   return sha1.slice(0, 5).toUpperCase();
 }
+// creado por Patodev y Invertilo

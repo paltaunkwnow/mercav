@@ -4,3 +4,4 @@ import { COOKIE_POLICY } from "@/lib/legal/documents";
 export default function CookiesPage() {
   return <LegalDocumentView doc={COOKIE_POLICY} />;
 }
+// creado por Patodev y Invertilo

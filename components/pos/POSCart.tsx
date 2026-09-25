@@ -240,3 +240,4 @@ export default function POSCart({ items, onUpdateQuantity, onRemove, onCheckout,
     </div>
   );
 }
+// creado por Patodev y Invertilo

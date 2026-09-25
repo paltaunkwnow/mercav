@@ -88,3 +88,4 @@ export default function ExplorarPage() {
     </div>
   );
 }
+// creado por Patodev y Invertilo

@@ -115,3 +115,4 @@ export const ReceiptTemplate = React.forwardRef<HTMLDivElement, ReceiptTemplateP
 });
 
 ReceiptTemplate.displayName = 'ReceiptTemplate';
+// creado por Patodev y Invertilo

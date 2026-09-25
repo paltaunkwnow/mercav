@@ -58,3 +58,4 @@ export async function GET(request: NextRequest) {
     return internalError("breaches list", error);
   }
 }
+// creado por Patodev y Invertilo

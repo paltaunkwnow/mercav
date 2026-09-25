@@ -111,3 +111,4 @@ export default function CurrencySelector({ value, onChange, label }: CurrencySel
     </div>
   );
 }
+// creado por Patodev y Invertilo

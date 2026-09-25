@@ -160,3 +160,4 @@ export function CookieBanner({
     </div>
   );
 }
+// creado por Patodev y Invertilo

@@ -35,3 +35,4 @@ export async function GET() {
     return NextResponse.json({ error: "Error al obtener empresas" }, { status: 500 });
   }
 }
+// creado por Patodev y Invertilo

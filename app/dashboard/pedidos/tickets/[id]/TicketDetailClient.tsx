@@ -609,3 +609,4 @@ export default function TicketDetailClient({ ticket, user }: TicketDetailClientP
     </div>
   );
 }
+// creado por Patodev y Invertilo

@@ -45,3 +45,4 @@ export default async function TicketDetailPage({ params }: { params: { id: strin
     />
   );
 }
+// creado por Patodev y Invertilo

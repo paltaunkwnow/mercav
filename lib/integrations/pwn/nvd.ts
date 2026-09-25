@@ -148,3 +148,4 @@ export const nvdConnector: PwnConnector<NvdQuery, NvdVulnerability[]> = {
     }
   },
 };
+// creado por Patodev y Invertilo

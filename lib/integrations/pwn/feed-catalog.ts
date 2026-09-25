@@ -294,3 +294,4 @@ export function isGenericForumLabel(forum?: string | null): boolean {
   if (!value) return false;
   return PWN_FEED_SOURCES.some((s) => s.forumLabel.toLowerCase() === value);
 }
+// creado por Patodev y Invertilo

@@ -25,3 +25,4 @@ export async function GET(req: Request, { params }: { params: { username: string
     return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 });
   }
 }
+// creado por Patodev y Invertilo
