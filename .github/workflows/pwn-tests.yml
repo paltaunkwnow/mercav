@@ -1,9 +1,8 @@
 name: Pwn tests
 
-on: [push, pull_request]
-
-permissions:
-  contents: read
+on:
+  push:
+  pull_request:
 
 jobs:
   unit:
