@@ -223,3 +223,4 @@ export default function POSProductGrid({ products, categories, onAdd, onNotFound
     </div>
   );
 }
+// creado por pato dev y askforvini

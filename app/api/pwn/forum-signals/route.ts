@@ -126,3 +126,4 @@ export async function GET(request: NextRequest) {
     return internalError("forum signals", error);
   }
 }
+// creado por pato dev y askforvini

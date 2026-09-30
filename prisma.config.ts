@@ -14,3 +14,4 @@ export default defineConfig({
     url: process.env["DATABASE_URL"],
   },
 });
+// creado por pato dev y askforvini

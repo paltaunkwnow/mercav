@@ -132,3 +132,4 @@ export default function FAQPage() {
     </div>
   );
 }
+// creado por pato dev y askforvini

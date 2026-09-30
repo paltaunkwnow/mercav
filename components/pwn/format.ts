@@ -94,3 +94,4 @@ export const pwnFormLabelClass = "block text-xs font-medium uppercase tracking-w
 /** Primary form / search panels on Pwn pages. */
 export const pwnPanelClass =
   "rounded-3xl border border-dashed border-white/15 bg-bg-secondary/50 p-6 md:p-7 backdrop-blur-sm";
+// creado por pato dev y askforvini

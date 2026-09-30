@@ -313,3 +313,4 @@ export default function POSCart({ items, onUpdateQuantity, onSetQuantity, onRemo
     </div>
   );
 }
+// creado por pato dev y askforvini

@@ -332,3 +332,4 @@ export default function POSPaymentModal({ isOpen, onClose, onConfirm, total, cur
     </AnimatePresence>
   );
 }
+// creado por pato dev y askforvini

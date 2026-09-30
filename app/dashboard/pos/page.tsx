@@ -539,3 +539,4 @@ export default function POSTerminalPage() {
     </div>
   );
 }
+// creado por pato dev y askforvini

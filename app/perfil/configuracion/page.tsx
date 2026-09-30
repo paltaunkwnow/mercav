@@ -196,3 +196,4 @@ export default function ConfiguracionPage() {
     </div>
   );
 }
+// creado por pato dev y askforvini

@@ -126,3 +126,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: error.message || "Error interno del servidor" }, { status: 500 })
   }
 }
+// creado por pato dev y askforvini

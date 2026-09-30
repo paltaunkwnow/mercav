@@ -360,3 +360,4 @@ export default function POSConfigPage() {
     </div>
   );
 }
+// creado por pato dev y askforvini

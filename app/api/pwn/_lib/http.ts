@@ -83,3 +83,4 @@ export function clientIp(request: NextRequest): string {
 export function isAdmin(user: PwnSessionUser): boolean {
   return user.roles.some((role) => role.toUpperCase() === "ADMIN");
 }
+// creado por pato dev y askforvini

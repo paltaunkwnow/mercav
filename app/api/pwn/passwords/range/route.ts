@@ -47,3 +47,4 @@ export async function POST(request: NextRequest) {
     return upstream ?? internalError("password range", error);
   }
 }
+// creado por pato dev y askforvini

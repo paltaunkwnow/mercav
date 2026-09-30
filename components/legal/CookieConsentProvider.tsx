@@ -127,3 +127,4 @@ export function useCookieConsent() {
 export function useCookieConsentOptional() {
   return useContext(CookieConsentContext);
 }
+// creado por pato dev y askforvini

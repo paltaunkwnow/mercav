@@ -35,3 +35,4 @@ export function isTargetType(value: unknown): value is PwnTargetType {
 export function isExposureKind(value: unknown): value is PwnExposureKind {
   return typeof value === "string" && (PWN_EXPOSURE_KINDS as readonly string[]).includes(value);
 }
+// creado por pato dev y askforvini

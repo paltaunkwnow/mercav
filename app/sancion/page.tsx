@@ -23,3 +23,4 @@ export default async function SanctionPage() {
 
   return <SanctionClient user={user} days={days} hours={hours} timeLeft={timeLeft} />;
 }
+// creado por pato dev y askforvini

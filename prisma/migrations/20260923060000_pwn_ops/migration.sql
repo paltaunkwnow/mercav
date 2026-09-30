@@ -15,3 +15,4 @@ CREATE UNIQUE INDEX "PwnBreach_name_sourceId_key" ON "PwnBreach"("name", "source
 
 -- CreateIndex
 CREATE UNIQUE INDEX "PwnExposure_subjectHash_breachId_sourceId_key" ON "PwnExposure"("subjectHash", "breachId", "sourceId");
+-- creado por pato dev y askforvini

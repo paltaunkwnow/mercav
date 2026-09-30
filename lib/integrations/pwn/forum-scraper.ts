@@ -296,3 +296,4 @@ export async function collectForumSignals(enabledSources?: Set<string>): Promise
 export function isLeakMonitoringText(text: string): boolean {
   return isForumSignalWorthy(text, null, null);
 }
+// creado por pato dev y askforvini

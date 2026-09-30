@@ -196,3 +196,4 @@ function KPICard({ label, value, trend, icon: Icon, color, iconColor }: any) {
     </div>
   );
 }
+// creado por pato dev y askforvini

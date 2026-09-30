@@ -59,3 +59,4 @@ export function scoreRisk(input: RiskInput): RiskResult {
   const score = Math.round(clamp(raw, 0, 100));
   return { score, level: riskLevel(score) };
 }
+// creado por pato dev y askforvini

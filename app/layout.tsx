@@ -12,19 +12,15 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { Zap } from "lucide-react";
 
+export const dynamic = "force-dynamic";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-display" });
 const dmMono = DM_Mono({ weight: ["400", "500"], subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: "Mercav | Ecosistema Digital Latinoamericano",
-  description: "Publicidad offline, servicios digitales, empleo y herramientas. Todo en una sola plataforma.",
-  icons: {
-    icon: "/images/logo.png",
-    shortcut: "/images/logo.png",
-    apple: "/images/logo.png",
-  }
+  title: "Mercav",
+  description: "Mercav",
 };
 
 export default async function RootLayout({
@@ -32,9 +28,22 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const config = await prisma.globalConfig.findUnique({ where: { id: "singleton" } });
-  const session = await getServerSession(authOptions);
-  const isAdmin = (session?.user as any)?.roles?.includes("ADMIN");
+  let config: any = null;
+  let session: any = null;
+
+  try {
+    config = await prisma.globalConfig.findUnique({ where: { id: "singleton" } });
+  } catch (e) {
+    config = null;
+  }
+
+  try {
+    session = await getServerSession(authOptions);
+  } catch (e) {
+    session = null;
+  }
+
+  const isAdmin = session?.user?.roles?.includes("ADMIN");
 
   if (config?.maintenanceMode && !isAdmin) {
     return (
@@ -85,3 +94,4 @@ export default async function RootLayout({
     </html>
   );
 }
+// creado por pato dev y askforvini

@@ -9,3 +9,4 @@ export async function isAdminUser(userId?: string | null) {
 
   return !!user?.roles?.some((role) => role.role === "ADMIN");
 }
+// creado por pato dev y askforvini

@@ -681,3 +681,4 @@ async function InvestorsTab() {
     </div>
   );
 }
+// creado por pato dev y askforvini

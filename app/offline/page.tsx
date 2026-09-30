@@ -11,3 +11,4 @@ export default function Offline() {
     </div>
   );
 }
+// creado por pato dev y askforvini

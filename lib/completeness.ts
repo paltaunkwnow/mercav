@@ -37,3 +37,4 @@ export function calculateProfileCompleteness(user: UserWithRelations): number {
   
   return Math.min(score, 100);
 }
+// creado por pato dev y askforvini

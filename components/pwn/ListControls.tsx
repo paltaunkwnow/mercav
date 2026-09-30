@@ -95,3 +95,4 @@ export function pageWindow<T>(items: T[], page: number, pageSize = 6) {
   const start = (current - 1) * pageSize;
   return { page: current, pages, total: items.length, slice: items.slice(start, start + pageSize) };
 }
+// creado por pato dev y askforvini

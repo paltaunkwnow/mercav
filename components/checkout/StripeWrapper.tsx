@@ -33,3 +33,4 @@ export default function StripeWrapper({ clientSecret, amount }: StripeWrapperPro
     </Elements>
   );
 }
+// creado por pato dev y askforvini

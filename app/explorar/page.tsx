@@ -88,3 +88,4 @@ export default function ExplorarPage() {
     </div>
   );
 }
+// creado por pato dev y askforvini

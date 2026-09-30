@@ -60,3 +60,4 @@ export function normalizeCve(input: string): string | null {
   const value = String(input ?? "").trim().toUpperCase().replace(/[\u2010-\u2015]/g, "-");
   return CVE_RE.test(value) ? value : null;
 }
+// creado por pato dev y askforvini

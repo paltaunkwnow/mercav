@@ -271,3 +271,4 @@ export async function DELETE(request: NextRequest) {
     return internalError("monitoring delete", error);
   }
 }
+// creado por pato dev y askforvini

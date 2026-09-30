@@ -216,3 +216,4 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|images|uploads|logo.png|404.html|index.html).*)'],
 };
+// creado por pato dev y askforvini

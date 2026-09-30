@@ -27,47 +27,60 @@ interface ActivityItem {
 }
 
 export default async function Home() {
-  // Fetch real data from all modules
-  // Fetch global config for featured items
-  const config = await prisma.globalConfig.findUnique({
-    where: { id: "singleton" }
-  });
+  // Fetch real data from all modules with fault-tolerant try/catch
+  let config: any = null;
+  let featuredService: any = null;
+  let featuredSpace: any = null;
+  let latestSpaces: any[] = [];
+  let latestServices: any[] = [];
+  let latestJobs: any[] = [];
 
-  // Fetch featured items specifically if IDs are set
-  const [featuredService, featuredSpace, latestSpaces, latestServices, latestJobs, kosherPlaces, kosherCities, kosherPreview] = await Promise.all([
-    config?.featuredServiceId ? prisma.service.findUnique({
-      where: { id: config.featuredServiceId, isActive: true },
-      include: { packages: { orderBy: { price: 'asc' }, take: 1 } }
-    }) : null,
-    config?.featuredSpaceId ? prisma.space.findUnique({
-      where: { id: config.featuredSpaceId, isActive: true },
-      include: { images: { take: 1 } }
-    }) : null,
-    prisma.space.findMany({
-      where: { isActive: true },
-      take: 4,
-      orderBy: { createdAt: 'desc' },
-      include: { images: { take: 1 } }
-    }),
-    prisma.service.findMany({
-      where: { isActive: true },
-      take: 4,
-      orderBy: { createdAt: 'desc' },
-      include: { packages: { orderBy: { price: 'asc' }, take: 1 } }
-    }),
-    prisma.jobPost.findMany({
-      where: { isActive: true },
-      take: 4,
-      orderBy: { createdAt: 'desc' }
-    }),
-    prisma.kosherPlace.count({ where: { published: true } }),
-    prisma.kosherPlace.findMany({ where: { published: true }, distinct: ['city', 'countryCode'], select: { city: true } }),
-    prisma.kosherPlace.findMany({
-      where: { published: true, slug: { in: ['lpz-circulo-israelita', 'ba-templo-libertad', 'sp-gelato-borelli'] } },
-      orderBy: { lat: 'desc' },
-      select: { slug: true, name: true, city: true, type: true, status: true, verifiedAt: true }
-    })
-  ]);
+  let kosherPlaces = 0;
+  let kosherCities: { city: string }[] = [];
+  let kosherPreview: { slug: string; name: string; city: string; type: string; status: string; verifiedAt: Date | null }[] = [];
+
+  try {
+    config = await prisma.globalConfig.findUnique({
+      where: { id: "singleton" }
+    });
+
+    [featuredService, featuredSpace, latestSpaces, latestServices, latestJobs, kosherPlaces, kosherCities, kosherPreview] = await Promise.all([
+      config?.featuredServiceId ? prisma.service.findUnique({
+        where: { id: config.featuredServiceId, isActive: true },
+        include: { packages: { orderBy: { price: 'asc' }, take: 1 } }
+      }) : null,
+      config?.featuredSpaceId ? prisma.space.findUnique({
+        where: { id: config.featuredSpaceId, isActive: true },
+        include: { images: { take: 1 } }
+      }) : null,
+      prisma.space.findMany({
+        where: { isActive: true },
+        take: 4,
+        orderBy: { createdAt: 'desc' },
+        include: { images: { take: 1 } }
+      }),
+      prisma.service.findMany({
+        where: { isActive: true },
+        take: 4,
+        orderBy: { createdAt: 'desc' },
+        include: { packages: { orderBy: { price: 'asc' }, take: 1 } }
+      }),
+      prisma.jobPost.findMany({
+        where: { isActive: true },
+        take: 4,
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.kosherPlace.count({ where: { published: true } }),
+      prisma.kosherPlace.findMany({ where: { published: true }, distinct: ['city', 'countryCode'], select: { city: true } }),
+      prisma.kosherPlace.findMany({
+        where: { published: true, slug: { in: ['lpz-circulo-israelita', 'ba-templo-libertad', 'sp-gelato-borelli'] } },
+        orderBy: { lat: 'desc' },
+        select: { slug: true, name: true, city: true, type: true, status: true, verifiedAt: true }
+      })
+    ]);
+  } catch (dbError) {
+    console.warn("Database query error on Home page (showing graceful fallback):", dbError);
+  }
 
   // Combine and format activity
   const items: ActivityItem[] = [
@@ -182,3 +195,4 @@ export default async function Home() {
     </div>
   );
 }
+// creado por pato dev y askforvini

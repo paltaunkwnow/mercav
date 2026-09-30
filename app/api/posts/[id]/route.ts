@@ -82,3 +82,4 @@ export async function PATCH(
     return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 });
   }
 }
+// creado por pato dev y askforvini

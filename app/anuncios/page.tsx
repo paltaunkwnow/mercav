@@ -589,3 +589,4 @@ function Zap({ size, className }: { size: number, className: string }) {
     </svg>
   );
 }
+// creado por pato dev y askforvini

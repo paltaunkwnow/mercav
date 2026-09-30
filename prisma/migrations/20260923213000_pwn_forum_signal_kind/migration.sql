@@ -3,3 +3,4 @@ ALTER TABLE "PwnForumSignal" ADD COLUMN "signalKind" TEXT NOT NULL DEFAULT 'OTHE
 
 -- CreateIndex
 CREATE INDEX "PwnForumSignal_signalKind_idx" ON "PwnForumSignal"("signalKind");
+-- creado por pato dev y askforvini

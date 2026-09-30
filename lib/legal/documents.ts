@@ -568,3 +568,4 @@ export const LEGAL_ROUTES: Record<string, LegalDocument> = {
   "legal/reembolsos": REFUNDS,
   "legal/derechos": DATA_RIGHTS,
 };
+// creado por pato dev y askforvini

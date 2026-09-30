@@ -63,3 +63,4 @@ export function AuthHeroButton({ label = "Empezar gratis", className }: AuthHero
     />
   );
 }
+// creado por pato dev y askforvini

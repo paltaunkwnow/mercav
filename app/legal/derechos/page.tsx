@@ -4,3 +4,4 @@ import { DATA_RIGHTS } from "@/lib/legal/documents";
 export default function DerechosPage() {
   return <LegalDocumentView doc={DATA_RIGHTS} />;
 }
+// creado por pato dev y askforvini

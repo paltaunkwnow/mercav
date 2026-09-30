@@ -50,3 +50,4 @@ export function scoreConfidence(input: ConfidenceInput): ConfidenceResult {
   const score = Math.round(clamp(raw, 0, cap));
   return { score, label: confidenceLabel(score) };
 }
+// creado por pato dev y askforvini

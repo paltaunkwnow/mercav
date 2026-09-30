@@ -160,3 +160,4 @@ export function CookieBanner({
     </div>
   );
 }
+// creado por pato dev y askforvini

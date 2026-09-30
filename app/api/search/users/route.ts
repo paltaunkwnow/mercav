@@ -17,3 +17,4 @@ export async function GET(req: Request) {
     return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 });
   }
 }
+// creado por pato dev y askforvini

@@ -222,3 +222,4 @@ export default function POSInvoice({ sale, config, onClose }: InvoiceProps) {
     document.body
   );
 }
+// creado por pato dev y askforvini

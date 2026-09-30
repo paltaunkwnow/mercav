@@ -163,3 +163,4 @@ function ResultCard({ item, kind }: { item: any; kind: string }) {
     </Link>
   );
 }
+// creado por pato dev y askforvini

@@ -52,3 +52,4 @@ export async function POST(request: NextRequest) {
     return internalError("alerts mark read", error);
   }
 }
+// creado por pato dev y askforvini

@@ -35,3 +35,4 @@ const nextConfig = {
 };
 
 export default nextConfig;
+// creado por pato dev y askforvini

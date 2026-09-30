@@ -22,3 +22,4 @@ export const SUBPROCESSORS = [
   { name: "OpenFreeMap", purpose: "Teselas del mapa de Mercav Kosher", region: "UE / global", url: "https://openfreemap.org/privacy" },
   { name: "CARTO", purpose: "Teselas del mapa de Mercav Kosher", region: "UE / global", url: "https://carto.com/privacy" },
 ] as const;
+// creado por pato dev y askforvini

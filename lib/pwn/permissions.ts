@@ -8,3 +8,4 @@ export function canManageMonitoring(sessionUserId: string | null, targetUserId: 
 export function isAdmin(roles: string[] | undefined): boolean {
   return Array.isArray(roles) && roles.includes("ADMIN");
 }
+// creado por pato dev y askforvini

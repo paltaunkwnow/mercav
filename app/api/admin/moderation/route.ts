@@ -83,3 +83,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Error procesando moderación" }, { status: 500 });
   }
 }
+// creado por pato dev y askforvini

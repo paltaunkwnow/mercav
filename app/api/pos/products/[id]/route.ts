@@ -51,3 +51,4 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   await prisma.pOSProduct.delete({ where: { id: existing.id } });
   return NextResponse.json({ success: true, message: "Product deleted successfully" });
 }
+// creado por pato dev y askforvini

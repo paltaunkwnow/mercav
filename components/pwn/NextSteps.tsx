@@ -39,3 +39,4 @@ export function NextSteps({ kind }: { kind: "email" | "domain" | "password" }) {
     </section>
   );
 }
+// creado por pato dev y askforvini

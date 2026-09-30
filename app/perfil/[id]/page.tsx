@@ -250,3 +250,4 @@ export default async function PerfilPublicoPage({ params }: { params: { id: stri
     </div>
   );
 }
+// creado por pato dev y askforvini

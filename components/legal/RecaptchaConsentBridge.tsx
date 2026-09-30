@@ -45,3 +45,4 @@ export function RecaptchaConsentBridge({ children }: { children: ReactNode }) {
     </GoogleReCaptchaProvider>
   );
 }
+// creado por pato dev y askforvini

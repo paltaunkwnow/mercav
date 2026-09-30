@@ -46,3 +46,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Error al desactivar 2FA" }, { status: 500 });
   }
 }
+// creado por pato dev y askforvini

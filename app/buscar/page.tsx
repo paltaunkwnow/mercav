@@ -296,3 +296,4 @@ export default function SearchPage() {
     </div>
   );
 }
+// creado por pato dev y askforvini
