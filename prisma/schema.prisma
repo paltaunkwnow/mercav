@@ -75,6 +75,25 @@ model User {
   pwnTargets          PwnMonitoringTarget[]
   pwnAlerts           PwnAlert[]
   pwnReports          PwnReport[]
+
+  // Mercav Kosher
+  kosherProfile       KosherProfile?
+  kosherPlaces        KosherPlace[]             @relation("KosherPlaceCreator")
+  kosherStock         KosherStockReport[]
+  kosherStockConfirms KosherStockConfirmation[]
+  kosherEdits         KosherEditSuggestion[]    @relation("KosherEditAuthor")
+  kosherReviews       KosherReview[]
+  kosherMessages      KosherMessage[]
+  kosherFlags         KosherMessageFlag[]
+  kosherEvents        KosherEvent[]
+  kosherMinyanim      KosherMinyan[]
+  kosherMinyanRsvps   KosherMinyanRsvp[]
+  kosherHost          KosherHost?
+  kosherHostRequests  KosherHostRequest[]
+  kosherChesed        KosherChesed[]
+  kosherAlerts        KosherAlert[]
+  kosherManaged       KosherPlaceManager[]
+  kosherClaims        KosherClaim[]
 }
 
 model Company {
@@ -957,6 +976,11 @@ model POSConfig {
   department    String?
   city          String?
   address       String?
+  businessType     String   @default("GENERAL")
+  taxName          String   @default("IVA")
+  taxRate          Decimal  @default(0)
+  pricesIncludeTax Boolean  @default(true)
+  paymentMethods   String[] @default(["CASH", "CARD", "TRANSFER", "QR"])
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -984,7 +1008,12 @@ model POSProduct {
   description  String?
   price        Decimal
   costPrice    Decimal        @default(0)
-  stock        Int            @default(0)
+  stock        Decimal        @default(0)
+  sku          String?
+  barcode      String?
+  unit         String         @default("UNIT") // UNIT, KG, G, L, M
+  trackStock   Boolean        @default(true)
+  taxRate      Decimal?
   imageUrl     String?
   isActive     Boolean        @default(true)
   isKosher     Boolean        @default(false)
@@ -996,16 +1025,21 @@ model POSProduct {
   posConfig    POSConfig      @relation(fields: [posConfigId], references: [id], onDelete: Cascade)
   category     POSCategory?   @relation(fields: [categoryId], references: [id])
   saleItems    POSSaleItem[]
+
+  @@unique([posConfigId, barcode])
+  @@unique([posConfigId, sku])
 }
 
 model POSSale {
   id              String         @id @default(uuid())
   posConfigId     String
   cashSessionId   String
+  subtotalAmount  Decimal        @default(0)
+  taxAmount       Decimal        @default(0)
   totalAmount     Decimal
   discountAmount  Decimal        @default(0)
   discountType    String?        // PERCENTAGE or FIXED
-  orderType       String         // TABLE, TOGO, EMPLOYEE
+  orderType       String         @default("COUNTER") // ids from lib/pos/business.ts
   deliveryChannel String?        // Rappi, PedidosYa, etc.
   receivedAmount  Decimal        @default(0)
   changeAmount    Decimal        @default(0)
@@ -1016,17 +1050,34 @@ model POSSale {
   posConfig       POSConfig      @relation(fields: [posConfigId], references: [id], onDelete: Cascade)
   cashSession     POSCashSession @relation(fields: [cashSessionId], references: [id])
   items           POSSaleItem[]
+  payments        POSPayment[]
 }
 
 model POSSaleItem {
-  id         String     @id @default(uuid())
-  saleId     String
-  productId  String
-  quantity   Int
-  unitPrice  Decimal
-  subtotal   Decimal
-  sale       POSSale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  product    POSProduct @relation(fields: [productId], references: [id])
+  id          String     @id @default(uuid())
+  saleId      String
+  productId   String
+  productName String?
+  unit        String     @default("UNIT")
+  quantity    Decimal
+  unitPrice   Decimal
+  subtotal    Decimal
+  taxRate     Decimal    @default(0)
+  taxAmount   Decimal    @default(0)
+  sale        POSSale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product     POSProduct @relation(fields: [productId], references: [id])
+}
+
+model POSPayment {
+  id        String   @id @default(uuid())
+  saleId    String
+  method    String   // CASH, CARD, TRANSFER, QR, OTHER
+  amount    Decimal
+  reference String?
+  createdAt DateTime @default(now())
+  sale      POSSale  @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  @@index([saleId])
 }
 
 model POSCashSession {
@@ -1036,6 +1087,7 @@ model POSCashSession {
   closingAmount   Decimal?
   expectedAmount  Decimal?
   difference      Decimal?
+  salesByMethod   Json?
   status          String    @default("OPEN") // OPEN, CLOSED
   openedAt        DateTime  @default(now())
   closedAt        DateTime?
@@ -1359,4 +1411,461 @@ model PwnRateBucket {
   key       String   @id
   tokens    Float
   updatedAt DateTime @updatedAt
+}
+
+// Mercav Kosher (kosher.mercav.lat)
+
+enum KosherPlaceType {
+  restaurant
+  bakery
+  butcher
+  grocery_branch
+  judaica
+  synagogue
+  mikvah
+  school
+  hotel
+  community
+  museum
+}
+
+enum KosherStatus {
+  certified
+  community_report
+  unknown
+  disputed
+  closed
+}
+
+enum KosherFood {
+  meat
+  dairy
+  parve
+}
+
+enum KosherStockCategory {
+  meat
+  wine
+  matzah
+  cheese
+  frozen
+  bakery
+}
+
+enum KosherNusach {
+  ashkenaz
+  sefarad
+  edot_hamizrach
+  spanish_portuguese
+  yemenite
+  chabad
+  other
+}
+
+enum KosherDenomination {
+  orthodox
+  conservative
+  other
+}
+
+enum KosherStream {
+  modern
+  yeshivish
+  chabad
+  hasidic
+  sephardi
+  other
+}
+
+enum KosherRole {
+  member
+  local_moderator
+  agency
+}
+
+enum KosherEditStatus {
+  pending
+  accepted
+  rejected
+}
+
+model KosherProfile {
+  id             String              @id @default(uuid())
+  userId         String              @unique
+  role           KosherRole          @default(member)
+  denomination   KosherDenomination?
+  orthodoxStream KosherStream?
+  city           String?
+  countryCode    String?
+  lat            Float?
+  lng            Float?
+  shabbatMode    Boolean             @default(false)
+  timezone       String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model KosherPlace {
+  id             String                 @id @default(uuid())
+  slug           String                 @unique
+  name           String
+  nameLocal      String?
+  type           KosherPlaceType
+  lat            Float
+  lng            Float
+  address        String
+  city           String
+  country        String
+  countryCode    String                 @db.Char(2)
+  chainId        String?
+  chainName      String?
+  status         KosherStatus           @default(community_report)
+  agencyName     String?
+  foodCategory   KosherFood?
+  notes          String?                @db.Text
+  source         String                 @default("community")
+  confirmedAt    DateTime?
+  phone          String?
+  website        String?
+  sourceUrl      String?
+  verifiedAt     DateTime?
+  certificateUrl String?
+  certExpiresAt  DateTime?
+  nusach         KosherNusach?
+  denomination   KosherDenomination?
+  orthodoxStream KosherStream?
+  prayerTimes    Json?
+  chalavIsrael   Boolean?
+  patIsrael      Boolean?
+  glatt          Boolean?
+  beitYosef      Boolean?
+  published      Boolean                @default(true)
+  createdById    String?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  createdBy      User?                  @relation("KosherPlaceCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  stock          KosherStockReport[]
+  edits          KosherEditSuggestion[]
+  reviews        KosherReview[]
+  managers       KosherPlaceManager[]
+  claims         KosherClaim[]
+  events         KosherEvent[]
+  minyanim       KosherMinyan[]
+
+  @@index([city, countryCode])
+  @@index([type])
+  @@index([status])
+}
+
+model KosherStockReport {
+  id            String                    @id @default(uuid())
+  placeId       String
+  category      KosherStockCategory
+  note          String                    @db.VarChar(300)
+  authorId      String?
+  authorName    String
+  confirmations Int                       @default(0)
+  reportedAt    DateTime                  @default(now())
+  confirmedAt   DateTime                  @default(now())
+  place         KosherPlace               @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  author        User?                     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  confirmedBy   KosherStockConfirmation[]
+
+  @@index([placeId])
+}
+
+model KosherStockConfirmation {
+  id        String            @id @default(uuid())
+  reportId  String
+  userId    String
+  createdAt DateTime          @default(now())
+  report    KosherStockReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reportId, userId])
+}
+
+model KosherCommunity {
+  id                String   @id @default(uuid())
+  slug              String   @unique
+  name              String
+  city              String
+  country           String
+  countryCode       String   @db.Char(2)
+  lat               Float
+  lng               Float
+  population        Int?
+  populationYear    Int?
+  populationSource  String?
+  languages         String[]
+  denominationNotes String?
+  timezone          String   @default("UTC")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([city, countryCode])
+}
+
+model KosherEditSuggestion {
+  id           String           @id @default(uuid())
+  placeId      String
+  authorId     String?
+  authorName   String
+  field        String
+  oldValue     String?          @db.Text
+  newValue     String           @db.Text
+  note         String?          @db.VarChar(500)
+  status       KosherEditStatus @default(pending)
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime         @default(now())
+  place        KosherPlace      @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  author       User?            @relation("KosherEditAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([placeId])
+}
+
+model KosherReview {
+  id        String      @id @default(uuid())
+  placeId   String
+  userId    String
+  rating    Int
+  body      String?     @db.VarChar(600)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  place     KosherPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([placeId, userId])
+  @@index([placeId])
+}
+
+// threadKey is "city:<slug>" or "place:<slug>"; conversations never span the whole platform.
+model KosherMessage {
+  id        String              @id @default(uuid())
+  threadKey String
+  userId    String
+  body      String              @db.VarChar(500)
+  hidden    Boolean             @default(false)
+  createdAt DateTime            @default(now())
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  flags     KosherMessageFlag[]
+
+  @@index([threadKey, createdAt])
+}
+
+model KosherMessageFlag {
+  id        String        @id @default(uuid())
+  messageId String
+  userId    String
+  createdAt DateTime      @default(now())
+  message   KosherMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+}
+
+enum KosherReviewState {
+  pending
+  approved
+  rejected
+}
+
+enum KosherEventKind {
+  shiur
+  tefila
+  jag
+  comunidad
+  juventud
+  otro
+}
+
+enum KosherPrayer {
+  shacharit
+  mincha
+  maariv
+}
+
+enum KosherChesedKind {
+  volunteer
+  bikur_cholim
+  donation
+  need
+}
+
+enum KosherHostRequestStatus {
+  pending
+  accepted
+  declined
+}
+
+enum KosherClaimKind {
+  ownership
+  certificate
+}
+
+model KosherEvent {
+  id          String            @id @default(uuid())
+  kind        KosherEventKind
+  title       String
+  body        String?           @db.Text
+  city        String
+  countryCode String            @db.Char(2)
+  placeId     String?
+  startsAt    DateTime
+  endsAt      DateTime?
+  official    Boolean           @default(false)
+  state       KosherReviewState @default(pending)
+  createdById String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  place       KosherPlace?      @relation(fields: [placeId], references: [id], onDelete: SetNull)
+  createdBy   User              @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([city, countryCode, startsAt])
+  @@index([state])
+}
+
+model KosherMinyan {
+  id           String             @id @default(uuid())
+  prayer       KosherPrayer
+  startsAt     DateTime
+  city         String
+  countryCode  String             @db.Char(2)
+  placeId      String?
+  locationNote String?
+  note         String?
+  createdById  String
+  createdAt    DateTime           @default(now())
+  place        KosherPlace?       @relation(fields: [placeId], references: [id], onDelete: SetNull)
+  createdBy    User               @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  rsvps        KosherMinyanRsvp[]
+
+  @@index([city, countryCode, startsAt])
+}
+
+model KosherMinyanRsvp {
+  minyanId  String
+  userId    String
+  createdAt DateTime     @default(now())
+  minyan    KosherMinyan @relation(fields: [minyanId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([minyanId, userId])
+}
+
+model KosherHost {
+  id          String              @id @default(uuid())
+  userId      String              @unique
+  city        String
+  countryCode String              @db.Char(2)
+  capacity    Int
+  meals       String[]
+  kashrut     String
+  about       String              @db.Text
+  state       KosherReviewState   @default(pending)
+  active      Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  requests    KosherHostRequest[]
+
+  @@index([city, countryCode, state])
+}
+
+model KosherHostRequest {
+  id        String                  @id @default(uuid())
+  hostId    String
+  guestId   String
+  date      DateTime
+  guests    Int
+  message   String                  @db.Text
+  status    KosherHostRequestStatus @default(pending)
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+  host      KosherHost              @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  guest     User                    @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  @@unique([hostId, guestId, date])
+}
+
+model KosherChesed {
+  id          String            @id @default(uuid())
+  kind        KosherChesedKind
+  title       String
+  body        String            @db.Text
+  city        String
+  countryCode String            @db.Char(2)
+  contact     String?
+  state       KosherReviewState @default(pending)
+  closed      Boolean           @default(false)
+  expiresAt   DateTime
+  createdById String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  createdBy   User              @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([city, countryCode, state])
+}
+
+model KosherAlert {
+  id          String   @id @default(uuid())
+  userId      String
+  city        String
+  countryCode String   @db.Char(2)
+  topics      String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, city, countryCode])
+  @@index([city, countryCode])
+}
+
+model KosherPlaceManager {
+  placeId   String
+  userId    String
+  createdAt DateTime    @default(now())
+  place     KosherPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([placeId, userId])
+}
+
+model KosherClaim {
+  id             String            @id @default(uuid())
+  kind           KosherClaimKind
+  placeId        String
+  userId         String
+  contactName    String
+  contactRole    String
+  contactPhone   String?
+  evidence       String            @db.Text
+  agencyName     String?
+  certificateUrl String?
+  certExpiresAt  DateTime?
+  state          KosherReviewState @default(pending)
+  reviewedById   String?
+  reviewedAt     DateTime?
+  createdAt      DateTime          @default(now())
+  place          KosherPlace       @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([state])
+}
+
+model KosherInvite {
+  id          String    @id @default(uuid())
+  token       String    @unique
+  placeId     String
+  createdById String
+  note        String?
+  expiresAt   DateTime
+  usedById    String?
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([placeId])
 }

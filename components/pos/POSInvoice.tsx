@@ -4,6 +4,9 @@ import { Store, Printer, ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { useEffect, useState } from 'react';
+import { formatQuantity, getUnit, orderTypeLabel, paymentMethodLabel } from '@/lib/pos/business';
+import { formatMoney } from '@/lib/pos/money';
+import { countryFiscal } from '@/lib/pos/fiscal';
 
 interface InvoiceProps {
   sale: any;
@@ -23,6 +26,13 @@ export default function POSInvoice({ sale, config, onClose }: InvoiceProps) {
   };
 
   if (!mounted || typeof document === 'undefined') return null;
+
+  const money = (v: unknown) => formatMoney(Number(v ?? 0), config.currency);
+  const subtotal = Number(sale.subtotalAmount) > 0 ? Number(sale.subtotalAmount) : Number(sale.totalAmount) + Number(sale.discountAmount);
+  const tax = Number(sale.taxAmount || 0);
+  const taxIncluded = Math.abs(subtotal - Number(sale.discountAmount) - Number(sale.totalAmount)) < 0.01;
+  const payments: { id: string; method: string; amount: unknown; reference?: string | null }[] = sale.payments ?? [];
+  const change = Number(sale.changeAmount || 0);
 
   return createPortal(
     <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 invoice-modal-root">
@@ -96,15 +106,15 @@ export default function POSInvoice({ sale, config, onClose }: InvoiceProps) {
             </div>
             <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
               <span>Fecha:</span>
-              <span>{new Date(sale.createdAt).toLocaleDateString()}</span>
+              <span>{new Date(sale.createdAt).toLocaleDateString('es-419')}</span>
             </div>
             <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
               <span>Hora:</span>
-              <span>{new Date(sale.createdAt).toLocaleTimeString()}</span>
+              <span>{new Date(sale.createdAt).toLocaleTimeString('es-419', { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
             {sale.clientNit && (
               <div className="flex justify-between text-[10px] font-black uppercase tracking-widest border-t border-black/5 pt-2 mt-1">
-                <span>NIT / CI:</span>
+                <span>{countryFiscal(config.country).taxIdLabel}:</span>
                 <span>{sale.clientNit}</span>
               </div>
             )}
@@ -127,12 +137,12 @@ export default function POSInvoice({ sale, config, onClose }: InvoiceProps) {
             {sale.items.map((item: any) => (
               <div key={item.id} className="flex justify-between items-start group">
                 <div className="flex-1">
-                   <p className="text-xs font-bold uppercase leading-none">{item.product.name}</p>
-                   <p className="text-[9px] text-gray-400 mt-1">{config.currency} {Number(item.unitPrice).toFixed(2)}</p>
+                   <p className="text-xs font-bold uppercase leading-none">{item.productName || item.product?.name}</p>
+                   <p className="text-[9px] text-gray-400 mt-1">{money(item.unitPrice)}{item.unit && item.unit !== 'UNIT' ? ` / ${getUnit(item.unit).short}` : ''}</p>
                 </div>
                 <div className="flex gap-8">
-                   <span className="text-xs font-bold">x{item.quantity}</span>
-                   <span className="text-xs font-bold">{config.currency} {Number(item.subtotal).toFixed(2)}</span>
+                   <span className="text-xs font-bold">x{formatQuantity(item.quantity, item.unit)}</span>
+                   <span className="text-xs font-bold">{money(item.subtotal)}</span>
                 </div>
               </div>
             ))}
@@ -141,35 +151,51 @@ export default function POSInvoice({ sale, config, onClose }: InvoiceProps) {
           <div className="space-y-2 border-t-2 border-black pt-4">
             <div className="flex justify-between text-xs font-bold">
               <span>SUBTOTAL</span>
-              <span>{config.currency} {(Number(sale.totalAmount) + Number(sale.discountAmount)).toFixed(2)}</span>
+              <span>{money(subtotal)}</span>
             </div>
             {Number(sale.discountAmount) > 0 && (
               <div className="flex justify-between text-xs font-bold text-red-500">
                 <span>DESCUENTO</span>
-                <span>- {config.currency} {Number(sale.discountAmount).toFixed(2)}</span>
+                <span>- {money(sale.discountAmount)}</span>
+              </div>
+            )}
+            {tax > 0 && !taxIncluded && (
+              <div className="flex justify-between text-xs font-bold">
+                <span className="uppercase">{config.taxName || 'IVA'}</span>
+                <span>+ {money(tax)}</span>
               </div>
             )}
             <div className="flex justify-between text-xl font-black pt-2 border-b-2 border-black pb-2">
               <span>TOTAL</span>
-              <span>{config.currency} {Number(sale.totalAmount).toFixed(2)}</span>
+              <span>{money(sale.totalAmount)}</span>
             </div>
+            {tax > 0 && taxIncluded && (
+              <div className="flex justify-between text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                <span>{config.taxName || 'IVA'} incluido</span>
+                <span>{money(tax)}</span>
+              </div>
+            )}
 
             {/* Payment Details */}
             <div className="pt-4 space-y-1">
-              <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
-                <span>Efectivo Recibido:</span>
-                <span>{config.currency} {Number(sale.receivedAmount || 0).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
-                <span>Cambio Entregado:</span>
-                <span>{config.currency} {Number(sale.changeAmount || 0).toFixed(2)}</span>
-              </div>
+              {payments.map((p) => (
+                <div key={p.id} className="flex justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  <span>{paymentMethodLabel(p.method)}{p.reference ? ` · ${p.reference}` : ''}</span>
+                  <span>{money(p.method === 'CASH' ? Number(p.amount) + change : p.amount)}</span>
+                </div>
+              ))}
+              {change > 0 && (
+                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  <span>Cambio Entregado:</span>
+                  <span>{money(change)}</span>
+                </div>
+              )}
             </div>
           </div>
 
           <div className="mt-8 pt-8 border-t border-black/5 text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-black text-white rounded-full text-[8px] font-black uppercase tracking-widest mb-4">
-              <ShoppingBag size={10} /> {sale.orderType} {sale.deliveryChannel && `— ${sale.deliveryChannel}`}
+              <ShoppingBag size={10} /> {orderTypeLabel(sale.orderType)} {sale.deliveryChannel && `— ${sale.deliveryChannel}`}
             </div>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">¡Gracias por su compra!</p>
             <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest mt-6">powered by mercav.lat</p>

@@ -84,6 +84,7 @@ function apiMaySkipSession(req: NextRequest, pathname: string) {
   if (req.method === 'GET') {
     const publicReads = ['/api/jobs', '/api/services', '/api/spaces', '/api/search', '/api/posts', '/api/users'];
     if (publicReads.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) return true;
+    if (path === '/api/kosher/places' || /^\/api\/kosher\/places\/[a-z0-9-]+$/.test(path)) return true;
   }
   return (
     path.startsWith('/api/auth') ||
@@ -109,6 +110,23 @@ export async function middleware(req: NextRequest) {
   ) {
     const url = req.nextUrl.clone();
     url.pathname = pathname === '/' ? '/pwn' : `/pwn${pathname}`;
+    return NextResponse.rewrite(url);
+  }
+
+  if (host === 'kosher.mercav.lat' && /^\/(empleos|mensajes)(\/|$)/.test(pathname)) {
+    return NextResponse.redirect(new URL(`${pathname}${req.nextUrl.search}`, 'https://mercav.lat'));
+  }
+
+  if (
+    host === 'kosher.mercav.lat' &&
+    !pathname.startsWith('/api') &&
+    !pathname.startsWith('/_next') &&
+    !pathname.startsWith('/kosher') &&
+    pathname !== '/login' &&
+    pathname !== '/register'
+  ) {
+    const url = req.nextUrl.clone();
+    url.pathname = pathname === '/' ? '/kosher' : `/kosher${pathname}`;
     return NextResponse.rewrite(url);
   }
 
@@ -138,6 +156,9 @@ export async function middleware(req: NextRequest) {
                        pathname.startsWith('/legal/') ||
                        pathname === '/pwn' ||
                        pathname.startsWith('/pwn/') ||
+                       pathname === '/kosher' ||
+                       pathname.startsWith('/kosher/') ||
+                       pathname.startsWith('/api/kosher/') ||
                        pathname.startsWith('/api/auth') ||
                        pathname.startsWith('/api/location') ||
                        pathname.startsWith('/_next') ||

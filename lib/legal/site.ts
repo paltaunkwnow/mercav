@@ -10,8 +10,8 @@ export const LEGAL = {
   emailSupport: "soporte@mercav.lat",
   emailFraud: "fraud@mercav.lat",
   dpoLabel: "Responsable de privacidad",
-  lastUpdated: "23 de septiembre de 2026",
-  cookiePolicyVersion: 1,
+  lastUpdated: "29 de septiembre de 2026",
+  cookiePolicyVersion: 2,
 } as const;
 
 export const SUBPROCESSORS = [
@@ -19,4 +19,6 @@ export const SUBPROCESSORS = [
   { name: "Stripe, Inc.", purpose: "Pagos y cumplimiento PCI", region: "EE. UU. / global", url: "https://stripe.com/privacy" },
   { name: "Google LLC", purpose: "reCAPTCHA, inicio de sesión con Google", region: "EE. UU. / global", url: "https://policies.google.com/privacy" },
   { name: "Have I Been Pwned (Troy Hunt)", purpose: "Consultas de exposición (Mercav Pwn)", region: "Australia / API", url: "https://haveibeenpwned.com/Privacy" },
+  { name: "OpenFreeMap", purpose: "Teselas del mapa de Mercav Kosher", region: "UE / global", url: "https://openfreemap.org/privacy" },
+  { name: "CARTO", purpose: "Teselas del mapa de Mercav Kosher", region: "UE / global", url: "https://carto.com/privacy" },
 ] as const;

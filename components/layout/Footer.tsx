@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { Globe } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { ManageCookiesLink } from "@/components/legal/ManageCookiesLink";
 
 const focusLink =
@@ -17,6 +18,7 @@ const MODULES: FooterLink[] = [
   { href: "/empleos", label: "Mercav Jobs" },
   { href: "/herramientas", label: "Mercav Tools" },
   { href: "/pwn", label: "Mercav Pwn" },
+  { href: "/kosher", label: "Mercav Kosher" },
 ];
 
 const PWN: FooterLink[] = [
@@ -46,14 +48,21 @@ const LEGAL: FooterLink[] = [
   { href: "/privacidad", label: "Política de privacidad" },
   { href: "/cookies", label: "Política de cookies" },
   { href: "/pwn/terminos", label: "Términos Mercav Pwn" },
+  { href: "/kosher/terminos", label: "Términos Mercav Kosher" },
   { href: "/legal/uso-aceptable", label: "Uso aceptable" },
   { href: "/legal/reembolsos", label: "Pagos y reembolsos" },
   { href: "/legal/derechos", label: "Derechos de privacidad" },
 ];
 
-const ACCOUNT: FooterLink[] = [
+const ACCOUNT_GUEST: FooterLink[] = [
   { href: "/login", label: "Iniciar sesión" },
   { href: "/register", label: "Crear cuenta" },
+];
+
+const ACCOUNT_USER: FooterLink[] = [
+  { href: "/perfil", label: "Mi perfil" },
+  { href: "/perfil/editar", label: "Editar perfil" },
+  { href: "/perfil/configuracion", label: "Configuración y ajustes" },
   { href: "/dashboard", label: "Panel" },
 ];
 
@@ -101,7 +110,9 @@ function SocialIcon({ href, label, children }: { href: string; label: string; ch
 
 export function Footer() {
   const pathname = usePathname();
-  if (pathname?.includes("/pos") || pathname?.includes("/admin")) return null;
+  const { data: session } = useSession();
+  if (pathname?.includes("/pos") || pathname?.includes("/admin") || pathname === "/kosher/mapa") return null;
+  const accountLinks = session ? ACCOUNT_USER : ACCOUNT_GUEST;
 
   return (
     <footer className="relative w-full overflow-hidden bg-bg-primary pt-16 pb-10 md:pt-20 md:pb-12">
@@ -152,7 +163,7 @@ export function Footer() {
           <div className="lg:col-span-2">
             <FooterColumn title="Legal" links={LEGAL} />
             <div className="mt-8">
-              <FooterColumn title="Cuenta" links={ACCOUNT} />
+              <FooterColumn title="Cuenta" links={accountLinks} />
             </div>
           </div>
         </div>
@@ -164,7 +175,6 @@ export function Footer() {
               <path fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" d="M12 3.2 20.2 17.4H3.8Z" />
               <path fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" d="M12 20.8 3.8 6.6h16.4Z" />
             </svg>
-            <span className="sr-only">Estrella de David</span>
             Latinoamérica.
           </p>
           <div className="flex flex-col items-center gap-2 sm:items-end">

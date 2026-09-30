@@ -1,36 +1,61 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import POSHeader from '@/components/pos/POSHeader';
 import POSProductGrid from '@/components/pos/POSProductGrid';
-import POSCart from '@/components/pos/POSCart';
+import POSCart, { type CartItem, type CheckoutData } from '@/components/pos/POSCart';
 import POSInvoice from '@/components/pos/POSInvoice';
-import POSPaymentModal from '@/components/pos/POSPaymentModal';
+import POSPaymentModal, { type PaymentConfirmation } from '@/components/pos/POSPaymentModal';
+import type { POSGridProduct } from '@/components/pos/POSProductGrid';
+import { getBusinessType, paymentMethodLabel } from '@/lib/pos/business';
+import { formatMoney } from '@/lib/pos/money';
 import { Loader2, Plus, LogOut, Wallet, ShieldAlert, CheckCircle2, X, Package, TrendingUp, ShoppingBag, LayoutDashboard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toast } from '@/components/ui/toast';
+
+type TerminalCartItem = CartItem & { stock: number; trackStock: boolean };
 
 export default function POSTerminalPage() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [config, setConfig] = useState<any>(null);
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<POSGridProduct[]>([]);
   const [categories, setCategories] = useState([]);
-  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [cartItems, setCartState] = useState<TerminalCartItem[]>([]);
+  // Blur and click handlers can fire in the same tick; read the latest cart, not the render's copy.
+  const cartRef = useRef<TerminalCartItem[]>([]);
+  const setCartItems = (next: TerminalCartItem[]) => {
+    cartRef.current = next;
+    setCartState(next);
+  };
+  const [cartKey, setCartKey] = useState(0);
   const [session, setSession] = useState<any>(null);
   const [showCajaModal, setShowCajaModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [pendingCheckoutData, setPendingCheckoutData] = useState<any>(null);
-  const [receivedAmount, setReceivedAmount] = useState('');
+  const [pendingCheckoutData, setPendingCheckoutData] = useState<CheckoutData | null>(null);
   const [openingAmount, setOpeningAmount] = useState('');
   const [closingAmount, setClosingAmount] = useState('');
   const [lastSale, setLastSale] = useState<any>(null);
   const [toast, setToast] = useState({ visible: false, message: '', type: 'info' as any });
   const [mobileView, setMobileView] = useState<'products' | 'cart'>('products');
 
-  const currentSessionSalesTotal = session?.sales?.reduce((sum: number, s: any) => sum + Number(s.totalAmount), 0) || 0;
+  const currentSessionSalesTotal = Number(session?.summary?.total ?? 0);
+  const business = getBusinessType(config?.businessType);
+  const showError = (message: string) => setToast({ visible: true, message, type: 'error' });
+
+  const refreshProducts = async () => {
+    const res = await fetch('/api/pos/products');
+    const data = await res.json();
+    if (data.success) setProducts(data.data);
+  };
+
+  const refreshSession = async () => {
+    const res = await fetch('/api/pos/sessions');
+    const data = await res.json();
+    if (data.success) setSession(data.data);
+  };
 
   useEffect(() => {
     if (showCajaModal || showCloseModal || showPaymentModal || lastSale) {
@@ -77,27 +102,48 @@ export default function POSTerminalPage() {
     init();
   }, []);
 
-  const handleAddToCart = (product: any) => {
-    const existing = cartItems.find(item => item.id === product.id);
+  const exceedsStock = (item: { name: string; stock: number; trackStock: boolean }, quantity: number) => {
+    if (!item.trackStock || quantity <= item.stock) return false;
+    showError(`No hay stock suficiente de ${item.name}`);
+    return true;
+  };
+
+  const handleAddToCart = (product: POSGridProduct) => {
+    const current = cartRef.current;
+    const existing = current.find(item => item.id === product.id);
+    const step = product.unit === 'G' ? 100 : 1;
     if (existing) {
-      setCartItems(cartItems.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item));
-    } else {
-      setCartItems([...cartItems, { ...product, quantity: 1 }]);
+      if (exceedsStock(existing, existing.quantity + step)) return;
+      setCartItems(current.map(item => item.id === product.id ? { ...item, quantity: item.quantity + step } : item));
+      return;
     }
+    const item = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      unit: product.unit,
+      taxRate: product.taxRate ?? null,
+      stock: Number(product.stock),
+      trackStock: product.trackStock !== false,
+      quantity: step,
+    };
+    if (exceedsStock(item, step)) return;
+    setCartItems([...current, item]);
+  };
+
+  const handleSetQuantity = (id: string, quantity: number) => {
+    const item = cartRef.current.find(i => i.id === id);
+    if (!item || exceedsStock(item, quantity)) return;
+    setCartItems(cartRef.current.map(i => i.id === id ? { ...i, quantity } : i));
   };
 
   const handleUpdateQuantity = (id: string, delta: number) => {
-    setCartItems(cartItems.map(item => {
-      if (item.id === id) {
-        const newQty = Math.max(1, item.quantity + delta);
-        return { ...item, quantity: newQty };
-      }
-      return item;
-    }));
+    const item = cartRef.current.find(i => i.id === id);
+    if (item) handleSetQuantity(id, Math.max(1, item.quantity + delta));
   };
 
   const handleRemoveFromCart = (id: string) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
+    setCartItems(cartRef.current.filter(item => item.id !== id));
   };
 
   const handleOpenCaja = async () => {
@@ -111,9 +157,11 @@ export default function POSTerminalPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setSession(data.data);
+        await refreshSession();
         setShowCajaModal(false);
         setToast({ visible: true, message: 'Caja abierta con éxito', type: 'success' });
+      } else {
+        showError(data.error || 'Error al abrir caja');
       }
     } catch (err) {
       setToast({ visible: true, message: 'Error al abrir caja', type: 'error' });
@@ -146,23 +194,17 @@ export default function POSTerminalPage() {
     }
   };
 
-  const handleCheckout = (checkoutData: any) => {
+  const handleCheckout = (checkoutData: CheckoutData) => {
     setPendingCheckoutData(checkoutData);
-    setReceivedAmount('');
     setShowPaymentModal(true);
   };
 
-  const handleConfirmPayment = async (clientNit?: string, clientName?: string) => {
+  const handleConfirmPayment = async (payment: PaymentConfirmation) => {
     if (!pendingCheckoutData) return;
     setProcessing(true);
     try {
-      const finalPayload = {
-        ...pendingCheckoutData,
-        receivedAmount: Number(receivedAmount),
-        changeAmount: Math.max(0, Number(receivedAmount) - pendingCheckoutData.totalAmount),
-        clientNit,
-        clientName
-      };
+      const { totalAmount, ...checkout } = pendingCheckoutData;
+      const finalPayload = { ...checkout, ...payment };
 
       const res = await fetch('/api/pos/sales', {
         method: 'POST',
@@ -173,14 +215,13 @@ export default function POSTerminalPage() {
       if (data.success) {
         setLastSale(data.data);
         setCartItems([]);
+        setCartKey((k) => k + 1);
         setShowPaymentModal(false);
         setToast({ visible: true, message: 'Venta procesada con éxito', type: 'success' });
-        // Refresh session to get updated sales total
-        const sRes = await fetch('/api/pos/sessions');
-        const sData = await sRes.json();
-        if (sData.success) setSession(sData.data);
+        await Promise.all([refreshSession(), refreshProducts()]);
       } else {
-        setToast({ visible: true, message: data.error || 'Error al procesar venta', type: 'error' });
+        showError(data.error || 'Error al procesar venta');
+        if (res.status === 409 || res.status === 400) refreshProducts();
       }
     } catch (err) {
       setToast({ visible: true, message: 'Error de conexión', type: 'error' });
@@ -231,7 +272,7 @@ export default function POSTerminalPage() {
               <div className="flex flex-col min-w-0">
                 <span className="text-[7px] lg:text-[8px] font-black uppercase tracking-[0.2em] text-gray-500 truncate">Ventas Turno</span>
                 <span className="text-[10px] lg:text-xs font-mono font-bold text-white whitespace-nowrap">
-                   {config.currency} <span className="text-gold">{currentSessionSalesTotal.toFixed(2)}</span>
+                   <span className="text-gold">{formatMoney(currentSessionSalesTotal, config.currency)}</span>
                 </span>
               </div>
             </div>
@@ -275,7 +316,9 @@ export default function POSTerminalPage() {
             products={products}
             categories={categories}
             onAdd={handleAddToCart}
+            onNotFound={(code) => showError(`No hay ningún producto con el código ${code}`)}
             currency={config.currency}
+            business={business}
           />
         </div>
 
@@ -294,11 +337,18 @@ export default function POSTerminalPage() {
             </div>
           )}
           <POSCart 
+            key={`${cartKey}-${business.id}`}
             items={cartItems}
             onUpdateQuantity={handleUpdateQuantity}
+            onSetQuantity={handleSetQuantity}
             onRemove={handleRemoveFromCart}
+            onClear={() => setCartItems([])}
             onCheckout={handleCheckout}
             currency={config.currency}
+            business={business}
+            taxName={config.taxName || 'IVA'}
+            taxRate={Number(config.taxRate || 0)}
+            pricesIncludeTax={config.pricesIncludeTax !== false}
           />
         </div>
       </div>
@@ -409,17 +459,28 @@ export default function POSTerminalPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-white/5 rounded-2xl border border-white/5 text-center">
                     <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Monto Apertura</p>
-                    <p className="text-lg font-mono font-bold text-white">{config.currency} {Number(session?.openingAmount || 0).toFixed(2)}</p>
+                    <p className="text-lg font-mono font-bold text-white">{formatMoney(session?.openingAmount, config.currency)}</p>
                   </div>
                   <div className="p-4 bg-white/5 rounded-2xl border border-white/5 text-center">
                     <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Total Ventas</p>
-                    <p className="text-lg font-mono font-bold text-white">{config.currency} {currentSessionSalesTotal.toFixed(2)}</p>
+                    <p className="text-lg font-mono font-bold text-white">{formatMoney(currentSessionSalesTotal, config.currency)}</p>
                   </div>
                 </div>
 
+                {Object.keys(session?.summary?.byMethod ?? {}).length > 0 && (
+                  <ul className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-2">
+                    {Object.entries(session.summary.byMethod as Record<string, number>).map(([method, amount]) => (
+                      <li key={method} className="flex justify-between text-xs">
+                        <span className="text-gray-400 font-bold">{paymentMethodLabel(method)}</span>
+                        <span className="font-mono font-bold text-white">{formatMoney(amount, config.currency)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
                 <div className="p-4 bg-gold/5 rounded-2xl border border-gold/10 text-center">
-                   <p className="text-[10px] font-black text-gold uppercase tracking-widest mb-1">Efectivo Esperado</p>
-                   <p className="text-2xl font-mono font-black text-gold">{config.currency} {(Number(session?.openingAmount || 0) + currentSessionSalesTotal).toFixed(2)}</p>
+                   <p className="text-[10px] font-black text-gold uppercase tracking-widest mb-1">Efectivo Esperado en Caja</p>
+                   <p className="text-2xl font-mono font-black text-gold">{formatMoney(session?.summary?.expectedCash ?? session?.openingAmount, config.currency)}</p>
                 </div>
 
                 <div className="space-y-4">
@@ -455,8 +516,9 @@ export default function POSTerminalPage() {
         onConfirm={handleConfirmPayment}
         total={pendingCheckoutData?.totalAmount || 0}
         currency={config.currency}
-        receivedAmount={receivedAmount}
-        setReceivedAmount={setReceivedAmount}
+        methods={config.paymentMethods ?? ['CASH']}
+        country={config.country}
+        processing={processing}
       />
 
       {/* Invoice Modal after successful sale */}

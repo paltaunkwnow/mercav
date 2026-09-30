@@ -1,486 +1,342 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { useTheme } from "./ThemeProvider";
 
-interface Particle {
-  x: number;
-  y: number;
-  z: number;
-  vx: number;
-  vy: number;
-  vz: number;
-  size: number;
-  opacity: number;
-  color: string;
-  type: "circle" | "diamond" | "ring";
-}
+type City = { id: string; label: string; lon: number; lat: number; hub?: boolean };
+type Route = { a: string; b: string };
+type Packet = { a: string; b: string; u: number; speed: number };
 
-interface FloatingShape {
-  x: number;
-  y: number;
-  z: number;
-  rotX: number;
-  rotY: number;
-  rotZ: number;
-  vRotX: number;
-  vRotY: number;
-  vRotZ: number;
-  vy: number;
-  size: number;
-  opacity: number;
-  type: "cube" | "pyramid" | "octahedron" | "torus";
-}
+const CITIES: City[] = [
+  { id: "tij", label: "Tijuana", lon: -117.04, lat: 32.51 },
+  { id: "mty", label: "Monterrey", lon: -100.32, lat: 25.67 },
+  { id: "gdl", label: "Guadalajara", lon: -103.35, lat: 20.66 },
+  { id: "mex", label: "Ciudad de México", lon: -99.13, lat: 19.43, hub: true },
+  { id: "gua", label: "Guatemala", lon: -90.51, lat: 14.63 },
+  { id: "sjo", label: "San José", lon: -84.09, lat: 9.93 },
+  { id: "pty", label: "Panamá", lon: -79.52, lat: 8.98 },
+  { id: "ccs", label: "Caracas", lon: -66.9, lat: 10.48 },
+  { id: "bog", label: "Bogotá", lon: -74.07, lat: 4.71, hub: true },
+  { id: "med", label: "Medellín", lon: -75.56, lat: 6.25 },
+  { id: "uio", label: "Quito", lon: -78.47, lat: -0.18 },
+  { id: "lim", label: "Lima", lon: -77.04, lat: -12.05, hub: true },
+  { id: "lpz", label: "La Paz", lon: -68.15, lat: -16.5 },
+  { id: "rec", label: "Recife", lon: -34.88, lat: -8.05 },
+  { id: "bsb", label: "Brasília", lon: -47.88, lat: -15.79 },
+  { id: "rio", label: "Rio", lon: -43.17, lat: -22.91 },
+  { id: "sao", label: "São Paulo", lon: -46.63, lat: -23.55, hub: true },
+  { id: "asu", label: "Asunción", lon: -57.58, lat: -25.26 },
+  { id: "scl", label: "Santiago", lon: -70.67, lat: -33.45, hub: true },
+  { id: "cba", label: "Córdoba", lon: -64.18, lat: -31.42 },
+  { id: "bue", label: "Buenos Aires", lon: -58.38, lat: -34.6, hub: true },
+  { id: "mvd", label: "Montevideo", lon: -56.16, lat: -34.9 },
+];
 
-interface GridLine {
-  startX: number;
-  startY: number;
-  endX: number;
-  endY: number;
-  opacity: number;
-  phase: number;
-}
+const ROUTES: Route[] = [
+  { a: "tij", b: "mty" },
+  { a: "mty", b: "mex" },
+  { a: "gdl", b: "mex" },
+  { a: "mex", b: "gua" },
+  { a: "gua", b: "sjo" },
+  { a: "sjo", b: "pty" },
+  { a: "pty", b: "bog" },
+  { a: "bog", b: "med" },
+  { a: "bog", b: "ccs" },
+  { a: "bog", b: "uio" },
+  { a: "uio", b: "lim" },
+  { a: "lim", b: "lpz" },
+  { a: "lim", b: "scl" },
+  { a: "lpz", b: "bue" },
+  { a: "scl", b: "bue" },
+  { a: "bue", b: "cba" },
+  { a: "bue", b: "mvd" },
+  { a: "bue", b: "sao" },
+  { a: "sao", b: "rio" },
+  { a: "sao", b: "bsb" },
+  { a: "sao", b: "rec" },
+  { a: "sao", b: "asu" },
+  { a: "mex", b: "bog" },
+  { a: "bog", b: "sao" },
+  { a: "mex", b: "sao" },
+  { a: "lim", b: "sao" },
+];
+
+const COAST: [number, number][] = [
+  [-117.0, 32.5], [-106.5, 31.8], [-97.4, 25.9], [-97.2, 21.0], [-90.5, 21.5],
+  [-86.8, 21.3], [-88.2, 16.0], [-83.7, 10.0], [-77.3, 8.5], [-71.6, 12.2],
+  [-62.0, 10.6], [-51.0, 4.5], [-34.9, -6.8], [-34.9, -8.1], [-38.5, -15.0],
+  [-40.3, -22.0], [-43.2, -22.9], [-48.6, -28.0], [-53.2, -34.0], [-54.9, -34.9],
+  [-58.4, -38.0], [-62.3, -41.0], [-65.5, -45.0], [-67.2, -54.8], [-68.6, -54.9],
+  [-71.3, -51.0], [-75.6, -46.5], [-73.5, -41.5], [-71.6, -33.4], [-71.3, -29.9],
+  [-70.4, -18.3], [-76.3, -14.0], [-81.3, -5.2], [-80.0, 0.9], [-77.5, 4.0],
+  [-78.8, 8.6], [-83.8, 9.9], [-87.7, 13.4], [-92.2, 14.6], [-96.6, 16.0],
+  [-105.2, 20.5], [-109.4, 23.1], [-112.3, 26.8], [-114.8, 31.3], [-117.0, 32.5],
+];
 
 export function HeroBackground3D() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animFrameRef = useRef<number>(0);
-  const mouseRef = useRef({ x: 0, y: 0 });
   const { theme } = useTheme();
-
-  const draw = useCallback((
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number,
-    particles: Particle[],
-    shapes: FloatingShape[],
-    gridLines: GridLine[],
-    time: number,
-    isDark: boolean
-  ) => {
-    // Clear canvas
-    ctx.clearRect(0, 0, width, height);
-
-    // Background gradient
-    const bgGrad = ctx.createRadialGradient(
-      width * 0.5, height * 0.4, 0,
-      width * 0.5, height * 0.4, width * 0.8
-    );
-    
-    if (isDark) {
-      bgGrad.addColorStop(0, "rgba(20, 15, 5, 0.95)");
-      bgGrad.addColorStop(0.5, "rgba(10, 10, 10, 0.98)");
-      bgGrad.addColorStop(1, "rgba(5, 5, 5, 1)");
-    } else {
-      bgGrad.addColorStop(0, "rgba(255, 250, 235, 0.95)");
-      bgGrad.addColorStop(0.3, "rgba(250, 249, 246, 0.97)");
-      bgGrad.addColorStop(0.7, "rgba(250, 249, 246, 0.99)");
-      bgGrad.addColorStop(1, "rgba(250, 249, 246, 1)");
-    }
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, width, height);
-
-    // Gold nebula glow
-    const nebulaX = width * 0.5 + Math.sin(time * 0.0003) * width * 0.1;
-    const nebulaY = height * 0.35 + Math.cos(time * 0.0004) * height * 0.05;
-    const nebulaGrad = ctx.createRadialGradient(nebulaX, nebulaY, 0, nebulaX, nebulaY, width * 0.4);
-    
-    if (isDark) {
-      nebulaGrad.addColorStop(0, "rgba(212, 175, 55, 0.06)");
-      nebulaGrad.addColorStop(0.4, "rgba(212, 175, 55, 0.02)");
-      nebulaGrad.addColorStop(1, "rgba(212, 175, 55, 0)");
-    } else {
-      nebulaGrad.addColorStop(0, "rgba(200, 165, 45, 0.12)");
-      nebulaGrad.addColorStop(0.3, "rgba(200, 165, 45, 0.06)");
-      nebulaGrad.addColorStop(0.6, "rgba(200, 165, 45, 0.02)");
-      nebulaGrad.addColorStop(1, "rgba(200, 165, 45, 0)");
-    }
-    ctx.fillStyle = nebulaGrad;
-    ctx.fillRect(0, 0, width, height);
-
-    // Second nebula
-    const neb2X = width * 0.7 + Math.cos(time * 0.0002) * width * 0.1;
-    const neb2Y = height * 0.6 + Math.sin(time * 0.0003) * height * 0.08;
-    const neb2Grad = ctx.createRadialGradient(neb2X, neb2Y, 0, neb2X, neb2Y, width * 0.3);
-    if (isDark) {
-      neb2Grad.addColorStop(0, "rgba(180, 140, 30, 0.03)");
-      neb2Grad.addColorStop(1, "rgba(180, 140, 30, 0)");
-    } else {
-      neb2Grad.addColorStop(0, "rgba(180, 140, 30, 0.07)");
-      neb2Grad.addColorStop(0.5, "rgba(180, 140, 30, 0.03)");
-      neb2Grad.addColorStop(1, "rgba(180, 140, 30, 0)");
-    }
-    ctx.fillStyle = neb2Grad;
-    ctx.fillRect(0, 0, width, height);
-
-    // Draw grid (perspective floor effect)
-    const gridColor = isDark ? "rgba(212, 175, 55, " : "rgba(160, 130, 30, ";
-    const perspectiveY = height * 0.75;
-    const vanishX = width * 0.5;
-    
-    // Horizontal grid lines
-    for (let i = 0; i < 12; i++) {
-      const yPos = perspectiveY + i * (height * 0.025) * (1 + i * 0.3);
-      if (yPos > height) continue;
-      const fade = Math.max(0, 1 - i / 12);
-      const pulse = 0.5 + 0.5 * Math.sin(time * 0.001 + i * 0.5);
-      const lineOpacity = fade * 0.06 * (0.7 + pulse * 0.3);
-      
-      ctx.beginPath();
-      ctx.moveTo(0, yPos);
-      ctx.lineTo(width, yPos);
-      ctx.strokeStyle = gridColor + lineOpacity + ")";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-    
-    // Vertical converging grid lines
-    for (let i = -8; i <= 8; i++) {
-      const baseX = vanishX + i * width * 0.08;
-      const endX = vanishX + i * width * 0.35;
-      const fade = Math.max(0, 1 - Math.abs(i) / 8);
-      const pulse = 0.5 + 0.5 * Math.sin(time * 0.0008 + i * 0.3);
-      const lineOpacity = fade * 0.05 * (0.7 + pulse * 0.3);
-      
-      ctx.beginPath();
-      ctx.moveTo(baseX, perspectiveY);
-      ctx.lineTo(endX, height);
-      ctx.strokeStyle = gridColor + lineOpacity + ")";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-
-    // Draw particles with 3D perspective
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const fov = 500;
-
-    particles.forEach((p) => {
-      // 3D to 2D projection
-      const scale = fov / (fov + p.z);
-      const x2d = centerX + (p.x - centerX) * scale;
-      const y2d = centerY + (p.y - centerY) * scale;
-      const r = p.size * scale;
-
-      // Mouse parallax
-      const mx = (mouseRef.current.x - centerX) * 0.02 * scale;
-      const my = (mouseRef.current.y - centerY) * 0.02 * scale;
-
-      const finalX = x2d + mx;
-      const finalY = y2d + my;
-
-      ctx.save();
-      ctx.globalAlpha = p.opacity * scale;
-
-      if (p.type === "circle") {
-        const grad = ctx.createRadialGradient(finalX, finalY, 0, finalX, finalY, r * 3);
-        grad.addColorStop(0, p.color);
-        grad.addColorStop(0.5, p.color.replace(/[\d.]+\)$/, "0.3)"));
-        grad.addColorStop(1, "transparent");
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(finalX, finalY, r * 3, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (p.type === "diamond") {
-        ctx.fillStyle = p.color;
-        ctx.translate(finalX, finalY);
-        ctx.rotate(time * 0.001);
-        ctx.beginPath();
-        ctx.moveTo(0, -r * 2);
-        ctx.lineTo(r * 1.5, 0);
-        ctx.lineTo(0, r * 2);
-        ctx.lineTo(-r * 1.5, 0);
-        ctx.closePath();
-        ctx.fill();
-      } else {
-        ctx.strokeStyle = p.color;
-        ctx.lineWidth = 0.5;
-        ctx.beginPath();
-        ctx.arc(finalX, finalY, r * 4, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-
-      ctx.restore();
-
-      // Update position
-      p.x += p.vx;
-      p.y += p.vy;
-      p.z += p.vz;
-
-      if (p.x < -50 || p.x > width + 50) p.vx *= -1;
-      if (p.y < -50 || p.y > height + 50) p.vy *= -1;
-      if (p.z < -200 || p.z > 800) p.vz *= -1;
-    });
-
-    // Draw connections between close particles
-    const connectionColor = isDark ? "212, 175, 55" : "160, 130, 30";
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const dx = particles[i].x - particles[j].x;
-        const dy = particles[i].y - particles[j].y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        
-        if (dist < 200) {
-          const opacity = (1 - dist / 200) * 0.08;
-          const scaleI = fov / (fov + particles[i].z);
-          const scaleJ = fov / (fov + particles[j].z);
-          const x1 = centerX + (particles[i].x - centerX) * scaleI;
-          const y1 = centerY + (particles[i].y - centerY) * scaleI;
-          const x2 = centerX + (particles[j].x - centerX) * scaleJ;
-          const y2 = centerY + (particles[j].y - centerY) * scaleJ;
-          
-          ctx.beginPath();
-          ctx.moveTo(x1, y1);
-          ctx.lineTo(x2, y2);
-          ctx.strokeStyle = `rgba(${connectionColor}, ${opacity})`;
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
-        }
-      }
-    }
-
-    // Draw 3D floating shapes
-    shapes.forEach((shape) => {
-      const scale = fov / (fov + shape.z);
-      const x2d = centerX + (shape.x - centerX) * scale;
-      const y2d = centerY + (shape.y - centerY) * scale;
-      const s = shape.size * scale;
-      
-      const mx = (mouseRef.current.x - centerX) * 0.03 * scale;
-      const my = (mouseRef.current.y - centerY) * 0.03 * scale;
-      
-      ctx.save();
-      ctx.globalAlpha = shape.opacity * scale * 0.8;
-      ctx.translate(x2d + mx, y2d + my);
-      ctx.rotate(shape.rotZ);
-      
-      const strokeColor = isDark
-        ? `rgba(212, 175, 55, ${0.15 + Math.sin(time * 0.001 + shape.rotX) * 0.1})`
-        : `rgba(160, 122, 20, ${0.2 + Math.sin(time * 0.001 + shape.rotX) * 0.12})`;
-      const fillColor = isDark
-        ? `rgba(212, 175, 55, ${0.02 + Math.sin(time * 0.0015 + shape.rotY) * 0.02})`
-        : `rgba(160, 122, 20, ${0.04 + Math.sin(time * 0.0015 + shape.rotY) * 0.03})`;
-
-      ctx.strokeStyle = strokeColor;
-      ctx.fillStyle = fillColor;
-      ctx.lineWidth = 1;
-
-      if (shape.type === "cube") {
-        // Draw a wireframe cube
-        const hs = s;
-        const depth = hs * 0.6;
-        const skewX = Math.sin(shape.rotY) * depth;
-        const skewY = Math.cos(shape.rotX) * depth * 0.5;
-        
-        // Front face
-        ctx.beginPath();
-        ctx.rect(-hs, -hs, hs * 2, hs * 2);
-        ctx.stroke();
-        ctx.fill();
-        
-        // Back face edges
-        ctx.beginPath();
-        ctx.moveTo(-hs, -hs); ctx.lineTo(-hs + skewX, -hs - skewY);
-        ctx.moveTo(hs, -hs); ctx.lineTo(hs + skewX, -hs - skewY);
-        ctx.moveTo(hs, hs); ctx.lineTo(hs + skewX, hs - skewY);
-        ctx.moveTo(-hs, hs); ctx.lineTo(-hs + skewX, hs - skewY);
-        ctx.stroke();
-        
-        // Back face
-        ctx.beginPath();
-        ctx.moveTo(-hs + skewX, -hs - skewY);
-        ctx.lineTo(hs + skewX, -hs - skewY);
-        ctx.lineTo(hs + skewX, hs - skewY);
-        ctx.lineTo(-hs + skewX, hs - skewY);
-        ctx.closePath();
-        ctx.stroke();
-      } else if (shape.type === "pyramid") {
-        const topY = -s * 1.2;
-        ctx.beginPath();
-        ctx.moveTo(0, topY);
-        ctx.lineTo(-s, s * 0.8);
-        ctx.lineTo(s, s * 0.8);
-        ctx.closePath();
-        ctx.stroke();
-        ctx.fill();
-        
-        // Side edge
-        ctx.beginPath();
-        ctx.moveTo(0, topY);
-        ctx.lineTo(s * 0.3, s * 0.4);
-        ctx.stroke();
-      } else if (shape.type === "octahedron") {
-        const points = [
-          [0, -s * 1.5], [s, 0], [0, s * 1.5], [-s, 0]
-        ];
-        ctx.beginPath();
-        ctx.moveTo(points[0][0], points[0][1]);
-        for (let i = 1; i < points.length; i++) {
-          ctx.lineTo(points[i][0], points[i][1]);
-        }
-        ctx.closePath();
-        ctx.stroke();
-        ctx.fill();
-        
-        // Internal lines
-        ctx.beginPath();
-        ctx.moveTo(points[0][0], points[0][1]);
-        ctx.lineTo(points[2][0], points[2][1]);
-        ctx.moveTo(points[1][0], points[1][1]);
-        ctx.lineTo(points[3][0], points[3][1]);
-        ctx.stroke();
-      } else {
-        // Torus-like ring
-        ctx.beginPath();
-        ctx.ellipse(0, 0, s * 1.5, s * 0.5, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.ellipse(0, 0, s * 1.2, s * 0.3, Math.PI * 0.15, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-
-      ctx.restore();
-
-      // Animate shape
-      shape.rotX += shape.vRotX;
-      shape.rotY += shape.vRotY;
-      shape.rotZ += shape.vRotZ;
-      shape.y += shape.vy;
-      shape.x += Math.sin(time * 0.0005 + shape.rotX) * 0.3;
-
-      if (shape.y < -100) {
-        shape.y = height + 100;
-        shape.x = Math.random() * width;
-      }
-      if (shape.y > height + 100) {
-        shape.y = -100;
-        shape.x = Math.random() * width;
-      }
-    });
-
-    // Floating gold dust — tiny sparkles
-    for (let i = 0; i < 30; i++) {
-      const sx = (Math.sin(time * 0.001 + i * 137.5) * 0.5 + 0.5) * width;
-      const sy = (Math.cos(time * 0.0008 + i * 97.3) * 0.5 + 0.5) * height;
-      const sparkleSize = 1 + Math.sin(time * 0.003 + i * 50) * 0.5;
-      const sparkleOpacity = 0.1 + Math.sin(time * 0.002 + i * 73) * 0.1;
-      
-      if (sparkleOpacity > 0) {
-        ctx.save();
-        ctx.globalAlpha = sparkleOpacity;
-        ctx.fillStyle = isDark ? "#D4AF37" : "#B8941E";
-        ctx.beginPath();
-        ctx.arc(sx, sy, sparkleSize, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
-    }
-  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
-    
-    const isDark = theme === "dark";
+
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reduced = motion.matches;
+    const onMotion = () => {
+      reduced = motion.matches;
+    };
+    motion.addEventListener("change", onMotion);
+
+    const isDark = theme !== "light";
+    const gold = isDark ? ([212, 175, 55] as const) : ([168, 128, 28] as const);
+    const goldHi = isDark ? ([232, 204, 106] as const) : ([196, 154, 42] as const);
+    const rgba = (c: readonly [number, number, number], a: number) => `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${a})`;
+
+    const size = { w: 0, h: 0, dpr: 1 };
+    const camera = { x: 0, y: 0, tx: 0, ty: 0 };
+    let raf = 0;
+    let t = 0;
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
-      canvas.style.width = window.innerWidth + "px";
-      canvas.style.height = window.innerHeight + "px";
-      ctx.scale(dpr, dpr);
+      size.w = window.innerWidth;
+      size.h = window.innerHeight;
+      size.dpr = dpr;
+      canvas.width = Math.floor(size.w * dpr);
+      canvas.height = Math.floor(size.h * dpr);
+      canvas.style.width = `${size.w}px`;
+      canvas.style.height = `${size.h}px`;
     };
     resize();
+
+    const cityById = new Map(CITIES.map((c) => [c.id, c]));
+    const packets: Packet[] = ROUTES.slice(0, 8).map((r, i) => ({
+      a: r.a,
+      b: r.b,
+      u: (i * 0.13) % 1,
+      speed: 0.00018 + (i % 4) * 0.00004,
+    }));
+
+    const onMove = (e: MouseEvent) => {
+      camera.tx = (e.clientX / size.w - 0.5) * 22;
+      camera.ty = (e.clientY / size.h - 0.5) * 12;
+    };
+    window.addEventListener("mousemove", onMove, { passive: true });
     window.addEventListener("resize", resize);
 
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-
-    // Create particles
-    const particles: Particle[] = [];
-    const particleCount = Math.min(60, Math.floor(width * height / 25000));
-    const goldColors = isDark 
-      ? [
-          "rgba(212, 175, 55, 0.6)",
-          "rgba(232, 204, 106, 0.4)",
-          "rgba(180, 140, 30, 0.5)",
-          "rgba(255, 215, 0, 0.3)",
-        ]
-      : [
-          "rgba(180, 140, 30, 0.5)",
-          "rgba(160, 130, 30, 0.3)",
-          "rgba(140, 110, 20, 0.4)",
-          "rgba(200, 160, 40, 0.25)",
-        ];
-
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        z: Math.random() * 600,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.3,
-        vz: (Math.random() - 0.5) * 0.5,
-        size: Math.random() * 2 + 0.5,
-        opacity: Math.random() * 0.5 + 0.2,
-        color: goldColors[Math.floor(Math.random() * goldColors.length)],
-        type: ["circle", "diamond", "ring"][Math.floor(Math.random() * 3)] as Particle["type"],
-      });
-    }
-
-    // Create floating 3D shapes
-    const shapes: FloatingShape[] = [];
-    const shapeCount = Math.min(8, Math.floor(width / 200));
-    const shapeTypes: FloatingShape["type"][] = ["cube", "pyramid", "octahedron", "torus"];
-    
-    for (let i = 0; i < shapeCount; i++) {
-      shapes.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        z: Math.random() * 400 + 100,
-        rotX: Math.random() * Math.PI * 2,
-        rotY: Math.random() * Math.PI * 2,
-        rotZ: Math.random() * Math.PI * 2,
-        vRotX: (Math.random() - 0.5) * 0.005,
-        vRotY: (Math.random() - 0.5) * 0.005,
-        vRotZ: (Math.random() - 0.5) * 0.008,
-        vy: (Math.random() - 0.5) * 0.3,
-        size: Math.random() * 20 + 15,
-        opacity: Math.random() * 0.3 + 0.15,
-        type: shapeTypes[Math.floor(Math.random() * shapeTypes.length)],
-      });
-    }
-
-    const gridLines: GridLine[] = [];
-
-    const handleMouse = (e: MouseEvent) => {
-      mouseRef.current.x = e.clientX;
-      mouseRef.current.y = e.clientY;
+    const geo = (lon: number, lat: number) => {
+      const nx = (lon + 118) / 84;
+      const ny = (33 - lat) / 89;
+      return {
+        x: size.w * (0.08 + nx * 0.86) + camera.x,
+        y: size.h * (0.24 + ny * 0.68) + camera.y,
+      };
     };
-    window.addEventListener("mousemove", handleMouse);
 
-    let time = 0;
-    const animate = () => {
-      time += 16;
-      draw(ctx, window.innerWidth, window.innerHeight, particles, shapes, gridLines, time, isDark);
-      animFrameRef.current = requestAnimationFrame(animate);
+    const titleMask = (x: number, y: number) => {
+      const dx = (x - size.w * 0.5) / (size.w * 0.32);
+      const dy = (y - size.h * 0.4) / (size.h * 0.22);
+      const d = dx * dx + dy * dy;
+      return Math.min(1, Math.max(0.04, (d - 0.22) / 0.75));
     };
-    animate();
+
+    const arc = (a: { x: number; y: number }, b: { x: number; y: number }, u = 0.5) => {
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const lift = Math.min(90, len * 0.2);
+      const cx = (a.x + b.x) / 2 + (-dy / len) * lift;
+      const cy = (a.y + b.y) / 2 + (dx / len) * lift;
+      const om = 1 - u;
+      return {
+        x: om * om * a.x + 2 * om * u * cx + u * u * b.x,
+        y: om * om * a.y + 2 * om * u * cy + u * u * b.y,
+        cx,
+        cy,
+      };
+    };
+
+    const drawWash = () => {
+      const g = ctx.createRadialGradient(
+        size.w * 0.58 + camera.x * 0.4,
+        size.h * 0.55 + camera.y * 0.3,
+        0,
+        size.w * 0.5,
+        size.h * 0.5,
+        size.w * 0.55
+      );
+      g.addColorStop(0, rgba(gold, isDark ? 0.09 : 0.08));
+      g.addColorStop(1, rgba(gold, 0));
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, size.w, size.h);
+    };
+
+    const drawContinent = () => {
+      ctx.beginPath();
+      COAST.forEach(([lon, lat], i) => {
+        const p = geo(lon, lat);
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+      ctx.closePath();
+      ctx.fillStyle = rgba(gold, isDark ? 0.055 : 0.06);
+      ctx.fill();
+      ctx.strokeStyle = rgba(gold, isDark ? 0.18 : 0.14);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    };
+
+    const drawRoutes = () => {
+      ROUTES.forEach((r) => {
+        const ca = cityById.get(r.a);
+        const cb = cityById.get(r.b);
+        if (!ca || !cb) return;
+        const a = geo(ca.lon, ca.lat);
+        const b = geo(cb.lon, cb.lat);
+        const m = arc(a, b, 0.5);
+        const fade = titleMask((a.x + b.x) / 2, (a.y + b.y) / 2);
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.quadraticCurveTo(m.cx, m.cy, b.x, b.y);
+        ctx.strokeStyle = rgba(gold, (ca.hub && cb.hub ? 0.28 : 0.14) * fade);
+        ctx.lineWidth = ca.hub && cb.hub ? 1.35 : 0.85;
+        ctx.stroke();
+      });
+    };
+
+    const drawPackets = (moving: boolean) => {
+      packets.forEach((pk, i) => {
+        if (moving) {
+          pk.u += pk.speed * 16;
+          if (pk.u >= 1) {
+            const next = ROUTES[(i + Math.floor(t / 400)) % ROUTES.length];
+            pk.a = next.a;
+            pk.b = next.b;
+            pk.u = 0;
+          }
+        }
+        const ca = cityById.get(pk.a);
+        const cb = cityById.get(pk.b);
+        if (!ca || !cb) return;
+        const a = geo(ca.lon, ca.lat);
+        const b = geo(cb.lon, cb.lat);
+        const p = arc(a, b, pk.u);
+        const fade = titleMask(p.x, p.y);
+        const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 10);
+        glow.addColorStop(0, rgba(goldHi, 0.7 * fade));
+        glow.addColorStop(1, rgba(gold, 0));
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = rgba(goldHi, 0.95 * fade);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2.1, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    };
+
+    const drawCities = (time: number) => {
+      CITIES.forEach((city, i) => {
+        const p = geo(city.lon, city.lat);
+        const fade = titleMask(p.x, p.y);
+        const tw = 0.55 + 0.45 * Math.sin(time * 0.0016 + i);
+        const r = (city.hub ? 3.2 : 1.8) * (0.85 + tw * 0.2);
+
+        if (city.hub) {
+          ctx.strokeStyle = rgba(goldHi, 0.22 * fade * tw);
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, r + 6, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 4);
+        g.addColorStop(0, rgba(goldHi, 0.5 * fade));
+        g.addColorStop(1, rgba(gold, 0));
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r * 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = rgba(goldHi, (city.hub ? 0.95 : 0.7) * fade);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    };
+
+    const drawCaption = () => {
+      if (size.w < 720) return;
+      ctx.font = "10px Inter, ui-sans-serif, system-ui, sans-serif";
+      ctx.fillStyle = rgba(gold, 0.28);
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      ctx.fillText("RED MERCAV  ·  15 PAÍSES", size.w * 0.93, size.h * 0.86);
+    };
+
+    const drawVignette = () => {
+      const g = ctx.createRadialGradient(
+        size.w * 0.5,
+        size.h * 0.4,
+        size.h * 0.08,
+        size.w * 0.5,
+        size.h * 0.45,
+        size.w * 0.7
+      );
+      const edge = isDark ? "rgba(5,5,5,0.62)" : "rgba(250,249,246,0.5)";
+      g.addColorStop(0, "rgba(0,0,0,0)");
+      g.addColorStop(0.42, "rgba(0,0,0,0)");
+      g.addColorStop(1, edge);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, size.w, size.h);
+    };
+
+    const frame = (now: number) => {
+      if (!reduced) t = now;
+      ctx.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
+      ctx.clearRect(0, 0, size.w, size.h);
+
+      if (!reduced) {
+        camera.x += (camera.tx - camera.x) * 0.04;
+        camera.y += (camera.ty - camera.y) * 0.04;
+      }
+
+      drawWash();
+      drawContinent();
+      drawRoutes();
+      drawPackets(!reduced);
+      drawCities(t);
+      drawCaption();
+      drawVignette();
+
+      if (!reduced && !document.hidden) raf = requestAnimationFrame(frame);
+    };
+
+    frame(performance.now());
+
+    const onVis = () => {
+      if (document.hidden) cancelAnimationFrame(raf);
+      else if (!reduced) raf = requestAnimationFrame(frame);
+    };
+    document.addEventListener("visibilitychange", onVis);
 
     return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("mousemove", onMove);
       window.removeEventListener("resize", resize);
-      window.removeEventListener("mousemove", handleMouse);
-      cancelAnimationFrame(animFrameRef.current);
+      document.removeEventListener("visibilitychange", onVis);
+      motion.removeEventListener("change", onMotion);
     };
-  }, [theme, draw]);
+  }, [theme]);
 
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 -z-10"
+      className="absolute inset-0 z-0"
+      aria-hidden
       style={{ pointerEvents: "none" }}
     />
   );

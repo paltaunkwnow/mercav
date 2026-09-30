@@ -34,20 +34,10 @@ const stagger = {
 
 export function HomeHero() {
   return (
-    <section className="relative w-full min-h-screen flex items-center justify-center pt-20 overflow-hidden">
-      {/* 3D Animated Background */}
+    <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden pt-28 [justify-content:safe_center]">
       <HeroBackground3D />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-40 bg-gradient-to-b from-transparent to-bg-primary" />
-      
-      {/* Cinematic Lighting Overlays */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        {/* Central gold nebula */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[800px] bg-gold/[0.04] blur-[200px] rounded-full animate-pulse" style={{ animationDuration: '8s' }} />
-        {/* Top-left accent */}
-        <div className="absolute -top-20 -left-20 w-[600px] h-[600px] bg-gold/[0.02] blur-[120px] rounded-full" />
-        {/* Bottom-right accent */}
-        <div className="absolute -bottom-40 -right-20 w-[500px] h-[500px] bg-gold/[0.03] blur-[150px] rounded-full" />
-      </div>
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-32 bg-gradient-to-b from-bg-primary via-bg-primary/70 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-44 bg-gradient-to-b from-transparent to-bg-primary" />
 
       <div className="container mx-auto px-6 z-10 flex flex-col items-center text-center relative">
         {/* Top badge */}
@@ -55,7 +45,7 @@ export function HomeHero() {
           initial={{ opacity: 0, y: -20, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-10 mt-16 inline-flex items-center rounded-full border border-gold/20 bg-gold/5 px-6 py-2.5 text-[10px] font-black uppercase tracking-[0.4em] text-gold/90 backdrop-blur-md md:mt-24"
+          className="mb-10 mt-4 inline-flex items-center rounded-full border border-gold/20 bg-gold/5 px-6 py-2.5 text-[10px] font-black uppercase tracking-[0.4em] text-gold/90 backdrop-blur-md md:mt-8"
         >
           Construido para Latinoamérica
         </motion.div>
@@ -116,14 +106,18 @@ export function HomeModules() {
     { icon: Megaphone, title: "Mercav Ads", desc: "Alquilá espacios publicitarios físicos. Vallas, pantallas, vidrieras.", href: "/anuncios", accent: "from-amber-500/20 to-orange-500/20", iconBg: "bg-amber-500/10", iconColor: "text-amber-500" },
     { icon: MonitorPlay, title: "Mercav Services", desc: "Contratá talento digital con pagos seguros y contratos por hitos.", href: "/servicios", accent: "from-violet-500/20 to-purple-500/20", iconBg: "bg-violet-500/10", iconColor: "text-violet-400" },
     { icon: Briefcase, title: "Mercav Jobs", desc: "Publicá vacantes y encontrá al candidato ideal sin fricción.", href: "/empleos", accent: "from-emerald-500/20 to-teal-500/20", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-400" },
-    { icon: Wrench, title: "Mercav Tools", desc: "Herramientas con IA, calculadoras de ROI y contratos.", href: "/herramientas", accent: "from-blue-500/20 to-cyan-500/20", iconBg: "bg-blue-500/10", iconColor: "text-blue-400" }
+    { icon: Wrench, title: "Mercav Tools", desc: "Herramientas con IA, calculadoras de ROI y contratos.", href: "/herramientas", accent: "from-blue-500/20 to-cyan-500/20", iconBg: "bg-blue-500/10", iconColor: "text-blue-400" },
+    { icon: Shield, title: "Mercav Pwn", desc: "Consultá exposición, filtraciones y alertas. Ciberinteligencia para tu negocio.", href: "/pwn", accent: "from-red-500/20 to-rose-500/20", iconBg: "bg-red-500/10", iconColor: "text-red-400" },
+    { icon: Star, title: "Mercav Kosher", desc: "Mapa de lugares, stock kosher y tu kehilá. Entras con tu cuenta Mercav.", href: "/kosher", accent: "from-sky-400/20 to-indigo-500/20", iconBg: "bg-techelet/15", iconColor: "text-techelet" },
   ];
 
   return (
     <section className="w-full py-24 md:py-32 bg-bg-primary relative overflow-hidden section-transition">
       {/* Background decoration */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gold/[0.015] blur-[200px] rounded-full" />
+        <div className="absolute top-1/3 left-[15%] h-[520px] w-[520px] rounded-full bg-gold/[0.08] blur-[160px]" />
+        <div className="absolute bottom-1/4 right-[10%] h-[420px] w-[420px] rounded-full bg-violet-500/[0.07] blur-[140px]" />
+        <div className="absolute top-1/2 left-1/2 h-[640px] w-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gold/[0.04] blur-[180px]" />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
@@ -149,11 +143,11 @@ export function HomeModules() {
             <span className="gradient-text-gold">posibilidades</span>
           </h2>
           <p className="text-gray-400 text-base md:text-lg max-w-xl mx-auto">
-            Cuatro módulos diseñados para integrarse perfectamente en tu operación diaria.
+            Seis módulos del ecosistema, de publicidad a comunidad y ciberinteligencia.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
           {modules.map((mod, i) => (
             <motion.div
               key={i}
@@ -163,7 +157,7 @@ export function HomeModules() {
               transition={{ duration: 0.6, delay: i * 0.12 }}
             >
               <TiltCard className="h-full rounded-2xl">
-              <Link href={mod.href} className="group flex flex-col p-7 md:p-8 rounded-2xl bg-bg-tertiary/50 border border-border hover:border-gold/40 transition-colors duration-500 relative overflow-hidden h-full glassmorphism">
+              <Link href={mod.href} className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 p-7 transition-colors duration-500 hover:border-gold/40 md:p-8 glassmorphism">
                 {/* Gradient accent on hover */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${mod.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
                 

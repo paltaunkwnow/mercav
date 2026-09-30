@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { summarizeSales } from "@/lib/pos/server";
+import { currencyDecimals } from "@/lib/pos/money";
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays } from "date-fns";
 
 export async function GET(req: Request) {
@@ -52,9 +54,10 @@ export async function GET(req: Request) {
       include: {
         items: {
           include: {
-            product: true
+            product: { include: { category: true } }
           }
-        }
+        },
+        payments: true
       }
     });
 
@@ -83,8 +86,7 @@ export async function GET(req: Request) {
       return {
         ...session,
         currentTotal: salesTotal,
-        // Ensure closingBalance reflects real total if closed, or current if open
-        displayTotal: session.status === 'CLOSED' ? Number(session.closingBalance || 0) : salesTotal
+        displayTotal: salesTotal
       };
     });
 
@@ -92,6 +94,8 @@ export async function GET(req: Request) {
     const totalRevenue = sales.reduce((acc: number, sale: any) => acc + Number(sale.totalAmount), 0);
     const totalOrders = sales.length;
     const totalDiscounts = sales.reduce((acc: number, sale: any) => acc + Number(sale.discountAmount), 0);
+    const totalTax = sales.reduce((acc: number, sale: any) => acc + Number(sale.taxAmount || 0), 0);
+    const { byMethod } = summarizeSales(sales, currencyDecimals(user.posConfig.currency));
 
     // Calculate cost and profit
     let totalCost = 0;
@@ -110,13 +114,13 @@ export async function GET(req: Request) {
       sale.items.forEach((item: any) => {
         const prod = item.product;
         const prodId = item.productId || prod?.id || "unknown";
-        const name = prod?.name || item.productName || "Producto";
+        const name = item.productName || prod?.name || "Producto";
         const imageUrl = prod?.imageUrl || null;
         const categoryName = prod?.category?.name || "General";
-        const qty = item.quantity;
+        const qty = Number(item.quantity);
         const costPrice = Number(prod?.costPrice || 0);
         const itemCost = costPrice * qty;
-        const itemRevenue = Number(item.subtotal);
+        const itemRevenue = Number(item.subtotal) - (user.posConfig!.pricesIncludeTax ? Number(item.taxAmount || 0) : 0);
 
         totalCost += itemCost;
 
@@ -141,7 +145,7 @@ export async function GET(req: Request) {
       });
     });
 
-    const totalProfit = totalRevenue - totalCost;
+    const totalProfit = totalRevenue - totalTax - totalCost;
 
     const productProfitability = Array.from(productProfitabilityMap.values()).map(p => {
       const margin = p.revenue > 0 ? (p.profit / p.revenue) * 100 : 0;
@@ -156,6 +160,8 @@ export async function GET(req: Request) {
         totalDiscounts,
         totalCost,
         totalProfit,
+        totalTax,
+        byMethod,
         averageOrder: totalOrders > 0 ? totalRevenue / totalOrders : 0
       },
       sales,

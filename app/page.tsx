@@ -6,6 +6,8 @@ import {
   HomeStats, 
   HomeCTA 
 } from "@/components/home/HomeClient";
+import { HomeKosher } from "@/components/home/HomeKosher";
+import { TransactionCard } from "@/components/home/TransactionCard";
 import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,7 +34,7 @@ export default async function Home() {
   });
 
   // Fetch featured items specifically if IDs are set
-  const [featuredService, featuredSpace, latestSpaces, latestServices, latestJobs] = await Promise.all([
+  const [featuredService, featuredSpace, latestSpaces, latestServices, latestJobs, kosherPlaces, kosherCities, kosherPreview] = await Promise.all([
     config?.featuredServiceId ? prisma.service.findUnique({
       where: { id: config.featuredServiceId, isActive: true },
       include: { packages: { orderBy: { price: 'asc' }, take: 1 } }
@@ -57,6 +59,13 @@ export default async function Home() {
       where: { isActive: true },
       take: 4,
       orderBy: { createdAt: 'desc' }
+    }),
+    prisma.kosherPlace.count({ where: { published: true } }),
+    prisma.kosherPlace.findMany({ where: { published: true }, distinct: ['city', 'countryCode'], select: { city: true } }),
+    prisma.kosherPlace.findMany({
+      where: { published: true, slug: { in: ['lpz-circulo-israelita', 'ba-templo-libertad', 'sp-gelato-borelli'] } },
+      orderBy: { lat: 'desc' },
+      select: { slug: true, name: true, city: true, type: true, status: true, verifiedAt: true }
     })
   ]);
 
@@ -115,6 +124,7 @@ export default async function Home() {
     <div className="flex flex-col w-full min-h-screen overflow-hidden">
       <HomeHero />
       <HomeModules />
+      <HomeKosher places={kosherPlaces} cities={kosherCities.length} preview={kosherPreview.map(({ verifiedAt, ...p }) => ({ ...p, verified: !!verifiedAt }))} />
       <HomeStats />
 
       {/* Feature Split Section */}
@@ -160,81 +170,7 @@ export default async function Home() {
               </Button>
             </div>
             
-            <div className="flex-1 w-full relative">
-              <div className="aspect-square max-w-md mx-auto rounded-full bg-gradient-to-tr from-gold/20 to-transparent blur-3xl absolute inset-0 -z-10 opacity-50" />
-              <div className="relative group perspective-[1000px]">
-                {/* Advanced glow behind card */}
-                <div className="absolute -inset-2 bg-gradient-to-r from-gold/40 to-gold/10 rounded-3xl blur-xl opacity-15 group-hover:opacity-30 transition duration-1000 group-hover:duration-200" />
-                
-                <div className="relative bg-bg-secondary/90 backdrop-blur-2xl p-8 rounded-3xl border border-border shadow-2xl overflow-hidden transform lg:rotate-3 transition-all duration-[800ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:rotate-0 hover:scale-[1.03] hover:shadow-[0_20px_50px_rgba(212,175,55,0.12)] glassmorphism card-hover-premium section-transition">
-                  {/* Decorative Scan Line Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gold/5 to-transparent -translate-y-full group-hover:animate-scanline pointer-events-none" />
-                  
-                  {/* Receipt Header */}
-                  <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/5 relative">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
-                        <h4 className="text-white font-bold text-lg tracking-tight uppercase text-[12px]">Certificado de Transacción</h4>
-                      </div>
-                      <p className="text-[10px] text-gray-500 font-mono">ID: MRC-5592-X90-GOLD</p>
-                    </div>
-                    <div className="h-12 w-12 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center relative">
-                      <CheckCircle2 className="h-6 w-6 text-gold" />
-                      <div className="absolute inset-0 rounded-full border border-gold/40 animate-ping opacity-20" />
-                    </div>
-                  </div>
-
-                  {/* Receipt Body */}
-                  <div className="space-y-6">
-                    <div className="space-y-1">
-                      <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Activo Digital</p>
-                      <h5 className="text-white font-medium text-lg">Valla en Av. Principal</h5>
-                    </div>
-
-                    <div className="space-y-4 pt-4 relative">
-                      {/* Dotted separator */}
-                      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                      
-                      <div className="flex justify-between items-center group/row">
-                        <span className="text-gray-400 text-sm group-hover/row:text-gray-300 transition-colors">Precio Base</span>
-                        <span className="text-white font-mono font-medium">$ 500.00</span>
-                      </div>
-
-                      <div className="flex justify-between items-center group/row">
-                        <div className="flex flex-col">
-                          <span className="text-gray-400 text-sm group-hover/row:text-gray-300 transition-colors">Comisión Mercav</span>
-                          <span className="text-[9px] text-gold font-black uppercase tracking-tighter bg-gold/5 border border-gold/10 px-1.5 py-0.5 rounded w-fit mt-1">Primer alquiler • Free</span>
-                        </div>
-                        <span className="text-green-500 font-mono font-medium">$ 0.00</span>
-                      </div>
-
-                      {/* Perforated separator look */}
-                      <div className="py-4 flex items-center gap-2 opacity-30">
-                         <div className="h-[2px] flex-1 border-dashed border-t border-gold/30" />
-                         <div className="h-2 w-2 rounded-full bg-gold/40" />
-                         <div className="h-[2px] flex-1 border-dashed border-t border-gold/30" />
-                      </div>
-
-                      <div className="flex justify-between items-end">
-                        <div className="space-y-1">
-                           <p className="text-[10px] uppercase tracking-[0.3em] text-gray-500 font-black">Neto Final</p>
-                           <span className="text-white font-bold text-sm">Total a recibir</span>
-                        </div>
-                        <div className="text-right">
-                           <span className="text-gold font-mono font-black text-3xl drop-shadow-[0_0_15px_rgba(212,175,55,0.3)]">$ 500.00</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Certified Footnote */}
-                  <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-center gap-2 opacity-30 grayscale hover:grayscale-0 transition-all cursor-default">
-                    <p className="text-[8px] font-black uppercase tracking-[0.4em] text-white">Verified by Mercav Security</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <TransactionCard />
           </div>
         </div>
       </section>

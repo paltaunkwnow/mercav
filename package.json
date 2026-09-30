@@ -8,13 +8,15 @@
     "start": "next start",
     "lint": "next lint",
     "test:pwn": "node --experimental-strip-types --import ./scripts/pwn-test-register.mjs --test lib/pwn/__tests__/*.test.ts",
-    "seed": "npx ts-node prisma/seed-admin.ts"
+    "seed": "npx ts-node prisma/seed-admin.ts",
+    "seed:kosher": "node --experimental-strip-types prisma/seed-kosher.mts"
   },
   "prisma": {
     "seed": "npx ts-node prisma/seed-admin.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
+    "@hebcal/core": "^6.10.0",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^5.14.0",
     "@radix-ui/react-checkbox": "^1.3.3",
@@ -38,6 +40,7 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "lucide-react": "^1.14.0",
+    "maplibre-gl": "^5.24.0",
     "next": "14.2.35",
     "next-auth": "^4.24.14",
     "nodemailer": "^7.0.13",
@@ -51,6 +54,7 @@
     "shadcn": "^4.7.0",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
+    "sonner": "^2.0.8",
     "stripe": "^22.1.1",
     "swr": "^2.4.1",
     "tailwind-merge": "^3.5.0",

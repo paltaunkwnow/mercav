@@ -42,11 +42,23 @@ export async function verifyRecaptchaToken(token?: string) {
   }
 }
 
+const secureCookies = process.env.NEXTAUTH_URL?.startsWith("https://") ?? false;
+// Set AUTH_COOKIE_DOMAIN=.mercav.lat so one session covers mercav.lat, kosher.mercav.lat and pwn.mercav.lat.
+const cookieDomain = process.env.AUTH_COOKIE_DOMAIN?.trim() || undefined;
+
 export const authOptions: AuthOptions = {
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  cookies: cookieDomain
+    ? {
+        sessionToken: {
+          name: `${secureCookies ? "__Secure-" : ""}next-auth.session-token`,
+          options: { httpOnly: true, sameSite: "lax", path: "/", secure: secureCookies, domain: cookieDomain },
+        },
+      }
+    : undefined,
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/login",
@@ -127,6 +139,20 @@ export const authOptions: AuthOptions = {
     })
   ],
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      try {
+        const target = new URL(url);
+        const base = new URL(baseUrl);
+        if (target.origin === base.origin) return url;
+        const suffix = cookieDomain ? `.${cookieDomain.replace(/^\./, "")}` : null;
+        const sibling = suffix && target.protocol === base.protocol && `.${target.hostname}`.endsWith(suffix);
+        if (sibling) return url;
+      } catch {
+        /* malformed url falls through to baseUrl */
+      }
+      return baseUrl;
+    },
     async signIn({ user, account, profile }) {
       if (account?.provider === "google") {
         if (!user.email) return false;

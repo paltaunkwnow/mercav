@@ -48,6 +48,10 @@ const config: Config = {
           light: "var(--color-gold-light)",
           dim: "var(--color-gold-dim)",
         },
+        techelet: {
+          DEFAULT: "var(--color-techelet)",
+          dim: "var(--color-techelet-dim)",
+        },
         "bg-primary": "var(--color-bg-primary)",
         "bg-secondary": "var(--color-bg-secondary)",
         "bg-tertiary": "var(--color-bg-tertiary)",

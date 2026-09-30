@@ -31,6 +31,7 @@ Mercav no es solo una herramienta, es una experiencia visual. La paleta es **cre
 | **🤝 Mercav Comunidad** | Red social corporativa para networking y el movimiento *Build in Public*. | • Feed interactivo con soporte multimedia.<br>• Reacciones personalizadas.<br>• Mensajería directa fluida. |
 | **🧰 Mercav Tools** | Suite de herramientas empresariales y utilidades premium para profesionales y negocios. | • Herramientas de productividad integradas.<br>• Plantillas y utilidades para empresas.<br>• Automatizaciones y soporte para flujos de trabajo. |
 | **🛡️ Mercav Pwn** | Inteligencia defensiva y monitoreo de exposición en [pwn.mercav.lat](https://pwn.mercav.lat). | • Búsqueda de exposición con HIBP, sin guardar contraseñas ni correos ajenos.<br>• Contraseñas solo por k-anonimato (el hash se calcula en el navegador).<br>• Vulnerabilidades de NVD y CISA KEV, alertas in-app y verificación DNS de dominios. |
+| **✡️ Mercav Kosher** | Espacio premium para la comunidad judía en [kosher.mercav.lat](https://kosher.mercav.lat), portado desde Makom. | • Mapa MapLibre con clusters de restaurantes, tiendas, sinagogas, mikvaot y kehilot.<br>• Stock por sucursal, valoraciones y sugerencias de edición con moderación.<br>• Chat propio por ciudad y por lugar, modo Shabat y la misma cuenta Mercav.<br>• Calendario con zmanim y jaguim por ciudad, modo viaje y alertas por ciudad.<br>• Comunidad: agenda, minián con confirmaciones, mesa de Shabat, jésed, empleos de Mercav Jobs y directorio de agencias.<br>• Fichas oficiales: instituciones que administran su lugar y cargan su certificado con vencimiento. |
 
 
 ---
@@ -53,6 +54,7 @@ Mercav/
 │   ├── empleos/            # Módulo de bolsa de empleo y postulaciones
 │   ├── herramientas/       # Herramientas internas y utilidades premium
 │   ├── pwn/                # Mercav Pwn (pwn.mercav.lat): exposición, monitoreo y alertas
+│   ├── kosher/             # Mercav Kosher (kosher.mercav.lat): mapa, lugares, chat y moderación
 │   ├── mensajes/           # Módulo de chat en tiempo real y mensajería
 │   ├── perfil/             # Configuración y visualización de perfiles
 │   └── servicios/          # Directorio de profesionales freelance
@@ -60,10 +62,12 @@ Mercav/
 │   ├── checkout/           # Componentes específicos de Stripe/pagos
 │   ├── ui/                 # Componentes base y primitivas de UI (Shadcn modificados)
 │   ├── pwn/                # Pantallas y cliente de Mercav Pwn
+│   ├── kosher/             # Mapa, ficha de lugar, chat y formularios de Mercav Kosher
 │   └── ...                 # Componentes organizados por dominio
 ├── lib/                    # Lógica común, clientes y utilidades
 │   ├── pwn/                # Motores de riesgo, confianza y redacción
 │   ├── integrations/pwn/   # Conectores HIBP, NVD y CISA KEV
+│   ├── kosher/             # Etiquetas, geo, horarios de Shabat y helpers de servidor de Kosher
 │   ├── prisma.ts           # Inicialización y cliente de Prisma ORM
 │   ├── stripe.ts           # Integración con Stripe API
 │   └── utils.ts            # Helper functions globales
@@ -83,6 +87,7 @@ Mercav/
 *   **Autenticación**: NextAuth.js con soporte para correo/contraseña y OAuth.
 *   **Pagos**: Stripe API (Soporte para tarjetas globales y flujos de cobro).
 *   **Mercav Pwn**: Have I Been Pwned, NVD API 2.0 y el catálogo CISA KEV. El host `pwn.mercav.lat` sirve el mismo despliegue y reescribe la raíz a `/pwn`.
+*   **Mercav Kosher**: MapLibre GL con teselas de OpenFreeMap y CARTO (sin clave), datos de OpenStreetMap y `sonner` para avisos. `@hebcal/core` calcula zmanim, velas, Havdalá y jaguim con la zona horaria de cada comunidad. El host `kosher.mercav.lat` reescribe la raíz a `/kosher` y manda `/empleos` y `/mensajes` a `mercav.lat`.
 
 ---
 
@@ -111,6 +116,8 @@ DATABASE_URL="postgresql://usuario:contraseña@localhost:5432/mercav_db?schema=p
 # Configuración de Autenticación (NextAuth)
 NEXTAUTH_URL="http://localhost:1337"
 NEXTAUTH_SECRET="tu_secreto_super_seguro_aqui"
+# Solo en producción: comparte la sesión entre mercav.lat, kosher.mercav.lat y pwn.mercav.lat
+AUTH_COOKIE_DOMAIN=".mercav.lat"
 
 # Pasarela de Pagos (Stripe)
 STRIPE_SECRET_KEY="sk_test_..."
@@ -145,13 +152,21 @@ npx prisma generate
 npx prisma db push
 ```
 
-En un entorno que ya tiene datos, no uses `db push` ni `migrate dev`. Sigue [migrate.md](migrate.md): backup y `npx prisma migrate deploy`.
+En un entorno que ya tiene datos, no uses `db push` ni `migrate dev`. Sigue [migrate.md](migrate.md): backup y `npx prisma migrate deploy`. Kosher agrega las migraciones `20260929120000_kosher` y `20260929180000_kosher_community`, que solo crean tablas, enums y columnas nuevas.
+
+Para cargar el atlas inicial de Kosher. Cada lugar trae la fuente pública donde se verificó (`sourceUrl`, `verifiedAt`); la kashrut solo se marca «Certificado» si figura en la lista de la agencia:
+
+```bash
+npm run seed:kosher
+```
+
+`AUTH_COOKIE_DOMAIN` hace que la cookie de sesión valga para todos los subdominios, así el login de Mercav sirve en Kosher y Pwn. En local déjala vacía. Para moderar Kosher, un usuario necesita rol `ADMIN` en Mercav o el rol `local_moderator` o `agency` en su perfil de Kosher.
 
 ### 5. Iniciar el Servidor de Desarrollo
 ```bash
 npm run dev
 ```
-Accede a [http://localhost:1337](http://localhost:1337) en tu navegador. Mercav Pwn está en [http://localhost:1337/pwn](http://localhost:1337/pwn). En producción el mismo módulo responde en [https://pwn.mercav.lat](https://pwn.mercav.lat).
+Accede a [http://localhost:1337](http://localhost:1337) en tu navegador. Mercav Pwn está en [http://localhost:1337/pwn](http://localhost:1337/pwn) y Mercav Kosher en [http://localhost:1337/kosher](http://localhost:1337/kosher). En producción responden en [https://pwn.mercav.lat](https://pwn.mercav.lat) y [https://kosher.mercav.lat](https://kosher.mercav.lat).
 
 Los tests de los motores de Pwn (redacción, confianza y riesgo) no necesitan la base:
 

@@ -1,91 +1,76 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getPosContext, posError, summarizeSales } from "@/lib/pos/server";
+import { currencyDecimals, roundMoney } from "@/lib/pos/money";
+
+async function findOpenSession(posConfigId: string) {
+  return prisma.pOSCashSession.findFirst({
+    where: { posConfigId, status: "OPEN" },
+    include: { sales: { include: { payments: true } } },
+  });
+}
 
 export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  const ctx = await getPosContext();
+  if (!ctx.ok) return ctx.response;
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { posConfig: true }
-    });
+  const session = await findOpenSession(ctx.config.id);
+  if (!session) return NextResponse.json({ success: true, data: null });
 
-    if (!user?.posConfig) return NextResponse.json({ success: false, error: "POS not configured" }, { status: 400 });
-
-    const activeSession = await prisma.pOSCashSession.findFirst({
-      where: { 
-        posConfigId: user.posConfig.id,
-        status: "OPEN"
+  const summary = summarizeSales(session.sales, currencyDecimals(ctx.config.currency));
+  const { sales, ...rest } = session;
+  return NextResponse.json({
+    success: true,
+    data: {
+      ...rest,
+      summary: {
+        ...summary,
+        expectedCash: roundMoney(Number(session.openingAmount) + (summary.byMethod.CASH ?? 0), currencyDecimals(ctx.config.currency)),
       },
-      include: {
-        sales: true
-      }
-    });
-
-    return NextResponse.json({ success: true, data: activeSession });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });
-  }
+    },
+  });
 }
 
 export async function POST(req: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  const ctx = await getPosContext();
+  if (!ctx.ok) return ctx.response;
+  const { config } = ctx;
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { posConfig: true }
+  const body = await req.json().catch(() => null);
+  const action = body?.action;
+  const amount = Number(body?.amount);
+  if (!Number.isFinite(amount) || amount < 0) return posError("Monto inválido");
+
+  if (action === "OPEN") {
+    const existing = await findOpenSession(config.id);
+    if (existing) return posError("Ya hay una caja abierta");
+    const openSession = await prisma.pOSCashSession.create({
+      data: { posConfigId: config.id, openingAmount: amount, status: "OPEN" },
     });
-
-    if (!user?.posConfig) return NextResponse.json({ success: false, error: "POS not configured" }, { status: 400 });
-
-    const body = await req.json();
-    const { action, amount } = body; // action: 'OPEN' or 'CLOSE'
-
-    if (action === 'OPEN') {
-      const openSession = await prisma.pOSCashSession.create({
-        data: {
-          posConfigId: user.posConfig.id,
-          openingAmount: amount,
-          status: "OPEN"
-        }
-      });
-      return NextResponse.json({ success: true, data: openSession });
-    }
-
-    if (action === 'CLOSE') {
-      const activeSession = await prisma.pOSCashSession.findFirst({
-        where: { posConfigId: user.posConfig.id, status: "OPEN" },
-        include: { sales: true }
-      });
-
-      if (!activeSession) return NextResponse.json({ success: false, error: "No active session found" }, { status: 400 });
-
-      const totalSales = activeSession.sales.reduce((sum, sale) => sum + Number(sale.totalAmount), 0);
-      const expected = Number(activeSession.openingAmount) + totalSales;
-      const difference = Number(amount) - expected;
-
-      const closedSession = await prisma.pOSCashSession.update({
-        where: { id: activeSession.id },
-        data: {
-          closingAmount: amount,
-          expectedAmount: expected,
-          difference: difference,
-          status: "CLOSED",
-          closedAt: new Date()
-        }
-      });
-
-      return NextResponse.json({ success: true, data: closedSession });
-    }
-
-    return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
-  } catch (error) {
-    console.error("POS_SESSION_POST_ERROR", error);
-    return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });
+    return NextResponse.json({ success: true, data: openSession });
   }
+
+  if (action === "CLOSE") {
+    const activeSession = await findOpenSession(config.id);
+    if (!activeSession) return posError("No active session found");
+
+    const decimals = currencyDecimals(config.currency);
+    const summary = summarizeSales(activeSession.sales, decimals);
+    const expected = roundMoney(Number(activeSession.openingAmount) + (summary.byMethod.CASH ?? 0), decimals);
+
+    const closedSession = await prisma.pOSCashSession.update({
+      where: { id: activeSession.id },
+      data: {
+        closingAmount: amount,
+        expectedAmount: expected,
+        difference: roundMoney(amount - expected, decimals),
+        salesByMethod: summary.byMethod,
+        status: "CLOSED",
+        closedAt: new Date(),
+      },
+    });
+    return NextResponse.json({ success: true, data: closedSession });
+  }
+
+  return posError("Invalid action");
 }

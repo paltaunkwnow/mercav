@@ -1,79 +1,150 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { getPosContext, posError } from "@/lib/pos/server";
+import { computeSale } from "@/lib/pos/pricing";
+import { currencyDecimals, formatMoney, roundMoney } from "@/lib/pos/money";
+import { getBusinessType, getUnit, ORDER_TYPES_WITH_CHANNEL, type OrderTypeId } from "@/lib/pos/business";
+
+const saleSchema = z.object({
+  items: z
+    .array(z.object({ id: z.string().min(1), quantity: z.number().positive().max(100000) }))
+    .min(1)
+    .max(300),
+  discountType: z.enum(["NONE", "PERCENTAGE", "FIXED"]).default("NONE"),
+  discountValue: z.number().min(0).default(0),
+  orderType: z.string().max(20),
+  deliveryChannel: z.string().max(40).nullish(),
+  payments: z
+    .array(
+      z.object({
+        method: z.enum(["CASH", "CARD", "TRANSFER", "QR", "OTHER"]),
+        amount: z.number().positive(),
+        reference: z.string().max(80).nullish(),
+      }),
+    )
+    .min(1)
+    .max(6),
+  clientNit: z.string().max(30).nullish(),
+  clientName: z.string().max(120).nullish(),
+});
+
+class StockError extends Error {}
 
 export async function POST(req: Request) {
+  const ctx = await getPosContext();
+  if (!ctx.ok) return ctx.response;
+  const { config } = ctx;
+
+  const parsed = saleSchema.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) return posError("Datos de venta inválidos");
+  const body = parsed.data;
+
+  const activeSession = await prisma.pOSCashSession.findFirst({
+    where: { posConfigId: config.id, status: "OPEN" },
+  });
+  if (!activeSession) return posError("La caja debe estar abierta para realizar ventas");
+
+  const business = getBusinessType(config.businessType);
+  if (!business.orderTypes.includes(body.orderType as OrderTypeId)) return posError("Tipo de pedido no disponible para este negocio");
+  const deliveryChannel = ORDER_TYPES_WITH_CHANNEL.includes(body.orderType as OrderTypeId) ? body.deliveryChannel || null : null;
+
+  const enabled = config.paymentMethods.length ? config.paymentMethods : ["CASH"];
+  if (body.payments.some((p) => !enabled.includes(p.method))) return posError("Medio de pago no habilitado");
+
+  const quantities = new Map<string, number>();
+  for (const item of body.items) quantities.set(item.id, (quantities.get(item.id) ?? 0) + item.quantity);
+
+  const products = await prisma.pOSProduct.findMany({
+    where: { id: { in: Array.from(quantities.keys()) }, posConfigId: config.id, isActive: true },
+  });
+  if (products.length !== quantities.size) return posError("Uno de los productos ya no está disponible. Actualizá el catálogo.");
+
+  for (const p of products) {
+    const qty = quantities.get(p.id)!;
+    if (getUnit(p.unit).step >= 1 && !Number.isInteger(qty)) return posError(`${p.name} se vende por unidades enteras`);
+  }
+
+  const decimals = currencyDecimals(config.currency);
+  const pricing = computeSale({
+    lines: products.map((p) => ({
+      productId: p.id,
+      quantity: quantities.get(p.id)!,
+      unitPrice: Number(p.price),
+      taxRate: Number(p.taxRate ?? config.taxRate),
+    })),
+    discountType: body.discountType,
+    discountValue: body.discountValue,
+    pricesIncludeTax: config.pricesIncludeTax,
+    decimals,
+  });
+
+  const r = (n: number) => roundMoney(n, decimals);
+  const cash = r(body.payments.filter((p) => p.method === "CASH").reduce((s, p) => s + p.amount, 0));
+  const nonCash = r(body.payments.filter((p) => p.method !== "CASH").reduce((s, p) => s + p.amount, 0));
+  if (nonCash > pricing.total) return posError("Los pagos que no son en efectivo no pueden superar el total");
+  const change = r(cash + nonCash - pricing.total);
+  if (change < 0) return posError(`Falta cobrar ${formatMoney(-change, config.currency)}`);
+
+  const payments = body.payments
+    .map((p) => ({ method: p.method, reference: p.reference || null, amount: p.amount }))
+    .filter((p) => p.method !== "CASH");
+  if (cash > 0 && cash - change > 0) payments.unshift({ method: "CASH", reference: null, amount: r(cash - change) });
+
+  const byId = new Map(products.map((p) => [p.id, p]));
+
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { posConfig: true }
-    });
-
-    if (!user?.posConfig) return NextResponse.json({ success: false, error: "POS not configured" }, { status: 400 });
-
-    const posConfigId = user.posConfig.id;
-
-    // Ensure caja is open
-    const activeSession = await prisma.pOSCashSession.findFirst({
-      where: { posConfigId, status: "OPEN" }
-    });
-
-    if (!activeSession) return NextResponse.json({ success: false, error: "La caja debe estar abierta para realizar ventas" }, { status: 400 });
-
-    const body = await req.json();
-    const { items, totalAmount, discountAmount, discountType, orderType, deliveryChannel, receivedAmount, changeAmount, clientNit, clientName } = body;
-
-    // Create sale in transaction
     const sale = await prisma.$transaction(async (tx) => {
-      const txAny = tx as any;
-      const saleModel = txAny.posSale || txAny.pOSSale;
-      const productModel = txAny.posProduct || txAny.pOSProduct;
-
-      if (!saleModel) throw new Error("POSSale model not found in Prisma client");
-
-      const newSale = await saleModel.create({
-        data: {
-          posConfigId,
-          cashSessionId: activeSession.id,
-          totalAmount,
-          discountAmount: discountAmount || 0,
-          discountType,
-          orderType,
-          deliveryChannel,
-          receivedAmount: receivedAmount || 0,
-          changeAmount: changeAmount || 0,
-          clientNit: clientNit || null,
-          clientName: clientName || null,
-          items: {
-            create: items.map((item: any) => ({
-              productId: item.id,
-              quantity: item.quantity,
-              unitPrice: item.price,
-              subtotal: item.subtotal
-            }))
-          }
-        },
-        include: { items: { include: { product: true } } }
-      });
-
-      // Update stock for each product
-      for (const item of items) {
-        await productModel.update({
-          where: { id: item.id },
-          data: { stock: { decrement: item.quantity } }
+      for (const line of pricing.lines) {
+        const product = byId.get(line.productId)!;
+        if (!product.trackStock) continue;
+        const updated = await tx.pOSProduct.updateMany({
+          where: { id: product.id, stock: { gte: line.quantity } },
+          data: { stock: { decrement: line.quantity } },
         });
+        if (updated.count === 0) throw new StockError(`Stock insuficiente de ${product.name} (quedan ${Number(product.stock)})`);
       }
 
-      return newSale;
+      return tx.pOSSale.create({
+        data: {
+          posConfigId: config.id,
+          cashSessionId: activeSession.id,
+          subtotalAmount: pricing.subtotal,
+          taxAmount: pricing.tax,
+          totalAmount: pricing.total,
+          discountAmount: pricing.discount,
+          discountType: body.discountType === "NONE" ? null : body.discountType,
+          orderType: body.orderType,
+          deliveryChannel,
+          receivedAmount: cash,
+          changeAmount: change,
+          clientNit: body.clientNit?.trim() || null,
+          clientName: body.clientName?.trim() || null,
+          items: {
+            create: pricing.lines.map((line) => {
+              const product = byId.get(line.productId)!;
+              return {
+                productId: product.id,
+                productName: product.name,
+                unit: product.unit,
+                quantity: line.quantity,
+                unitPrice: line.unitPrice,
+                subtotal: line.gross,
+                taxRate: line.taxRate,
+                taxAmount: line.tax,
+              };
+            }),
+          },
+          payments: { create: payments },
+        },
+        include: { items: { include: { product: true } }, payments: true },
+      });
     });
 
     return NextResponse.json({ success: true, data: sale });
-  } catch (error: any) {
+  } catch (error) {
+    if (error instanceof StockError) return posError(error.message, 409);
     console.error("POS_SALE_POST_ERROR", error);
-    return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });
+    return posError("Internal Error", 500);
   }
 }

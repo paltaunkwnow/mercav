@@ -12,6 +12,28 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toast } from '@/components/ui/toast';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { BUSINESS_TYPES, UNITS, formatQuantity, getBusinessType, getUnit } from '@/lib/pos/business';
+import { formatMoney } from '@/lib/pos/money';
+
+const EMPTY_FORM = {
+  name: '',
+  description: '',
+  price: '',
+  costPrice: '',
+  stock: '',
+  sku: '',
+  barcode: '',
+  unit: 'UNIT',
+  trackStock: true,
+  taxRate: '',
+  imageUrl: '',
+  categoryId: '',
+  isActive: true,
+  isKosher: false,
+  isHalal: false,
+  isVegan: false,
+  isGlutenFree: false
+};
 
 export default function POSInventoryPage() {
   const [loading, setLoading] = useState(true);
@@ -28,31 +50,16 @@ export default function POSInventoryPage() {
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    costPrice: '',
-    stock: '',
-    imageUrl: '',
-    categoryId: '',
-    isActive: true,
-    isKosher: false,
-    isHalal: false,
-    isVegan: false,
-    isGlutenFree: false
-  });
+  const [formData, setFormData] = useState(EMPTY_FORM);
 
   const [catName, setCatName] = useState('');
   const [showCatDropdown, setShowCatDropdown] = useState(false);
 
-  const presets = {
-    'Gastronomía': ['Entradas', 'Platos Fuertes', 'Bebidas', 'Postres', 'Cafetería'],
-    'Tienda de Ropa': ['Hombre', 'Mujer', 'Accesorios', 'Calzado', 'Temporada'],
-    'Electrónica': ['Smartphones', 'Laptops', 'Audio', 'Gaming', 'Componentes'],
-    'Salud y Belleza': ['Cuidado Facial', 'Maquillaje', 'Perfumería', 'Higiene'],
-    'Ferretería': ['Herramientas', 'Pinturas', 'Electricidad', 'Plomería']
-  };
+  const business = getBusinessType(config?.businessType);
+  const presets = [business, ...BUSINESS_TYPES.filter((b) => b.id !== business.id)];
+  const showDietary = business.dietary || formData.isKosher || formData.isHalal || formData.isVegan || formData.isGlutenFree;
+  const showUnits = business.weighted || formData.unit !== 'UNIT';
+  const formUnit = getUnit(formData.unit);
 
   const fetchData = async () => {
     setLoading(true);
@@ -158,20 +165,7 @@ export default function POSInventoryPage() {
 
   const handleOpenCreateModal = () => {
     setEditingProductId(null);
-    setFormData({
-      name: '',
-      description: '',
-      price: '',
-      costPrice: '',
-      stock: '',
-      imageUrl: '',
-      categoryId: '',
-      isActive: true,
-      isKosher: false,
-      isHalal: false,
-      isVegan: false,
-      isGlutenFree: false
-    });
+    setFormData({ ...EMPTY_FORM, trackStock: business.tracksStockByDefault });
     setShowProductModal(true);
   };
 
@@ -182,7 +176,12 @@ export default function POSInventoryPage() {
       description: p.description || '',
       price: p.price ? p.price.toString() : '',
       costPrice: p.costPrice ? p.costPrice.toString() : '0',
-      stock: p.stock ? p.stock.toString() : '0',
+      stock: p.stock ? Number(p.stock).toString() : '0',
+      sku: p.sku || '',
+      barcode: p.barcode || '',
+      unit: p.unit || 'UNIT',
+      trackStock: p.trackStock ?? true,
+      taxRate: p.taxRate === null || p.taxRate === undefined ? '' : Number(p.taxRate).toString(),
       imageUrl: p.imageUrl || '',
       categoryId: p.categoryId || '',
       isActive: p.isActive ?? true,
@@ -211,12 +210,10 @@ export default function POSInventoryPage() {
         setToast({ visible: true, message: editingProductId ? 'Producto actualizado' : 'Producto creado', type: 'success' });
         setShowProductModal(false);
         setEditingProductId(null);
-        setFormData({ 
-          name: '', description: '', price: '', costPrice: '', stock: '', imageUrl: '', 
-          categoryId: '', isActive: true, isKosher: false, isHalal: false, 
-          isVegan: false, isGlutenFree: false 
-        });
+        setFormData(EMPTY_FORM);
         fetchData();
+      } else {
+        setToast({ visible: true, message: data.error || 'Error al procesar producto', type: 'error' });
       }
     } catch (err) {
       setToast({ visible: true, message: 'Error al procesar producto', type: 'error' });
@@ -238,7 +235,7 @@ export default function POSInventoryPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setToast({ visible: true, message: 'Producto eliminado', type: 'success' });
+        setToast({ visible: true, message: data.archived ? 'Tiene ventas registradas: quedó archivado' : 'Producto eliminado', type: 'success' });
         fetchData();
       }
     } catch (err) {
@@ -270,9 +267,12 @@ export default function POSInventoryPage() {
     }
   };
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  const term = searchTerm.trim().toLowerCase();
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(term) ||
+    (p.description && p.description.toLowerCase().includes(term)) ||
+    (p.sku && p.sku.toLowerCase().includes(term)) ||
+    (p.barcode && p.barcode.includes(term))
   );
 
   return (
@@ -327,7 +327,7 @@ export default function POSInventoryPage() {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Buscar en el inventario..."
+                  placeholder="Buscar por nombre, SKU o código de barras"
                   className="w-full h-12 bg-bg-primary border border-white/5 rounded-xl pl-12 pr-4 text-white outline-none focus:border-gold/30 transition-all"
                 />
               </div>
@@ -341,7 +341,7 @@ export default function POSInventoryPage() {
                 <thead>
                   <tr className="border-b border-white/5">
                     <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Producto</th>
-                    <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500 hidden sm:table-cell">Dietarios</th>
+                    {business.dietary && <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500 hidden sm:table-cell">Dietarios</th>}
                     <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500 hidden sm:table-cell">Categoría</th>
                     <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500 hidden sm:table-cell">Costo</th>
                     <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Precio</th>
@@ -359,31 +359,36 @@ export default function POSInventoryPage() {
                           </div>
                           <div>
                             <p className="font-bold text-white group-hover:text-gold transition-colors">{p.name}</p>
-                            <p className="text-[10px] text-gray-500 uppercase font-black tracking-tighter line-clamp-1">{p.description || 'Sin descripción'}</p>
+                            <p className="text-[10px] text-gray-500 uppercase font-black tracking-tighter line-clamp-1">
+                              {[p.sku && `SKU ${p.sku}`, p.barcode, !p.isActive && 'Archivado'].filter(Boolean).join(' · ') || p.description || 'Sin descripción'}
+                            </p>
                           </div>
                         </div>
                       </td>
-                      <td className="p-4 md:p-6 hidden sm:table-cell">
+                      {business.dietary && <td className="p-4 md:p-6 hidden sm:table-cell">
                         <div className="flex gap-1.5">
                           {p.isKosher && <div title="Kosher" className="w-6 h-6 rounded-md bg-blue-500/10 text-blue-400 flex items-center justify-center text-[8px] font-black border border-blue-500/20">K</div>}
                           {p.isHalal && <div title="Halal" className="w-6 h-6 rounded-md bg-green-500/10 text-green-400 flex items-center justify-center text-[8px] font-black border border-green-500/20">H</div>}
                           {p.isVegan && <div title="Vegano" className="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20"><Leaf size={12} /></div>}
                           {p.isGlutenFree && <div title="Sin TACC" className="w-6 h-6 rounded-md bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20"><ShieldCheck size={12} /></div>}
                         </div>
-                      </td>
+                      </td>}
                       <td className="p-4 md:p-6 hidden sm:table-cell">
                         <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-400">
                           {p.category?.name || 'General'}
                         </span>
                       </td>
                       <td className="p-4 md:p-6 hidden sm:table-cell">
-                        <span className="font-mono font-bold text-gray-400">{config?.currency || '$'} {Number(p.costPrice || 0).toFixed(2)}</span>
+                        <span className="font-mono font-bold text-gray-400">{formatMoney(p.costPrice, config?.currency)}</span>
                       </td>
                       <td className="p-4 md:p-6">
-                        <span className="font-mono font-bold text-gold">{config?.currency || '$'} {Number(p.price).toFixed(2)}</span>
+                        <span className="font-mono font-bold text-gold">{formatMoney(p.price, config?.currency)}</span>
+                        {p.unit && p.unit !== 'UNIT' && <span className="text-[10px] text-gray-500"> / {getUnit(p.unit).short}</span>}
                       </td>
                       <td className="p-4 md:p-6">
-                        <span className={`font-bold ${p.stock < 10 ? 'text-red-500' : 'text-white'}`}>{p.stock}</span>
+                        {p.trackStock
+                          ? <span className={`font-bold ${Number(p.stock) < 10 ? 'text-red-500' : 'text-white'}`}>{formatQuantity(p.stock, p.unit)}</span>
+                          : <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Sin control</span>}
                       </td>
                       <td className="p-4 md:p-6 text-right">
                         <div className="flex justify-end gap-2">
@@ -498,7 +503,7 @@ export default function POSInventoryPage() {
                     </AnimatePresence>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Precio de Venta ({config?.currency || 'USD'})</label>
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Precio de Venta ({config?.currency || 'USD'}{formUnit.id !== 'UNIT' ? ` por ${formUnit.short}` : ''}, {config?.pricesIncludeTax === false ? 'sin' : 'con'} {config?.taxName || 'IVA'})</label>
                     <div className="relative">
                       <DollarSign size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gold" />
                       <input
@@ -525,14 +530,81 @@ export default function POSInventoryPage() {
                       />
                     </div>
                   </div>
-                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Stock de Inventario</label>
+                  {showUnits && (
+                    <div className="space-y-2">
+                      <label htmlFor="unit" className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Se vende por</label>
+                      <select
+                        id="unit"
+                        value={formData.unit}
+                        onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                        className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all"
+                      >
+                        {UNITS.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.short})</option>)}
+                      </select>
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between px-1">
+                      <label htmlFor="stock" className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                        Stock{formUnit.id !== 'UNIT' ? ` (${formUnit.short})` : ''}
+                      </label>
+                      <button
+                        type="button"
+                        aria-pressed={formData.trackStock}
+                        onClick={() => setFormData({ ...formData, trackStock: !formData.trackStock })}
+                        className={`text-[9px] font-black uppercase tracking-widest ${formData.trackStock ? 'text-gold' : 'text-gray-500'}`}
+                      >
+                        {formData.trackStock ? 'Controlar stock' : 'Sin control de stock'}
+                      </button>
+                    </div>
                     <input
-                      required
+                      id="stock"
+                      required={formData.trackStock}
+                      disabled={!formData.trackStock}
                       type="number"
-                      value={formData.stock}
+                      min={0}
+                      step={formUnit.step}
+                      value={formData.trackStock ? formData.stock : ''}
+                      placeholder={formData.trackStock ? '0' : 'Servicio o producto sin inventario'}
                       onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                      className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all font-mono disabled:opacity-50 placeholder:text-gray-600 placeholder:font-sans placeholder:text-xs"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="sku" className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">SKU o código interno</label>
+                    <input
+                      id="sku"
+                      type="text"
+                      value={formData.sku}
+                      onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                      placeholder="Opcional"
                       className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="barcode" className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Código de barras</label>
+                    <input
+                      id="barcode"
+                      type="text"
+                      inputMode="numeric"
+                      value={formData.barcode}
+                      onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                      placeholder="Escaneá o escribí el código"
+                      className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="taxRate" className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">{config?.taxName || 'IVA'} propio (%)</label>
+                    <input
+                      id="taxRate"
+                      type="number"
+                      min={0}
+                      max={100}
+                      step="0.01"
+                      value={formData.taxRate}
+                      onChange={(e) => setFormData({ ...formData, taxRate: e.target.value })}
+                      placeholder={`Usa la tasa general: ${Number(config?.taxRate ?? 0)}%`}
+                      className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all font-mono placeholder:font-sans placeholder:text-xs placeholder:text-gray-600"
                     />
                   </div>
                   
@@ -562,7 +634,7 @@ export default function POSInventoryPage() {
                     </div>
                   </div>
 
-                  <div className="md:col-span-2 space-y-4">
+                  {showDietary && <div className="md:col-span-2 space-y-4">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Certificaciones y Dieta</label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {[
@@ -582,7 +654,7 @@ export default function POSInventoryPage() {
                         </button>
                       ))}
                     </div>
-                  </div>
+                  </div>}
 
                   <div className="md:col-span-2 space-y-2">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Descripción</label>
@@ -660,15 +732,17 @@ export default function POSInventoryPage() {
                     {submitting && <Loader2 className="w-4 h-4 animate-spin text-gold" />}
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {Object.entries(presets).map(([name, set]) => (
+                    {presets.map((preset) => (
                       <button
-                        key={name}
-                        onClick={() => handleAddPreset(set)}
+                        key={preset.id}
+                        onClick={() => handleAddPreset(preset.categoryPresets.filter((n) => !categories.some((c) => c.name === n)))}
                         disabled={submitting}
-                        className="p-5 bg-white/5 border border-white/5 rounded-[1.5rem] text-left hover:border-gold/40 hover:bg-white/10 transition-all group disabled:opacity-50"
+                        className={`p-5 border rounded-[1.5rem] text-left hover:border-gold/40 hover:bg-white/10 transition-all group disabled:opacity-50 ${preset.id === business.id ? 'bg-gold/5 border-gold/30' : 'bg-white/5 border-white/5'}`}
                       >
-                        <p className="text-xs font-black uppercase tracking-widest text-white group-hover:text-gold transition-colors mb-1">{name}</p>
-                        <p className="text-[9px] text-gray-500 line-clamp-1">{set.join(', ')}</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-white group-hover:text-gold transition-colors mb-1">
+                          {preset.name}{preset.id === business.id && <span className="text-gold"> · tu rubro</span>}
+                        </p>
+                        <p className="text-[9px] text-gray-500 line-clamp-1">{preset.categoryPresets.join(', ')}</p>
                       </button>
                     ))}
                   </div>

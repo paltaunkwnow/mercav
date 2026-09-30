@@ -215,7 +215,7 @@ export default function POSReportsPage() {
                   <stat.icon size={24} />
                 </div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-1">{stat.label}</p>
-                <p className="text-3xl font-black tracking-tighter">{stat.prefix} {Number(stat.value).toFixed(2)}</p>
+                <p className="text-3xl font-black tracking-tighter">{stat.prefix} {stat.prefix ? Number(stat.value).toFixed(2) : Number(stat.value)}</p>
               </motion.div>
             ))}
           </div>

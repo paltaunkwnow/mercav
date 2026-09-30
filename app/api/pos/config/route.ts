@@ -1,7 +1,24 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { BUSINESS_TYPES } from "@/lib/pos/business";
+
+const configSchema = z.object({
+  shopName: z.string().max(120).nullish(),
+  logoUrl: z.string().max(2000).nullish(),
+  currency: z.string().min(3).max(3).default("USD"),
+  country: z.string().max(80).nullish(),
+  department: z.string().max(80).nullish(),
+  city: z.string().max(80).nullish(),
+  address: z.string().max(200).nullish(),
+  businessType: z.enum(BUSINESS_TYPES.map((b) => b.id) as [string, ...string[]]).default("GENERAL"),
+  taxName: z.string().trim().min(1).max(20).default("IVA"),
+  taxRate: z.coerce.number().min(0).max(100).default(0),
+  pricesIncludeTax: z.boolean().default(true),
+  paymentMethods: z.array(z.enum(["CASH", "CARD", "TRANSFER", "QR", "OTHER"])).min(1).default(["CASH"]),
+});
 
 export async function GET() {
   try {
@@ -33,36 +50,13 @@ export async function POST(req: Request) {
 
     if (!user) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
 
-    const body = await req.json();
-    const { shopName, logoUrl, currency, country, department, city, address } = body;
+    const parsed = configSchema.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) return NextResponse.json({ success: false, error: "Revisá los datos de la configuración" }, { status: 400 });
+    const data = { ...parsed.data, paymentMethods: Array.from(new Set(parsed.data.paymentMethods)) };
 
-    // Use nested update to bypass direct model reference issues
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
-      data: {
-        posConfig: {
-          upsert: {
-            update: {
-              shopName,
-              logoUrl,
-              currency: currency || "USD",
-              country,
-              department,
-              city,
-              address
-            },
-            create: {
-              shopName,
-              logoUrl,
-              currency: currency || "USD",
-              country,
-              department,
-              city,
-              address
-            }
-          }
-        }
-      },
+      data: { posConfig: { upsert: { update: data, create: data } } },
       include: { posConfig: true }
     });
 

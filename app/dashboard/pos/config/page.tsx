@@ -4,9 +4,29 @@ import { useState, useEffect } from 'react';
 import POSHeader from '@/components/pos/POSHeader';
 import CurrencySelector from '@/components/pos/CurrencySelector';
 import LocationSelector from '@/components/pos/LocationSelector';
-import { Save, Loader2, Store, Image as ImageIcon, CheckCircle2, Settings } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Save, Loader2, Store, Image as ImageIcon, Settings, UtensilsCrossed, Shirt, ShoppingBasket, Pill, Hammer, Scissors, Check } from 'lucide-react';
 import { Toast } from '@/components/ui/toast';
+import { BUSINESS_TYPES, PAYMENT_METHODS, type BusinessTypeId } from '@/lib/pos/business';
+import { countryFiscal } from '@/lib/pos/fiscal';
+
+const BUSINESS_ICONS: Record<BusinessTypeId, typeof Store> = {
+  GENERAL: Store,
+  GASTRONOMY: UtensilsCrossed,
+  RETAIL: Shirt,
+  GROCERY: ShoppingBasket,
+  PHARMACY: Pill,
+  HARDWARE: Hammer,
+  SERVICES: Scissors,
+};
+
+function SectionTitle({ n, children }: { n: number; children: React.ReactNode }) {
+  return (
+    <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
+      <span className="w-8 h-8 rounded-lg bg-gold text-black flex items-center justify-center text-sm">{n}</span>
+      {children}
+    </h2>
+  );
+}
 
 export default function POSConfigPage() {
   const [loading, setLoading] = useState(true);
@@ -19,8 +39,24 @@ export default function POSConfigPage() {
     country: '',
     department: '',
     city: '',
-    address: ''
+    address: '',
+    businessType: 'GENERAL',
+    taxName: 'IVA',
+    taxRate: '0' as string | number,
+    pricesIncludeTax: true,
+    paymentMethods: ['CASH', 'CARD', 'TRANSFER', 'QR'] as string[]
   });
+  const fiscal = countryFiscal(config.country);
+  const suggestionApplies = fiscal.taxRate !== null && (Number(config.taxRate) !== fiscal.taxRate || config.taxName !== fiscal.taxName);
+
+  const togglePaymentMethod = (id: string) => {
+    const has = config.paymentMethods.includes(id);
+    if (has && config.paymentMethods.length === 1) return;
+    setConfig({
+      ...config,
+      paymentMethods: has ? config.paymentMethods.filter((m) => m !== id) : [...config.paymentMethods, id]
+    });
+  };
   const [toast, setToast] = useState({ visible: false, message: '', type: 'info' as any });
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,7 +101,7 @@ export default function POSConfigPage() {
       .then(res => res.json())
       .then(data => {
         if (data.success && data.data) {
-          setConfig(data.data);
+          setConfig((prev) => ({ ...prev, ...data.data, paymentMethods: data.data.paymentMethods?.length ? data.data.paymentMethods : prev.paymentMethods }));
         }
         setLoading(false);
       });
@@ -83,7 +119,7 @@ export default function POSConfigPage() {
       if (data.success) {
         setToast({ visible: true, message: 'Configuración guardada con éxito', type: 'success' });
       } else {
-        setToast({ visible: true, message: 'Error al guardar', type: 'error' });
+        setToast({ visible: true, message: data.error || 'Error al guardar', type: 'error' });
       }
     } catch (err) {
       setToast({ visible: true, message: 'Error de conexión', type: 'error' });
@@ -115,6 +151,32 @@ export default function POSConfigPage() {
         </header>
 
         <div className="space-y-8">
+          <section className="bg-bg-secondary border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
+            <SectionTitle n={1}>Tipo de negocio</SectionTitle>
+            <p className="text-sm text-gray-400 -mt-4 mb-8">Define los tipos de pedido, las categorías sugeridas y si vendés por peso o servicios.</p>
+            <div role="radiogroup" aria-label="Tipo de negocio" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {BUSINESS_TYPES.map((b) => {
+                const Icon = BUSINESS_ICONS[b.id];
+                const active = config.businessType === b.id;
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setConfig({ ...config, businessType: b.id })}
+                    className={`relative text-left p-5 rounded-2xl border transition-all ${active ? 'bg-gold/10 border-gold/60' : 'bg-bg-primary border-white/5 hover:border-white/20'}`}
+                  >
+                    <Icon size={20} className={active ? 'text-gold' : 'text-gray-500'} />
+                    <p className={`mt-3 font-bold ${active ? 'text-gold' : 'text-white'}`}>{b.name}</p>
+                    <p className="mt-1 text-xs text-gray-500 leading-relaxed">{b.description}</p>
+                    {active && <Check size={16} className="absolute top-4 right-4 text-gold" />}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
           {/* General Info */}
           <section className="bg-bg-secondary border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative">
             <div className="absolute inset-0 rounded-[2.5rem] overflow-hidden pointer-events-none">
@@ -123,10 +185,7 @@ export default function POSConfigPage() {
               </div>
             </div>
             
-            <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
-              <span className="w-8 h-8 rounded-lg bg-gold text-black flex items-center justify-center text-sm">1</span>
-              Identidad del Negocio
-            </h2>
+            <SectionTitle n={2}>Identidad del Negocio</SectionTitle>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
@@ -178,10 +237,7 @@ export default function POSConfigPage() {
 
           {/* Location */}
           <section className="bg-bg-secondary border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
-            <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
-              <span className="w-8 h-8 rounded-lg bg-gold text-black flex items-center justify-center text-sm">2</span>
-              Ubicación Geográfica
-            </h2>
+            <SectionTitle n={3}>Ubicación Geográfica</SectionTitle>
             <LocationSelector 
               country={config.country}
               department={config.department}
@@ -189,6 +245,96 @@ export default function POSConfigPage() {
               address={config.address}
               onChange={(data) => setConfig({ ...config, ...data })}
             />
+          </section>
+
+          <section className="bg-bg-secondary border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
+            <SectionTitle n={4}>Impuestos y cobros</SectionTitle>
+
+            {suggestionApplies && (
+              <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl border border-gold/20 bg-gold/5">
+                <p className="text-sm text-gray-300">
+                  La tasa general en {config.country} es {fiscal.taxName} {fiscal.taxRate}%. Revisala con tu contador si tenés un régimen especial.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setConfig({ ...config, taxName: fiscal.taxName, taxRate: fiscal.taxRate ?? 0 })}
+                  className="h-10 px-4 rounded-xl bg-gold text-black text-[10px] font-black uppercase tracking-widest whitespace-nowrap"
+                >
+                  Usar {fiscal.taxRate}%
+                </button>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-4">
+                <label htmlFor="taxName" className="block text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Nombre del impuesto</label>
+                <input
+                  id="taxName"
+                  type="text"
+                  value={config.taxName}
+                  onChange={(e) => setConfig({ ...config, taxName: e.target.value })}
+                  placeholder="IVA"
+                  className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all font-bold"
+                />
+              </div>
+              <div className="space-y-4">
+                <label htmlFor="taxRate" className="block text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Tasa general (%)</label>
+                <input
+                  id="taxRate"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="0.01"
+                  value={config.taxRate}
+                  onChange={(e) => setConfig({ ...config, taxRate: e.target.value })}
+                  className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all font-mono"
+                />
+              </div>
+              <div className="space-y-4">
+                <span className="block text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Precios de venta</span>
+                <div className="grid grid-cols-2 gap-2 h-14">
+                  {[{ v: true, l: 'Incluyen impuesto' }, { v: false, l: 'Más impuesto' }].map((o) => (
+                    <button
+                      key={o.l}
+                      type="button"
+                      aria-pressed={config.pricesIncludeTax === o.v}
+                      onClick={() => setConfig({ ...config, pricesIncludeTax: o.v })}
+                      className={`rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${config.pricesIncludeTax === o.v ? 'bg-gold/10 border-gold/60 text-gold' : 'bg-bg-primary border-white/5 text-gray-500 hover:border-white/20'}`}
+                    >
+                      {o.l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <p className="mt-4 text-xs text-gray-500">
+              {config.pricesIncludeTax
+                ? 'El precio que cargás es el precio final. El ticket muestra cuánto impuesto contiene.'
+                : 'El impuesto se suma al precio en el cobro. Es lo habitual en ventas entre empresas.'}
+              {' '}Cada producto puede tener su propia tasa en el inventario.
+            </p>
+
+            <div className="mt-10 space-y-4">
+              <span className="block text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Medios de pago aceptados</span>
+              <div className="flex flex-wrap gap-2">
+                {PAYMENT_METHODS.map((m) => {
+                  const active = config.paymentMethods.includes(m.id);
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => togglePaymentMethod(m.id)}
+                      className={`h-12 px-5 rounded-2xl border flex items-center gap-2 text-xs font-bold transition-all ${active ? 'bg-gold/10 border-gold/60 text-gold' : 'bg-bg-primary border-white/5 text-gray-500 hover:border-white/20'}`}
+                    >
+                      {active && <Check size={14} />}
+                      {m.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-gray-500">Se pueden combinar en una misma venta. Solo el efectivo entrega cambio y entra en el arqueo.</p>
+            </div>
           </section>
 
           {/* Action */}

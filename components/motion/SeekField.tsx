@@ -98,7 +98,7 @@ export function SeekField({
         <svg
           viewBox="0 0 18 18"
           aria-hidden
-          className="pointer-events-none absolute text-gray-400"
+          className="pointer-events-none absolute text-[var(--text-primary)]/70"
           style={{ left: inset, top: "50%", width: lens, height: lens, marginTop: -lens / 2 }}
         >
           <circle cx="7.6" cy="7.6" r="5.4" fill="none" stroke="currentColor" strokeWidth="1.7" />
