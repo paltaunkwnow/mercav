@@ -94,18 +94,26 @@ export const authOptions: AuthOptions = {
           throw new Error("reCAPTCHA verification failed");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email.toLowerCase() }
-        });
+        let user: any = null;
+        try {
+          user = await prisma.user.findUnique({
+            where: { email: credentials.email.toLowerCase() }
+          });
+        } catch (dbErr) {
+          console.error("LOGIN DB ERROR:", dbErr);
+          throw new Error("DB_ERROR");
+        }
 
         // Mismo mensaje para usuario inexistente y contraseña incorrecta: evita enumerar emails
         // (el login ya muestra un texto genérico para cualquier otro error).
         if (!user || !user.password) {
+          console.warn(`LOGIN FAILED: User not found for email ${credentials.email.toLowerCase()}`);
           throw new Error("Credenciales inválidas");
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) {
+          console.warn(`LOGIN FAILED: Password mismatch for email ${credentials.email.toLowerCase()}`);
           throw new Error("Credenciales inválidas");
         }
 
