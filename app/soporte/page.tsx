@@ -1,17 +1,16 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { Mail, MessageSquare, LifeBuoy, ArrowRight, ShieldCheck, Clock } from "lucide-react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ArrowRight, BookOpen, Clock, Mail } from "lucide-react";
+import { Container, PageHero, Section, buttonClass } from "@/components/site/primitives";
 
 export default function SupportPage() {
   const { data: session } = useSession();
 
   const userEmail = session?.user?.email || "";
   const userName = session?.user?.name || "Usuario de Mercav";
-  
+
   const supportEmail = "soporte@mercav.lat";
   const subject = encodeURIComponent("Solicitud de Soporte - Mercav");
   const body = encodeURIComponent(`Hola equipo de Soporte Mercav,
@@ -28,112 +27,95 @@ Saludos.`);
   const mailtoLink = `mailto:${supportEmail}?subject=${subject}&body=${body}`;
 
   return (
-    <div className="min-h-screen bg-bg-primary text-white pt-32 pb-20 overflow-hidden relative">
-      {/* Background Decor */}
-      <div className="fixed inset-0 pointer-events-none opacity-20">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-gold/10 rounded-full blur-[150px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/5 rounded-full blur-[150px]" />
-      </div>
+    <div className="w-full bg-bg-primary">
+      <PageHero
+        kicker="Soporte"
+        title="¿En qué te ayudamos?"
+        lead="Escribinos con el detalle de tu situación y una persona del equipo te responde por correo. Si es una duda de uso, probá primero las preguntas frecuentes."
+      />
 
-      <div className="container mx-auto px-4 max-w-4xl relative z-10">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-[0.2em] mb-6">
-            <LifeBuoy size={14} /> Centro de Soporte Mercav
+      <Section tight className="!pt-2 md:!pt-4" labelledBy="soporte-canales">
+        <Container>
+          <h2 id="soporte-canales" className="sr-only">
+            Formas de pedir ayuda
+          </h2>
+          <div className="grid gap-4 lg:grid-cols-[1.25fr_1fr]">
+            <article className="liquid-glass flex flex-col rounded-[1.75rem] p-6 md:p-9">
+              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gold/10 text-gold">
+                <Mail className="h-5 w-5" aria-hidden />
+              </span>
+              <h3 className="mv-h3 mt-6">Soporte por correo</h3>
+              <p className="mv-body mt-2 max-w-md">
+                {userEmail
+                  ? "Abrimos un correo con tu usuario ya incluido para que no tengas que repetirlo."
+                  : "Abrimos un correo con una plantilla. Si iniciás sesión antes, incluimos tu usuario automáticamente."}
+              </p>
+              <p className="mt-6 text-sm text-[var(--text-secondary)]">
+                Destino: <span className="mv-data text-[var(--text-primary)]">{supportEmail}</span>
+              </p>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <a href={mailtoLink} className={buttonClass("primary", "lg", "w-full sm:w-auto")}>
+                  Redactar correo
+                </a>
+                <span className="inline-flex items-center gap-2 text-sm text-[var(--text-tertiary)]">
+                  <Clock className="h-4 w-4" aria-hidden /> Tiempo estimado de respuesta: 24 a 48 h
+                </span>
+              </div>
+            </article>
+
+            <article className="mv-panel flex flex-col p-6 md:p-9">
+              <span className="grid h-11 w-11 place-items-center rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] text-[var(--text-secondary)]">
+                <BookOpen className="h-5 w-5" aria-hidden />
+              </span>
+              <h3 className="mv-h3 mt-6">Preguntas frecuentes</h3>
+              <p className="mv-body mt-2 flex-1">Respuestas a lo más consultado sobre pagos, POS, verificación, publicidad y cuenta.</p>
+              <Link href="/faq" className={buttonClass("secondary", "md", "mt-6 w-full sm:w-auto sm:self-start")}>
+                Ver preguntas frecuentes <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </article>
           </div>
-          <h1 className="text-5xl md:text-7xl font-display font-black tracking-tighter mb-6">
-            ¿Cómo podemos <span className="text-gold">ayudarte?</span>
-          </h1>
-          <p className="text-gray-500 text-lg max-w-2xl mx-auto leading-relaxed">
-            Nuestro equipo técnico está listo para resolver tus dudas y ayudarte a potenciar tu negocio en la plataforma.
-          </p>
-        </motion.div>
+        </Container>
+      </Section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white/[0.02] border border-white/5 p-10 rounded-[3rem] hover:bg-white/[0.04] transition-all group"
-          >
-            <div className="w-16 h-16 rounded-2xl bg-gold/10 flex items-center justify-center text-gold mb-8 group-hover:scale-110 transition-transform">
-              <Mail size={32} />
+      <Section tone="raised" tight labelledBy="soporte-incluir">
+        <Container>
+          <div className="grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-16">
+            <div>
+              <p className="mv-kicker">Para responderte mejor</p>
+              <h2 id="soporte-incluir" className="mv-h2 mt-4">
+                Qué incluir en tu mensaje
+              </h2>
+              <p className="mv-body mt-4 max-w-md">
+                Al escribir a <span className="mv-data text-[var(--text-primary)]">{supportEmail}</span>, sumá estos datos para que podamos revisar tu caso sin pedirte más información.
+              </p>
             </div>
-            <h3 className="text-2xl font-bold mb-4 text-white">Soporte vía Email</h3>
-            <p className="text-gray-500 mb-8 leading-relaxed">
-              Envíanos un correo detallando tu situación. Incluiremos automáticamente tu usuario para agilizar el proceso.
-            </p>
-            <Button asChild className="w-full h-14 bg-gold text-primary-foreground hover:bg-gold-light rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-gold/20">
-              <a href={mailtoLink}>Redactar Correo</a>
-            </Button>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white/[0.02] border border-white/5 p-10 rounded-[3rem] hover:bg-white/[0.04] transition-all group"
-          >
-            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-8 group-hover:scale-110 transition-transform">
-              <MessageSquare size={32} />
-            </div>
-            <h3 className="text-2xl font-bold mb-4 text-white">Preguntas Frecuentes</h3>
-            <p className="text-gray-500 mb-8 leading-relaxed">
-              Revisa nuestra base de conocimientos para encontrar soluciones rápidas a los problemas más comunes.
-            </p>
-            <Button asChild className="w-full h-14 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-2xl font-black uppercase tracking-widest text-[10px]">
-              <Link href="/faq">Ir a Preguntas Frecuentes</Link>
-            </Button>
-          </motion.div>
-        </div>
-
-        {/* Requirements Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-bg-secondary border border-border p-10 rounded-[3rem] relative overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
-            <ShieldCheck size={120} className="text-gold" />
-          </div>
-          
-          <div className="relative z-10">
-            <h4 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
-              <ShieldCheck className="text-gold" /> Información Importante
-            </h4>
-            <p className="text-gray-500 mb-8">
-              Para brindarte una mejor atención, al escribir a <span className="text-white font-bold">soporte@mercav.lat</span>, asegúrate de que tu mensaje contenga:
-            </p>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <ul className="grid gap-3 sm:grid-cols-2">
               {[
                 "Nombre de usuario completo",
                 "Descripción detallada de la duda",
-                "Capturas de pantalla (si aplica)",
-                "Número de contacto directo"
+                "Capturas de pantalla, si aplica",
+                "Un número de contacto directo",
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 text-sm text-gray-400">
-                  <div className="w-1.5 h-1.5 rounded-full bg-gold" />
-                  {item}
-                </div>
+                <li key={item} className="mv-panel flex items-start gap-3 rounded-[1.25rem] p-5">
+                  <span className="mv-data grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[var(--mv-hairline-strong)] text-xs text-[var(--text-tertiary)]">{i + 1}</span>
+                  <span className="pt-0.5 text-[0.9375rem] text-[var(--text-primary)]">{item}</span>
+                </li>
               ))}
-            </div>
-
-            <div className="mt-10 pt-10 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-6">
-              <div className="flex items-center gap-3 text-gray-500 text-xs font-bold uppercase tracking-widest">
-                <Clock size={16} className="text-gold" /> Tiempo estimado: 24-48 hrs
-              </div>
-              <Link href="/dashboard" className="text-gold text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:gap-4 transition-all">
-                Volver al Panel <ArrowRight size={16} />
-              </Link>
-            </div>
+            </ul>
           </div>
-        </motion.div>
-      </div>
+          <div className="mt-12 flex flex-col gap-3 border-t border-[var(--mv-hairline)] pt-8 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-[var(--text-secondary)]">
+              ¿Querés reportar fraude o enviar una sugerencia?{" "}
+              <Link href="/contacto" className="mv-link">
+                Ver todos los canales
+              </Link>
+            </p>
+            <Link href="/dashboard" className={buttonClass("ghost", "sm", "w-full sm:w-auto")}>
+              Volver al panel <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </div>
+        </Container>
+      </Section>
     </div>
   );
 }

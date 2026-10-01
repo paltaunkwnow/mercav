@@ -11,6 +11,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { Zap } from "lucide-react";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo/site";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +20,90 @@ const outfit = Outfit({ subsets: ["latin"], variable: "--font-display" });
 const dmMono = DM_Mono({ weight: ["400", "500"], subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: "Mercav",
-  description: "Mercav",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Mercav — publicidad, talento, empleo y ciberinteligencia para Latinoamérica",
+    template: "%s | Mercav",
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: [
+    "Mercav",
+    "publicidad exterior",
+    "alquiler de vallas",
+    "pantallas publicitarias",
+    "freelancers",
+    "talento digital",
+    "empleos",
+    "punto de venta",
+    "POS",
+    "ciberseguridad",
+    "filtraciones de datos",
+    "kosher",
+    "Latinoamérica",
+  ],
+  authors: [{ name: "Mercav", url: SITE_URL }],
+  creator: "Mercav",
+  publisher: "Mercav",
+  category: "business",
+  formatDetection: { telephone: false, email: false, address: false },
+  openGraph: {
+    type: "website",
+    locale: "es_419",
+    siteName: SITE_NAME,
+    url: SITE_URL,
+    title: "Mercav — tu negocio entero, en una sola cuenta",
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mercav — tu negocio entero, en una sola cuenta",
+    description: SITE_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
+  },
+  appleWebApp: { capable: true, title: "Mercav", statusBarStyle: "black-translucent" },
+  // Versioned so browsers drop the old cached favicon.
+  icons: {
+    icon: [
+      { url: "/favicon.ico?v=3", sizes: "any" },
+      { url: "/icons/favicon-16.png?v=3", type: "image/png", sizes: "16x16" },
+      { url: "/icons/favicon-32.png?v=3", type: "image/png", sizes: "32x32" },
+      { url: "/icons/favicon-512.png?v=3", type: "image/png", sizes: "512x512" },
+    ],
+    shortcut: "/favicon.ico?v=3",
+    apple: [{ url: "/icons/apple-touch-icon.png?v=3", sizes: "180x180" }],
+  },
+};
+
+const STRUCTURED_DATA = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: `${SITE_URL}/icons/icon-512.png`,
+      sameAs: ["https://www.instagram.com/mercav.lat", "https://www.tiktok.com/@mercav.ar", "https://github.com/invertilo"],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: SITE_NAME,
+      inLanguage: "es",
+      publisher: { "@id": `${SITE_URL}/#organization` },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/buscar?q={search_term_string}` },
+        "query-input": "required name=search_term_string",
+      },
+    },
+  ],
 };
 
 export const viewport: Viewport = {
@@ -74,6 +157,7 @@ export default async function RootLayout({
   return (
     <html lang="es" className={cn("font-sans dark", jakarta.variable, outfit.variable, dmMono.variable)} suppressHydrationWarning>
       <head>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
         {/* Prevent flash of wrong theme */}
         <script dangerouslySetInnerHTML={{
           __html: `
@@ -87,11 +171,12 @@ export default async function RootLayout({
           `
         }} />
       </head>
-      <body className="flex min-h-dvh flex-col overflow-x-hidden antialiased">
+      <body className="flex min-h-dvh flex-col overflow-x-clip antialiased">
         <Providers>
+          <a href="#contenido" className="mv-skip">Saltar al contenido</a>
           <AnnouncementBar />
           <Header />
-          <main className="flex-1 w-full flex flex-col">
+          <main id="contenido" tabIndex={-1} className="flex-1 w-full flex flex-col outline-none">
             {children}
           </main>
           <Footer />

@@ -1,7 +1,9 @@
+import type { PwnVerificationStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { scoreConfidence } from "@/lib/pwn/confidence-engine";
 import { scoreRisk } from "@/lib/pwn/risk-engine";
 import { hibpConnector, fetchHibpBreachCatalog } from "@/lib/integrations/pwn/hibp";
+import { PwnProviderError } from "@/lib/integrations/pwn/types";
 import { fetchKevCatalog } from "@/lib/integrations/pwn/cisa-kev";
 import { ensureSource, safeDate } from "./persistence";
 import { openAlert } from "./alerts";
@@ -44,7 +46,16 @@ export async function runDomainCycle(limit = 20) {
     });
 
     if (!hibpConnector.isConfigured()) continue;
-    const result = await hibpConnector.search({ type: "domain", account: domain });
+    let result: Awaited<ReturnType<typeof hibpConnector.search>>;
+    try {
+      result = await hibpConnector.search({ type: "domain", account: domain });
+    } catch (error) {
+      // Un dominio que falla no debe tumbar el ciclo; si HIBP nos limita, cortamos acá
+      // y los objetivos restantes quedan para la próxima hora (orden por updatedAt).
+      if (error instanceof PwnProviderError && error.rateLimited) break;
+      if (error instanceof PwnProviderError) continue;
+      throw error;
+    }
     if (!result.configured) continue;
 
     const source = await ensureSource({
@@ -56,7 +67,8 @@ export async function runDomainCycle(limit = 20) {
 
     for (const breach of result.data) {
       if (breach.isFabricated) continue;
-      const verificationStatus = breach.isVerified ? "CORROBORATED" : "UNVERIFIED";
+      // Tipado explícito: sin esto TS ensancha a `string` y no matchea el enum de Prisma.
+      const verificationStatus: PwnVerificationStatus = breach.isVerified ? "CORROBORATED" : "UNVERIFIED";
       const confidence = scoreConfidence({
         sourceReliability: source.historicalReliability,
         verificationStatus,
@@ -165,7 +177,8 @@ export async function syncHibpCatalog(limit = 2500) {
   const have = new Set(existing.map((row) => row.name));
   const now = new Date();
   const fresh = ranked.filter((breach) => !have.has(breach.name)).map((breach) => {
-    const verificationStatus = breach.isVerified ? "CORROBORATED" : "UNVERIFIED";
+    // Tipado explícito: sin esto TS ensancha a `string` y no matchea el enum de Prisma.
+    const verificationStatus: PwnVerificationStatus = breach.isVerified ? "CORROBORATED" : "UNVERIFIED";
     const confidence = scoreConfidence({
       sourceReliability: source.historicalReliability,
       verificationStatus,
@@ -208,8 +221,16 @@ export async function syncKevCatalog() {
     historicalReliability: 95,
     verificationMethod: "Catálogo oficial CISA KEV",
   });
+  // Antes se hacían ~1.400 upserts secuenciales por hora (riesgo de pasar maxDuration=60s).
+  // Ahora solo se escriben los CVE que todavía no figuran como KEV.
+  const known = await prisma.pwnVulnerability.findMany({
+    where: { kev: true },
+    select: { cveId: true },
+  });
+  const knownKev = new Set(known.map((row) => row.cveId.toUpperCase()));
   let upserted = 0;
   for (const entry of catalog.data) {
+    if (knownKev.has(entry.cveId.toUpperCase())) continue;
     const description = entry.shortDescription ?? entry.vulnerabilityName ?? entry.cveId;
     await prisma.pwnVulnerability.upsert({
       where: { cveId: entry.cveId.toUpperCase() },

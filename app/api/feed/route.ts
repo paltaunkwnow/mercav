@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { Prisma, PostModule } from "@prisma/client";
+
+// Construye condiciones OR descartando las vacías (Prisma no acepta `undefined` dentro de OR).
+function compact<T>(items: (T | undefined | null | false)[]): T[] {
+  return items.filter(Boolean) as T[];
+}
+const ci = (value: string) => ({ contains: value, mode: "insensitive" as const });
 
 export async function GET(req: Request) {
   try {
@@ -32,7 +39,11 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const cursor = searchParams.get("cursor");
-    const module = searchParams.get("module") || "ALL";
+    // Validar el módulo contra el enum: un valor arbitrario hacía fallar la consulta con 500.
+    const rawModule = searchParams.get("module") || "ALL";
+    const module: PostModule | "ALL" = (Object.values(PostModule) as string[]).includes(rawModule)
+      ? (rawModule as PostModule)
+      : "ALL";
     const take = Math.min(20, Math.max(1, Number(searchParams.get("take") || 10) || 10));
 
     const followingIds = await prisma.follow.findMany({
@@ -41,21 +52,19 @@ export async function GET(req: Request) {
     });
     const followedUserIds = followingIds.map((f) => f.followingId);
 
-    const orConditions = [
+    const orConditions = compact<Prisma.PostWhereInput>([
       followedUserIds.length > 0 ? { authorId: { in: followedUserIds } } : undefined,
-      me.location ? { author: { location: { contains: me.location, mode: "insensitive" } } } : undefined,
-      me.country ? { author: { country: { contains: me.country, mode: "insensitive" } } } : undefined,
-    ].filter(Boolean);
+      me.location ? { author: { location: ci(me.location) } } : undefined,
+      me.country ? { author: { country: ci(me.country) } } : undefined,
+    ]);
 
-    const feedWhere: any = {
+    const feedWhere: Prisma.PostWhereInput = {
       ...(module !== "ALL" ? { module } : {}),
       ...(orConditions.length > 0 ? { OR: orConditions } : {}),
       isActive: true,
       isUnderReview: false,
     };
 
-    console.log("FEED REQUEST:", { module, cursor, userId: me.id });
-    
     const posts = await prisma.post.findMany({
       where: feedWhere,
       take: take + 1,
@@ -89,10 +98,10 @@ export async function GET(req: Request) {
     const suggestedUsers = await prisma.user.findMany({
       where: {
         id: { not: me.id, notIn: followedUserIds },
-        OR: [
-          me.location ? { location: { contains: me.location, mode: "insensitive" } } : undefined,
-          me.country ? { country: { contains: me.country, mode: "insensitive" } } : undefined
-        ].filter(Boolean)
+        OR: compact<Prisma.UserWhereInput>([
+          me.location ? { location: ci(me.location) } : undefined,
+          me.country ? { country: ci(me.country) } : undefined,
+        ])
       },
       take: 5,
       select: { id: true, name: true, username: true, avatar: true, bio: true, location: true, badges: true, profile: { select: { headline: true } } }
@@ -102,10 +111,10 @@ export async function GET(req: Request) {
       where: {
         isActive: true,
         isUnderReview: false,
-        OR: [
-          me.location ? { city: { contains: me.location, mode: "insensitive" } } : undefined,
-          me.country ? { country: { contains: me.country, mode: "insensitive" } } : undefined,
-        ].filter(Boolean)
+        OR: compact<Prisma.JobPostWhereInput>([
+          me.location ? { city: ci(me.location) } : undefined,
+          me.country ? { country: ci(me.country) } : undefined,
+        ])
       },
       take: 5,
       include: { company: { select: { id: true, name: true, avatar: true, isVerified: true } } }
@@ -115,10 +124,10 @@ export async function GET(req: Request) {
       where: {
         isActive: true,
         isUnderReview: false,
-        OR: [
-          me.location ? { city: { contains: me.location, mode: "insensitive" } } : undefined,
-          me.country ? { country: { contains: me.country, mode: "insensitive" } } : undefined,
-        ].filter(Boolean)
+        OR: compact<Prisma.SpaceWhereInput>([
+          me.location ? { city: ci(me.location) } : undefined,
+          me.country ? { country: ci(me.country) } : undefined,
+        ])
       },
       take: 5,
       include: { images: { take: 1, orderBy: { order: "asc" } }, owner: { select: { id: true, name: true, avatar: true, isVerified: true } } }
@@ -147,7 +156,7 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     console.error("Error fetching feed:", error);
-    return NextResponse.json({ success: false, error: (error as any).message }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Error interno del servidor" }, { status: 500 });
   }
 }
 // creado por pato dev y askforvini

@@ -8,16 +8,14 @@ import {
   ShieldCheck, 
   CreditCard, 
   ArrowLeft, 
+  ArrowRight,
   Loader2, 
   Package, 
   Clock, 
   RotateCcw,
-  AlertCircle,
-  Zap,
-  Info,
-  DollarSign
+  Check,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Container } from "@/components/site/primitives";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { Toast } from "@/components/ui/toast";
 import StripeWrapper from "@/components/checkout/StripeWrapper";
@@ -29,6 +27,8 @@ export default function CheckoutPage({ params }: { params: { type: string, id: s
   const [submitting, setSubmitting] = useState(false);
   const [itemData, setItemData] = useState<any>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  // Monto que devuelve el servidor al crear el pago (incluye comisiones)
+  const [chargedAmount, setChargedAmount] = useState<number | null>(null);
   const [country, setCountry] = useState("Bolivia");
   const [briefing, setBriefing] = useState("");
   const [toast, setToast] = useState({ visible: false, message: "", type: "info" as any });
@@ -74,11 +74,14 @@ export default function CheckoutPage({ params }: { params: { type: string, id: s
       return;
     }
 
+    let cancelled = false;
     const delayDebounce = setTimeout(async () => {
       setIsSearchingClient(true);
       try {
-        const res = await fetch(`/api/clients/${cleanNit}`);
+        const res = await fetch(`/api/clients/${encodeURIComponent(cleanNit)}`);
         const json = await res.json();
+        // Una respuesta de un NIT anterior no debe pisar los datos del NIT actual.
+        if (cancelled) return;
         if (json.success && json.data) {
           const fullName = json.data.name;
           const parts = fullName.split(" ");
@@ -95,13 +98,17 @@ export default function CheckoutPage({ params }: { params: { type: string, id: s
           setIsNewClient(true);
         }
       } catch (err) {
-        setIsNewClient(true);
+        if (!cancelled) setIsNewClient(true);
       } finally {
-        setIsSearchingClient(false);
+        if (!cancelled) setIsSearchingClient(false);
       }
     }, 600);
 
-    return () => clearTimeout(delayDebounce);
+    return () => {
+      cancelled = true;
+      clearTimeout(delayDebounce);
+      setIsSearchingClient(false);
+    };
   }, [billingNit]);
 
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -170,7 +177,8 @@ export default function CheckoutPage({ params }: { params: { type: string, id: s
               id: params.id,
               title: itemData.title,
               orderId: newOrderId,
-              packageId: params.type === "service" ? itemData.packages?.[0]?.id : undefined
+              // Los links usan /checkout/servicio/...; comparar con "service" dejaba packageId vacío.
+              packageId: !isAnuncio ? itemData.packages?.[0]?.id : undefined
             }
           })
         });
@@ -178,7 +186,10 @@ export default function CheckoutPage({ params }: { params: { type: string, id: s
         const stripeData = await stripeRes.json();
         if (stripeData.clientSecret) {
           setClientSecret(stripeData.clientSecret);
+          if (typeof stripeData.amount === "number") setChargedAmount(stripeData.amount);
           setToast({ visible: true, message: "Pedido iniciado. Procede al pago.", type: "success" });
+        } else {
+          setToast({ visible: true, message: stripeData.error || "No se pudo iniciar el pago. Probá de nuevo.", type: "error" });
         }
       } else {
         setToast({ visible: true, message: data.error || "Error al crear pedido", type: "error" });
@@ -192,9 +203,9 @@ export default function CheckoutPage({ params }: { params: { type: string, id: s
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="h-10 w-10 text-gold animate-spin" />
-        <p className="text-gray-500 font-black uppercase tracking-[0.3em] text-xs">Preparando pasarela segura...</p>
+      <div className="flex min-h-[100svh] flex-col items-center justify-center gap-3 bg-bg-primary" role="status">
+        <Loader2 className="h-7 w-7 animate-spin text-gold" aria-hidden />
+        <p className="text-sm text-[var(--text-secondary)]">Preparando el pago…</p>
       </div>
     );
   }
@@ -202,115 +213,140 @@ export default function CheckoutPage({ params }: { params: { type: string, id: s
   const price = Number(isAnuncio 
     ? itemData?.pricePerMonth 
     : itemData?.packages?.[0]?.price) || 0;
+  const money = (n: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(n || 0);
+  const step = clientSecret ? 3 : briefing.trim() ? 2 : 1;
+  const steps = ["Detalles", "Facturación", "Pago"];
 
   return (
-    <div className="w-full min-h-screen bg-bg-primary pt-24 pb-20">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <Link href={`/${isAnuncio ? "anuncios" : "servicios"}/${params.id}`} className="inline-flex items-center text-gray-400 hover:text-white transition-colors mb-8 text-[10px] font-black uppercase tracking-[0.2em] group">
-          <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" /> Volver al detalle
+    <div className="relative w-full bg-bg-primary pb-16 pt-24 md:pb-24 md:pt-28">
+      <div className="mv-aura" aria-hidden />
+      <Container className="relative">
+        <Link href={`/${isAnuncio ? "anuncios" : "servicios"}/${params.id}`} className="mv-focus mb-5 inline-flex items-center gap-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
+          <ArrowLeft className="h-4 w-4" aria-hidden /> Volver al detalle
         </Link>
         
-        <header className="mb-12">
-          <div className="inline-flex items-center gap-2 rounded-full bg-gold/10 border border-gold/20 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-gold mb-6">
-            <ShieldCheck className="h-3 w-3" /> Pago Seguro con Escrow
-          </div>
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-4">Completar Solicitud</h1>
-          <p className="text-gray-400">Estás a un paso de comenzar tu colaboración profesional.</p>
+        <header className="mb-8 md:mb-10">
+          <p className="mv-kicker">{isAnuncio ? "Reserva de espacio" : "Contratación de servicio"}</p>
+          <h1 className="mv-h2 mt-3">Completar solicitud</h1>
+          <p className="mv-body mt-2 max-w-xl">Contanos qué necesitás, confirmá los datos de facturación y pagá con tarjeta.</p>
+          <ol className="mt-6 flex flex-wrap items-center gap-2" aria-label="Pasos">
+            {steps.map((label, idx) => {
+              const n = idx + 1;
+              const done = step > n;
+              const current = step === n;
+              return (
+                <li key={label} className="flex items-center gap-2" aria-current={current ? "step" : undefined}>
+                  <span className={`mv-chip h-8 gap-2 px-3 text-[13px] ${current ? "mv-chip-gold" : done ? "text-[var(--text-primary)]" : ""}`}>
+                    <span className={`grid h-5 w-5 place-items-center rounded-full text-[11px] ${done ? "bg-gold text-[var(--mv-on-gold)]" : "border border-current"}`}>
+                      {done ? <Check className="h-3 w-3" aria-hidden /> : <span className="mv-data">{n}</span>}
+                    </span>
+                    {label}
+                  </span>
+                  {n < steps.length && <span aria-hidden className="hidden h-px w-6 bg-[var(--mv-hairline-strong)] sm:block" />}
+                </li>
+              );
+            })}
+          </ol>
         </header>
         
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          <div className="lg:col-span-8 space-y-8">
-            {/* Briefing Section - CRITICAL REQUEST */}
-            <section className="p-8 rounded-[2.5rem] bg-bg-secondary border border-gold/10 shadow-2xl relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-8 opacity-5">
-                <Zap size={100} className="text-gold" />
-              </div>
-              <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-3 relative z-10">
-                <Info className="h-5 w-5 text-gold" /> Briefing del Proyecto
-              </h2>
-              <p className="text-sm text-gray-400 mb-6 relative z-10">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-8">
+          <div className="min-w-0 space-y-6">
+            {/* Briefing */}
+            <section aria-labelledby="co-briefing" className="mv-panel p-5 sm:p-7">
+              <h2 id="co-briefing" className="mv-h3"><span className="mv-data mr-2 text-gold">1</span>{isAnuncio ? "Detalles de la campaña" : "Detalles del proyecto"}</h2>
+              <p id="co-briefing-hint" className="mt-1 text-sm text-[var(--text-secondary)]">
                 {isAnuncio 
-                  ? "Describe los detalles de tu campaña publicitaria, fechas preferidas y cualquier instrucción especial."
-                  : "Explica detalladamente qué necesitas. Cuanta más información des, mejor será el resultado final."}
+                  ? "Contá los detalles de tu campaña, las fechas preferidas y cualquier instrucción especial."
+                  : "Explicá qué necesitás. Cuanta más información des, mejor será el resultado."}
               </p>
-              
+              <label htmlFor="co-briefing-text" className="mb-2 mt-5 block text-sm font-medium text-[var(--text-primary)]">
+                Descripción <span className="font-normal text-[var(--text-tertiary)]">(obligatoria)</span>
+              </label>
               <textarea
+                id="co-briefing-text"
                 required
+                aria-describedby="co-briefing-hint"
                 value={briefing}
                 onChange={(e) => setBriefing(e.target.value)}
-                placeholder={isAnuncio ? "Ej: Necesito publicar mi campaña de verano del 1 al 30 de Junio. El diseño incluye colores vivos..." : "Ej: Necesito un logo moderno para una cafetería que sea minimalista y use tonos tierra..."}
-                className="w-full rounded-2xl border border-white/5 bg-bg-primary p-6 text-white outline-none focus:border-gold/30 transition-all min-h-[200px] resize-none relative z-10 text-base"
+                placeholder={isAnuncio ? "Ej.: quiero publicar mi campaña de verano del 1 al 30 de junio, con un diseño de colores vivos…" : "Ej.: necesito un logo moderno y minimalista para una cafetería, en tonos tierra…"}
+                className="mv-input h-auto min-h-[11rem] resize-y py-3 text-[15px] leading-relaxed"
               />
             </section>
 
-            {/* Billing Details */}
-            <section className="p-8 rounded-[2.5rem] bg-bg-secondary border border-white/5 shadow-2xl">
-              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                <CreditCard className="h-5 w-5 text-gold" /> Detalles de Facturación
-              </h2>
-              <div className="space-y-6">
+            {/* Billing */}
+            <section aria-labelledby="co-billing" className="mv-panel p-5 sm:p-7">
+              <h2 id="co-billing" className="mv-h3"><span className="mv-data mr-2 text-gold">2</span>Facturación</h2>
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">Opcional. Si cargás tu NIT o CI, completamos los datos que ya tengamos.</p>
+              <div className="mt-6 space-y-5">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">NIT / CI (Opcional - Buscar o Registrar)</label>
+                  <label htmlFor="co-nit" className="mb-2 block text-sm font-medium text-[var(--text-primary)]">NIT o CI</label>
                   <div className="relative">
                     <input 
+                      id="co-nit"
                       type="text" 
+                      inputMode="numeric"
                       value={billingNit}
                       onChange={(e) => setBillingNit(e.target.value)}
-                      placeholder="Ej: 12345678"
-                      className="w-full bg-bg-primary border border-white/5 rounded-2xl h-14 px-5 text-white focus:outline-none focus:border-gold/30 transition-all font-mono" 
+                      placeholder="Ej.: 12345678"
+                      aria-describedby="co-nit-status"
+                      className="mv-input mv-data pr-11" 
                     />
                     {isSearchingClient && (
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                        <Loader2 className="w-5 h-5 text-gold animate-spin" />
-                      </div>
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2" role="status">
+                        <Loader2 className="h-4 w-4 animate-spin text-gold" aria-hidden />
+                        <span className="sr-only">Buscando</span>
+                      </span>
                     )}
                   </div>
-                  {isNewClient && billingNit && (
-                    <p className="text-[10px] text-gold font-bold uppercase tracking-widest mt-2 px-1">
-                      ✨ Contribuyente nuevo. Escribe los datos a continuación para registrarlo universalmente.
-                    </p>
-                  )}
-                  {!isNewClient && billingNit && billingName && (
-                    <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest mt-2 px-1">
-                      ✓ Cliente verificado en el sistema universal.
-                    </p>
-                  )}
+                  <p id="co-nit-status" className="mt-2 text-xs" aria-live="polite">
+                    {isNewClient && billingNit ? (
+                      <span className="text-[var(--text-secondary)]">No encontramos este NIT o CI. Completá los datos y lo registramos para la próxima.</span>
+                    ) : !isNewClient && billingNit && billingName ? (
+                      <span className="inline-flex items-center gap-1.5 text-green-400"><CheckCircle2 className="h-3.5 w-3.5" aria-hidden /> Datos encontrados.</span>
+                    ) : null}
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Nombre</label>
+                    <label htmlFor="co-name" className="mb-2 block text-sm font-medium text-[var(--text-primary)]">Nombre</label>
                     <input 
+                      id="co-name"
                       type="text" 
+                      autoComplete="given-name"
                       value={billingName}
                       onChange={(e) => setBillingName(e.target.value)}
                       placeholder="Nombre del titular"
-                      className="w-full bg-bg-primary border border-white/5 rounded-2xl h-14 px-5 text-white focus:outline-none focus:border-gold/30 transition-all" 
+                      className="mv-input" 
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Apellido</label>
+                    <label htmlFor="co-lastname" className="mb-2 block text-sm font-medium text-[var(--text-primary)]">Apellido</label>
                     <input 
+                      id="co-lastname"
                       type="text" 
+                      autoComplete="family-name"
                       value={billingLastName}
                       onChange={(e) => setBillingLastName(e.target.value)}
                       placeholder="Apellido del titular"
-                      className="w-full bg-bg-primary border border-white/5 rounded-2xl h-14 px-5 text-white focus:outline-none focus:border-gold/30 transition-all" 
+                      className="mv-input" 
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Empresa / Razón Social (Opcional)</label>
+                  <label htmlFor="co-company" className="mb-2 block text-sm font-medium text-[var(--text-primary)]">Empresa o razón social <span className="font-normal text-[var(--text-tertiary)]">(opcional)</span></label>
                   <input 
+                    id="co-company"
                     type="text" 
+                    autoComplete="organization"
                     value={billingCompany}
                     onChange={(e) => setBillingCompany(e.target.value)}
                     placeholder="Nombre comercial o razón social"
-                    className="w-full bg-bg-primary border border-white/5 rounded-2xl h-14 px-5 text-white focus:outline-none focus:border-gold/30 transition-all" 
+                    className="mv-input" 
                   />
                 </div>
                 <CustomSelect
-                  label="País de Residencia"
+                  label="País de residencia"
                   value={country}
                   onChange={(val) => setCountry(val)}
                   options={[
@@ -324,92 +360,89 @@ export default function CheckoutPage({ params }: { params: { type: string, id: s
               </div>
             </section>
 
-            {/* Payment Method */}
-            <section className="p-8 rounded-[2.5rem] bg-bg-secondary border border-white/5 shadow-2xl">
-              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                <CreditCard className="h-5 w-5 text-gold" /> Método de Pago Seguro
-              </h2>
-              
+            {/* Payment */}
+            <section aria-labelledby="co-payment" className={clientSecret ? "" : "mv-panel p-5 sm:p-7"}>
               {!clientSecret ? (
-                <div className="space-y-6">
-                  <p className="text-sm text-gray-500">Primero confirma los detalles del proyecto arriba para habilitar el pago seguro.</p>
-                  <Button 
+                <>
+                  <h2 id="co-payment" className="mv-h3"><span className="mv-data mr-2 text-gold">3</span>Pago</h2>
+                  <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                    {briefing.trim()
+                      ? "Confirmá la solicitud para habilitar el pago con tarjeta."
+                      : "Completá los detalles del paso 1 para habilitar el pago."}
+                  </p>
+                  <button 
+                    type="button"
                     onClick={handleCreateOrder}
                     disabled={submitting || !briefing.trim()}
-                    className="w-full h-14 bg-foreground text-background hover:opacity-90 font-bold text-lg rounded-xl transition-all"
+                    aria-busy={submitting}
+                    className="mv-btn mv-btn-primary mv-btn-lg mt-6 w-full"
                   >
-                    {submitting ? <Loader2 className="animate-spin w-5 h-5 mr-2" /> : <Zap className="w-5 h-5 mr-2" />}
-                    Confirmar y Proceder al Pago
-                  </Button>
-                </div>
+                    {submitting ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> : null}
+                    {submitting ? "Creando solicitud…" : "Confirmar y continuar al pago"}
+                    {!submitting && <ArrowRight className="h-4 w-4" aria-hidden />}
+                  </button>
+                </>
               ) : (
-                <StripeWrapper clientSecret={clientSecret} amount={price} />
+                <>
+                  <h2 id="co-payment" className="sr-only">Pago</h2>
+                  <StripeWrapper clientSecret={clientSecret} amount={chargedAmount ?? price} />
+                </>
               )}
             </section>
           </div>
 
-          <div className="lg:col-span-4">
-            <div className="bg-bg-secondary border border-white/5 p-10 rounded-[3rem] sticky top-24 shadow-2xl shadow-black/40 overflow-hidden">
-               <div className="absolute top-0 right-0 p-8 opacity-5">
-                <Package size={80} className="text-gold" />
-              </div>
-
-              <h3 className="font-bold text-white text-xl mb-8 pb-4 border-b border-white/5 relative z-10">Resumen del Pedido</h3>
-              
-              <div className="space-y-6 relative z-10">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-white font-bold text-lg">{itemData?.title}</h4>
-                    <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-widest font-black">
-                      {isAnuncio ? "Espacio Publicitario" : (itemData?.packages?.[0]?.name || "Servicio")}
-                    </p>
-                  </div>
-                  <span className="text-white font-mono font-bold text-lg">${price}</span>
-                </div>
-                
-                {itemData?.packages?.[0] && (
-                  <div className="flex flex-wrap gap-4 py-4 border-y border-white/5">
-                    <div className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400">
-                      <Clock className="h-3 w-3 mr-2 text-gold" /> {itemData.packages[0].deliveryDays} días
-                    </div>
-                    <div className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400">
-                      <RotateCcw className="h-3 w-3 mr-2 text-gold" /> {itemData.packages[0].revisions} rev.
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-4 pt-4">
-                  <div className="flex justify-between text-sm text-gray-400">
-                    <span>Subtotal</span>
-                    <span className="font-mono text-white">${price}</span>
-                  </div>
-                  <div className="flex justify-between text-sm text-gray-400">
-                    <span className="flex items-center gap-2">
-                      Tarifa de Servicio
-                      <div className="h-4 w-4 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center">
-                        <CheckCircle2 size={10} />
-                      </div>
-                    </span>
-                    <span className="font-mono text-green-500">$0.00</span>
-                  </div>
-                  <div className="flex justify-between text-white font-black text-3xl pt-8 border-t border-white/10 mt-8">
-                    <span>Total</span>
-                    <span className="font-mono text-gold leading-none">${(price || 0).toLocaleString()}</span>
-                  </div>
-                </div>
-
-                <div className="mt-8 flex items-start gap-4 bg-bg-primary p-5 rounded-3xl border border-white/5 text-[10px] text-gray-500 leading-relaxed uppercase tracking-[0.2em] font-bold">
-                  <Info className="w-6 h-6 text-gold flex-shrink-0" />
-                  <p>Completa el briefing y usa el formulario de la izquierda para procesar tu pago de forma segura.</p>
-                </div>
-
-                <div className="mt-8 flex items-start gap-4 bg-bg-primary p-5 rounded-3xl border border-white/5 text-[10px] text-gray-500 leading-relaxed uppercase tracking-[0.2em] font-bold">
-                  <ShieldCheck className="w-6 h-6 text-green-500 flex-shrink-0" />
-                  <p>Escrow Protegido: Los fondos se liberan solo al aprobar el trabajo final.</p>
+          <aside aria-labelledby="co-summary" className="lg:sticky lg:top-28">
+            <div className="mv-panel p-5 sm:p-6">
+              <h2 id="co-summary" className="text-sm font-semibold text-[var(--text-secondary)]">Resumen del pedido</h2>
+              <div className="mt-3 flex items-start gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[var(--mv-hairline)] text-gold">
+                  <Package className="h-5 w-5" aria-hidden />
+                </span>
+                <div className="min-w-0">
+                  <p className="font-display text-lg font-semibold leading-snug text-[var(--text-primary)]">{itemData?.title || "Publicación"}</p>
+                  <p className="mt-0.5 text-sm text-[var(--text-secondary)]">
+                    {isAnuncio ? "Espacio publicitario · 30 días" : (itemData?.packages?.[0]?.name || "Servicio")}
+                  </p>
                 </div>
               </div>
+
+              {itemData?.packages?.[0] && (
+                <ul className="mt-4 flex flex-wrap gap-2">
+                  <li className="mv-chip"><Clock className="h-3.5 w-3.5" aria-hidden /> <span className="mv-data">{itemData.packages[0].deliveryDays}</span> días</li>
+                  <li className="mv-chip"><RotateCcw className="h-3.5 w-3.5" aria-hidden /> <span className="mv-data">{itemData.packages[0].revisions}</span> revisiones</li>
+                </ul>
+              )}
+
+              <dl className="mt-5 space-y-2.5 border-t border-[var(--mv-hairline)] pt-5 text-sm">
+                <div className="flex justify-between gap-4">
+                  <dt className="text-[var(--text-secondary)]">Subtotal</dt>
+                  <dd className="mv-data text-[var(--text-primary)]">{money(price)}</dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-[var(--text-secondary)]">Tarifa de servicio</dt>
+                  <dd className="mv-data text-green-400">{money(0)}</dd>
+                </div>
+                <div className="flex items-end justify-between gap-4 border-t border-[var(--mv-hairline)] pt-4">
+                  <dt className="font-semibold text-[var(--text-primary)]">Total</dt>
+                  <dd className="mv-data text-2xl font-medium text-gold">{money(price)}</dd>
+                </div>
+              </dl>
+              <p className="mt-2 text-right text-xs text-[var(--text-tertiary)]">Montos en USD</p>
             </div>
-          </div>
+
+            {!isAnuncio && (
+              <div className="mt-4 flex items-start gap-3 rounded-[1.25rem] border border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] p-4">
+                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-gold" aria-hidden />
+                <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
+                  <span className="font-semibold text-[var(--text-primary)]">Pago retenido.</span> Los fondos se liberan al proveedor cuando aprobás el trabajo final.
+                </p>
+              </div>
+            )}
+            <p className="mt-4 flex items-start gap-2.5 px-1 text-xs leading-relaxed text-[var(--text-secondary)]">
+              <CreditCard className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold" aria-hidden />
+              Los datos de tu tarjeta van directo a Stripe. Mercav no los almacena.
+            </p>
+          </aside>
         </div>
         
         <Toast 
@@ -418,7 +451,7 @@ export default function CheckoutPage({ params }: { params: { type: string, id: s
           type={toast.type} 
           onClose={() => setToast({ ...toast, visible: false })} 
         />
-      </div>
+      </Container>
     </div>
   );
 }

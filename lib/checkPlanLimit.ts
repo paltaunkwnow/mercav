@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { effectivePlan } from "./billing/plans";
 
 function getMonthBounds(date = new Date()) {
   const start = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -9,7 +10,7 @@ function getMonthBounds(date = new Date()) {
 export async function checkPlanLimit(userId: string, action: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return { allowed: false, message: 'Usuario no encontrado' };
-  const plan = user.plan;
+  const plan = effectivePlan(user.plan, user.planExpiresAt);
 
   if (plan === 'FREE') {
     if (action === 'apply_job') {

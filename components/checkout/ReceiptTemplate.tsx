@@ -32,12 +32,12 @@ export const ReceiptTemplate = React.forwardRef<HTMLDivElement, ReceiptTemplateP
       {/* Header */}
       <div className="flex justify-between items-start mb-16 border-b-2 border-gray-100 pb-12">
         <div>
-          <h1 className="text-4xl font-black tracking-tighter text-black mb-2">MERCAV</h1>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Protocolo de Transacción v1.0</p>
+          <h1 className="text-4xl font-semibold tracking-tight text-black mb-2" style={{ fontFamily: "var(--font-display)" }}>Mercav</h1>
+          <p className="text-sm font-medium text-gray-500">Comprobante de pago</p>
         </div>
         <div className="text-right">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-full text-xs font-bold uppercase tracking-widest mb-4">
-            <CheckCircle2 size={14} /> Transacción Exitosa
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-semibold mb-4">
+            <CheckCircle2 size={14} /> Pago acreditado
           </div>
           <p className="text-sm text-gray-500 font-mono">ID: {data.id}</p>
           <p className="text-sm text-gray-500 font-mono">Fecha: {data.date}</p>
@@ -47,13 +47,13 @@ export const ReceiptTemplate = React.forwardRef<HTMLDivElement, ReceiptTemplateP
       {/* Main Content */}
       <div className="grid grid-cols-2 gap-12 mb-16">
         <div>
-          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Emisor (Mercav Escrow)</h3>
+          <h3 className="text-sm font-semibold text-gray-500 mb-3">Emisor</h3>
           <p className="font-bold">Mercav Digital Services S.R.L.</p>
           <p className="text-sm text-gray-500">Santa Cruz de la Sierra, Bolivia</p>
           <p className="text-sm text-gray-500">soporte@mercav.com</p>
         </div>
         <div className="text-right">
-          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Cliente</h3>
+          <h3 className="text-sm font-semibold text-gray-500 mb-3">Cliente</h3>
           <p className="font-bold">{data.clientName}</p>
           <p className="text-sm text-gray-500">{data.clientEmail}</p>
         </div>
@@ -61,13 +61,13 @@ export const ReceiptTemplate = React.forwardRef<HTMLDivElement, ReceiptTemplateP
 
       {/* Order Details */}
       <div className="mb-16">
-        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 pb-2 border-b border-gray-100">Detalles del Servicio</h3>
+        <h3 className="text-sm font-semibold text-gray-500 mb-4 pb-3 border-b border-gray-200">Detalle</h3>
         <div className="flex justify-between items-center py-6">
           <div>
             <p className="text-lg font-bold text-black">{data.title}</p>
             <p className="text-sm text-gray-500">Proporcionado por {data.providerName}</p>
           </div>
-          <p className="text-2xl font-mono font-black text-black">
+          <p className="text-2xl font-mono font-semibold text-black tabular-nums">
             {data.amount.toLocaleString('en-US', { style: 'currency', currency: data.currency })}
           </p>
         </div>
@@ -81,16 +81,16 @@ export const ReceiptTemplate = React.forwardRef<HTMLDivElement, ReceiptTemplateP
             <span className="font-mono">{data.amount.toLocaleString('en-US', { style: 'currency', currency: data.currency })}</span>
           </div>
           <div className="flex justify-between text-sm text-gray-600">
-            <span>Comisión de Servicio (Mercav Protection)</span>
+            <span>Comisión de servicio</span>
             <span className="font-mono text-green-600">$0.00</span>
           </div>
           <div className="flex justify-between text-sm text-gray-600">
-            <span>Método de Pago</span>
-            <span className="font-bold">{data.method}</span>
+            <span>Método de pago</span>
+            <span className="font-semibold">{data.method}</span>
           </div>
           <div className="pt-6 border-t border-gray-200 flex justify-between items-center">
-            <span className="text-lg font-bold">Total Pagado</span>
-            <span className="text-4xl font-mono font-black text-black">
+            <span className="text-lg font-semibold">Total pagado</span>
+            <span className="text-4xl font-mono font-semibold text-black tabular-nums">
               {data.amount.toLocaleString('en-US', { style: 'currency', currency: data.currency })}
             </span>
           </div>
@@ -101,13 +101,13 @@ export const ReceiptTemplate = React.forwardRef<HTMLDivElement, ReceiptTemplateP
       <div className="mt-auto pt-12 border-t border-gray-100">
         <div className="flex items-center gap-4 bg-gray-50 p-6 rounded-2xl">
           <ShieldCheck className="text-green-600 w-8 h-8" />
-          <div className="text-[10px] text-gray-500 leading-relaxed uppercase tracking-wider font-bold">
+          <div className="text-xs text-gray-600 leading-relaxed">
             Este recibo es un comprobante oficial de pago protegido por el sistema de Escrow de Mercav. 
             Los fondos están retenidos de forma segura y se liberarán al proveedor una vez el cliente apruebe el trabajo final.
           </div>
         </div>
-        <p className="text-center text-[9px] text-gray-400 mt-8 font-mono">
-          Documento generado electrónicamente por el Protocolo Mercav. No requiere firma física.
+        <p className="text-center text-[11px] text-gray-500 mt-8">
+          Documento generado electrónicamente por Mercav. No requiere firma física.
         </p>
       </div>
     </div>

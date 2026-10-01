@@ -50,11 +50,15 @@ export async function POST(
 
     const member = await prisma.conversation.findFirst({
       where: { id: params.id, participants: { some: { id: user.id } } },
-      select: { id: true },
+      select: { id: true, isEnabled: true },
     });
     if (!member) return NextResponse.json({ success: false, error: "No autorizado" }, { status: 403 });
+    // Conversaciones deshabilitadas (p. ej. por moderación) no aceptan mensajes nuevos
+    if (!member.isEnabled) {
+      return NextResponse.json({ success: false, error: "Esta conversación está deshabilitada" }, { status: 403 });
+    }
 
-    const { content } = await req.json();
+    const { content } = (await req.json().catch(() => ({}))) as { content?: unknown };
     if (!content || typeof content !== "string" || content.length > 4000) {
       return NextResponse.json({ success: false, error: "Contenido inválido" }, { status: 400 });
     }

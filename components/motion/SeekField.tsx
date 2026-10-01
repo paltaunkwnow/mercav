@@ -94,7 +94,7 @@ export function SeekField({
       style={{ width, scale, height: shut }}
       className={`relative overflow-hidden rounded-full ${anchor === "end" ? "ml-auto origin-right" : "origin-center"} ${className}`}
     >
-      <div className="liquid-glass liquid-glass-clear relative h-full overflow-hidden rounded-full">
+      <div className="liquid-glass liquid-glass-clear relative h-full overflow-hidden rounded-full transition-shadow duration-200 focus-within:shadow-[0_0_0_2px_var(--color-gold)]">
         <svg
           viewBox="0 0 18 18"
           aria-hidden

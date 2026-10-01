@@ -4,8 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { pwnFetch } from "@/components/pwn/api";
 import { DisabledState, EmptyState, ErrorState, LoadingState, UnauthorizedState } from "@/components/pwn/EmptyState";
 import { FadeIn } from "@/components/pwn/PwnShell";
-import { focusRing, formatWhen } from "@/components/pwn/format";
-import { Button } from "@/components/ui/button";
+import { formatWhen, pwnCardClass } from "@/components/pwn/format";
+import { PwnPageHeader, PwnSectionHeading, pwnErrorTextClass } from "@/components/pwn/ui";
+import { buttonClass } from "@/components/site/primitives";
 
 type SourceHealth = {
   name: string;
@@ -96,52 +97,57 @@ export default function SourcesPage() {
   const apis = status.kind === "ready" ? status.items.filter((i) => i.group === "api") : [];
 
   function renderList(items: SourceHealth[]) {
+    if (!items.length) {
+      return <p className="rounded-2xl border border-dashed border-[var(--mv-hairline-strong)] px-4 py-3 text-sm text-[var(--text-secondary)]">Sin fuentes en este grupo.</p>;
+    }
     return (
-      <ul className="space-y-3">
-        {items.map((item) => (
-          <li key={item.name} className="rounded-3xl border border-white/5 bg-bg-secondary/70 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display text-2xl text-white">{item.name}</h2>
-              <span
-                className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${focusRing} ${
-                  item.configured && item.enabled ? "border-gold/40 text-gold" : "border-white/10 text-gray-400"
-                }`}
-              >
-                {!item.configured ? "Sin configurar" : item.enabled ? item.status : "Desactivado"}
-              </span>
-            </div>
-            <p className="mt-2 text-sm text-gray-400">
-              Último trabajo: {item.lastStatus ?? "ninguno"}
-              {item.lastAt ? ` · ${formatWhen(item.lastAt) ?? item.lastAt}` : ""}
-            </p>
-            {item.lastError ? <p className="mt-2 text-sm text-red-200">{item.lastError}</p> : null}
-            {item.group === "feed" ? (
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={busy === item.name}
-                  className={`rounded-xl border-white/10 text-white ${focusRing}`}
-                  onClick={() => void toggleSource(item.name, !item.enabled)}
+      <ul className="grid gap-3 md:grid-cols-2">
+        {items.map((item) => {
+          const on = item.configured && item.enabled;
+          return (
+            <li key={item.name} className={`${pwnCardClass} flex flex-col ${on ? "" : "border-dashed"}`}>
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="mv-data min-w-0 break-all text-sm font-semibold text-[var(--text-primary)] md:text-base">{item.name}</h3>
+                <span
+                  className={`inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-semibold ${
+                    on ? "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold" : "border-[var(--mv-hairline-strong)] text-[var(--text-secondary)]"
+                  }`}
                 >
-                  {item.enabled ? "Desactivar feed" : "Activar feed"}
-                </Button>
+                  <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${on ? "bg-gold" : "bg-[var(--text-tertiary)]"}`} />
+                  {!item.configured ? "Sin configurar" : item.enabled ? item.status : "Desactivado"}
+                </span>
               </div>
-            ) : null}
-          </li>
-        ))}
+              <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                Último trabajo: {item.lastStatus ?? "ninguno"}
+                {item.lastAt ? <span className="mv-data text-[var(--text-tertiary)]">{` · ${formatWhen(item.lastAt) ?? item.lastAt}`}</span> : ""}
+              </p>
+              {item.lastError ? <p className={`mt-2 break-words ${pwnErrorTextClass}`}>{item.lastError}</p> : null}
+              {item.group === "feed" ? (
+                <div className="mt-auto pt-4">
+                  <button
+                    type="button"
+                    disabled={busy === item.name}
+                    className={buttonClass(item.enabled ? "ghost" : "secondary", "sm", "w-full sm:w-auto")}
+                    onClick={() => void toggleSource(item.name, !item.enabled)}
+                  >
+                    {item.enabled ? "Desactivar feed" : "Activar feed"}
+                  </button>
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
       </ul>
     );
   }
 
   return (
-    <FadeIn className="space-y-6">
-      <header>
-        <h1 className="font-display text-4xl font-black tracking-tight text-white md:text-5xl">Fuentes</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-400">
-          Conectores oficiales y feeds de titulares. Puedes desactivar foros o RSS ruidosos; el patrullaje en Pwn respeta el interruptor.
-        </p>
-      </header>
+    <FadeIn className="space-y-8">
+      <PwnPageHeader
+        kicker="Fuentes"
+        title="De dónde sale cada dato."
+        lead="Conectores oficiales y feeds de titulares. Podés desactivar foros o RSS ruidosos; el patrullaje de Pwn respeta el interruptor."
+      />
       {status.kind === "loading" ? <LoadingState label="Cargando fuentes…" /> : null}
       {status.kind === "disabled" ? <DisabledState title="Pwn no está activado" /> : null}
       {status.kind === "unauthorized" ? <UnauthorizedState callbackPath="/pwn/sources" /> : null}
@@ -150,13 +156,13 @@ export default function SourcesPage() {
       ) : null}
       {status.kind === "error" ? <ErrorState message={status.message} onRetry={() => void load()} /> : null}
       {status.kind === "ready" ? (
-        <div className="space-y-8">
-          <section>
-            <h2 className="font-display text-xl text-white">APIs</h2>
+        <div className="space-y-12">
+          <section aria-labelledby="pwn-sources-apis" className="space-y-5">
+            <PwnSectionHeading id="pwn-sources-apis" title="APIs" lead="Conectores oficiales." />
             {renderList(apis)}
           </section>
-          <section>
-            <h2 className="font-display text-xl text-white">Foros y RSS</h2>
+          <section aria-labelledby="pwn-sources-feeds" className="space-y-5">
+            <PwnSectionHeading id="pwn-sources-feeds" title="Foros y RSS" lead="Titulares de la lista permitida. Solo metadatos." />
             {renderList(feeds)}
           </section>
         </div>

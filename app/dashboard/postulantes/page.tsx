@@ -2,10 +2,14 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, User, FileText, Calendar, CheckCircle, XCircle, Mail, MessageSquare, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { User, FileText, Calendar, Mail, MessageSquare, Loader2 } from "lucide-react";
+import { ButtonLink, Container, PageHero, Section, buttonClass } from "@/components/site/primitives";
 import { Toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
+
+// Estados válidos del enum ApplicationStatus que la empresa puede asignar.
+// RECIBIDO es el estado inicial y no se vuelve a elegir.
+const SETTABLE_STATUSES = ["EN_REVISION", "ENTREVISTA", "OFERTA", "CONTRATADO", "DESCARTADO"];
 
 export default function PostulantesPage() {
   const router = useRouter();
@@ -26,7 +30,8 @@ export default function PostulantesPage() {
   }, []);
 
   const handleStatusUpdate = async (id: string, newStatus: string) => {
-    setActionLoading(id + newStatus);
+    if (!SETTABLE_STATUSES.includes(newStatus)) return;
+    setActionLoading(id + 'status');
     try {
       const res = await fetch(`/api/applications/${id}/status`, {
         method: "PATCH",
@@ -36,7 +41,7 @@ export default function PostulantesPage() {
       const data = await res.json();
       if (data.success) {
         setApplications(prev => prev.map(app => app.id === id ? { ...app, status: newStatus } : app));
-        setToast({ visible: true, message: `Estado actualizado a ${newStatus}`, type: "success" });
+        setToast({ visible: true, message: `Estado actualizado: ${statusLabels[newStatus] || newStatus}`, type: "success" });
       } else {
         setToast({ visible: true, message: data.error || "Error al actualizar", type: "error" });
       }
@@ -68,124 +73,179 @@ export default function PostulantesPage() {
     }
   };
 
+  const statusLabels: Record<string, string> = {
+    RECIBIDO: "Recibido",
+    EN_REVISION: "En revisión",
+    ENTREVISTA: "Entrevista",
+    OFERTA: "Oferta",
+    CONTRATADO: "Contratado",
+    DESCARTADO: "Descartado",
+  };
+  const statusTone = (status: string) =>
+    status === 'RECIBIDO' ? 'mv-chip-gold' :
+    status === 'CONTRATADO' ? 'border-green-500/25 bg-green-500/10 text-green-400' :
+    status === 'DESCARTADO' ? 'border-red-500/25 bg-red-500/10 text-red-400' :
+    'border-yellow-500/25 bg-yellow-500/10 text-yellow-400';
+
+  const hero = (
+    <PageHero
+      kicker={
+        <>
+          <Link href="/dashboard" className="-my-2 rounded py-2 hover:underline mv-focus">Panel</Link>
+          <span aria-hidden>/</span>
+          <span>Postulantes</span>
+        </>
+      }
+      title="Postulantes"
+      lead="Las personas que se postularon a tus vacantes. Revisá su carta, contactalas o actualizá el estado de cada postulación."
+    />
+  );
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="h-10 w-10 text-gold animate-spin" />
-        <p className="text-gray-500 font-black uppercase tracking-widest text-xs">Cargando postulantes...</p>
+      <div className="w-full min-h-screen bg-bg-primary">
+        {hero}
+        <Section tight className="pt-0 md:pt-0">
+          <Container>
+            <div role="status" className="flex flex-col gap-3">
+              <span className="sr-only">Cargando postulantes…</span>
+              {[0, 1, 2].map((i) => (
+                <div key={i} aria-hidden className="mv-panel h-40 animate-pulse motion-reduce:animate-none" />
+              ))}
+            </div>
+          </Container>
+        </Section>
       </div>
     );
   }
 
   return (
-    <div className="w-full min-h-screen pt-24 pb-32 bg-bg-primary">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <Link href="/dashboard" className="inline-flex items-center text-gray-400 hover:text-gold transition-colors mb-8 text-sm font-medium">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Volver al Dashboard
-        </Link>
+    <div className="w-full min-h-screen bg-bg-primary">
+      {hero}
 
-        <header className="mb-12">
-          <h1 className="font-display text-4xl font-bold text-white mb-2">Postulantes Recibidos</h1>
-          <p className="text-gray-400">Gestiona los candidatos que aplicaron a tus vacantes laborales.</p>
-        </header>
+      <Section tight labelledBy="postulantes-lista" className="pt-0 md:pt-0">
+        <Container>
+          <h2 id="postulantes-lista" className="sr-only">Listado de postulantes</h2>
 
-        {applications.length === 0 ? (
-          <div className="bg-bg-secondary rounded-2xl border border-border p-12 text-center">
-            <User className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">Aún no hay postulantes</h3>
-            <p className="text-gray-400">Cuando alguien se postule a tus vacantes, aparecerá aquí.</p>
-          </div>
-        ) : (
-          <div className="grid gap-6">
-            {applications.map((app) => (
-              <div key={app.id} className="bg-bg-secondary border border-border rounded-2xl p-6 hover:border-gold/20 transition-all group">
-                <div className="flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-2xl bg-bg-tertiary overflow-hidden border border-border flex-shrink-0">
-                      <img 
-                        src={app.applicant.avatar || `https://ui-avatars.com/api/?name=${app.applicant.name}&background=random`} 
-                        alt={app.applicant.name} 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                        {app.applicant.name}
-                        <span className="text-[10px] uppercase tracking-widest font-black bg-gold/10 text-gold px-2 py-0.5 rounded">Candidato</span>
-                      </h3>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 mt-1">
-                        <span className="flex items-center"><Mail className="w-3 h-3 mr-1" /> {app.applicant.email}</span>
-                        <span className="flex items-center font-bold text-gray-400 uppercase tracking-widest">Postuló para: {app.jobTitle}</span>
-                        <span className="flex items-center"><Calendar className="w-3 h-3 mr-1" /> {new Date(app.createdAt).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2 w-full md:w-auto">
-                    <Button variant="outline" asChild className="flex-1 md:flex-none border-border hover:border-gold text-white rounded-xl">
-                      <Link href={`/perfil/${app.applicant.id}`}>Ver Perfil</Link>
-                    </Button>
-                    <Button 
-                      onClick={() => handleContact(app.applicant.id, app.id)}
-                      disabled={actionLoading === app.id + 'contact'}
-                      className="flex-1 md:flex-none bg-gold text-black hover:bg-gold-light rounded-xl font-bold"
-                    >
-                      {actionLoading === app.id + 'contact' ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4 mr-2" />}
-                      Contactar
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-white/5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <FileText className="h-4 w-4 text-gold" />
-                    <span className="text-xs font-black text-white uppercase tracking-widest">Carta de Presentación</span>
-                  </div>
-                  <p className="text-sm text-gray-400 italic bg-bg-primary/50 p-4 rounded-xl border border-white/5 leading-relaxed">
-                    "{app.coverLetter || 'El candidato no incluyó una carta de presentación.'}"
-                  </p>
-                </div>
-                
-                <div className="mt-6 flex items-center justify-between">
-                   <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Estado:</span>
-                      <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${
-                        app.status === 'RECIBIDO' ? 'bg-blue-500/10 text-blue-400' : 
-                        app.status === 'ACEPTADO' || app.status === 'CONTRATADO' ? 'bg-green-500/10 text-green-400' : 
-                        app.status === 'DESCARTADO' ? 'bg-red-500/10 text-red-400' : 'bg-yellow-500/10 text-yellow-400'
-                      }`}>
-                        {app.status}
-                      </span>
-                   </div>
-                   <div className="flex gap-4">
-                      <button 
-                        disabled={actionLoading !== null}
-                        onClick={() => handleStatusUpdate(app.id, 'DESCARTADO')}
-                        className={`text-gray-500 hover:text-red-400 transition-colors ${app.status === 'DESCARTADO' ? 'text-red-400' : ''}`}
-                      >
-                        {actionLoading === app.id + 'DESCARTADO' ? <Loader2 size={20} className="animate-spin" /> : <XCircle size={20} />}
-                      </button>
-                      <button 
-                        disabled={actionLoading !== null}
-                        onClick={() => handleStatusUpdate(app.id, 'ACEPTADO')}
-                        className={`text-gray-500 hover:text-green-400 transition-colors ${app.status === 'ACEPTADO' ? 'text-green-400' : ''}`}
-                      >
-                        {actionLoading === app.id + 'ACEPTADO' ? <Loader2 size={20} className="animate-spin" /> : <CheckCircle size={20} />}
-                      </button>
-                   </div>
-                </div>
+          {applications.length === 0 ? (
+            <div className="mv-panel flex flex-col items-start gap-4 p-8 md:p-12">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--mv-gold-wash)] text-gold">
+                <User className="h-5 w-5" aria-hidden />
+              </span>
+              <h3 className="mv-h3">Todavía no hay postulantes</h3>
+              <p className="mv-body max-w-lg">
+                Cuando alguien se postule a una de tus vacantes, vas a ver acá su perfil, su carta de presentación y el estado de la postulación.
+              </p>
+              <div className="mt-2 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                <ButtonLink href="/dashboard/crear" className="w-full sm:w-auto">Publicar una vacante</ButtonLink>
+                <ButtonLink href="/empleos/mis-empleos" tone="secondary" className="w-full sm:w-auto">Ver mis vacantes</ButtonLink>
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ) : (
+            <>
+              <p className="mb-4 text-sm text-[var(--text-secondary)]">
+                <span className="mv-data text-[var(--text-primary)]">{applications.length}</span> {applications.length === 1 ? "postulación" : "postulaciones"}
+              </p>
+              <ul className="flex flex-col gap-3">
+                {applications.map((app) => (
+                  <li key={app.id} className="mv-panel p-5 md:p-6">
+                    <article aria-labelledby={`app-${app.id}`}>
+                      <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                        <div className="flex min-w-0 items-start gap-4">
+                          <img
+                            src={app.applicant.avatar || `https://ui-avatars.com/api/?name=${app.applicant.name}&background=random`}
+                            alt=""
+                            width={48}
+                            height={48}
+                            loading="lazy"
+                            decoding="async"
+                            className="h-12 w-12 shrink-0 rounded-2xl border border-[var(--mv-hairline)] object-cover"
+                          />
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 id={`app-${app.id}`} className="text-lg font-semibold text-[var(--text-primary)]">{app.applicant.name}</h3>
+                              <span className={`mv-chip ${statusTone(app.status)}`}>{statusLabels[app.status] || app.status}</span>
+                            </div>
+                            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                              Para <span className="font-medium text-[var(--text-primary)]">{app.jobTitle}</span>
+                            </p>
+                            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[var(--text-secondary)]">
+                              <a href={`mailto:${app.applicant.email}`} className="inline-flex min-w-0 items-center gap-1.5 break-all rounded hover:text-[var(--text-primary)] mv-focus">
+                                <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden /> {app.applicant.email}
+                              </a>
+                              <span className="mv-data inline-flex items-center gap-1.5">
+                                <Calendar className="h-3.5 w-3.5" aria-hidden /> {new Date(app.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
 
-        <Toast 
-          isVisible={toast.visible} 
-          message={toast.message} 
-          type={toast.type} 
-          onClose={() => setToast({ ...toast, visible: false })} 
-        />
-      </div>
+                        <div className="grid grid-cols-2 gap-2 md:flex md:shrink-0">
+                          <ButtonLink href={`/perfil/${app.applicant.id}`} tone="secondary" size="sm" className="w-full md:w-auto">
+                            Ver perfil
+                          </ButtonLink>
+                          <button
+                            type="button"
+                            onClick={() => handleContact(app.applicant.id, app.id)}
+                            disabled={actionLoading === app.id + 'contact'}
+                            aria-busy={actionLoading === app.id + 'contact'}
+                            className={buttonClass("primary", "sm", "w-full md:w-auto")}
+                          >
+                            {actionLoading === app.id + 'contact' ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <MessageSquare className="h-4 w-4" aria-hidden />}
+                            Contactar
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mt-5 border-t border-[var(--mv-hairline)] pt-5">
+                        <h4 className="mb-2 flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
+                          <FileText className="h-4 w-4 text-gold" aria-hidden /> Carta de presentación
+                        </h4>
+                        <p className={`whitespace-pre-wrap break-words text-sm leading-relaxed ${app.coverLetter ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'}`}>
+                          {app.coverLetter || 'El candidato no incluyó una carta de presentación.'}
+                        </p>
+                      </div>
+
+                      <div className="mt-5 flex flex-col gap-2 border-t border-[var(--mv-hairline)] pt-5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                        <label htmlFor={`app-status-${app.id}`} className="text-sm text-[var(--text-secondary)]">
+                          Etapa del proceso
+                        </label>
+                        <div className="flex items-center gap-2 sm:w-64">
+                          <select
+                            id={`app-status-${app.id}`}
+                            value={app.status}
+                            disabled={actionLoading !== null}
+                            aria-busy={actionLoading === app.id + 'status'}
+                            onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
+                            className="mv-input min-h-11 w-full cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {app.status === 'RECIBIDO' && (
+                              <option value="RECIBIDO" disabled>Recibido (sin revisar)</option>
+                            )}
+                            {SETTABLE_STATUSES.map((s) => (
+                              <option key={s} value={s}>{statusLabels[s]}</option>
+                            ))}
+                          </select>
+                          {actionLoading === app.id + 'status' && (
+                            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-gold" aria-hidden />
+                          )}
+                        </div>
+                      </div>
+                    </article>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </Container>
+      </Section>
+
+      <Toast 
+        isVisible={toast.visible} 
+        message={toast.message} 
+        type={toast.type} 
+        onClose={() => setToast({ ...toast, visible: false })} 
+      />
     </div>
   );
 }

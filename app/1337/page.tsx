@@ -112,7 +112,7 @@ function UnusualTrafficNotice() {
   const [file, setFile] = useState<Dossier>({});
 
   useEffect(() => {
-    const reason = search.get("src") === "proxy" ? "proxy" : "inspect";
+    const reason = search?.get("src") === "proxy" ? "proxy" : "inspect";
     const payload = {
       reason,
       path: document.referrer || "/1337",

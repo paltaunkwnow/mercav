@@ -3,14 +3,23 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { checkToolAccess } from "@/lib/toolAccess";
+import { buildPromptVariants, normalizePromptInput, templateById, type PromptVariant } from "@/app/herramientas/promptTemplates";
 
-function fallbackPrompts(input: any) {
-  const base = input.description || "";
-  return [
-    { label: "Básico", prompt: `${input.tool} prompt: ${base}` },
-    { label: "Detallado", prompt: `${input.tool} prompt highly detailed, ${base}, professional composition, high quality, clean structure` },
-    { label: "Avanzado", prompt: `${input.tool} prompt advanced, ${base}, cinematic, polished, attention to detail, premium quality, consistent style` },
-  ];
+/** Keeps only well-formed { label, prompt } items coming back from the model. */
+function parseModelPrompts(text: string): PromptVariant[] | null {
+  const match = text.match(/\[[\s\S]*\]/);
+  if (!match) return null;
+  try {
+    const parsed = JSON.parse(match[0]);
+    if (!Array.isArray(parsed)) return null;
+    const clean = parsed
+      .filter((item) => item && typeof item.label === "string" && typeof item.prompt === "string" && item.prompt.trim())
+      .slice(0, 3)
+      .map((item) => ({ label: item.label.slice(0, 40), prompt: item.prompt.slice(0, 4000) }));
+    return clean.length ? clean : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(req: Request) {
@@ -23,11 +32,19 @@ export async function POST(req: Request) {
     const access = await checkToolAccess(user.id, "prompt-generator");
     if (!access.allowed) return NextResponse.json({ success: false, error: access.message }, { status: 403 });
 
-    const body = await req.json();
-    const prompt = `Generá 3 variaciones de prompt para ${body.tool} para la categoría ${body.category}. Descripción: ${body.description}. Responde en JSON con etiqueta y prompt.`;
-    let prompts = fallbackPrompts(body);
+    const body = normalizePromptInput(await req.json());
+    const template = templateById(body.template);
+    let prompts: PromptVariant[] = buildPromptVariants(body);
 
     if (process.env.ANTHROPIC_API_KEY) {
+      const instruction = [
+        `Generá 3 variantes de un prompt en español que una persona va a pegar en cualquier asistente de IA para resolver esta tarea de negocio: ${template.task}`,
+        `Formato esperado del texto final: ${template.format}`,
+        `Datos que dio la persona (usá solo estos, no agregues datos nuevos): negocio: ${body.business || "sin especificar"}; público: ${body.audience || "sin especificar"}; tono: ${body.tone}; variante del español: ${body.locale}; detalles: ${body.description || "sin especificar"}.`,
+        `Cada prompt debe pedirle al asistente que no invente precios, cifras, testimonios ni características y que use marcadores entre corchetes cuando falte información.`,
+        `Variantes: "Directo" (un párrafo), "Completo" (con secciones Contexto, Tarea, Formato y Reglas) y "Con preguntas previas" (el asistente pregunta antes de escribir).`,
+        `Respondé solo con un arreglo JSON de objetos { "label": string, "prompt": string }, sin texto adicional.`,
+      ].join("\n");
       try {
         const response = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
@@ -39,13 +56,11 @@ export async function POST(req: Request) {
           body: JSON.stringify({
             model: process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022",
             max_tokens: 1400,
-            messages: [{ role: "user", content: prompt }],
+            messages: [{ role: "user", content: instruction }],
           }),
         });
         const data = await response.json();
-        const text = data?.content?.[0]?.text || "";
-        const parsed = JSON.parse(text);
-        if (Array.isArray(parsed)) prompts = parsed;
+        prompts = parseModelPrompts(data?.content?.[0]?.text || "") ?? prompts;
       } catch (error) {
         console.warn("Prompt generator fallback", error);
       }

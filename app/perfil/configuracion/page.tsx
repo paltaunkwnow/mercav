@@ -1,198 +1,125 @@
 "use client";
 
-import { 
-  Settings, 
-  Shield, 
-  Lock, 
-  Bell, 
-  User, 
-  CreditCard, 
+import {
+  Shield,
+  KeyRound,
+  Bell,
+  User,
+  CreditCard,
   ArrowLeft,
   ChevronRight,
   LogOut,
   Sun,
   Moon,
-  Palette,
-  Sparkles
+  Check,
 } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
 import { useTheme } from "@/components/ui/ThemeProvider";
-import { motion } from "framer-motion";
+import { Container } from "@/components/site/primitives";
 
 export default function ConfiguracionPage() {
   const { theme, setTheme } = useTheme();
 
   const sections = [
-    { icon: User, label: "Información de la Cuenta", desc: "Cambia tu email, teléfono y datos básicos", href: "/perfil/editar" },
-    { icon: Shield, label: "Privacidad", desc: "Gestiona qué información es pública", href: "/perfil/privacidad" },
-    { icon: Lock, label: "Seguridad", desc: "Cambiar contraseña y 2FA", href: "/perfil/configuracion/seguridad" },
-    { icon: Bell, label: "Notificaciones", desc: "Configura tus alertas y correos", href: "/perfil/notificaciones" },
-    { icon: CreditCard, label: "Métodos de Pago", desc: "Tus tarjetas y cuentas de cobro", href: "#" },
+    { icon: User, label: "Información de la cuenta", desc: "Nombre, foto, titular y datos de tu perfil", href: "/perfil/editar" },
+    { icon: KeyRound, label: "Seguridad", desc: "Verificación en dos pasos", href: "/perfil/editar#security" },
+    { icon: Bell, label: "Notificaciones", desc: "Alertas de mensajes y actividad", href: "/notificaciones-settings" },
+    { icon: Shield, label: "Privacidad", desc: "Cómo tratamos tus datos en Mercav", href: "/privacidad" },
+    { icon: CreditCard, label: "Plan y pagos", desc: "Tu plan actual y opciones de facturación", href: "/precios" },
   ];
 
+  const themes = [
+    { value: "dark", label: "Oscuro", desc: "Menos brillo, ideal de noche", icon: Moon },
+    { value: "light", label: "Claro", desc: "Más luminosidad y contraste", icon: Sun },
+  ] as const;
+
   return (
-    <div className="min-h-screen bg-bg-primary pt-24 pb-20 section-transition">
-      {/* Background decoration */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-20 right-[20%] w-[400px] h-[400px] bg-gold/[0.02] blur-[150px] rounded-full" />
-        <div className="absolute bottom-20 left-[10%] w-[300px] h-[300px] bg-gold/[0.015] blur-[120px] rounded-full" />
-      </div>
+    <div className="relative w-full bg-bg-primary pb-16 pt-24 md:pb-24 md:pt-28">
+      <div className="mv-aura" aria-hidden />
+      <Container className="relative max-w-[48rem]">
+        <Link href="/perfil" className="mv-focus mb-5 inline-flex items-center gap-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
+          <ArrowLeft className="h-4 w-4" aria-hidden /> Volver a mi perfil
+        </Link>
 
-      <div className="container mx-auto px-4 max-w-3xl relative z-10">
-        <motion.div
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Link href="/dashboard" className="inline-flex items-center text-gray-400 hover:text-white transition-colors mb-8 text-sm font-medium group">
-            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" /> Volver al Dashboard
-          </Link>
-        </motion.div>
+        <header>
+          <p className="mv-kicker">Tu cuenta</p>
+          <h1 className="mv-h2 mt-3">Configuración</h1>
+          <p className="mv-body mt-2">Apariencia, seguridad y preferencias de tu cuenta Mercav.</p>
+        </header>
 
-        <motion.header 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-12"
-        >
-          <div className="flex items-center gap-4 mb-3">
-            <div className="h-12 w-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center">
-              <Settings className="w-6 h-6 text-gold" />
-            </div>
-            <div>
-              <h1 className="text-3xl md:text-4xl font-display font-black text-white">Configuración</h1>
-              <p className="text-gray-400 text-sm">Personaliza tu experiencia y gestiona la seguridad de tu cuenta.</p>
-            </div>
+        {/* Appearance */}
+        <section aria-labelledby="cfg-apariencia" className="mt-10">
+          <h2 id="cfg-apariencia" className="mv-h3">Apariencia</h2>
+          <div role="radiogroup" aria-labelledby="cfg-apariencia" className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {themes.map(({ value, label, desc, icon: Icon }) => {
+              const active = theme === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => setTheme(value)}
+                  className={`mv-focus relative flex items-center gap-4 rounded-[1.25rem] border p-4 text-left transition-colors duration-200 sm:p-5 ${
+                    active
+                      ? "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)]"
+                      : "border-[var(--mv-hairline)] bg-[var(--mv-panel)] hover:bg-[var(--mv-panel-hover)]"
+                  }`}
+                >
+                  <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${active ? "bg-gold text-[var(--mv-on-gold)]" : "border border-[var(--mv-hairline)] text-[var(--text-secondary)]"}`}>
+                    <Icon className="h-5 w-5" aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold text-[var(--text-primary)]">{label}</span>
+                    <span className="block text-sm text-[var(--text-secondary)]">{desc}</span>
+                  </span>
+                  {active && <Check className="h-5 w-5 shrink-0 text-gold" aria-hidden />}
+                </button>
+              );
+            })}
           </div>
-        </motion.header>
+        </section>
 
-        {/* Theme Mode Selection */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="mb-8"
-        >
-          <div className="flex items-center gap-2 mb-5">
-            <Palette className="w-4 h-4 text-gold" />
-            <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Apariencia</h3>
+        {/* Account */}
+        <section aria-labelledby="cfg-cuenta" className="mt-10">
+          <h2 id="cfg-cuenta" className="mv-h3">Cuenta</h2>
+          <ul className="mv-panel mt-4 overflow-hidden p-1.5">
+            {sections.map((item) => (
+              <li key={item.label}>
+                <Link
+                  href={item.href}
+                  className="mv-focus group flex items-center gap-4 rounded-[1.1rem] p-3.5 transition-colors duration-200 hover:bg-[var(--mv-panel-hover)] sm:p-4"
+                >
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] text-[var(--text-secondary)] transition-colors duration-200 group-hover:text-gold">
+                    <item.icon className="h-5 w-5" aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold text-[var(--text-primary)]">{item.label}</span>
+                    <span className="block truncate text-sm text-[var(--text-secondary)]">{item.desc}</span>
+                  </span>
+                  <ChevronRight className="h-5 w-5 shrink-0 text-[var(--text-tertiary)] transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Session */}
+        <section aria-labelledby="cfg-sesion" className="mt-10 flex flex-col gap-4 rounded-[1.5rem] border border-red-500/20 bg-red-500/[0.04] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div>
+            <h2 id="cfg-sesion" className="font-semibold text-[var(--text-primary)]">Sesión</h2>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">Cerrá la sesión en este dispositivo.</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button
-              onClick={() => setTheme("dark")}
-              className={`relative flex items-center gap-4 p-6 rounded-2xl border transition-all duration-500 group overflow-hidden ${
-                theme === "dark"
-                  ? "bg-gold/5 border-gold/40 shadow-[0_0_30px_rgba(212,175,55,0.1)]"
-                  : "bg-bg-secondary/50 border-white/5 hover:border-white/15"
-              }`}
-            >
-              {/* Active indicator */}
-              {theme === "dark" && (
-                <div className="absolute top-3 right-3">
-                  <div className="h-2.5 w-2.5 rounded-full bg-gold shadow-[0_0_8px_rgba(212,175,55,0.6)]" />
-                </div>
-              )}
-              <div className={`h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                theme === "dark" 
-                  ? "bg-gold/10 text-gold" 
-                  : "bg-white/5 text-gray-500 group-hover:text-gray-300"
-              }`}>
-                <Moon className="w-6 h-6" />
-              </div>
-              <div className="text-left">
-                <h4 className={`font-bold text-lg transition-colors ${theme === "dark" ? "text-white" : "text-gray-400"}`}>
-                  Modo Oscuro
-                </h4>
-                <p className="text-sm text-gray-500">Reducción de fatiga visual</p>
-              </div>
-            </button>
-
-            <button
-              onClick={() => setTheme("light")}
-              className={`relative flex items-center gap-4 p-6 rounded-2xl border transition-all duration-500 group overflow-hidden ${
-                theme === "light"
-                  ? "bg-gold/5 border-gold/40 shadow-[0_0_30px_rgba(212,175,55,0.1)]"
-                  : "bg-bg-secondary/50 border-white/5 hover:border-white/15"
-              }`}
-            >
-              {theme === "light" && (
-                <div className="absolute top-3 right-3">
-                  <div className="h-2.5 w-2.5 rounded-full bg-gold shadow-[0_0_8px_rgba(212,175,55,0.6)]" />
-                </div>
-              )}
-              <div className={`h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                theme === "light" 
-                  ? "bg-gold/10 text-gold" 
-                  : "bg-white/5 text-gray-500 group-hover:text-gray-300"
-              }`}>
-                <Sun className="w-6 h-6" />
-              </div>
-              <div className="text-left">
-                <h4 className={`font-bold text-lg transition-colors ${theme === "light" ? "text-white" : "text-gray-400"}`}>
-                  Modo Claro
-                </h4>
-                <p className="text-sm text-gray-500">Más luminosidad y contraste</p>
-              </div>
-            </button>
-          </div>
-        </motion.div>
-
-        {/* Settings Sections */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="space-y-3"
-        >
-          <div className="flex items-center gap-2 mb-5">
-            <Sparkles className="w-4 h-4 text-gold" />
-            <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Cuenta</h3>
-          </div>
-          
-          {sections.map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 + i * 0.06 }}
-            >
-              <Link 
-                href={item.href}
-                className="flex items-center justify-between p-5 md:p-6 bg-bg-secondary/50 border border-white/5 rounded-2xl hover:border-gold/30 hover:bg-white/[0.05] transition-all duration-300 group glassmorphism card-hover-premium"
-              >
-                <div className="flex items-center gap-4 md:gap-5">
-                  <div className="h-11 w-11 md:h-12 md:w-12 rounded-xl bg-bg-primary/80 border border-white/5 flex items-center justify-center text-gray-400 group-hover:text-gold group-hover:border-gold/20 group-hover:bg-gold/5 transition-all duration-300">
-                    <item.icon className="w-5 h-5 md:w-6 md:h-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white text-base md:text-lg group-hover:text-gold transition-colors">{item.label}</h3>
-                    <p className="text-xs md:text-sm text-gray-500">{item.desc}</p>
-                  </div>
-                </div>
-                <ChevronRight className="text-gray-700 group-hover:text-gold group-hover:translate-x-1 transition-all duration-300 flex-shrink-0" />
-              </Link>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Logout */}
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.5 }}
-          className="mt-12 pt-8 border-t border-white/5"
-        >
-          <Button 
-            variant="ghost" 
+          <button
+            type="button"
             onClick={() => signOut({ callbackUrl: '/' })}
-            className="w-full h-14 md:h-16 rounded-2xl text-red-400 hover:text-red-300 hover:bg-red-400/5 border border-transparent hover:border-red-400/20 font-black uppercase tracking-widest transition-all"
+            className="mv-btn w-full border border-red-500/25 text-red-400 hover:bg-red-500/10 sm:w-auto"
           >
-            <LogOut className="w-5 h-5 mr-3" /> Cerrar Sesión
-          </Button>
-        </motion.div>
-      </div>
+            <LogOut className="h-4 w-4" aria-hidden /> Cerrar sesión
+          </button>
+        </section>
+      </Container>
     </div>
   );
 }

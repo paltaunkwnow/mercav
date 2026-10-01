@@ -51,7 +51,7 @@ export async function GET(
     return NextResponse.json({ success: true, data: conversations })
   } catch (error: any) {
     console.error("Error inspecting user chats:", error)
-    return NextResponse.json({ success: false, error: error.message || "Error interno" }, { status: 500 })
+    return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 })
   }
 }
 // creado por pato dev y askforvini

@@ -8,7 +8,9 @@ import { SourceBadge } from "@/components/pwn/SourceBadge";
 import { RiskBadge } from "@/components/pwn/RiskBadge";
 import { DisabledState, EmptyState, ErrorState, LoadingState, UnauthorizedState } from "@/components/pwn/EmptyState";
 import { FadeIn } from "@/components/pwn/PwnShell";
-import { formatWhen, pwnPanelClass } from "@/components/pwn/format";
+import { focusRing, formatWhen, pwnCardClass } from "@/components/pwn/format";
+import { Meta, MetaGrid, PwnPageHeader } from "@/components/pwn/ui";
+import { ArrowUpRight, FileSearch } from "lucide-react";
 
 type Status =
   | { kind: "idle" }
@@ -23,7 +25,7 @@ const CVE = /^CVE-\d{4}-\d{4,}$/i;
 
 export default function VulnerabilitiesPage() {
   const params = useSearchParams();
-  const initial = params.get("cve") ?? "";
+  const initial = params?.get("cve") ?? "";
   const [cve, setCve] = useState(initial);
   const [formError, setFormError] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
@@ -31,7 +33,7 @@ export default function VulnerabilitiesPage() {
   async function search(raw: string) {
     const value = raw.trim().toUpperCase();
     if (!CVE.test(value)) {
-      setFormError("Usa un identificador con la forma CVE-2024-12345.");
+      setFormError("Usá un identificador con la forma CVE-2024-12345.");
       return;
     }
     setFormError(null);
@@ -62,15 +64,14 @@ export default function VulnerabilitiesPage() {
   }, [initial]);
 
   return (
-    <FadeIn className="space-y-6">
-      <header className="max-w-2xl">
-        <h1 className="font-display text-4xl font-black tracking-tight text-white md:text-5xl">Vulnerabilidades</h1>
-        <p className="mt-3 text-sm leading-relaxed text-gray-400">
-          Busca un CVE. Si la fuente lo marca como explotado, se indica así. Eso no significa que una organización concreta esté comprometida.
-        </p>
-      </header>
+    <FadeIn className="space-y-8">
+      <PwnPageHeader
+        kicker="Vulnerabilidades"
+        title="Buscá un CVE y mirá si se está explotando."
+        lead="Si la fuente lo marca como explotado, se indica así. Eso no significa que una organización concreta esté comprometida."
+      />
 
-      <section className={pwnPanelClass}>
+      <section aria-label="Buscar CVE" className="liquid-glass rounded-[1.75rem] p-4 sm:p-5 md:p-7">
         <SearchForm
           id="cve-search"
           label="Identificador CVE"
@@ -82,10 +83,17 @@ export default function VulnerabilitiesPage() {
           disabled={status.kind === "loading"}
           error={formError}
           autoComplete="off"
+          hint="Fuentes: NVD y el catálogo KEV de CISA."
         />
       </section>
 
-      {status.kind === "idle" ? <EmptyState title="Busca un CVE" description="Escribe un identificador para consultar las fuentes de vulnerabilidades." /> : null}
+      {status.kind === "idle" ? (
+        <EmptyState
+          icon={<FileSearch className="h-5 w-5" aria-hidden />}
+          title="Buscá un CVE"
+          description="Escribí un identificador para consultar las fuentes de vulnerabilidades."
+        />
+      ) : null}
       {status.kind === "loading" ? <LoadingState label="Consultando el CVE…" /> : null}
       {status.kind === "disabled" ? <DisabledState title="Vulnerabilidades no configuradas" /> : null}
       {status.kind === "unauthorized" ? <UnauthorizedState callbackPath="/pwn/vulnerabilities" description="La búsqueda de CVE requiere una sesión." /> : null}
@@ -94,41 +102,45 @@ export default function VulnerabilitiesPage() {
       {status.kind === "ready" ? (
         <ul className="space-y-4">
           {[status.item].map((item) => (
-            <li key={item.id} className="rounded-3xl border border-white/5 bg-bg-secondary/70 p-5">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-mono text-lg text-white">{item.cve}</h2>
-                {item.severity ? <RiskBadge level={item.severity} /> : null}
+            <li key={item.id} className={pwnCardClass}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <h2 className="mv-data text-xl font-semibold text-[var(--text-primary)] md:text-2xl">{item.cve}</h2>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {item.severity ? <RiskBadge level={item.severity} /> : null}
+                  {item.knownExploited ? (
+                    <span className="inline-flex h-6 items-center rounded-full border border-red-400/40 bg-red-500/10 px-2.5 text-[11px] font-semibold text-red-200 [.light_&]:border-red-700/30 [.light_&]:text-red-800">
+                      Explotación conocida
+                    </span>
+                  ) : null}
+                </div>
               </div>
-              {item.description ? <p className="mt-3 text-sm leading-relaxed text-gray-400">{item.description}</p> : null}
-              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                <div>
-                  <dt className="text-gray-500">CVSS</dt>
-                  <dd className="text-white">{item.cvss === null ? "—" : item.cvss}</dd>
-                </div>
-                <div>
-                  <dt className="text-gray-500">Publicación</dt>
-                  <dd className="text-white">{formatWhen(item.publishedAt) ?? "No indicada"}</dd>
-                </div>
+              {item.description ? <p className="mv-body mt-3">{item.description}</p> : null}
+              <MetaGrid>
+                <Meta label="CVSS" mono>
+                  {item.cvss === null ? "—" : item.cvss}
+                </Meta>
+                <Meta label="Publicación">{formatWhen(item.publishedAt) ?? "No indicada"}</Meta>
                 {item.knownExploited !== null ? (
-                  <div className="sm:col-span-2">
-                    <dt className="text-gray-500">Vulnerabilidad explotada conocida</dt>
-                    <dd className="text-white">{item.knownExploited ? "Sí" : "No"}</dd>
-                  </div>
+                  <Meta label="Vulnerabilidad explotada conocida">{item.knownExploited ? "Sí" : "No"}</Meta>
                 ) : null}
-              </dl>
-              <div className="mt-4">
-                <SourceBadge source={item.source} href={item.sourceUrl} />
-              </div>
+                <Meta label="Fuente">
+                  <SourceBadge source={item.source} href={item.sourceUrl} />
+                </Meta>
+              </MetaGrid>
               {item.references.length ? (
-                <ul className="mt-4 space-y-2 text-sm">
-                  {item.references.map((ref) => (
-                    <li key={ref.href}>
-                      <a href={ref.href} target="_blank" rel="noreferrer" className="text-gold underline-offset-4 hover:underline">
-                        {ref.label}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+                <div className="mt-5 border-t border-[var(--mv-hairline)] pt-4">
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)]">Referencias</h3>
+                  <ul className="mt-2 flex flex-col gap-1.5 text-sm">
+                    {item.references.map((ref) => (
+                      <li key={ref.href} className="min-w-0">
+                        <a href={ref.href} target="_blank" rel="noreferrer" className={`mv-link inline-flex max-w-full items-center gap-1 break-all ${focusRing}`}>
+                          <span className="min-w-0 break-all">{ref.label}</span>
+                          <ArrowUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ) : null}
             </li>
           ))}

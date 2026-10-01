@@ -1,16 +1,40 @@
 "use client";
 
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { HeroBackground3D } from '@/components/ui/HeroBackground3D';
-import { ArrowRight, Megaphone, MonitorPlay, Briefcase, Wrench, CheckCircle2, Star, MapPin, Clock, Sparkles, Zap, Globe, Shield, TrendingUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { AuthHeroButton } from '@/components/ui/AuthHeroButton';
-import { TiltCard } from '@/components/motion/TiltCard';
+import Link from "next/link";
+import React, { useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import {
+  ArrowRight,
+  Briefcase,
+  Check,
+  CreditCard,
+  FileText,
+  Fingerprint,
+  KeyRound,
+  Lock,
+  Megaphone,
+  MessagesSquare,
+  MonitorPlay,
+  Search,
+  Shield,
+  Palette,
+  Store,
+  Wrench,
+  MapPin,
+  Clock,
+  Layers,
+  Radar,
+} from "lucide-react";
+import { StarOfDavid } from "@/components/site/StarOfDavid";
+import { HeroBackground3D } from "@/components/ui/HeroBackground3D";
+import { AuthHeroButton } from "@/components/ui/AuthHeroButton";
+import { TransactionCard } from "@/components/home/TransactionCard";
+import { KosherAtlasPreview, type KosherPreviewPlace } from "@/components/kosher/KosherHero";
+import { Container, Reveal, Section, SectionHeading, buttonClass } from "@/components/site/primitives";
 
 interface ActivityItem {
   id: string;
-  type: 'SERVICE' | 'SPACE' | 'JOB';
+  type: "SERVICE" | "SPACE" | "JOB";
   title: string;
   location: string;
   price?: string;
@@ -19,360 +43,855 @@ interface ActivityItem {
   image?: string;
 }
 
-const fadeUp = {
-  initial: { opacity: 0, y: 30 },
-  animate: { opacity: 1, y: 0 },
-};
+const EASE = [0.23, 1, 0.32, 1] as const;
 
-const stagger = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1,
-    }
-  }
-};
+/* ------------------------------------------------------------------ */
+/* Hero                                                                */
+/* ------------------------------------------------------------------ */
+
+const RAIL = [
+  { href: "/anuncios", label: "Ads", icon: Megaphone },
+  { href: "/servicios", label: "Services", icon: MonitorPlay },
+  { href: "/empleos", label: "Jobs", icon: Briefcase },
+  { href: "/dashboard/pos", label: "POS", icon: Store },
+  { href: "/herramientas", label: "Tools", icon: Wrench },
+  { href: "/pwn", label: "Pwn", icon: Shield },
+  { href: "/kosher", label: "Kosher", icon: StarOfDavid },
+];
 
 export function HomeHero() {
+  const reduce = useReducedMotion();
+  const rise = (delay: number) =>
+    reduce
+      ? {}
+      : {
+          initial: { opacity: 0, y: 16 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.6, delay, ease: EASE },
+        };
+
   return (
-    <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden pt-28 [justify-content:safe_center]">
+    <section aria-labelledby="home-hero" className="relative isolate flex min-h-[92svh] w-full flex-col overflow-hidden pt-28 md:min-h-[100svh] md:pt-32">
       <HeroBackground3D />
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-32 bg-gradient-to-b from-bg-primary via-bg-primary/70 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-44 bg-gradient-to-b from-transparent to-bg-primary" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-32 bg-gradient-to-b from-bg-primary via-bg-primary/70 to-transparent" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-56 bg-gradient-to-b from-transparent to-bg-primary" />
+      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-[2] hidden w-[55%] bg-gradient-to-r from-bg-primary/80 via-bg-primary/40 to-transparent lg:block" />
 
-      <div className="container mx-auto px-6 z-10 flex flex-col items-center text-center relative">
-        {/* Top badge */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-10 mt-4 inline-flex items-center rounded-full border border-gold/20 bg-gold/5 px-6 py-2.5 text-[10px] font-black uppercase tracking-[0.4em] text-gold/90 backdrop-blur-md md:mt-8"
-        >
-          Construido para Latinoamérica
-        </motion.div>
-        
-        {/* Main heading */}
-        <motion.h1 
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.4, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="font-display text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter text-white max-w-5xl mb-8 leading-[0.85] text-balance"
-        >
-          Todo el ecosistema en un{' '}
-          <span className="relative inline-block">
-            <span className="gradient-text-gold italic font-black">solo lugar</span>
-            {/* Decorative underline */}
-            <motion.span 
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 1.2, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute -bottom-2 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-gold to-transparent origin-left"
-            />
-          </span>.
-        </motion.h1>
-        
-        {/* Subtitle */}
-        <motion.p 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="text-gray-400 text-base sm:text-lg md:text-2xl max-w-2xl mb-14 text-balance font-medium leading-relaxed"
-        >
-          Publicidad <span className="text-white font-semibold">offline</span>, servicios digitales, empleo y herramientas de élite.
-          La infraestructura que tu negocio necesita para escalar.
-        </motion.p>
+      <Container className="relative z-10 flex flex-1 flex-col justify-center pb-10">
+        <div className="max-w-[46rem]">
+          <motion.p {...rise(0)} className="mv-kicker">
+            Construido para Latinoamérica
+          </motion.p>
+          <motion.h1
+            id="home-hero"
+            initial={reduce ? false : { y: 20 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.7, delay: 0.05, ease: EASE }}
+            className="mv-display mt-6"
+          >
+            Tu negocio entero,
+            <br />
+            <span className="mv-gold-text">en una sola cuenta.</span>
+          </motion.h1>
+          <motion.p {...rise(0.15)} className="mv-lead mt-6">
+            Alquilá publicidad física, contratá talento con pagos por hitos, publicá vacantes, cobrá en tu local y vigilá la exposición
+            de tu empresa. Todo desde Mercav.
+          </motion.p>
+          <motion.div {...rise(0.25)} className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <AuthHeroButton label="Crear cuenta gratis" className="sm:max-w-[24rem]" />
+            <a href="#plataforma" className={buttonClass("secondary", "lg", "sm:h-16 md:h-20 md:px-8")}>
+              Ver la plataforma
+            </a>
+          </motion.div>
+        </div>
+      </Container>
 
-        {/* CTA Buttons */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-col sm:flex-row gap-4 md:gap-6 w-full justify-center max-w-2xl mx-auto"
-        >
-          <AuthHeroButton className="flex-1" />
-          <Button asChild variant="outline" size="lg" className="flex-1 border-border text-foreground/70 hover:text-foreground hover:bg-foreground/5 hover:border-foreground/20 h-16 md:h-20 px-8 md:px-10 rounded-[2rem] font-black uppercase tracking-widest text-[11px] md:text-sm bg-transparent transition-all duration-500 backdrop-blur-sm shadow-sm">
-            <Link href="/por-que-mercav" className="flex items-center justify-center gap-3">
-               <MonitorPlay className="h-5 w-5 opacity-60" />
-               Ver cómo funciona
-            </Link>
-          </Button>
-        </motion.div>
-      </div>
+      <motion.div {...rise(0.4)} className="relative z-10 hidden pb-12 md:block">
+        <Container>
+          <nav aria-label="Módulos de Mercav" className="liquid-glass rounded-[1.5rem] p-1.5 md:rounded-full">
+            <ul className="scrollbar-hide flex gap-1 overflow-x-auto md:justify-between">
+              {RAIL.map(({ href, label, icon: Icon }) => (
+                <li key={href} className="shrink-0 md:flex-1">
+                  <Link
+                    href={href}
+                    className="group flex h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold text-[var(--text-secondary)] outline-none transition-colors hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)] focus-visible:bg-[var(--mv-panel-hover)] focus-visible:text-[var(--text-primary)]"
+                  >
+                    <Icon className="h-4 w-4 text-gold transition-transform duration-200 group-hover:scale-110" aria-hidden />
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </Container>
+      </motion.div>
     </section>
   );
 }
 
-export function HomeModules() {
-  const modules = [
-    { icon: Megaphone, title: "Mercav Ads", desc: "Alquilá espacios publicitarios físicos. Vallas, pantallas, vidrieras.", href: "/anuncios", accent: "from-amber-500/20 to-orange-500/20", iconBg: "bg-amber-500/10", iconColor: "text-amber-500" },
-    { icon: MonitorPlay, title: "Mercav Services", desc: "Contratá talento digital con pagos seguros y contratos por hitos.", href: "/servicios", accent: "from-violet-500/20 to-purple-500/20", iconBg: "bg-violet-500/10", iconColor: "text-violet-400" },
-    { icon: Briefcase, title: "Mercav Jobs", desc: "Publicá vacantes y encontrá al candidato ideal sin fricción.", href: "/empleos", accent: "from-emerald-500/20 to-teal-500/20", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-400" },
-    { icon: Wrench, title: "Mercav Tools", desc: "Herramientas con IA, calculadoras de ROI y contratos.", href: "/herramientas", accent: "from-blue-500/20 to-cyan-500/20", iconBg: "bg-blue-500/10", iconColor: "text-blue-400" },
-    { icon: Shield, title: "Mercav Pwn", desc: "Consultá exposición, filtraciones y alertas. Ciberinteligencia para tu negocio.", href: "/pwn", accent: "from-red-500/20 to-rose-500/20", iconBg: "bg-red-500/10", iconColor: "text-red-400" },
-    { icon: Star, title: "Mercav Kosher", desc: "Mapa de lugares, stock kosher y tu kehilá. Entras con tu cuenta Mercav.", href: "/kosher", accent: "from-sky-400/20 to-indigo-500/20", iconBg: "bg-techelet/15", iconColor: "text-techelet" },
-  ];
+/* ------------------------------------------------------------------ */
+/* Problem → answer                                                    */
+/* ------------------------------------------------------------------ */
 
+const FRICTIONS = [
+  {
+    icon: CreditCard,
+    title: "Comisiones que se comen el margen",
+    body: "Alquilar un espacio o vender un servicio suele dejar un porcentaje en cada intermediario.",
+    answer: "Tu primer alquiler en Ads no paga comisión de plataforma.",
+  },
+  {
+    icon: Lock,
+    title: "Pagar sin garantía",
+    body: "Contratar a alguien que no conocés significa adelantar dinero y esperar que cumpla.",
+    answer: "Services libera el pago hito por hito, cuando el trabajo se entrega.",
+  },
+  {
+    icon: Layers,
+    title: "Diez herramientas, diez cuentas",
+    body: "Publicidad, empleo, caja y contratos viven en sistemas que no se hablan entre sí.",
+    answer: "Una cuenta Mercav abre todos los módulos con el mismo perfil.",
+  },
+  {
+    icon: Radar,
+    title: "Exposición que nadie vigila",
+    body: "Los correos y dominios de una empresa aparecen en filtraciones sin que nadie se entere.",
+    answer: "Pwn consulta fuentes públicas y te avisa cuando aparece algo tuyo.",
+  },
+];
+
+export function HomeProblem() {
   return (
-    <section className="w-full py-24 md:py-32 bg-bg-primary relative overflow-hidden section-transition">
-      {/* Background decoration */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/3 left-[15%] h-[520px] w-[520px] rounded-full bg-gold/[0.08] blur-[160px]" />
-        <div className="absolute bottom-1/4 right-[10%] h-[420px] w-[420px] rounded-full bg-violet-500/[0.07] blur-[140px]" />
-        <div className="absolute top-1/2 left-1/2 h-[640px] w-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gold/[0.04] blur-[180px]" />
+    <Section labelledBy="home-problem">
+      <Container>
+        <SectionHeading
+          id="home-problem"
+          kicker="El problema"
+          title="Hacer crecer un negocio no debería costar tanta fricción."
+          lead="Cuatro cosas que vemos repetirse en Latinoamérica, y cómo las resuelve Mercav."
+        />
+        <ul className="mt-14 grid gap-4 md:grid-cols-2">
+          {FRICTIONS.map(({ icon: Icon, title, body, answer }, i) => (
+            <Reveal as="li" key={title} delay={i * 60} className="mv-panel flex flex-col overflow-hidden">
+              <div className="flex flex-1 flex-col gap-4 p-6 md:p-8">
+                <span className="grid h-11 w-11 place-items-center rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] text-[var(--text-secondary)]">
+                  <Icon className="h-5 w-5" aria-hidden />
+                </span>
+                <h3 className="mv-h3">{title}</h3>
+                <p className="mv-body">{body}</p>
+              </div>
+              <p className="flex items-start gap-3 border-t border-[var(--mv-hairline)] bg-[var(--mv-gold-wash)] px-6 py-4 text-sm font-medium text-[var(--text-primary)] md:px-8">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden />
+                {answer}
+              </p>
+            </Reveal>
+          ))}
+        </ul>
+      </Container>
+    </Section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Platform: modules as an interactive tablist                         */
+/* ------------------------------------------------------------------ */
+
+function Caption({ children }: { children: ReactNode }) {
+  return <p className="mt-4 text-center text-xs text-[var(--text-tertiary)]">{children}</p>;
+}
+
+function MilestonePreview() {
+  const steps = [
+    { label: "Diseño de marca", state: "Liberado", tone: "done" },
+    { label: "Sitio web", state: "En revisión", tone: "active" },
+    { label: "Campaña de lanzamiento", state: "Retenido", tone: "idle" },
+  ];
+  return (
+    <div className="mx-auto w-full max-w-md">
+      <div className="liquid-glass rounded-[1.5rem] p-5 md:p-6">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold text-[var(--text-primary)]">Contrato por hitos</p>
+          <span className="mv-chip mv-chip-gold">Escrow</span>
+        </div>
+        <ol className="mt-5 space-y-3">
+          {steps.map((s, i) => (
+            <li key={s.label} className="flex items-center gap-3 rounded-2xl border border-[var(--mv-hairline)] px-4 py-3">
+              <span
+                className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-semibold ${
+                  s.tone === "done" ? "bg-gold text-[var(--mv-on-gold)]" : s.tone === "active" ? "border border-gold text-gold" : "border border-[var(--mv-hairline-strong)] text-[var(--text-tertiary)]"
+                }`}
+              >
+                {s.tone === "done" ? <Check className="h-3.5 w-3.5" aria-hidden /> : i + 1}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-sm text-[var(--text-primary)]">{s.label}</span>
+              <span className={`text-xs font-medium ${s.tone === "done" ? "text-gold" : "text-[var(--text-secondary)]"}`}>{s.state}</span>
+            </li>
+          ))}
+        </ol>
       </div>
+      <Caption>Ejemplo ilustrativo</Caption>
+    </div>
+  );
+}
 
-      <div className="container mx-auto px-4 relative z-10">
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16 md:mb-20"
-        >
-          <motion.span 
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-gold mb-6"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            Módulos del ecosistema
-          </motion.span>
-          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white mb-5 tracking-tight">
-            Un universo de{' '}
-            <span className="gradient-text-gold">posibilidades</span>
-          </h2>
-          <p className="text-gray-400 text-base md:text-lg max-w-xl mx-auto">
-            Seis módulos del ecosistema, de publicidad a comunidad y ciberinteligencia.
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-          {modules.map((mod, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.6, delay: i * 0.12 }}
-            >
-              <TiltCard className="h-full rounded-2xl">
-              <Link href={mod.href} className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 p-7 transition-colors duration-500 hover:border-gold/40 md:p-8 glassmorphism">
-                {/* Gradient accent on hover */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${mod.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
-                
-                <div className="relative z-10">
-                  <div className={`h-14 w-14 rounded-2xl ${mod.iconBg} flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-500 border border-white/5`}>
-                    <mod.icon className={`h-6 w-6 ${mod.iconColor} group-hover:text-gold transition-colors duration-500`} />
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-3 group-hover:text-gold transition-colors duration-300">{mod.title}</h3>
-                  <p className="text-gray-400 text-sm mb-8 flex-1 leading-relaxed">{mod.desc}</p>
-                  <div className="flex items-center text-gold text-sm font-semibold group-hover:gap-4 transition-all duration-500">
-                    Explorar módulo <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-2 transition-transform duration-300" />
-                  </div>
-                </div>
-              </Link>
-              </TiltCard>
-            </motion.div>
+function JobsPreview() {
+  const stages = [
+    { label: "Postulaciones", w: "100%" },
+    { label: "Revisadas", w: "62%" },
+    { label: "Entrevista", w: "28%" },
+  ];
+  return (
+    <div className="mx-auto w-full max-w-md">
+      <div className="liquid-glass rounded-[1.5rem] p-5 md:p-6">
+        <p className="text-xs text-[var(--text-secondary)]">Vacante</p>
+        <p className="mt-1 font-display text-xl font-semibold text-[var(--text-primary)]">Encargada de ventas</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <span className="mv-chip">Tiempo completo</span>
+          <span className="mv-chip">Presencial</span>
+        </div>
+        <div className="mt-6 space-y-3">
+          {stages.map((s) => (
+            <div key={s.label}>
+              <div className="flex justify-between text-xs text-[var(--text-secondary)]">
+                <span>{s.label}</span>
+              </div>
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[var(--mv-panel-hover)]">
+                <div className="h-full rounded-full bg-gold/80" style={{ width: s.w }} />
+              </div>
+            </div>
           ))}
         </div>
       </div>
-    </section>
+      <Caption>Ejemplo ilustrativo</Caption>
+    </div>
   );
+}
+
+function PosPreview() {
+  const lines = [
+    { name: "Café americano", qty: 2, price: "6,00" },
+    { name: "Medialuna", qty: 3, price: "4,50" },
+    { name: "Agua mineral", qty: 1, price: "1,80" },
+  ];
+  return (
+    <div className="mx-auto w-full max-w-sm">
+      <div className="liquid-glass rounded-[1.5rem] p-5 md:p-6">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold text-[var(--text-primary)]">Venta en caja</p>
+          <span className="mv-data text-xs text-[var(--text-tertiary)]">Ticket 0042</span>
+        </div>
+        <ul className="mt-4 divide-y divide-[var(--mv-hairline)]">
+          {lines.map((l) => (
+            <li key={l.name} className="flex items-center justify-between py-2.5 text-sm">
+              <span className="text-[var(--text-primary)]">
+                <span className="mv-data mr-2 text-[var(--text-tertiary)]">{l.qty}×</span>
+                {l.name}
+              </span>
+              <span className="mv-data text-[var(--text-secondary)]">{l.price}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-3 flex items-end justify-between border-t border-dashed border-[var(--mv-hairline-strong)] pt-4">
+          <span className="text-sm text-[var(--text-secondary)]">Total</span>
+          <span className="mv-data text-2xl font-medium text-gold">12,30</span>
+        </div>
+      </div>
+      <Caption>Ejemplo ilustrativo · cualquier rubro, cualquier moneda</Caption>
+    </div>
+  );
+}
+
+function ToolsPreview() {
+  const tools = [
+    { icon: FileText, name: "Generador de contratos" },
+    { icon: Layers, name: "Calculadora de ROI" },
+    { icon: Search, name: "Analizador SEO" },
+    { icon: CreditCard, name: "Simulador de precios" },
+    { icon: Palette, name: "Generador de paletas" },
+    { icon: MessagesSquare, name: "Prompts para IA" },
+  ];
+  return (
+    <ul className="mx-auto grid w-full max-w-md grid-cols-2 gap-2">
+      {tools.map(({ icon: Icon, name }) => (
+        <li key={name} className="liquid-glass flex items-center gap-3 rounded-2xl p-3.5">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold/10 text-gold">
+            <Icon className="h-4 w-4" aria-hidden />
+          </span>
+          <span className="text-[13px] font-medium leading-tight text-[var(--text-primary)]">{name}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function PwnPreview({ sources }: { sources: string[] }) {
+  return (
+    <div className="mx-auto w-full max-w-md">
+      <div className="liquid-glass rounded-[1.5rem] p-5 md:p-6">
+        <p className="text-sm font-semibold text-[var(--text-primary)]">Consultar exposición</p>
+        <div className="mt-4 flex items-center gap-2 rounded-2xl border border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] px-4 py-3">
+          <Search className="h-4 w-4 text-[var(--text-tertiary)]" aria-hidden />
+          <span className="mv-data text-sm text-[var(--text-secondary)]">tuempresa.com</span>
+        </div>
+        <p className="mt-5 text-xs text-[var(--text-secondary)]">Fuentes consultadas</p>
+        <ul className="mt-2 flex flex-wrap gap-1.5">
+          {sources.slice(0, 7).map((s) => (
+            <li key={s} className="mv-chip">
+              {s}
+            </li>
+          ))}
+          {sources.length > 7 && <li className="mv-chip mv-chip-gold">+{sources.length - 7}</li>}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+type ModuleDef = {
+  key: string;
+  group: string;
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  href: string;
+  does: string;
+  solves: string;
+  gets: string[];
+  preview: ReactNode;
+};
+
+export function HomePlatform({ pwnSources, kosherPreview }: { pwnSources: string[]; kosherPreview: KosherPreviewPlace[] }) {
+  const modules: ModuleDef[] = [
+    {
+      key: "ads",
+      group: "Vender",
+      name: "Ads",
+      icon: Megaphone,
+      href: "/anuncios",
+      does: "Un catálogo de vallas, pantallas y vidrieras para alquilar con reserva por fechas.",
+      solves: "Encontrar y pagar publicidad física sin llamar a diez intermediarios.",
+      gets: ["Primer alquiler sin comisión de plataforma", "Calendario de disponibilidad", "Pago con tarjeta vía Stripe"],
+      preview: <TransactionCard />,
+    },
+    {
+      key: "services",
+      group: "Contratar",
+      name: "Services",
+      icon: MonitorPlay,
+      href: "/servicios",
+      does: "Un mercado de talento digital con paquetes y contratos divididos en hitos.",
+      solves: "El riesgo de adelantar todo el pago a alguien que no conocés.",
+      gets: ["Pago retenido hasta cada entrega", "Paquetes con precio claro", "Reseñas de clientes reales"],
+      preview: <MilestonePreview />,
+    },
+    {
+      key: "jobs",
+      group: "Contratar",
+      name: "Jobs",
+      icon: Briefcase,
+      href: "/empleos",
+      does: "Publicación de vacantes y gestión de postulantes desde tu panel.",
+      solves: "Vacantes dispersas en grupos y planillas sin seguimiento.",
+      gets: ["Postulaciones ordenadas por vacante", "Salario visible u oculto, a tu elección", "El mismo perfil para postular"],
+      preview: <JobsPreview />,
+    },
+    {
+      key: "pos",
+      group: "Operar",
+      name: "POS",
+      icon: Store,
+      href: "/dashboard/pos",
+      does: "Caja, inventario y reportes para cualquier rubro, desde el navegador.",
+      solves: "Pagar un sistema aparte para cobrar en el local.",
+      gets: ["Escáner de códigos con la cámara", "Inventario y reportes de ventas", "Moneda y sucursal configurables"],
+      preview: <PosPreview />,
+    },
+    {
+      key: "tools",
+      group: "Operar",
+      name: "Tools",
+      icon: Wrench,
+      href: "/herramientas",
+      does: "Herramientas de trabajo diario: contratos, cálculos, SEO, precios y prompts.",
+      solves: "Pagar una suscripción distinta por cada pequeña tarea.",
+      gets: ["Contratos listos para firmar", "Reportes exportables", "Incluidas según tu plan"],
+      preview: <ToolsPreview />,
+    },
+    {
+      key: "pwn",
+      group: "Proteger",
+      name: "Pwn",
+      icon: Shield,
+      href: "/pwn",
+      does: "Ciberinteligencia defensiva: exposición de correos y dominios, filtraciones, CVE y alertas.",
+      solves: "Enterarte tarde de que datos de tu empresa circulan en una filtración.",
+      gets: ["Consulta abierta de correo o dominio", "Seguimiento de objetivos verificados", "Cada hallazgo cita su fuente"],
+      preview: <PwnPreview sources={pwnSources} />,
+    },
+    {
+      key: "kosher",
+      group: "Comunidad",
+      name: "Kosher",
+      icon: StarOfDavid,
+      href: "/kosher",
+      does: "Atlas de lugares kosher, sinagogas y kehilot, con stock por sucursal y chat por ciudad.",
+      solves: "Saber dónde comer, comprar y rezar al llegar a una ciudad.",
+      gets: ["Mapa con el estado de cada lugar", "Modo Shabat de solo lectura", "No emite hechsher: muestra la fuente"],
+      preview:
+        kosherPreview.length > 0 ? (
+          <div className="mx-auto w-full max-w-md">
+            <KosherAtlasPreview preview={kosherPreview} />
+          </div>
+        ) : null,
+    },
+  ];
+
+  const [active, setActive] = useState(0);
+  const reduce = useReducedMotion();
+  const baseId = useId();
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const current = modules[active];
+
+  function select(i: number) {
+    setActive(i);
+    tabRefs.current[i]?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: reduce ? "auto" : "smooth" });
+  }
+
+  function onKey(e: KeyboardEvent<HTMLDivElement>) {
+    const keys: Record<string, number> = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 };
+    let next = active;
+    if (e.key in keys) next = (active + keys[e.key] + modules.length) % modules.length;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = modules.length - 1;
+    else return;
+    e.preventDefault();
+    select(next);
+    tabRefs.current[next]?.focus();
+  }
+
+  return (
+    <Section id="plataforma" tone="raised" labelledBy="home-platform">
+      <Container>
+        <SectionHeading
+          id="home-platform"
+          kicker="La plataforma"
+          title="Siete módulos. Una cuenta. El mismo perfil en todos."
+          lead="Cada módulo resuelve un trabajo concreto. Elegí uno para ver qué hace, qué problema resuelve y qué te llevás."
+        />
+
+        <div className="mt-14 grid gap-6 lg:grid-cols-[17rem_1fr] lg:gap-10">
+          <div role="tablist" aria-label="Módulos" aria-orientation="vertical" onKeyDown={onKey} className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 [mask-image:linear-gradient(to_right,#000_88%,transparent)] lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0 lg:[mask-image:none]">
+            {modules.map((m, i) => {
+              const on = i === active;
+              const Icon = m.icon;
+              const showGroup = i === 0 || modules[i - 1].group !== m.group;
+              return (
+                <div key={m.key} role="presentation" className="contents">
+                  {showGroup && <p aria-hidden className="hidden px-3 pb-1 pt-4 text-xs font-semibold text-[var(--text-tertiary)] first:pt-0 lg:block">{m.group}</p>}
+                  <button
+                    ref={(el) => {
+                      tabRefs.current[i] = el;
+                    }}
+                    role="tab"
+                    id={`${baseId}-tab-${m.key}`}
+                    aria-selected={on}
+                    aria-controls={`${baseId}-panel`}
+                    tabIndex={on ? 0 : -1}
+                    onClick={() => select(i)}
+                    className={`mv-focus relative flex h-11 shrink-0 items-center gap-3 rounded-full px-4 text-left text-sm font-semibold transition-colors duration-200 lg:h-12 lg:rounded-2xl ${
+                      on ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                    }`}
+                  >
+                    {on && (
+                      <motion.span
+                        layoutId={reduce ? undefined : `${baseId}-pill`}
+                        className="liquid-glass absolute inset-0 rounded-[inherit]"
+                        transition={{ type: "spring", duration: 0.45, bounce: 0.15 }}
+                      />
+                    )}
+                    <Icon className={`relative h-4 w-4 ${on ? "text-gold" : ""}`} aria-hidden />
+                    <span className="relative">Mercav {m.name}</span>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          <div role="tabpanel" id={`${baseId}-panel`} aria-labelledby={`${baseId}-tab-${current.key}`} className="mv-panel min-h-[34rem] overflow-hidden">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={current.key}
+                initial={reduce ? false : { opacity: 0, y: 8, filter: "blur(4px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={reduce ? undefined : { opacity: 0, y: -6, filter: "blur(4px)" }}
+                transition={{ duration: 0.22, ease: EASE }}
+                className="grid h-full gap-8 p-6 md:p-10 xl:grid-cols-[1fr_1fr] xl:items-center"
+              >
+                <div className="flex flex-col gap-6">
+                  <div>
+                    <p className="text-sm text-[var(--text-tertiary)]">{current.group}</p>
+                    <h3 className="mt-1 font-display text-3xl font-semibold tracking-tight text-[var(--text-primary)] md:text-4xl">Mercav {current.name}</h3>
+                  </div>
+                  <dl className="grid gap-5">
+                    <div>
+                      <dt className="text-xs font-semibold text-gold">Qué hace</dt>
+                      <dd className="mv-body mt-1 text-[var(--text-primary)]">{current.does}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs font-semibold text-gold">Qué resuelve</dt>
+                      <dd className="mv-body mt-1">{current.solves}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs font-semibold text-gold">Qué obtenés</dt>
+                      <dd className="mt-2">
+                        <ul className="grid gap-2">
+                          {current.gets.map((g) => (
+                            <li key={g} className="flex items-start gap-2.5 text-[15px] text-[var(--text-primary)]">
+                              <Check className="mt-1 h-4 w-4 shrink-0 text-gold" aria-hidden />
+                              {g}
+                            </li>
+                          ))}
+                        </ul>
+                      </dd>
+                    </div>
+                  </dl>
+                  <Link href={current.href} className={buttonClass("secondary", "md", "w-fit")}>
+                    Abrir Mercav {current.name}
+                    <ArrowRight className="h-4 w-4" aria-hidden />
+                  </Link>
+                </div>
+                {current.preview ? <div className="min-w-0">{current.preview}</div> : null}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+      </Container>
+    </Section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Capabilities shared by every module                                 */
+/* ------------------------------------------------------------------ */
+
+const CAPABILITIES = [
+  {
+    icon: CreditCard,
+    title: "Pagos con Stripe",
+    body: "Cobros con tarjeta procesados por Stripe. Mercav no guarda los datos de tu tarjeta.",
+    span: "md:col-span-2",
+  },
+  {
+    icon: Fingerprint,
+    title: "Verificación en dos pasos",
+    body: "Activala desde tu perfil para que una contraseña sola no alcance.",
+    span: "",
+  },
+  {
+    icon: KeyRound,
+    title: "Contraseñas que no viajan",
+    body: "Al comprobar una contraseña en Pwn, el hash se calcula en tu navegador y solo salen sus primeros cinco caracteres.",
+    span: "",
+  },
+  {
+    icon: MessagesSquare,
+    title: "Mensajes y feed",
+    body: "Hablá con clientes, candidatos y proveedores sin salir de la plataforma.",
+    span: "",
+  },
+  {
+    icon: Search,
+    title: "Una búsqueda para todo",
+    body: "Espacios, servicios, vacantes y perfiles desde un mismo buscador.",
+    span: "md:col-span-2 lg:col-span-1",
+  },
+];
+
+export function HomeCapabilities() {
+  return (
+    <Section labelledBy="home-capabilities">
+      <Container>
+        <SectionHeading
+          id="home-capabilities"
+          kicker="En todos los módulos"
+          title="Lo que viene incluido, sin configurarlo."
+        />
+        <ul className="mt-14 grid gap-4 md:grid-cols-3">
+          {CAPABILITIES.map(({ icon: Icon, title, body, span }, i) => (
+            <Reveal as="li" key={title} delay={i * 50} className={`mv-panel mv-panel-interactive group flex flex-col gap-4 p-6 md:p-7 ${span}`}>
+              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gold/10 text-gold transition-transform duration-300 group-hover:-translate-y-0.5">
+                <Icon className="h-5 w-5" aria-hidden />
+              </span>
+              <h3 className="mv-h3">{title}</h3>
+              <p className="mv-body">{body}</p>
+            </Reveal>
+          ))}
+        </ul>
+      </Container>
+    </Section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Pwn spotlight                                                       */
+/* ------------------------------------------------------------------ */
+
+export function HomeSecurity({ sources }: { sources: string[] }) {
+  const steps = [
+    { title: "Consultá", body: "Escribí un correo o un dominio. La consulta es abierta y no exige demostrar propiedad." },
+    { title: "Seguí", body: "Verificá los objetivos que son tuyos para monitorearlos de forma continua." },
+    { title: "Recibí la alerta", body: "Cuando una fuente publica algo que te afecta, te llega con el nombre de la fuente y qué hacer." },
+  ];
+  return (
+    <Section tone="raised" labelledBy="home-security">
+      <Container>
+        <div className="grid gap-14 lg:grid-cols-[1fr_1.05fr] lg:items-center">
+          <div>
+            <SectionHeading
+              id="home-security"
+              kicker="Mercav Pwn"
+              title="Seguridad incluida en la misma cuenta."
+              lead="Ciberinteligencia defensiva para empresas y gobierno. Pwn cruza fuentes públicas de filtraciones, vulnerabilidades y noticias para decirte qué te afecta."
+            />
+            <ol className="mt-10 grid gap-5">
+              {steps.map((s, i) => (
+                <Reveal as="li" key={s.title} delay={i * 70} className="flex gap-4">
+                  <span className="mv-data grid h-8 w-8 shrink-0 place-items-center rounded-full border border-gold/40 text-sm text-gold">{i + 1}</span>
+                  <div>
+                    <p className="font-semibold text-[var(--text-primary)]">{s.title}</p>
+                    <p className="mv-body mt-1">{s.body}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </ol>
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+              <Link href="/pwn/exposure" className={buttonClass("primary", "md")}>
+                Consultar exposición
+              </Link>
+              <Link href="/pwn" className={buttonClass("ghost", "md")}>
+                Conocer Pwn
+              </Link>
+            </div>
+          </div>
+
+          <Reveal>
+            <div className="liquid-glass relative overflow-hidden rounded-[2rem] p-6 md:p-8">
+              <div className="flex items-center justify-between gap-4">
+                <p className="font-display text-lg font-semibold text-[var(--text-primary)]">Fuentes que consulta Pwn</p>
+                <span className="mv-chip mv-chip-gold mv-data">{sources.length}</span>
+              </div>
+              <ul className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {sources.slice(0, 12).map((s) => (
+                  <li key={s} className="flex items-center gap-2.5 rounded-xl border border-[var(--mv-hairline)] px-3 py-2.5 text-sm text-[var(--text-primary)]">
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden />
+                    <span className="truncate">{s}</span>
+                  </li>
+                ))}
+              </ul>
+              {sources.length > 12 && (
+                <p className="mt-4 text-sm text-[var(--text-secondary)]">
+                  Y {sources.length - 12} más.{" "}
+                  <Link href="/pwn/sources" className="mv-link">
+                    Ver todas las fuentes
+                  </Link>
+                </p>
+              )}
+              <div className="mv-divider my-6" />
+              <dl className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <dt className="text-[var(--text-secondary)]">Ciclo de análisis</dt>
+                  <dd className="mt-1 font-semibold text-[var(--text-primary)]">Cada hora</dd>
+                </div>
+                <div>
+                  <dt className="text-[var(--text-secondary)]">Señales de foros</dt>
+                  <dd className="mt-1 font-semibold text-[var(--text-primary)]">Cada 10 minutos</dd>
+                </div>
+              </dl>
+            </div>
+          </Reveal>
+        </div>
+      </Container>
+    </Section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Latest activity (real listings only)                                */
+/* ------------------------------------------------------------------ */
+
+const TYPE_LABEL = { SPACE: "Anuncio", SERVICE: "Servicio", JOB: "Vacante" } as const;
+const TYPE_ICON = { SPACE: Megaphone, SERVICE: MonitorPlay, JOB: Briefcase } as const;
+const TYPE_HREF = { SPACE: "/anuncios", SERVICE: "/servicios", JOB: "/empleos" } as const;
+
+function daysAgo(date: Date) {
+  const days = Math.floor((Date.now() - new Date(date).getTime()) / 86_400_000);
+  if (days <= 0) return "Hoy";
+  if (days === 1) return "Ayer";
+  return `Hace ${days} días`;
 }
 
 export function HomeLatestActivity({ items }: { items: ActivityItem[] }) {
   return (
-    <section className="blend-from-secondary w-full py-24 md:py-32 bg-bg-primary relative section-transition">
-      <div className="container mx-auto px-4">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-14 gap-4"
-        >
-          <div>
-            <motion.span 
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-gold mb-4"
-            >
-              <Zap className="h-3.5 w-3.5" />
-              Actividad en tiempo real
-            </motion.span>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-2">Lo último en Mercav</h2>
-            <p className="text-gray-400">Nuevas oportunidades en todo el ecosistema.</p>
-          </div>
-          <Link href="/explorar" className="hidden md:flex text-gold hover:text-gold-light items-center text-sm font-semibold group border border-gold/20 rounded-full px-5 py-2.5 hover:bg-gold/5 transition-all duration-300">
-            Ver todo el feed <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </motion.div>
+    <Section labelledBy="home-activity">
+      <Container>
+        <SectionHeading
+          id="home-activity"
+          kicker="Ahora en Mercav"
+          title="Lo último publicado."
+          action={
+            items.length > 0 ? (
+              <Link href="/explorar" className={buttonClass("secondary", "sm")}>
+                Explorar todo
+              </Link>
+            ) : undefined
+          }
+        />
 
         {items.length === 0 ? (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="p-16 md:p-24 rounded-3xl bg-bg-secondary/50 border border-white/5 text-center glassmorphism"
-          >
-            <div className="h-24 w-24 bg-gold/5 rounded-full flex items-center justify-center mx-auto mb-8 float-gentle">
-              <Megaphone className="h-12 w-12 text-gold/30" />
+          <Reveal className="mv-panel mt-12 flex flex-col items-start gap-6 p-8 md:flex-row md:items-center md:justify-between md:p-10">
+            <div>
+              <h3 className="mv-h3">Todavía no hay publicaciones activas.</h3>
+              <p className="mv-body mt-2 max-w-lg">Publicá un espacio, un servicio o una vacante y aparecé acá para todo el ecosistema.</p>
             </div>
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">Por el momento no hay anuncios</h3>
-            <p className="text-gray-500 max-w-md mx-auto mb-10 leading-relaxed">
-              Sé el primero en publicar tu servicio, valla publicitaria o vacante y llega a toda Latinoamérica.
-            </p>
-            <Button asChild className="bg-gold text-black font-bold h-12 px-8 rounded-xl hover:scale-105 transition-transform hover:shadow-[0_0_30px_rgba(212,175,55,0.3)]">
-              <Link href="/dashboard">Empezar a publicar</Link>
-            </Button>
-          </motion.div>
+            <Link href="/publicar" className={buttonClass("primary", "md")}>
+              Publicar ahora
+            </Link>
+          </Reveal>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-            {items.map((item, i) => (
-              <motion.div 
-                key={item.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08, duration: 0.5 }}
-                className="rounded-2xl overflow-hidden bg-bg-secondary/80 border border-border group hover:border-gold/40 transition-all duration-500 hover:shadow-lg hover:shadow-gold/5 flex flex-col h-full glassmorphism card-hover-premium"
-              >
-                <div className="aspect-video bg-bg-tertiary relative overflow-hidden">
-                  {item.image ? (
-                    <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-gray-600 group-hover:scale-110 transition-transform duration-700">
-                      {item.type === 'SPACE' && <Megaphone className="h-12 w-12 opacity-20" />}
-                      {item.type === 'SERVICE' && <MonitorPlay className="h-12 w-12 opacity-20" />}
-                      {item.type === 'JOB' && <Briefcase className="h-12 w-12 opacity-20" />}
+          <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((item, i) => {
+              const Icon = TYPE_ICON[item.type];
+              return (
+                <Reveal as="li" key={item.id} delay={i * 50}>
+                  <Link href={`${TYPE_HREF[item.type]}/${item.id}`} className="mv-panel mv-panel-interactive mv-focus group flex h-full flex-col overflow-hidden">
+                    <div className="relative aspect-[16/9] overflow-hidden bg-bg-tertiary">
+                      {item.image ? (
+                        <img src={item.image} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+                      ) : (
+                        <div className="grid h-full w-full place-items-center text-[var(--text-tertiary)]">
+                          <Icon className="h-10 w-10 opacity-40" aria-hidden />
+                        </div>
+                      )}
+                      <span className="liquid-glass absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-semibold text-[var(--text-primary)]">{TYPE_LABEL[item.type]}</span>
                     </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-bg-secondary via-transparent to-transparent z-10 opacity-80" />
-                  <div className="absolute top-4 left-4 z-20">
-                    <span className={`backdrop-blur-md border border-white/10 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider ${
-                      item.type === 'SPACE' ? 'bg-blue-500/50' : 
-                      item.type === 'SERVICE' ? 'bg-purple-500/50' : 'bg-green-500/50'
-                    }`}>
-                      {item.type === 'SPACE' ? 'Anuncio' : item.type === 'SERVICE' ? 'Servicio' : 'Vacante'}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6 flex flex-col flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[10px] text-gold font-bold uppercase tracking-widest">{item.category}</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-white mb-3 group-hover:text-gold transition-colors line-clamp-2">{item.title}</h3>
-                  <div className="flex flex-col gap-2 mb-6">
-                    <p className="text-sm text-gray-400 flex items-center gap-1.5">
-                      <MapPin className="h-3.5 w-3.5 text-gold/60" /> {item.location}
-                    </p>
-                    <p className="text-[11px] text-gray-500 flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5" /> Hace {Math.floor((new Date().getTime() - new Date(item.createdAt).getTime()) / (1000 * 60 * 60 * 24))} días
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
-                    <span className="font-mono text-gold font-bold text-lg">{item.price || 'Consultar'}</span>
-                    <Button asChild variant="ghost" size="sm" className="text-gray-400 hover:text-white border border-transparent hover:border-border rounded-lg">
-                      <Link href={
-                        item.type === 'SPACE' ? `/anuncios/${item.id}` :
-                        item.type === 'SERVICE' ? `/servicios/${item.id}` :
-                        `/empleos/${item.id}`
-                      }>Ver más</Link>
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                    <div className="flex flex-1 flex-col gap-3 p-5">
+                      <p className="text-xs font-medium capitalize text-gold">{item.category.toLowerCase()}</p>
+                      <h3 className="line-clamp-2 font-semibold text-[var(--text-primary)]">{item.title}</h3>
+                      <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--text-secondary)]">
+                        <span className="inline-flex items-center gap-1.5">
+                          <MapPin className="h-3.5 w-3.5" aria-hidden />
+                          {item.location}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <Clock className="h-3.5 w-3.5" aria-hidden />
+                          {daysAgo(item.createdAt)}
+                        </span>
+                      </div>
+                      <p className="mv-data border-t border-[var(--mv-hairline)] pt-3 text-base text-[var(--text-primary)]">{item.price || "Consultar"}</p>
+                    </div>
+                  </Link>
+                </Reveal>
+              );
+            })}
+          </ul>
         )}
-      </div>
-    </section>
+      </Container>
+    </Section>
   );
 }
 
-export function HomeStats() {
-  const stats = [
-    { label: "Espacios Disponibles", val: "2,500+", icon: Globe },
-    { label: "Servicios Activos", val: "10k+", icon: Zap },
-    { label: "Empresas", val: "500+", icon: Shield },
-    { label: "Países", val: "15", icon: TrendingUp },
+/* ------------------------------------------------------------------ */
+/* Trust: only things a visitor can check                              */
+/* ------------------------------------------------------------------ */
+
+export function HomeTrust({ facts }: { facts: { value: string; label: string }[] }) {
+  const principles = [
+    { title: "Cada dato cita su fuente", body: "Pwn y Kosher muestran de dónde salió cada hallazgo o cada estado. Una afirmación sin verificar no se presenta como hecho." },
+    { title: "Tu primer alquiler, sin comisión", body: "En Ads, el primer alquiler de cada espacio no paga comisión de plataforma." },
+    { title: "Hay una persona detrás", body: "Mercav lo construye su fundador desde Santa Cruz. Podés leer quién es y escribirle." },
   ];
+  const stack = ["Stripe", "Have I Been Pwned", "NVD", "CISA KEV", "MapLibre", "PostgreSQL"];
 
   return (
-    <section className="w-full py-24 md:py-28 bg-bg-primary relative overflow-hidden section-transition">
-      {/* Subtle background pattern */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gold/[0.02] blur-[180px] rounded-full" />
-      </div>
+    <Section labelledBy="home-trust">
+      <Container>
+        <SectionHeading
+          id="home-trust"
+          kicker="Confianza"
+          title="Lo que podés comprobar por tu cuenta."
+          lead="Sin logos prestados ni cifras infladas. Estos datos salen de la plataforma en vivo."
+        />
 
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-          {stats.map((stat, i) => (
-            <motion.div 
-              key={i} 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: i * 0.1 }}
-              className="flex flex-col items-center text-center p-6 md:p-8 rounded-2xl border border-transparent hover:border-gold/20 hover:bg-gold/[0.02] transition-all duration-500 group"
-            >
-              <div className="h-12 w-12 rounded-xl bg-gold/5 flex items-center justify-center mb-4 group-hover:bg-gold/10 group-hover:scale-110 transition-all duration-500">
-                <stat.icon className="h-5 w-5 text-gold/60 group-hover:text-gold transition-colors duration-300" />
+        {facts.length > 0 && (
+          <Reveal as="dl" className="mt-12 grid grid-cols-2 gap-x-6 gap-y-8 border-y border-[var(--mv-hairline)] py-10 md:grid-cols-4">
+            {facts.map((f) => (
+              <div key={f.label} className="flex flex-col-reverse gap-1">
+                <dt className="text-sm text-[var(--text-secondary)]">{f.label}</dt>
+                <dd className="font-display text-4xl font-semibold tracking-tight text-[var(--text-primary)] tabular-nums md:text-5xl">{f.value}</dd>
               </div>
-              <span className="font-display text-3xl sm:text-4xl md:text-5xl font-black text-gold mb-2 tracking-tight">{stat.val}</span>
-              <span className="text-[11px] sm:text-sm text-gray-400 uppercase tracking-wider font-medium">{stat.label}</span>
-            </motion.div>
+            ))}
+          </Reveal>
+        )}
+
+        <ul className="mt-12 grid gap-4 md:grid-cols-3">
+          {principles.map((p, i) => (
+            <Reveal as="li" key={p.title} delay={i * 60} className="mv-panel p-6 md:p-7">
+              <h3 className="mv-h3">{p.title}</h3>
+              <p className="mv-body mt-3">{p.body}</p>
+            </Reveal>
           ))}
-        </div>
-      </div>
-    </section>
+        </ul>
+
+        <Reveal className="mt-12 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <p className="text-sm text-[var(--text-secondary)]">Construido sobre</p>
+          <ul className="flex flex-wrap gap-2">
+            {stack.map((s) => (
+              <li key={s} className="mv-chip">
+                {s}
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+        <Reveal className="mt-8">
+          <Link href="/nosotros" className="mv-link inline-flex items-center gap-1.5 text-sm">
+            Conocer al fundador
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        </Reveal>
+      </Container>
+    </Section>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Final CTA                                                           */
+/* ------------------------------------------------------------------ */
 
 export function HomeCTA() {
   return (
-    <section className="blend-from-primary blend-to-primary w-full py-28 md:py-36 bg-bg-secondary relative overflow-hidden section-transition">
-      {/* Background effects */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-gold/10 via-transparent to-transparent opacity-50" />
-        {/* Floating orbs */}
-        <div className="absolute top-20 left-[15%] w-32 h-32 bg-gold/[0.03] rounded-full blur-[80px] float-gentle" style={{ animationDelay: '0s' }} />
-        <div className="absolute bottom-20 right-[20%] w-24 h-24 bg-gold/[0.04] rounded-full blur-[60px] float-gentle" style={{ animationDelay: '3s' }} />
-      </div>
-
-      <div className="container mx-auto px-4 relative z-10 text-center max-w-3xl">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="space-y-8"
-        >
-          <motion.span 
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-gold"
-          >
-            <Star className="h-3.5 w-3.5" />
-            Únete al ecosistema
-          </motion.span>
-          
-          <h2 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[0.95] tracking-tight">
-            Es hora de subir el{' '}
-            <span className="gradient-text-gold">nivel.</span>
-          </h2>
-          <p className="text-gray-400 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
-            Únete a miles de empresas y profesionales en toda Latinoamérica que ya usan Mercav para crecer y conectar sin límites.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <AuthHeroButton label="Crear cuenta gratis" className="w-full max-w-xl" />
+    <Section labelledBy="home-cta">
+      <Container>
+        <Reveal>
+          <div className="liquid-glass relative overflow-hidden rounded-[2rem] px-6 py-16 text-center sm:px-10 md:rounded-[2.75rem] md:py-24">
+            <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-48 mx-auto h-96 max-w-3xl rounded-full bg-gold/20 blur-[100px]" />
+            <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-6">
+              <h2 id="home-cta" className="mv-h2">
+                Abrí tu cuenta y empezá por el módulo que necesitás hoy.
+              </h2>
+              <p className="mv-lead mx-auto">Crear la cuenta es gratis. Los demás módulos te esperan con el mismo perfil.</p>
+              <div className="mt-2 w-full max-w-md">
+                <AuthHeroButton label="Crear cuenta gratis" />
+              </div>
+              <p className="text-sm text-[var(--text-tertiary)]">
+                ¿Ya tenés cuenta?{" "}
+                <Link href="/login" className="mv-link">
+                  Iniciá sesión
+                </Link>
+              </p>
+            </div>
           </div>
-        </motion.div>
-      </div>
-    </section>
+        </Reveal>
+      </Container>
+    </Section>
   );
 }
 // creado por pato dev y askforvini

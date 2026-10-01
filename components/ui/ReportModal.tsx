@@ -97,7 +97,7 @@ export function ReportModal({ isOpen, onClose, targetId, targetType, onSuccess }
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleClose}
-            className="absolute inset-0 bg-black/95 backdrop-blur-[20px]"
+            className="absolute inset-0 bg-black/50"
             style={{ width: "100vw", height: "100vh" }}
           />
 
@@ -106,12 +106,12 @@ export function ReportModal({ isOpen, onClose, targetId, targetType, onSuccess }
             initial={{ opacity: 0, scale: 0.9, y: 40 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 40 }}
-            className="relative bg-[#0d0d0d] border border-white/10 rounded-[3rem] p-8 md:p-12 w-full max-w-lg shadow-[0_0_150px_rgba(255,215,0,0.08)] overflow-hidden"
+            className="mv-menu relative w-full max-w-lg overflow-hidden rounded-[2rem] p-7 md:p-10"
           >
             {/* Close Button */}
             <button
               onClick={handleClose}
-              className="absolute top-6 right-6 p-2.5 rounded-full bg-white/5 text-gray-500 hover:text-white hover:bg-white/10 transition-all z-20"
+              aria-label="Cerrar" className="mv-focus absolute top-4 right-4 z-20 grid h-10 w-10 place-items-center rounded-full text-[var(--text-secondary)] transition-colors hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]"
             >
               <X size={18} />
             </button>
@@ -177,7 +177,7 @@ export function ReportModal({ isOpen, onClose, targetId, targetType, onSuccess }
                           type="text"
                           value={otherText}
                           onChange={(e) => setOtherText(e.target.value.slice(0, 100))}
-                          className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-white text-xs outline-none focus:border-gold/40 transition-all font-medium"
+                          className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-white text-xs outline-none focus:border-gold/40 transition-colors font-medium"
                           placeholder="Describe brevemente la infracción..."
                           maxLength={100}
                         />
@@ -194,7 +194,7 @@ export function ReportModal({ isOpen, onClose, targetId, targetType, onSuccess }
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value.slice(0, 300))}
-                      className="w-full bg-white/[0.02] border border-white/5 rounded-2xl p-4 text-white text-xs outline-none focus:border-gold/40 h-24 resize-none transition-all placeholder:text-gray-700"
+                      className="w-full bg-white/[0.02] border border-white/5 rounded-2xl p-4 text-white text-xs outline-none focus:border-gold/40 h-24 resize-none transition-colors placeholder:text-gray-700"
                       placeholder="Proporciona detalles adicionales para ayudarnos a entender el problema..."
                       maxLength={300}
                     />
@@ -221,7 +221,7 @@ export function ReportModal({ isOpen, onClose, targetId, targetType, onSuccess }
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="flex-1 h-14 rounded-2xl border border-white/10 text-gray-500 hover:text-white font-black uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
+                    className="mv-btn mv-btn-ghost flex-1"
                   >
                     Cancelar
                   </button>
@@ -229,7 +229,7 @@ export function ReportModal({ isOpen, onClose, targetId, targetType, onSuccess }
                     type="button"
                     onClick={handleConfirm}
                     disabled={loading}
-                    className="flex-2 h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest text-[11px] hover:bg-yellow-500 transition-all disabled:opacity-40 shadow-[0_0_30px_rgba(255,215,0,0.1)] flex items-center justify-center gap-2"
+                    className="mv-btn mv-btn-primary flex-[2] disabled:opacity-40 shadow-[0_0_30px_rgba(255,215,0,0.1)] flex items-center justify-center gap-2"
                   >
                     {loading ? (
                       <Loader2 size={16} className="animate-spin" />
@@ -260,7 +260,7 @@ export function ReportModal({ isOpen, onClose, targetId, targetType, onSuccess }
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="px-10 h-14 rounded-2xl border border-white/10 text-white font-black uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
+                  className="mv-btn mv-btn-secondary"
                 >
                   Entendido
                 </button>

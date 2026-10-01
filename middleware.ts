@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { appPathFor, canonicalFor, isNoindexPath } from '@/lib/seo/site';
 import { getToken } from 'next-auth/jwt';
 import type { NextRequest } from 'next/server';
 import { looksLikeInterceptor } from '@/lib/security/unusual-traffic';
@@ -104,7 +105,7 @@ function apiMaySkipSession(req: NextRequest, pathname: string) {
   );
 }
 
-export async function middleware(req: NextRequest) {
+async function handle(req: NextRequest): Promise<NextResponse> {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const host = req.headers.get('host')?.split(':')[0]?.toLowerCase();
   let { pathname } = req.nextUrl;
@@ -180,6 +181,9 @@ export async function middleware(req: NextRequest) {
                        pathname.startsWith('/api/auth') ||
                        pathname.startsWith('/api/location') ||
                        pathname === '/api/security/unusual' ||
+                       pathname.startsWith('/herramientas/') ||
+                       // Public catalog reads already cleared the API gate above; don't bounce them to /login.
+                       (pathname.startsWith('/api/') && apiMaySkipSession(req, pathname)) ||
                        pathname.startsWith('/_next') ||
                        pathname.startsWith('/favicon.ico') ||
                        pathname === '/perfil' ||
@@ -224,7 +228,7 @@ export async function middleware(req: NextRequest) {
   // Protected routes check
   if (!token && !isPublicPath && !isDynamicPublicPath) {
     const loginUrl = new URL('/login', req.url);
-    loginUrl.searchParams.set('callbackUrl', pathname);
+    loginUrl.searchParams.set('callbackUrl', `${pathname}${req.nextUrl.search}`);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -232,7 +236,24 @@ export async function middleware(req: NextRequest) {
 }
 
 
+// Search engines: every HTML response says which URL is canonical (pwn.* and kosher.* own their
+// sections) and private areas are marked noindex.
+export async function middleware(req: NextRequest) {
+  const res = await handle(req);
+  const { pathname } = req.nextUrl;
+  if (req.method === 'GET' && !pathname.startsWith('/api/') && !pathname.startsWith('/_next') && res.status < 300) {
+    const host = req.headers.get('host')?.split(':')[0]?.toLowerCase();
+    const appPath = appPathFor(host, pathname);
+    if (isNoindexPath(appPath)) {
+      res.headers.set('X-Robots-Tag', 'noindex, nofollow');
+    } else {
+      res.headers.set('Link', `<${canonicalFor(appPath)}>; rel="canonical"`);
+    }
+  }
+  return res;
+}
+
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|images|uploads|videos|logo.png|404.html|index.html).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|images|uploads|videos|icons|logo.png|404.html|index.html|robots.txt|sitemap.xml|manifest.webmanifest|icon.png|apple-icon.png|opengraph-image|twitter-image).*)'],
 };
 // creado por pato dev y askforvini

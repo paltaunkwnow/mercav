@@ -1,25 +1,37 @@
 "use client";
 
-import { Store, Printer, ShoppingBag } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Store, Printer, ShoppingBag, CheckCircle2, X, CloudOff, Ban, MessageCircle, Mail, Share2 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useEffect, useState } from 'react';
 import { formatQuantity, getUnit, orderTypeLabel, paymentMethodLabel } from '@/lib/pos/business';
 import { formatMoney } from '@/lib/pos/money';
 import { countryFiscal } from '@/lib/pos/fiscal';
+import { mailtoUrl, ticketText, whatsappUrl } from '@/lib/pos/ticket';
 
 interface InvoiceProps {
   sale: any;
   config: any;
   onClose: () => void;
+  /** Shows "Anular venta" for a saved, non-voided sale. */
+  onVoid?: () => void;
 }
 
-export default function POSInvoice({ sale, config, onClose }: InvoiceProps) {
+export default function POSInvoice({ sale, config, onClose, onVoid }: InvoiceProps) {
   const [mounted, setMounted] = useState(false);
+  const [canShare, setCanShare] = useState(false);
+  const [phone, setPhone] = useState('');
 
   useEffect(() => {
     setMounted(true);
+    setCanShare(typeof navigator !== 'undefined' && typeof navigator.share === 'function');
   }, []);
+
+  // Escape closes the receipt
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
 
   const handlePrint = () => {
     window.print();
@@ -33,16 +45,39 @@ export default function POSInvoice({ sale, config, onClose }: InvoiceProps) {
   const taxIncluded = Math.abs(subtotal - Number(sale.discountAmount) - Number(sale.totalAmount)) < 0.01;
   const payments: { id: string; method: string; amount: unknown; reference?: string | null }[] = sale.payments ?? [];
   const change = Number(sale.changeAmount || 0);
+  const pending = Boolean(sale.pending);
+  const voided = sale.status === 'VOIDED';
+  const text = ticketText(sale, config);
+  const subject = `Ticket ${config.shopName || 'Mercav POS'} #${String(sale.transactionId).slice(-8)}`;
+  const shareTicket = async () => {
+    try {
+      await navigator.share({ title: subject, text });
+    } catch {
+      // The person closed the share sheet.
+    }
+  };
 
   return createPortal(
-    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 invoice-modal-root">
-      <div className="absolute inset-0 bg-black/90 backdrop-blur-md no-print" onClick={onClose} />
+    <div className="fixed inset-0 z-[300] flex items-end justify-center p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:items-center sm:p-4 invoice-modal-root" role="dialog" aria-labelledby="invoice-status">
+      <div className="mv-fade absolute inset-0 bg-black/50 no-print" onClick={onClose} aria-hidden />
       
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="relative w-full max-w-md bg-white text-black p-0 rounded-[3rem] shadow-2xl max-h-[90vh] overflow-hidden no-print-scrollbar"
+      <div
+        className="mv-pop mv-menu relative flex w-full max-w-md flex-col gap-3 rounded-[1.75rem] p-3 max-h-[calc(100dvh-1.5rem)] overflow-hidden no-print-scrollbar print:max-h-none print:overflow-visible print:rounded-none print:border-0 print:bg-none print:bg-transparent print:p-0 print:shadow-none print:backdrop-blur-none"
       >
+        <div className="no-print flex items-center justify-between gap-3 pl-2">
+          <p id="invoice-status" role="status" className="flex items-center gap-2 text-base font-semibold text-[var(--text-primary)]">
+            {voided ? (
+              <><Ban size={20} className="text-red-400" aria-hidden />Venta anulada</>
+            ) : pending ? (
+              <><CloudOff size={20} className="text-amber-500" aria-hidden />Guardada sin conexión</>
+            ) : (
+              <><CheckCircle2 size={20} className="text-green-400" aria-hidden />Venta registrada</>
+            )}
+          </p>
+          <button onClick={onClose} aria-label="Cerrar ticket" className="mv-focus grid h-11 w-11 shrink-0 place-items-center rounded-full text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
+            <X size={20} aria-hidden />
+          </button>
+        </div>
         {/* Printable Area */}
         <style dangerouslySetInnerHTML={{ __html: `
           @media print {
@@ -85,139 +120,193 @@ export default function POSInvoice({ sale, config, onClose }: InvoiceProps) {
           }
         `}} />
 
-        <div id="printable-invoice-container" className="w-full bg-white text-black p-10 rounded-[3rem] shadow-2xl overflow-y-auto max-h-[85vh]">
-          <div className="text-center mb-10">
+        <div id="printable-invoice-container" className="min-h-0 w-full flex-1 overflow-y-auto rounded-[1.25rem] bg-[#fff] p-6 text-[#111] sm:p-8 print:max-h-none print:overflow-visible">
+          <div className="mb-6 text-center">
             {config.logoUrl ? (
-              <img src={config.logoUrl} alt="Logo" className="w-20 h-20 object-contain mx-auto mb-4" />
+              <img src={config.logoUrl} alt="" className="mx-auto mb-3 h-16 w-16 object-contain" />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-black text-white flex items-center justify-center mx-auto mb-4">
-                <Store size={32} />
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#111] text-[#fff]" aria-hidden>
+                <Store size={24} />
               </div>
             )}
-            <h1 className="text-2xl font-black uppercase tracking-tighter">{config.shopName || 'Mercav POS'}</h1>
-            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">{config.address || 'Ubicación no configurada'}</p>
-            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{config.city}, {config.department}</p>
+            <h1 className="text-xl font-bold tracking-tight">{config.shopName || 'Mercav POS'}</h1>
+            <p className="mt-1 text-xs text-[#555]">{config.address || 'Ubicación no configurada'}</p>
+            <p className="text-xs text-[#555]">{config.city}, {config.department}</p>
           </div>
 
-          <div className="border-y-2 border-black/5 py-4 mb-6 space-y-1">
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-              <span>Transacción:</span>
-              <span>#{sale.transactionId}</span>
+          {pending && (
+            <p className="mb-4 rounded-lg border border-dashed border-[#b45309] px-3 py-2 text-center text-xs font-semibold text-[#92400e]">
+              Pendiente de sincronizar. Se registra apenas vuelva la conexión.
+            </p>
+          )}
+          {voided && (
+            <div className="mb-4 rounded-lg border-2 border-[#b91c1c] px-3 py-2 text-center text-[#b91c1c]">
+              <p className="text-sm font-bold">VENTA ANULADA</p>
+              {sale.voidReason && <p className="mt-0.5 text-xs">Motivo: {sale.voidReason}</p>}
             </div>
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-              <span>Fecha:</span>
-              <span>{new Date(sale.createdAt).toLocaleDateString('es-419')}</span>
+          )}
+
+          <dl className="mb-5 space-y-1 border-y border-dashed border-[#bbb] py-3 text-xs">
+            <div className="flex justify-between gap-4">
+              <dt className="text-[#555]">Transacción</dt>
+              <dd className="mv-data">#{sale.transactionId}</dd>
             </div>
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-              <span>Hora:</span>
-              <span>{new Date(sale.createdAt).toLocaleTimeString('es-419', { hour: '2-digit', minute: '2-digit' })}</span>
+            <div className="flex justify-between gap-4">
+              <dt className="text-[#555]">Fecha</dt>
+              <dd className="mv-data">{new Date(sale.createdAt).toLocaleDateString('es-419')}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-[#555]">Hora</dt>
+              <dd className="mv-data">{new Date(sale.createdAt).toLocaleTimeString('es-419', { hour: '2-digit', minute: '2-digit' })}</dd>
             </div>
             {sale.clientNit && (
-              <div className="flex justify-between text-[10px] font-black uppercase tracking-widest border-t border-black/5 pt-2 mt-1">
-                <span>{countryFiscal(config.country).taxIdLabel}:</span>
-                <span>{sale.clientNit}</span>
+              <div className="mt-1 flex justify-between gap-4 border-t border-dashed border-[#ddd] pt-2">
+                <dt className="text-[#555]">{countryFiscal(config.country).taxIdLabel}</dt>
+                <dd className="mv-data">{sale.clientNit}</dd>
               </div>
             )}
             {sale.clientName && (
-              <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                <span>Cliente:</span>
-                <span className="truncate max-w-[180px]">{sale.clientName}</span>
+              <div className="flex justify-between gap-4">
+                <dt className="text-[#555]">Cliente</dt>
+                <dd className="max-w-[180px] truncate">{sale.clientName}</dd>
               </div>
             )}
-          </div>
+          </dl>
 
-          <div className="space-y-4 mb-8">
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest border-b border-black/5 pb-2">
+          <div className="mb-6 space-y-3">
+            <div className="flex justify-between border-b border-[#ddd] pb-2 text-xs font-semibold text-[#555]">
               <span>Descripción</span>
-              <div className="flex gap-8">
-                <span>Cant</span>
+              <div className="flex gap-6">
+                <span>Cant.</span>
                 <span>Subtotal</span>
               </div>
             </div>
             {sale.items.map((item: any) => (
-              <div key={item.id} className="flex justify-between items-start group">
-                <div className="flex-1">
-                   <p className="text-xs font-bold uppercase leading-none">{item.productName || item.product?.name}</p>
-                   <p className="text-[9px] text-gray-400 mt-1">{money(item.unitPrice)}{item.unit && item.unit !== 'UNIT' ? ` / ${getUnit(item.unit).short}` : ''}</p>
+              <div key={item.id} className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                   <p className="text-sm font-semibold leading-tight">{item.productName || item.product?.name}</p>
+                   <p className="mv-data mt-0.5 text-[11px] text-[#555]">{money(item.unitPrice)}{item.unit && item.unit !== 'UNIT' ? ` / ${getUnit(item.unit).short}` : ''}</p>
                 </div>
-                <div className="flex gap-8">
-                   <span className="text-xs font-bold">x{formatQuantity(item.quantity, item.unit)}</span>
-                   <span className="text-xs font-bold">{money(item.subtotal)}</span>
+                <div className="mv-data flex gap-6 text-sm">
+                   <span>x{formatQuantity(item.quantity, item.unit)}</span>
+                   <span className="font-semibold">{money(item.subtotal)}</span>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="space-y-2 border-t-2 border-black pt-4">
-            <div className="flex justify-between text-xs font-bold">
-              <span>SUBTOTAL</span>
-              <span>{money(subtotal)}</span>
+          <div className="space-y-1.5 border-t-2 border-[#111] pt-3 text-sm">
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span className="mv-data">{money(subtotal)}</span>
             </div>
             {Number(sale.discountAmount) > 0 && (
-              <div className="flex justify-between text-xs font-bold text-red-500">
-                <span>DESCUENTO</span>
-                <span>- {money(sale.discountAmount)}</span>
+              <div className="flex justify-between text-[#b91c1c]">
+                <span>Descuento</span>
+                <span className="mv-data">- {money(sale.discountAmount)}</span>
               </div>
             )}
             {tax > 0 && !taxIncluded && (
-              <div className="flex justify-between text-xs font-bold">
-                <span className="uppercase">{config.taxName || 'IVA'}</span>
-                <span>+ {money(tax)}</span>
+              <div className="flex justify-between">
+                <span>{config.taxName || 'IVA'}</span>
+                <span className="mv-data">+ {money(tax)}</span>
               </div>
             )}
-            <div className="flex justify-between text-xl font-black pt-2 border-b-2 border-black pb-2">
-              <span>TOTAL</span>
-              <span>{money(sale.totalAmount)}</span>
+            <div className="flex justify-between border-b-2 border-[#111] pb-2 pt-1 text-xl font-bold">
+              <span>Total</span>
+              <span className="mv-data">{money(sale.totalAmount)}</span>
             </div>
             {tax > 0 && taxIncluded && (
-              <div className="flex justify-between text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+              <div className="flex justify-between text-xs text-[#555]">
                 <span>{config.taxName || 'IVA'} incluido</span>
-                <span>{money(tax)}</span>
+                <span className="mv-data">{money(tax)}</span>
               </div>
             )}
 
             {/* Payment Details */}
-            <div className="pt-4 space-y-1">
+            <div className="space-y-1 pt-3 text-xs text-[#555]">
               {payments.map((p) => (
-                <div key={p.id} className="flex justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
+                <div key={p.id} className="flex justify-between gap-4">
                   <span>{paymentMethodLabel(p.method)}{p.reference ? ` · ${p.reference}` : ''}</span>
-                  <span>{money(p.method === 'CASH' ? Number(p.amount) + change : p.amount)}</span>
+                  <span className="mv-data">{money(p.method === 'CASH' ? Number(p.amount) + change : p.amount)}</span>
                 </div>
               ))}
               {change > 0 && (
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
-                  <span>Cambio Entregado:</span>
-                  <span>{money(change)}</span>
+                <div className="flex justify-between gap-4">
+                  <span>Cambio entregado</span>
+                  <span className="mv-data">{money(change)}</span>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="mt-8 pt-8 border-t border-black/5 text-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-black text-white rounded-full text-[8px] font-black uppercase tracking-widest mb-4">
-              <ShoppingBag size={10} /> {orderTypeLabel(sale.orderType)} {sale.deliveryChannel && `— ${sale.deliveryChannel}`}
+          <div className="mt-6 border-t border-dashed border-[#bbb] pt-5 text-center">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#111] px-3 py-1 text-[11px] font-semibold">
+              <ShoppingBag size={11} aria-hidden /> {orderTypeLabel(sale.orderType)} {sale.deliveryChannel && `— ${sale.deliveryChannel}`}
             </div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">¡Gracias por su compra!</p>
-            <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest mt-6">powered by mercav.lat</p>
-          </div>
-
-          {/* Action Buttons (no-print) - Integrated inside the card */}
-          <div className="mt-10 flex gap-4 no-print">
-            <button
-              onClick={handlePrint}
-              className="flex-1 h-14 bg-black text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-2 hover:bg-gray-900 transition-all active:scale-95"
-            >
-              <Printer size={16} /> Imprimir Ticket
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 h-14 bg-gray-100 text-gray-600 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-2 hover:bg-gray-200 transition-all active:scale-95"
-            >
-              Cerrar
-            </button>
+            <p className="text-xs text-[#555]">¡Gracias por tu compra!</p>
+            <p className="mt-4 text-[10px] text-[#777]">mercav.lat</p>
           </div>
         </div>
-      </motion.div>
+
+        {/* Actions (no-print) */}
+        <div className="no-print grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            autoFocus
+            onClick={handlePrint}
+            className="mv-btn mv-btn-primary mv-btn-lg w-full px-4"
+          >
+            <Printer size={18} aria-hidden /> Imprimir ticket
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="mv-btn mv-btn-lg w-full border border-[var(--mv-hairline-strong)] px-4 text-[var(--text-primary)]"
+          >
+            Nueva venta
+          </button>
+        </div>
+
+        <details className="no-print group rounded-2xl border border-[var(--mv-hairline)] px-3">
+          <summary className="mv-focus flex min-h-11 cursor-pointer list-none [&::-webkit-details-marker]:hidden items-center justify-between gap-2 rounded-xl text-sm font-semibold text-[var(--text-primary)]">
+            Enviar ticket digital
+            <span className="text-xs font-normal text-[var(--text-secondary)]">No guardamos datos del cliente</span>
+          </summary>
+          <div className="space-y-2 pb-3">
+            <label htmlFor="ticket-phone" className="block text-sm font-medium text-[var(--text-secondary)]">WhatsApp del cliente <span className="text-[var(--text-tertiary)]">(opcional)</span></label>
+            <input
+              id="ticket-phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="off"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Con código de país, ej: 5491112345678"
+              className="mv-input mv-data h-11 text-sm placeholder:font-sans"
+            />
+            <div className={`grid gap-2 ${canShare ? 'grid-cols-3' : 'grid-cols-2'}`}>
+              <a href={whatsappUrl(text, phone)} target="_blank" rel="noopener noreferrer" className="mv-btn mv-btn-sm w-full border border-[var(--mv-hairline-strong)] px-2 text-[var(--text-primary)]">
+                <MessageCircle size={16} aria-hidden /> WhatsApp
+              </a>
+              <a href={mailtoUrl(text, subject)} className="mv-btn mv-btn-sm w-full border border-[var(--mv-hairline-strong)] px-2 text-[var(--text-primary)]">
+                <Mail size={16} aria-hidden /> Correo
+              </a>
+              {canShare && (
+                <button type="button" onClick={shareTicket} className="mv-btn mv-btn-sm w-full border border-[var(--mv-hairline-strong)] px-2 text-[var(--text-primary)]">
+                  <Share2 size={16} aria-hidden /> Compartir
+                </button>
+              )}
+            </div>
+          </div>
+        </details>
+
+        {onVoid && !pending && !voided && (
+          <button type="button" onClick={onVoid} className="no-print mv-focus mx-auto inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold text-red-400 hover:bg-red-500/10">
+            <Ban size={16} aria-hidden /> Anular venta
+          </button>
+        )}
+      </div>
     </div>,
     document.body
   );

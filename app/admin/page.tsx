@@ -4,7 +4,11 @@ import { isAdminUser } from "@/lib/admin";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { Shield, Users, FileText, Briefcase, MapPinned, Store, BarChart3, AlertTriangle } from "lucide-react";
+import { ArrowRight, Users, FileText, Briefcase, MapPinned, Store, Flag } from "lucide-react";
+import { BackToSite } from "@/components/admin/AdminNav";
+import { ADMIN_TABS } from "@/components/admin/tabs";
+import { Metric, fmt } from "@/components/admin/ui";
+import { buttonClass } from "@/components/site/primitives";
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
@@ -21,63 +25,76 @@ export default async function AdminPage() {
     prisma.report.count({ where: { status: "PENDING" } }),
   ]);
 
+  const sections = ADMIN_TABS.filter((tab) => tab.id !== "overview");
+
   return (
-    <div className="min-h-screen w-full bg-bg-primary pt-24 pb-20">
-      <div className="container mx-auto max-w-7xl px-4 space-y-8">
-        <div className="rounded-3xl border border-border bg-bg-secondary p-8">
-          <div className="flex items-center gap-3 text-gold"><Shield className="h-5 w-5" /> Panel administrativo</div>
-          <h1 className="mt-3 text-4xl font-bold text-white">Dashboard admin</h1>
-          <p className="mt-2 text-gray-400">Estadísticas globales, revisión de usuarios y moderación de contenido.</p>
-        </div>
+    <div className="min-h-screen w-full bg-bg-primary text-[var(--text-primary)]">
+      <a href="#admin-main" className="mv-skip">Saltar al contenido</a>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
-          <StatCard label="Usuarios" value={users} icon={Users} />
-          <StatCard label="Publicaciones" value={posts} icon={FileText} />
-          <StatCard label="Vacantes" value={jobs} icon={Briefcase} />
-          <StatCard label="Espacios" value={spaces} icon={MapPinned} />
-          <StatCard label="Servicios" value={services} icon={Store} />
-          <StatCard label="Reportes pendientes" value={reports} icon={AlertTriangle} />
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          <AdminCard title="Gestión de usuarios" desc="Buscar, cambiar plan, suspender o reactivar cuentas." href="/api/admin/users" />
-          <AdminCard title="Moderación de posts" desc="Eliminar publicaciones reportadas y marcar destacadas." href="/api/admin/posts" />
-          <AdminCard title="Sistema de reportes" desc="Revisar cola de reportes y resolverlos." href="/api/admin/reports" />
-        </div>
-
-        <div className="rounded-3xl border border-border bg-bg-secondary p-6">
-          <div className="flex items-center gap-3 mb-4"><BarChart3 className="h-5 w-5 text-gold" /><h2 className="text-xl font-semibold text-white">Accesos rápidos</h2></div>
-          <div className="flex flex-wrap gap-3 text-sm">
-            <Link href="/api/admin/stats" className="rounded-full border border-border bg-bg-primary px-4 py-2 text-gray-300 hover:text-white">Stats</Link>
-            <Link href="/api/admin/users" className="rounded-full border border-border bg-bg-primary px-4 py-2 text-gray-300 hover:text-white">Usuarios</Link>
-            <Link href="/api/admin/reports" className="rounded-full border border-border bg-bg-primary px-4 py-2 text-gray-300 hover:text-white">Reportes</Link>
+      <div className="sticky top-0 z-30 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-4">
+        <div className="liquid-glass mx-auto flex h-14 max-w-[76rem] items-center justify-between gap-3 rounded-[1.25rem] px-3">
+          <div className="flex items-center gap-2.5 pl-1">
+            <span aria-hidden className="flex h-7 w-7 items-center justify-center rounded-[0.5rem] bg-gold font-display text-xs font-semibold text-[var(--mv-on-gold)]">
+              M
+            </span>
+            <span className="text-sm font-semibold">Consola de administración</span>
           </div>
+          <BackToSite />
         </div>
       </div>
-    </div>
-  );
-}
 
-function StatCard({ label, value, icon: Icon }: { label: string; value: number; icon: any }) {
-  return (
-    <div className="rounded-3xl border border-border bg-bg-secondary p-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-[0.25em] text-gray-500">{label}</div>
-          <div className="mt-2 text-3xl font-bold text-white">{value}</div>
-        </div>
-        <Icon className="h-6 w-6 text-gold" />
-      </div>
-    </div>
-  );
-}
+      <main id="admin-main" className="mv-container flex flex-col gap-10 pb-16 pt-10 md:pt-14">
+        <header className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div className="flex flex-col gap-3">
+            <p className="mv-kicker">Administración</p>
+            <h1 className="font-display text-[2rem] font-semibold leading-tight tracking-[-0.025em] md:text-[2.5rem]">Estado de la plataforma</h1>
+            <p className="max-w-2xl text-[0.9375rem] text-[var(--text-secondary)]">
+              Totales en vivo de la base de datos. Entrá a la consola para moderar, revisar finanzas y ajustar la configuración.
+            </p>
+          </div>
+          <Link href="/admin/dashboard" className={buttonClass("primary", "md", "w-full sm:w-auto")}>
+            Abrir la consola <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        </header>
 
-function AdminCard({ title, desc, href }: { title: string; desc: string; href: string }) {
-  return (
-    <Link href={href} className="rounded-3xl border border-border bg-bg-secondary p-6 hover:border-gold/40 transition-colors">
-      <h3 className="text-lg font-semibold text-white">{title}</h3>
-      <p className="mt-2 text-sm text-gray-400">{desc}</p>
-    </Link>
+        <section aria-labelledby="totals-title" className="flex flex-col gap-3">
+          <h2 id="totals-title" className="text-sm font-semibold text-[var(--text-secondary)]">Totales</h2>
+          <dl className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+            <Metric label="Usuarios" value={fmt.number(users)} icon={Users} />
+            <Metric label="Publicaciones" value={fmt.number(posts)} icon={FileText} />
+            <Metric label="Vacantes" value={fmt.number(jobs)} icon={Briefcase} />
+            <Metric label="Espacios" value={fmt.number(spaces)} icon={MapPinned} />
+            <Metric label="Servicios" value={fmt.number(services)} icon={Store} />
+            <Metric label="Reportes pendientes" value={fmt.number(reports)} icon={Flag} tone={reports > 0 ? "danger" : "neutral"} />
+          </dl>
+        </section>
+
+        <section aria-labelledby="sections-title" className="flex flex-col gap-3">
+          <h2 id="sections-title" className="text-sm font-semibold text-[var(--text-secondary)]">Secciones de la consola</h2>
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {sections.map(({ id, title, lead, icon: Icon }) => (
+              <li key={id}>
+                <Link
+                  href={`/admin/dashboard?tab=${id}`}
+                  className="mv-panel mv-panel-interactive mv-focus group flex h-full items-start gap-4 rounded-[1.25rem] p-5"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--mv-hairline-strong)] text-gold">
+                    <Icon className="h-4 w-4" aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center justify-between gap-2 font-semibold text-[var(--text-primary)]">
+                      {title}
+                      <ArrowRight className="h-4 w-4 shrink-0 text-[var(--text-tertiary)] transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
+                    </span>
+                    <span className="mt-1 block text-sm text-[var(--text-secondary)]">{lead}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </main>
+    </div>
   );
 }
 // creado por pato dev y askforvini

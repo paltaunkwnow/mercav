@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Search, MapPin, MonitorPlay, Maximize, Filter, ArrowRight, Star, X, Check, Sparkles, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { CustomSelect } from "@/components/ui/CustomSelect";
-import { TiltCard } from "@/components/motion/TiltCard";
+import { Search, MapPin, Lightbulb, Megaphone, CalendarRange, CreditCard, BadgePercent, SlidersHorizontal, X, Eye } from "lucide-react";
+import { Container, PageHero, ButtonLink, buttonClass } from "@/components/site/primitives";
+import { ChoiceMenu } from "@/components/anuncios/ChoiceMenu";
+import { CardSkeletonGrid, EmptyState, MediaFrame, SPACE_TYPE_LABEL, formatMoney, labelFor } from "@/components/anuncios/market-ui";
+import { cn } from "@/lib/utils";
 
 const normalizeStr = (str: string) => {
   if (!str) return "";
@@ -34,37 +34,31 @@ const LATAM_LOCATIONS: Record<string, string[]> = {
 };
 
 const CATEGORIES = [
-  { value: "VALLA", label: "Valla Estática" },
-  { value: "PANTALLA", label: "Pantalla Digital" },
+  { value: "VALLA", label: "Valla" },
+  { value: "PANTALLA", label: "Pantalla digital" },
   { value: "LETRERO", label: "Letrero" },
-  { value: "VIDRIERA", label: "Vidriera / Local" },
+  { value: "VIDRIERA", label: "Vidriera / local" },
   { value: "AUTO", label: "Transporte" },
+];
+
+const SORTS = [
+  { value: "Recomendados", label: "Recomendados" },
+  { value: "Precio: Menor a Mayor", label: "Precio: menor a mayor" },
+  { value: "Precio: Mayor a Menor", label: "Precio: mayor a menor" },
+  { value: "Más Vistos", label: "Más tránsito estimado" },
+];
+
+const HOW = [
+  { icon: Search, title: "Elegí el espacio", body: "Filtrá por ciudad, tipo de soporte y presupuesto." },
+  { icon: CalendarRange, title: "Reservá fechas libres", body: "Cada espacio muestra su calendario de ocupación." },
+  { icon: CreditCard, title: "Pagá con Stripe", body: "Tu primer alquiler no paga comisión de plataforma." },
 ];
 
 export default function AnunciosPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
-  
-  // Custom dropdown states & refs
-  const countryRef = useRef<HTMLDivElement>(null);
-  const cityRef = useRef<HTMLDivElement>(null);
-  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
-  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (countryRef.current && !countryRef.current.contains(event.target as Node)) {
-        setCountryDropdownOpen(false);
-      }
-      if (cityRef.current && !cityRef.current.contains(event.target as Node)) {
-        setCityDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-  
   // Applied filters states (triggered only on clicking search/filtering)
   const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
   const [appliedCountry, setAppliedCountry] = useState("");
@@ -183,410 +177,280 @@ export default function AnunciosPage() {
     setAppliedCity("");
   };
 
-  return (
-    <div className="w-full min-h-screen bg-bg-primary pb-20 section-transition">
-      {/* Hero Section */}
-      <section className="relative w-full pt-28 md:pt-32 pb-20 md:pb-24 overflow-visible border-b border-white/5 z-20">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-gold/[0.04] blur-[200px] rounded-full" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gold/10 via-bg-primary to-bg-primary z-0" />
-        </div>
-        
-        <div className="container mx-auto px-4 relative z-10 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <motion.span
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-gold mb-6"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              Mercav Ads
-            </motion.span>
-            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white mb-6 tracking-tight">
-              Encuentra el <span className="gradient-text-gold">espacio ideal</span><br className="hidden sm:block" /> para tu marca.
-            </h1>
-            <p className="text-base md:text-lg text-gray-400 max-w-2xl mx-auto mb-10 md:mb-12 leading-relaxed">
-              Vallas, pantallas y espacios estratégicos en toda la región. Filtra y reserva en segundos.
-            </p>
-          </motion.div>
+  const hasFilters =
+    selectedCategories.length > 0 || !!minPrice || !!maxPrice || !!appliedSearchQuery || !!appliedCountry || !!appliedCity;
+  const count = filteredAndSortedSpaces.length;
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="liquid-glass-lens max-w-5xl mx-auto relative flex flex-col md:flex-row items-stretch p-2 rounded-2xl md:rounded-3xl glassmorphism gap-2 md:gap-0 z-30"
+  return (
+    <div className="w-full bg-bg-primary">
+      <PageHero
+        kicker="Mercav Ads"
+        title={
+          <>
+            Publicidad física, <span className="mv-gold-text">con fechas a la vista.</span>
+          </>
+        }
+        lead="Vallas, pantallas, letreros y vidrieras en Latinoamérica. Mirá el calendario de cada espacio, reservá las fechas libres y pagá con Stripe."
+        actions={
+          <>
+            <ButtonLink href="/anuncios/publicar" size="lg" className="w-full sm:w-auto">
+              Publicar un espacio
+            </ButtonLink>
+            <ButtonLink href="/anuncios/mis-espacios" tone="secondary" size="lg" className="w-full sm:w-auto">
+              Mis espacios
+            </ButtonLink>
+          </>
+        }
+        aside={
+          <ol className="mv-panel flex flex-col gap-5 p-6 md:p-7" aria-label="Cómo funciona">
+            {HOW.map(({ icon: Icon, title, body }, i) => (
+              <li key={title} className="flex items-start gap-4">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-[var(--mv-hairline)] text-gold">
+                  <Icon className="h-[18px] w-[18px]" aria-hidden />
+                </span>
+                <div className="flex flex-col gap-0.5">
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">
+                    <span className="mv-data mr-2 text-[var(--text-tertiary)]">0{i + 1}</span>
+                    {title}
+                  </p>
+                  <p className="text-sm text-[var(--text-secondary)]">{body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        }
+      />
+
+      <section aria-labelledby="ads-results" className="pb-14 md:pb-24">
+        <Container>
+          {/* Search bar: floats while you browse the results */}
+          <form
+            role="search"
+            aria-label="Buscar espacios"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSearch();
+            }}
+            className="mv-menu relative z-30 grid gap-1 rounded-[1.5rem] p-2 md:sticky md:top-[5.5rem] md:grid-cols-[1.4fr_1fr_1fr_auto] md:items-center md:rounded-full"
           >
-            {/* Search Input */}
-            <div className="flex-[1.2] min-w-0 flex items-center px-4 md:px-6 border-b md:border-b-0 md:border-r border-white/5">
-              <Search className="h-5 w-5 text-gold mr-3 md:mr-4 flex-shrink-0" />
-              <input 
-                type="text" 
-                placeholder="¿Qué buscas? (Ej. Pantalla LED)" 
-                className="w-full bg-transparent border-none text-white focus:outline-none focus:ring-0 placeholder-gray-600 h-12 md:h-14 text-sm"
+            <label className="flex h-12 min-w-0 items-center gap-3 rounded-full px-4 focus-within:bg-[var(--mv-panel-hover)]">
+              <Search className="h-4 w-4 shrink-0 text-gold" aria-hidden />
+              <span className="sr-only">Qué buscás</span>
+              <input
+                type="search"
+                placeholder="Pantalla LED, valla en avenida…"
+                className="h-full w-full min-w-0 bg-transparent text-[0.9375rem] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)]"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleSearch();
-                  }
+                enterKeyHint="search"
+              />
+            </label>
+            <div className="grid grid-cols-2 gap-1 md:contents">
+              <ChoiceMenu
+                label="País"
+                hideLabel
+                variant="bare"
+                icon={MapPin}
+                value={selectedCountry}
+                allLabel="Todos los países"
+                options={uniqueCountries}
+                onChange={(v) => {
+                  setSelectedCountry(v);
+                  setSelectedCity("");
                 }}
               />
-            </div>
-
-            {/* Selector País */}
-            <div className="flex-[0.9] min-w-0 flex items-center px-4 md:px-6 border-b md:border-b-0 md:border-r border-white/5 relative group" ref={countryRef}>
-              <MapPin className="h-5 w-5 text-gold mr-3 md:mr-4 flex-shrink-0" />
-              <button
-                type="button"
-                onClick={() => {
-                  setCountryDropdownOpen(!countryDropdownOpen);
-                  setCityDropdownOpen(false);
-                }}
-                className="w-full bg-transparent border-none text-white focus:outline-none focus:ring-0 h-12 md:h-14 cursor-pointer text-sm font-medium text-left flex items-center justify-between pr-4 select-none"
-              >
-                <span className="truncate">{selectedCountry || "Todos los Países"}</span>
-                <ChevronDown className={`h-4 w-4 text-gray-500 group-hover:text-gold transition-colors transition-transform duration-300 ${countryDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-              
-              <AnimatePresence>
-                {countryDropdownOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 8, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                    className="absolute left-0 right-0 top-full z-[999] max-h-64 overflow-y-auto rounded-2xl border border-white/10 bg-[#1A1A1A] p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-3xl mt-1.5 scrollbar-thin scrollbar-thumb-white/10"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedCountry("");
-                        setSelectedCity("");
-                        setCountryDropdownOpen(false);
-                      }}
-                      className={`flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-left text-xs transition-all duration-200 ${
-                        !selectedCountry ? "bg-gold text-black font-bold" : "text-gray-400 hover:bg-white/5 hover:text-white"
-                      }`}
-                    >
-                      <span>Todos los Países</span>
-                      {!selectedCountry && <Check className="h-3.5 w-3.5" />}
-                    </button>
-                    {uniqueCountries.map((country) => (
-                      <button
-                        key={country}
-                        type="button"
-                        onClick={() => {
-                          setSelectedCountry(country);
-                          setSelectedCity("");
-                          setCountryDropdownOpen(false);
-                        }}
-                        className={`flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-left text-xs transition-all duration-200 ${
-                          selectedCountry === country ? "bg-gold text-black font-bold" : "text-gray-400 hover:bg-white/5 hover:text-white"
-                        }`}
-                      >
-                        <span>{country}</span>
-                        {selectedCountry === country && <Check className="h-3.5 w-3.5" />}
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Selector Ciudad */}
-            <div className="flex-[0.9] min-w-0 flex items-center px-4 md:px-6 relative group" ref={cityRef}>
-              <MapPin className="h-5 w-5 text-gold mr-3 md:mr-4 flex-shrink-0" />
-              <button
-                type="button"
+              <ChoiceMenu
+                label="Ciudad"
+                hideLabel
+                variant="bare"
+                icon={MapPin}
+                value={selectedCity}
+                allLabel="Todas las ciudades"
+                options={uniqueCities}
                 disabled={!selectedCountry}
-                onClick={() => {
-                  setCityDropdownOpen(!cityDropdownOpen);
-                  setCountryDropdownOpen(false);
-                }}
-                className="w-full bg-transparent border-none text-white focus:outline-none focus:ring-0 h-12 md:h-14 cursor-pointer text-sm font-medium text-left flex items-center justify-between pr-4 disabled:opacity-50 disabled:cursor-not-allowed select-none"
-              >
-                <span className="truncate">
-                  {!selectedCountry 
-                    ? "Selecciona un país primero" 
-                    : (selectedCity || "Todas las Ciudades")
-                  }
-                </span>
-                <ChevronDown className={`h-4 w-4 text-gray-500 group-hover:text-gold transition-colors transition-transform duration-300 ${cityDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-              
-              <AnimatePresence>
-                {cityDropdownOpen && selectedCountry && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 8, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                    className="absolute left-0 right-0 top-full z-[999] max-h-64 overflow-y-auto rounded-2xl border border-white/10 bg-[#1A1A1A] p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-3xl mt-1.5 scrollbar-thin scrollbar-thumb-white/10"
-                  >
+                disabledText="Elegí un país"
+                onChange={setSelectedCity}
+              />
+            </div>
+            <button type="submit" className={buttonClass("primary", "md", "w-full md:w-auto")}>
+              Buscar
+            </button>
+          </form>
+
+          {/* Refine */}
+          <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <fieldset className="min-w-0">
+              <legend className="mb-2 text-sm font-semibold text-[var(--text-primary)]">Tipo de soporte</legend>
+              <div className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+                {CATEGORIES.map((cat) => {
+                  const on = selectedCategories.includes(cat.value);
+                  return (
                     <button
+                      key={cat.value}
                       type="button"
-                      onClick={() => {
-                        setSelectedCity("");
-                        setCityDropdownOpen(false);
-                      }}
-                      className={`flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-left text-xs transition-all duration-200 ${
-                        !selectedCity ? "bg-gold text-black font-bold" : "text-gray-400 hover:bg-white/5 hover:text-white"
-                      }`}
+                      aria-pressed={on}
+                      onClick={() => toggleCategory(cat.value)}
+                      className={cn(
+                        "mv-focus h-10 shrink-0 rounded-full border px-4 text-sm font-medium transition-colors duration-200",
+                        on
+                          ? "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-[var(--text-primary)]"
+                          : "border-[var(--mv-hairline-strong)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
+                      )}
                     >
-                      <span>Todas las Ciudades</span>
-                      {!selectedCity && <Check className="h-3.5 w-3.5" />}
+                      {cat.label}
                     </button>
-                    {uniqueCities.map((city) => (
-                      <button
-                        key={city}
-                        type="button"
-                        onClick={() => {
-                          setSelectedCity(city);
-                          setCityDropdownOpen(false);
-                        }}
-                        className={`flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-left text-xs transition-all duration-200 ${
-                          selectedCity === city ? "bg-gold text-black font-bold" : "text-gray-400 hover:bg-white/5 hover:text-white"
-                        }`}
-                      >
-                        <span>{city}</span>
-                        {selectedCity === city && <Check className="h-3.5 w-3.5" />}
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-            <Button 
-              onClick={handleSearch}
-              className="h-12 md:h-14 px-8 md:px-10 rounded-xl md:rounded-2xl bg-gold text-black font-black uppercase tracking-widest text-[11px] hover:bg-gold-light transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              Explorar
-            </Button>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Main Content */}
-      <section className="container mx-auto px-4 py-12 md:py-16">
-        <div className="flex flex-col xl:flex-row gap-8 md:gap-10">
-          {/* Filters Sidebar */}
-          <aside className="w-full xl:w-80 flex-shrink-0">
-            <div className="bg-bg-secondary/50 border border-white/5 rounded-2xl md:rounded-3xl p-6 md:p-8 sticky top-24 shadow-xl glassmorphism">
-              <div className="flex items-center justify-between mb-6 md:mb-8">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-gold" />
-                  <h3 className="font-black uppercase tracking-widest text-xs md:text-sm text-white">Filtros</h3>
-                </div>
-                {(selectedCategories.length > 0 || minPrice || maxPrice) && (
-                  <button onClick={clearFilters} className="text-[10px] text-gold uppercase tracking-widest font-bold hover:underline">Limpiar</button>
-                )}
+                  );
+                })}
               </div>
-              
-              <div className="space-y-8 md:space-y-10">
-                <div>
-                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 md:mb-5">Categoría</h4>
-                  <div className="space-y-2 md:space-y-3">
-                    {CATEGORIES.map(cat => {
-                      const isSelected = selectedCategories.includes(cat.value);
-                      return (
-                        <button 
-                          key={cat.value} 
-                          onClick={() => toggleCategory(cat.value)}
-                          className={`w-full flex items-center justify-between p-3 md:p-4 rounded-xl md:rounded-2xl border transition-all duration-300 text-left group ${
-                            isSelected ? "bg-gold/10 border-gold/40 text-white" : "bg-bg-primary/50 border-white/5 text-gray-400 hover:border-white/10"
-                          }`}
-                        >
-                          <span className="text-sm font-medium">{cat.label}</span>
-                          <div className={`h-5 w-5 rounded-lg border flex items-center justify-center transition-all duration-300 ${
-                            isSelected ? "bg-gold border-gold text-black" : "border-gray-700 group-hover:border-gray-500"
-                          }`}>
-                            {isSelected && <Check className="h-3 w-3" />}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+            </fieldset>
 
-                <div>
-                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 md:mb-5">Rango de Precio</h4>
-                  <div className="grid grid-cols-2 gap-3 md:gap-4">
-                    <div className="relative">
-                      <span className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gold font-bold text-xs">$</span>
-                      <input 
-                        type="number" 
-                        placeholder="Mín" 
-                        value={minPrice}
-                        onChange={(e) => setMinPrice(e.target.value)}
-                        className="w-full bg-bg-primary/50 border border-white/5 rounded-xl h-11 md:h-12 pl-7 md:pl-8 pr-3 md:pr-4 text-white text-xs outline-none focus:border-gold/30 focus:ring-1 focus:ring-gold/10 transition-all"
-                      />
-                    </div>
-                    <div className="relative">
-                      <span className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gold font-bold text-xs">$</span>
-                      <input 
-                        type="number" 
-                        placeholder="Máx" 
-                        value={maxPrice}
-                        onChange={(e) => setMaxPrice(e.target.value)}
-                        className="w-full bg-bg-primary/50 border border-white/5 rounded-xl h-11 md:h-12 pl-7 md:pl-8 pr-3 md:pr-4 text-white text-xs outline-none focus:border-gold/30 focus:ring-1 focus:ring-gold/10 transition-all"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </aside>
-
-          {/* Results List */}
-          <div className="flex-1">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 md:mb-10">
-              <p className="text-gray-400 text-sm">
-                Encontramos <span className="text-white font-bold">{filteredAndSortedSpaces.length}</span> espacios que coinciden con tu búsqueda
-              </p>
-              <div className="w-full sm:w-72">
-                <CustomSelect
-                  value={sortBy}
-                  onChange={(val) => setSortBy(val)}
-                  options={[
-                    { value: "Recomendados", label: "Recomendados" },
-                    { value: "Precio: Menor a Mayor", label: "Precio: Menor a Mayor" },
-                    { value: "Precio: Mayor a Menor", label: "Precio: Mayor a Menor" },
-                    { value: "Más Vistos", label: "Más Vistos" },
-                  ]}
+            <div className="grid grid-cols-2 gap-3 sm:flex sm:items-end">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="ads-min" className="text-sm font-semibold text-[var(--text-primary)]">
+                  Precio mín. / mes
+                </label>
+                <input
+                  id="ads-min"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  placeholder="US$ 0"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  className="mv-input mv-data sm:w-36"
                 />
               </div>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="ads-max" className="text-sm font-semibold text-[var(--text-primary)]">
+                  Precio máx. / mes
+                </label>
+                <input
+                  id="ads-max"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  placeholder="Sin tope"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  className="mv-input mv-data sm:w-36"
+                />
+              </div>
+              <ChoiceMenu label="Ordenar" value={sortBy} options={SORTS} onChange={setSortBy} className="col-span-2 sm:w-60" />
             </div>
+          </div>
 
+          <div className="mv-divider mt-8" aria-hidden />
+
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <h2 id="ads-results" className="text-sm text-[var(--text-secondary)]" aria-live="polite">
+              {loading ? (
+                "Buscando espacios…"
+              ) : (
+                <>
+                  <span className="mv-data font-semibold text-[var(--text-primary)]">{count}</span>{" "}
+                  {count === 1 ? "espacio disponible" : "espacios disponibles"}
+                </>
+              )}
+            </h2>
+            {hasFilters ? (
+              <button type="button" onClick={clearFilters} className={buttonClass("ghost", "sm")}>
+                <X className="h-4 w-4" aria-hidden />
+                Limpiar filtros
+              </button>
+            ) : null}
+          </div>
+
+          <div className="mt-6">
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-32 space-y-4">
-                <div className="relative h-12 w-12">
-                  <div className="absolute inset-0 rounded-full border-2 border-gold/10"></div>
-                  <div className="absolute inset-0 rounded-full border-t-2 border-gold animate-spin"></div>
-                </div>
-                <p className="text-gray-500 text-xs uppercase tracking-[0.3em] font-black">Cargando ecosistema...</p>
-              </div>
-            ) : filteredAndSortedSpaces.length === 0 ? (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-24 md:py-32 bg-bg-secondary/50 rounded-3xl border border-dashed border-white/10 glassmorphism"
-              >
-                <div className="bg-bg-tertiary h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-6 float-gentle">
-                  <Search className="h-8 w-8 text-gray-700" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">No encontramos resultados</h3>
-                <p className="text-gray-500 text-sm">Intenta ajustar los filtros para encontrar lo que buscas.</p>
-                <Button onClick={clearFilters} variant="link" className="mt-4 text-gold font-bold uppercase tracking-widest text-xs">Ver todo</Button>
-              </motion.div>
+              <CardSkeletonGrid />
+            ) : spaces.length === 0 ? (
+              <EmptyState
+                icon={Megaphone}
+                title="Todavía no hay espacios publicados"
+                body="Si tenés una valla, una pantalla o una vidriera, publicala primero: las marcas te encuentran acá y tu primer alquiler no paga comisión de plataforma."
+                action={
+                  <ButtonLink href="/anuncios/publicar" className="w-full sm:w-auto">
+                    Publicar el primer espacio
+                  </ButtonLink>
+                }
+                secondary={
+                  <ButtonLink href="/servicios" tone="ghost" className="w-full sm:w-auto">
+                    Ver Services
+                  </ButtonLink>
+                }
+              />
+            ) : count === 0 ? (
+              <EmptyState
+                icon={SlidersHorizontal}
+                title="Ningún espacio coincide con estos filtros"
+                body="Probá con otra ciudad, sumá tipos de soporte o ampliá el rango de precio."
+                action={
+                  <button type="button" onClick={clearFilters} className={buttonClass("secondary", "md", "w-full sm:w-auto")}>
+                    Limpiar filtros
+                  </button>
+                }
+              />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-                <AnimatePresence mode="popLayout">
-                  {filteredAndSortedSpaces.map((space, i) => (
-                    <motion.div 
-                      layout
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.3, delay: i * 0.04 }}
-                      key={space.id} 
-                      className="group relative"
-                    >
-                      <div className="absolute -inset-0.5 bg-gradient-to-r from-gold/0 via-gold/15 to-gold/0 rounded-3xl opacity-0 group-hover:opacity-100 transition duration-500 blur-xl"></div>
-                      <TiltCard className="bg-bg-secondary/60 border border-white/5 rounded-3xl overflow-hidden transition-colors duration-500 hover:border-gold/30 h-full flex flex-col shadow-xl glassmorphism">
-                        {/* Image Header */}
-                        <div className="relative h-52 md:h-64 w-full overflow-hidden bg-bg-tertiary">
-                          <img 
-                            src={space.images?.[0]?.url || "https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=1000"} 
-                            alt={space.title} 
-                            className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-bg-secondary via-transparent to-transparent opacity-70"></div>
-                          
-                          <div className="absolute top-4 md:top-5 left-4 md:left-5 bg-black/60 backdrop-blur-xl border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] px-3 md:px-4 py-1.5 md:py-2 rounded-xl">
-                            {CATEGORIES.find(c => c.value === space.type)?.label || space.type}
-                          </div>
-                          
-                          {space.hasLighting && (
-                            <div className="absolute top-4 md:top-5 right-4 md:right-5 bg-gold/90 text-black p-2 rounded-xl shadow-xl shadow-gold/20">
-                              <Zap size={14} className="fill-current" />
-                            </div>
-                          )}
+              <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                {filteredAndSortedSpaces.map((space) => {
+                  const price = formatMoney(space.pricePerMonth, space.currency);
+                  return (
+                    <li key={space.id} className="mv-panel mv-panel-interactive group relative flex flex-col overflow-hidden">
+                      <MediaFrame src={space.images?.[0]?.url} alt="" icon={Megaphone}>
+                        <div className="absolute inset-x-3 top-3 flex items-start justify-between gap-2">
+                          <span className="mv-chip border-white/15 bg-black/55 text-white backdrop-blur-md">
+                            {labelFor(SPACE_TYPE_LABEL, space.type)}
+                          </span>
+                          {space.hasLighting ? (
+                            <span className="mv-chip border-white/15 bg-black/55 text-white backdrop-blur-md">
+                              <Lightbulb className="h-3.5 w-3.5 text-gold" aria-hidden />
+                              Iluminado
+                            </span>
+                          ) : null}
                         </div>
-
-                        {/* Content */}
-                        <div className="p-6 md:p-8 flex-1 flex flex-col">
-                          <div className="flex items-start justify-between mb-4">
-                            <div>
-                              <h3 className="font-bold text-lg md:text-xl text-white leading-tight group-hover:text-gold transition-colors duration-300 line-clamp-1">{space.title}</h3>
-                              <div className="flex items-center gap-2 text-gray-500 text-xs mt-2 uppercase tracking-widest font-semibold">
-                                <MapPin className="h-3 w-3 text-gold/60" />
-                                {space.city}, {space.country}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 md:px-3 py-1 md:py-1.5 rounded-xl flex-shrink-0">
-                              <Star className="h-3.5 w-3.5 text-gold fill-gold" />
-                              <span className="text-white font-bold text-xs">4.9</span>
-                            </div>
-                          </div>
-
-                          <p className="text-gray-400 text-sm line-clamp-2 mb-6 md:mb-8 leading-relaxed">
-                            {space.description}
+                      </MediaFrame>
+                      <div className="flex flex-1 flex-col gap-3 p-5">
+                        <div className="flex flex-col gap-1.5">
+                          <h3 className="line-clamp-2 font-display text-lg font-semibold leading-snug tracking-tight text-[var(--text-primary)]">
+                            <Link href={`/anuncios/${space.id}`} className="outline-none after:absolute after:inset-0 after:rounded-[1.5rem] focus-visible:after:ring-2 focus-visible:after:ring-gold">
+                              {space.title}
+                            </Link>
+                          </h3>
+                          <p className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
+                            <MapPin className="h-3.5 w-3.5 shrink-0 text-gold" aria-hidden />
+                            <span className="truncate">
+                              {[space.city, space.country].filter(Boolean).join(", ")}
+                            </span>
                           </p>
-                          
-                          <div className="mt-auto pt-5 md:pt-6 border-t border-white/5">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black mb-1">Inversión Mensual</p>
-                                <p className="text-xl md:text-2xl font-mono font-bold text-white">
-                                  <span className="text-gold">$</span>{space.pricePerMonth}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black mb-1">Impacto Bruto</p>
-                                <p className="text-sm font-bold text-gray-300">
-                                  {space.trafficEstimate ? `${(space.trafficEstimate / 1000).toFixed(0)}K` : "120K"} <span className="text-[10px] opacity-50 uppercase">vistas</span>
-                                </p>
-                              </div>
-                            </div>
-
-                            <Button asChild className="w-full mt-6 md:mt-8 bg-white/[0.03] hover:bg-gold hover:text-black text-white border border-white/10 hover:border-gold rounded-xl md:rounded-2xl h-12 md:h-14 font-black uppercase tracking-widest text-[10px] transition-all duration-300 hover:shadow-lg hover:shadow-gold/20">
-                              <Link href={`/anuncios/${space.id}`}>Gestionar / Ver Detalles</Link>
-                            </Button>
-                          </div>
                         </div>
-                      </TiltCard>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
+                        {space.isFirstRentalFree ? (
+                          <span className="mv-chip mv-chip-gold w-fit">
+                            <BadgePercent className="h-3.5 w-3.5" aria-hidden />
+                            Primer alquiler sin comisión
+                          </span>
+                        ) : null}
+                        <div className="mt-auto flex items-end justify-between gap-3 border-t border-[var(--mv-hairline)] pt-4">
+                          <p className="flex flex-col">
+                            <span className="text-xs text-[var(--text-tertiary)]">Por mes</span>
+                            <span className="mv-data text-lg font-semibold text-[var(--text-primary)]">{price ?? "A consultar"}</span>
+                          </p>
+                          {space.trafficEstimate ? (
+                            <p className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
+                              <Eye className="h-3.5 w-3.5" aria-hidden />
+                              <span className="mv-data">{Number(space.trafficEstimate).toLocaleString("es")}</span> vistas/mes
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </div>
-        </div>
+        </Container>
       </section>
     </div>
-  );
-}
-
-function Zap({ size, className }: { size: number, className: string }) {
-  return (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-    >
-      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-    </svg>
   );
 }
 // creado por pato dev y askforvini

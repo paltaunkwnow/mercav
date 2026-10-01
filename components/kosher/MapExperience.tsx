@@ -119,34 +119,46 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
         <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-[var(--text-tertiary)]" aria-hidden />
         <span className="sr-only">Buscar lugares, ciudades o agencias</span>
         <input
+          type="search"
+          enterKeyHint="search"
+          autoComplete="off"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Lugar, ciudad o agencia"
-          className="h-11 w-full rounded-full border border-[var(--lg-stroke)] bg-bg-primary/40 pl-10 pr-9 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-gold/50"
+          className="h-11 w-full appearance-none rounded-full border border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] pl-10 pr-10 text-base text-[var(--text-primary)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--text-tertiary)] focus:border-[var(--color-border-gold)] focus:shadow-[0_0_0_3px_var(--mv-gold-wash)] md:text-sm [&::-webkit-search-cancel-button]:hidden"
         />
         {query && (
-          <button type="button" onClick={() => setQuery("")} aria-label="Borrar búsqueda" className="absolute right-1.5 grid h-8 w-8 place-items-center rounded-full text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">
-            <X className="h-4 w-4" />
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            aria-label="Borrar búsqueda"
+            className="mv-focus absolute right-1 grid h-9 w-9 place-items-center rounded-full text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+          >
+            <X className="h-4 w-4" aria-hidden />
           </button>
         )}
       </label>
       <button
         type="button"
         onClick={locate}
-        aria-label="Lugares cerca de mí"
+        aria-label="Ordenar por cercanía a mi ubicación"
+        aria-pressed={!!near}
         title="Cerca de mí"
         className={cn(
-          "grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[var(--lg-stroke)] bg-bg-primary/40 text-[var(--text-primary)] transition-colors hover:border-gold/50",
-          near && "border-gold/60 text-gold",
+          "mv-focus grid h-11 w-11 shrink-0 place-items-center rounded-full border transition-colors duration-200",
+          near
+            ? "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold"
+            : "border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] text-[var(--text-primary)] hover:border-[var(--color-border-gold)]",
         )}
       >
-        <LocateFixed className={cn("h-4 w-4", locating && "animate-pulse")} />
+        <LocateFixed className={cn("h-4 w-4", locating && "animate-pulse")} aria-hidden />
       </button>
     </div>
   );
 
-  const chips = (
-    <div className="scrollbar-hide -mx-1 flex gap-1.5 overflow-x-auto px-1">
+  /** `floating` chips sit directly on the map (mobile), so each carries its own thick material. */
+  const chips = (floating: boolean) => (
+    <div role="group" aria-label="Filtrar por tipo" className="scrollbar-hide -mx-1 flex gap-1.5 overflow-x-auto px-1 py-0.5">
       {(Object.keys(SCOPES) as ScopeKey[]).map((key) => {
         const active = scopes.includes(key);
         return (
@@ -156,13 +168,18 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
             aria-pressed={active}
             onClick={() => toggleScope(key)}
             className={cn(
-              "relative inline-flex h-9 shrink-0 items-center rounded-full px-3.5 text-[13px] font-semibold transition-colors",
-              active ? "text-black" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
+              "mv-focus relative inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[13px] font-semibold transition-colors duration-200",
+              active ? "text-[var(--mv-on-gold)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
+              !active && (floating ? "mv-menu" : "border border-[var(--mv-hairline-strong)]"),
             )}
           >
-            {active && <motion.span layoutId={`chip-${key}`} className="absolute inset-0 rounded-full bg-gold" transition={spring} />}
-            {!active && (
-              <span className="absolute inset-0 rounded-full border border-[var(--lg-stroke)] max-md:bg-bg-secondary/75 max-md:shadow-[0_4px_14px_rgba(0,0,0,0.18)] max-md:backdrop-blur-xl" />
+            {active && (
+              <motion.span
+                layoutId={`chip-${floating ? "m" : "d"}-${key}`}
+                aria-hidden
+                className="absolute inset-0 rounded-full bg-gold"
+                transition={reduce ? { duration: 0 } : spring}
+              />
             )}
             <span className="relative">{SCOPES[key].label}</span>
           </button>
@@ -173,10 +190,11 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
         aria-pressed={showCommunities}
         onClick={() => setShowCommunities((v) => !v)}
         className={cn(
-          "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-semibold transition-colors",
+          "mv-focus inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-[13px] font-semibold transition-colors duration-200",
           showCommunities
-            ? "border-techelet/50 bg-techelet-dim text-techelet max-md:backdrop-blur-xl"
-            : "border-[var(--lg-stroke)] text-[var(--text-secondary)] max-md:bg-bg-secondary/75 max-md:shadow-[0_4px_14px_rgba(0,0,0,0.18)] max-md:backdrop-blur-xl",
+            ? "bg-techelet-dim text-techelet ring-1 ring-inset ring-techelet/50"
+            : cn("text-[var(--text-secondary)] hover:text-[var(--text-primary)]", floating ? "mv-menu" : "border border-[var(--mv-hairline-strong)]"),
+          showCommunities && floating && "mv-menu !text-techelet",
         )}
       >
         <Users className="h-3.5 w-3.5" aria-hidden /> Kehilot
@@ -184,12 +202,20 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
     </div>
   );
 
+  const countLabel = `${filtered.length} ${filtered.length === 1 ? "lugar" : "lugares"}`;
+
   const results = (
     <ul className="space-y-1">
       {filtered.length === 0 && (
-        <li className="px-3 py-8 text-center text-sm text-[var(--text-secondary)]">
-          No encontramos lugares con ese filtro.{" "}
-          <Link href="/kosher/sugerir" className="font-semibold text-gold">Sugerí uno</Link>
+        <li className="px-4 py-10 text-center">
+          <p className="text-sm font-semibold text-[var(--text-primary)]">No encontramos lugares con ese filtro.</p>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
+            Probá con otra ciudad o{" "}
+            <Link href="/kosher/sugerir" className="mv-link">
+              sugerí uno que falte
+            </Link>
+            .
+          </p>
         </li>
       )}
       {filtered.map((p) => (
@@ -197,25 +223,26 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
           <button
             type="button"
             onClick={() => select(p.slug)}
+            aria-current={selected === p.slug ? "true" : undefined}
             className={cn(
-              "flex w-full gap-3 rounded-2xl px-3 py-3 text-left transition-colors",
-              selected === p.slug ? "bg-gold/10" : "hover:bg-[var(--lg-fill-regular)]",
+              "mv-focus flex w-full gap-3 rounded-2xl px-3 py-3 text-left transition-colors duration-200",
+              selected === p.slug ? "bg-[var(--mv-gold-wash)] ring-1 ring-inset ring-[var(--color-border-gold)]" : "hover:bg-[var(--mv-panel-hover)]",
             )}
           >
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-bg-tertiary text-gold">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--mv-gold-wash)] text-gold">
               <PlaceIcon type={p.type} className="h-5 w-5" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="flex items-start justify-between gap-2">
                 <span className="truncate text-[15px] font-semibold text-[var(--text-primary)]">{p.name}</span>
-                {near && <span className="shrink-0 font-mono text-[11px] text-[var(--text-tertiary)]">{formatKm(haversineKm(near, p))}</span>}
+                {near && <span className="mv-data shrink-0 text-xs text-[var(--text-secondary)]">{formatKm(haversineKm(near, p))}</span>}
               </span>
               <span className="block truncate text-xs text-[var(--text-secondary)]">
                 {p.city}, {p.country}
               </span>
               <span className="mt-1.5 flex flex-wrap items-center gap-2">
                 <StatusBadge status={p.status} type={p.type} verified={!!p.verifiedAt} />
-                {p.agencyName && p.status === "certified" && <span className="font-mono text-[11px] text-[var(--text-tertiary)]">{p.agencyName}</span>}
+                {p.agencyName && p.status === "certified" && <span className="text-xs text-[var(--text-secondary)]">{p.agencyName}</span>}
                 {p.rating != null && <Stars value={p.rating} />}
               </span>
             </span>
@@ -229,7 +256,15 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
 
   return (
     <div className="relative h-full w-full">
-      <div className="absolute inset-0">
+      <h1 className="sr-only">Mapa de Mercav Kosher</h1>
+      <div
+        className={cn(
+          "absolute inset-0",
+          // Keep MapLibre's zoom and attribution clear of the bottom nav (mobile) and of the place panel (desktop).
+          "max-md:[&_.maplibregl-ctrl-bottom-right]:mb-[calc(max(0.75rem,env(safe-area-inset-bottom,0px))+4rem)]",
+          selectedPlace && "md:[&_.maplibregl-ctrl-bottom-right]:mr-[444px]",
+        )}
+      >
         <KosherMap
           places={filtered}
           communities={communities}
@@ -246,40 +281,40 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
       {/* Desktop sidebar */}
       <aside
         aria-label="Buscar en el mapa"
-        className="liquid-glass pointer-events-auto absolute bottom-4 left-4 top-[6.5rem] z-10 hidden w-[372px] flex-col overflow-hidden rounded-[1.75rem] md:flex"
+        className="mv-menu pointer-events-auto absolute bottom-4 left-4 top-24 z-10 hidden w-[380px] flex-col overflow-hidden rounded-[1.75rem] md:flex"
       >
         <div className="space-y-3 p-4 pb-3">
-          <div className="flex items-center justify-between">
-            <Link href="/kosher" className="rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-gold">
+          <div className="flex items-center justify-between gap-3">
+            <Link href="/kosher" className="mv-focus rounded-lg" aria-label="Mercav Kosher, inicio">
               <KosherWordmark />
             </Link>
-            <span className="font-mono text-[11px] text-[var(--text-tertiary)]">
-              {filtered.length} {filtered.length === 1 ? "lugar" : "lugares"}
+            <span className="mv-data text-xs text-[var(--text-secondary)]" aria-live="polite">
+              {countLabel}
             </span>
           </div>
           {searchBar}
-          {chips}
+          {chips(false)}
         </div>
-        <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-2 pb-3">{results}</div>
-        <p className="border-t border-[var(--lg-stroke)] px-4 py-2.5 text-[11px] leading-snug text-[var(--text-tertiary)]">
-          Certificado significa que figura una agencia. Un reporte comunitario no es un hechsher.
+        <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto border-t border-[var(--mv-hairline)] px-2 py-2">{results}</div>
+        <p className="border-t border-[var(--mv-hairline)] px-4 py-3 text-xs leading-snug text-[var(--text-secondary)]">
+          Certificado significa que figura una agencia. Un reporte comunitario no es un hechsher, y Mercav Kosher no emite psak.
         </p>
       </aside>
 
-      {/* Mobile top controls */}
-      <div className="absolute inset-x-3 top-[5.25rem] z-10 space-y-2 md:hidden">
-        <div className="liquid-glass rounded-[1.6rem] p-2">{searchBar}</div>
-        {chips}
+      {/* Mobile top controls, below the floating site header */}
+      <div className="absolute inset-x-3 top-[calc(max(0.75rem,env(safe-area-inset-top,0px))+4.25rem)] z-10 space-y-2 md:hidden">
+        <div className="mv-menu rounded-full p-1.5">{searchBar}</div>
+        {chips(true)}
       </div>
 
-      {/* Mobile results toggle */}
-      {!selected && (
+      {/* Mobile results toggle, above the bottom nav and the home indicator */}
+      {!selectedPlace && !listOpen && (
         <button
           type="button"
           onClick={() => setListOpen(true)}
-          className="liquid-glass absolute bottom-24 left-1/2 z-10 inline-flex h-11 -translate-x-1/2 items-center gap-2 rounded-full px-5 text-sm font-semibold text-[var(--text-primary)] md:hidden"
+          className="mv-menu mv-focus absolute bottom-[calc(max(0.75rem,env(safe-area-inset-bottom,0px))+4.25rem)] left-3 z-10 inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold text-[var(--text-primary)] active:scale-[0.97] md:hidden"
         >
-          <List className="h-4 w-4" aria-hidden /> Ver {filtered.length} {filtered.length === 1 ? "lugar" : "lugares"}
+          <List className="h-4 w-4" aria-hidden /> Ver {countLabel}
         </button>
       )}
 
@@ -287,7 +322,9 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
         {listOpen && (
           <motion.div
             key="list"
-            className="absolute inset-x-0 bottom-0 z-30 md:hidden"
+            role="dialog"
+            aria-label="Resultados del mapa"
+            className="absolute inset-x-0 bottom-0 z-40 md:hidden"
             initial={reduce ? { opacity: 0 } : { y: "100%" }}
             animate={reduce ? { opacity: 1 } : { y: 0 }}
             exit={reduce ? { opacity: 0 } : { y: "100%" }}
@@ -299,33 +336,38 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
               if (info.offset.y > 120 || info.velocity.y > 600) setListOpen(false);
             }}
           >
-            <div className="liquid-glass flex max-h-[70dvh] flex-col rounded-t-[2rem] pb-[env(safe-area-inset-bottom)]">
-              <div className="flex items-center justify-between px-5 pb-2 pt-3">
-                <span aria-hidden className="absolute left-1/2 top-2 h-1.5 w-10 -translate-x-1/2 rounded-full bg-[var(--text-tertiary)]/40" />
-                <p className="pt-2 text-sm font-semibold text-[var(--text-primary)]">{filtered.length} lugares</p>
-                <button type="button" onClick={() => setListOpen(false)} aria-label="Cerrar lista" className="mt-1 grid h-10 w-10 place-items-center rounded-full text-[var(--text-secondary)]">
-                  <X className="h-5 w-5" />
+            <div className="mv-menu flex max-h-[78dvh] flex-col rounded-t-[2rem] pb-[calc(max(0.75rem,env(safe-area-inset-bottom,0px))+3.75rem)]">
+              <span aria-hidden className="mx-auto mt-2.5 h-1.5 w-10 shrink-0 rounded-full bg-[var(--text-tertiary)] opacity-50" />
+              <div className="flex items-center justify-between px-5 pb-2 pt-1">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">{countLabel}</p>
+                <button
+                  type="button"
+                  onClick={() => setListOpen(false)}
+                  aria-label="Cerrar lista"
+                  className="mv-focus -mr-2 grid h-11 w-11 place-items-center rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                >
+                  <X className="h-5 w-5" aria-hidden />
                 </button>
               </div>
-              <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-2 pb-24">{results}</div>
+              <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-6">{results}</div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Place sheet */}
+      {/* Place sheet: bottom sheet on mobile (above the bottom nav), side panel on desktop */}
       <AnimatePresence>
         {selectedPlace && (
           <motion.aside
             key={selectedPlace.slug}
             aria-label={`Ficha de ${selectedPlace.name}`}
-            className="absolute inset-x-0 bottom-0 z-40 max-h-[60dvh] md:inset-x-auto md:bottom-4 md:right-4 md:top-[6.5rem] md:max-h-none md:w-[420px]"
+            className="absolute inset-x-0 bottom-0 z-40 md:inset-x-auto md:bottom-4 md:right-4 md:top-24 md:z-40 md:w-[420px]"
             initial={reduce ? { opacity: 0 } : { y: 40, opacity: 0, scale: 0.98 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={reduce ? { opacity: 0 } : { y: 40, opacity: 0, scale: 0.98 }}
             transition={spring}
           >
-            <div className="flex h-full max-h-[60dvh] flex-col overflow-hidden rounded-t-[2rem] border border-border bg-bg-secondary/95 pb-20 md:pb-0 shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl md:max-h-none md:rounded-[1.75rem]">
+            <div className="mv-menu flex h-full max-h-[78dvh] flex-col overflow-hidden rounded-t-[2rem] pb-[calc(max(0.75rem,env(safe-area-inset-bottom,0px))+3.75rem)] md:max-h-none md:rounded-[1.75rem] md:pb-0">
               <PlacePanel slug={selectedPlace.slug} onClose={close} />
             </div>
           </motion.aside>

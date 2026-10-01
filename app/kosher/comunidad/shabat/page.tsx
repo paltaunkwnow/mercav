@@ -53,20 +53,20 @@ export default async function KosherShabbatPage({ searchParams }: { searchParams
   return (
     <div>
       <BackLink />
-      <PageIntro eyebrow="Hajnasat orjim" title={`Mesa de Shabat en ${city.city}`}>
+      <PageIntro eyebrow="Hajnasat orjim · mesa de Shabat" title={`Mesa de Shabat en ${city.city}`}>
         <p>
           Familias de la comunidad que reciben a quien está de paso. Cada anfitrión lo aprueba un moderador de la kehilá, y la dirección se comparte
           recién cuando acepta tu pedido, por mensaje privado.
         </p>
         {shabbat.candles && (
-          <p className="mt-2 text-sm text-[var(--text-tertiary)]">
+          <p className="mt-3 text-sm text-[var(--text-secondary)]">
             Este Shabat{shabbat.parasha ? ` (${shabbat.parasha})` : ""}: velas {formatTime(shabbat.candles, city.timezone)}, {formatDay(shabbat.candles, city.timezone)}.
           </p>
         )}
       </PageIntro>
       <CityPills cities={cities} current={city.slug} basePath="/kosher/comunidad/shabat" />
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_26rem]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_26rem]">
         <section aria-label="Anfitriones">
           {hosts.length === 0 ? (
             <EmptyState>
@@ -79,7 +79,7 @@ export default async function KosherShabbatPage({ searchParams }: { searchParams
                 return (
                   <li key={h.id} className={cardClass}>
                     <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="font-display text-xl font-semibold text-[var(--text-primary)]">Mesa de {name}</h2>
+                      <h2 className="mv-h3">Mesa de {name}</h2>
                       <Pill tone="techelet">
                         <ShieldCheck className="mr-1 h-3 w-3" aria-hidden /> Aprobado por la kehilá
                       </Pill>
@@ -91,7 +91,7 @@ export default async function KosherShabbatPage({ searchParams }: { searchParams
                       <span>{mealList(h.meals)}</span>
                     </p>
                     <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-[var(--text-primary)]">{h.about}</p>
-                    <p className="mt-2 text-xs text-[var(--text-tertiary)]">Kashrut: {h.kashrut}</p>
+                    <p className="mt-2 text-xs text-[var(--text-secondary)]">Kashrut: {h.kashrut}</p>
                     <div className="mt-5">
                       <HostRequestToggle hostId={h.id} name={name} />
                     </div>
@@ -103,10 +103,10 @@ export default async function KosherShabbatPage({ searchParams }: { searchParams
 
           {myRequests.length > 0 && (
             <section id="mis-pedidos" aria-labelledby="k-mine" className="mt-10 scroll-mt-28">
-              <h2 id="k-mine" className="font-display text-2xl font-semibold text-[var(--text-primary)]">
+              <h2 id="k-mine" className="mv-h3">
                 Mis pedidos
               </h2>
-              <ul className="mt-4 divide-y divide-border rounded-[1.75rem] border border-border bg-bg-secondary">
+              <ul className="mv-panel mt-4 divide-y divide-[var(--mv-hairline)]">
                 {myRequests.map((r) => (
                   <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-sm">
                     <span className="text-[var(--text-primary)]">
@@ -125,7 +125,7 @@ export default async function KosherShabbatPage({ searchParams }: { searchParams
             <>
               {myHost && (
                 <div id="pedidos" className={`${cardClass} scroll-mt-28`}>
-                  <h2 className="font-display text-xl font-semibold text-[var(--text-primary)]">Pedidos para tu mesa</h2>
+                  <h2 className="mv-h3">Pedidos para tu mesa</h2>
                   {myHost.state !== "approved" && (
                     <p className="mt-2">
                       <Pill tone={myHost.state === "pending" ? "muted" : "warn"}>{myHost.state === "pending" ? "En revisión por la kehilá" : "No aprobada"}</Pill>
@@ -136,11 +136,11 @@ export default async function KosherShabbatPage({ searchParams }: { searchParams
                   ) : (
                     <ul className="mt-4 space-y-3">
                       {myHost.requests.map((r) => (
-                        <li key={r.id} className="rounded-2xl border border-border p-4">
+                        <li key={r.id} className="rounded-2xl border border-[var(--mv-hairline)] p-4">
                           <p className="text-sm font-semibold text-[var(--text-primary)]">
                             {publicAuthorName(r.guest.name)} · {r.guests} {r.guests === 1 ? "persona" : "personas"}
                           </p>
-                          <p className="text-xs text-[var(--text-tertiary)]">{shortDate(r.date)}</p>
+                          <p className="text-xs text-[var(--text-secondary)]">{shortDate(r.date)}</p>
                           <p className="mt-2 text-sm text-[var(--text-secondary)]">{r.message}</p>
                           <div className="mt-3">
                             {r.status === "pending" ? <HostRequestActions id={r.id} /> : <Pill tone={REQUEST_STATUS[r.status][1]}>{REQUEST_STATUS[r.status][0]}</Pill>}
@@ -152,8 +152,8 @@ export default async function KosherShabbatPage({ searchParams }: { searchParams
                 </div>
               )}
               <div className={cardClass}>
-                <h2 className="font-display text-xl font-semibold text-[var(--text-primary)]">{myHost ? "Tu mesa" : "Ofrecé tu mesa"}</h2>
-                <p className="mb-5 mt-1 text-sm text-[var(--text-secondary)]">
+                <h2 className="mv-h3">{myHost ? "Tu mesa" : "Ofrecé tu mesa"}</h2>
+                <p className="mb-6 mt-2 text-sm text-[var(--text-secondary)]">
                   Un moderador de la kehilá la revisa antes de mostrarla. Si cambiás la descripción, vuelve a revisión.
                 </p>
                 <HostForm

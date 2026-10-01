@@ -92,13 +92,15 @@ export const authOptions: AuthOptions = {
           where: { email: credentials.email.toLowerCase() }
         });
 
+        // Mismo mensaje para usuario inexistente y contraseña incorrecta: evita enumerar emails
+        // (el login ya muestra un texto genérico para cualquier otro error).
         if (!user || !user.password) {
-          throw new Error("Usuario no encontrado");
+          throw new Error("Credenciales inválidas");
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) {
-          throw new Error("Contraseña incorrecta");
+          throw new Error("Credenciales inválidas");
         }
 
         // 2FA Verification
@@ -121,8 +123,6 @@ export const authOptions: AuthOptions = {
           });
           const isTokenValid = result && typeof result === 'object' ? result.valid : result;
 
-          console.log(`2FA FINAL VALIDATION: ${isTokenValid ? '✅ VALID' : '❌ INVALID'}`);
-          
           if (!isTokenValid) {
             throw new Error("2FA_INVALID");
           }
@@ -156,6 +156,9 @@ export const authOptions: AuthOptions = {
     async signIn({ user, account, profile }) {
       if (account?.provider === "google") {
         if (!user.email) return false;
+        // Solo vincular/crear cuentas con emails verificados por Google: si no, alguien podría
+        // entrar a la cuenta de otro usuario registrando ese email sin verificar.
+        if ((profile as { email_verified?: boolean } | undefined)?.email_verified === false) return false;
         
         let dbUser = await prisma.user.findUnique({
           where: { email: user.email.toLowerCase() }

@@ -2,6 +2,7 @@ import { classifyForumSignal, forumSignalPriorityRank } from "./forum-classifier
 import { titleKeyFromTitle } from "./forum-signal-utils";
 import { normalizeAuthor } from "./author";
 import type { ForumThreadSignal } from "./forum-scraper";
+import { fetchAllowlistedText } from "./safe-fetch";
 
 const SCRAPE_UA = "Mercav-Pwn/1.0 (+https://pwn.mercav.lat; defensive threat monitoring)";
 const VICTIMS_URL = "https://api.ransomware.live/v2/recentvictims";
@@ -130,14 +131,20 @@ export function mapCyberAttack(raw: RawItem): ForumThreadSignal | null {
   };
 }
 
+const API_HOSTS = ["api.ransomware.live"];
+
 async function fetchJson(url: string): Promise<unknown> {
-  const response = await fetch(url, {
-    cache: "no-store",
-    signal: AbortSignal.timeout(12_000),
+  // Sin seguir redirects fuera de api.ransomware.live y con parseo tolerante a JSON roto.
+  const body = await fetchAllowlistedText(url, API_HOSTS, {
+    timeoutMs: 12_000,
     headers: { "user-agent": SCRAPE_UA, accept: "application/json" },
   });
-  if (!response.ok) return null;
-  return response.json();
+  if (!body) return null;
+  try {
+    return JSON.parse(body) as unknown;
+  } catch {
+    return null;
+  }
 }
 
 export async function scrapeRansomwareLive(): Promise<ForumThreadSignal[]> {

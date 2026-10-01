@@ -96,7 +96,7 @@ export default async function ManagePlacePage({ params }: { params: { slug: stri
 
       {isFood && (
         <section className={`${cardClass} mb-4`} aria-labelledby="k-cert">
-          <h2 id="k-cert" className="flex items-center gap-2 font-display text-xl font-semibold text-[var(--text-primary)]">
+          <h2 id="k-cert" className="mv-h3 flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-techelet" aria-hidden /> Certificado de kashrut
           </h2>
           {place.status === "certified" && place.certExpiresAt ? (
@@ -121,7 +121,7 @@ export default async function ManagePlacePage({ params }: { params: { slug: stri
               <Pill tone="gold">Certificado en revisión</Pill>
             </p>
           ) : (
-            <div className="mt-5 border-t border-border pt-5">
+            <div className="mt-5 border-t border-[var(--mv-hairline)] pt-5">
               <ClaimForm slug={place.slug} kind="certificate" />
             </div>
           )}
@@ -129,7 +129,7 @@ export default async function ManagePlacePage({ params }: { params: { slug: stri
       )}
 
       <section className={cardClass} aria-labelledby="k-info">
-        <h2 id="k-info" className="mb-5 font-display text-xl font-semibold text-[var(--text-primary)]">
+        <h2 id="k-info" className="mv-h3 mb-6">
           Información de la ficha
         </h2>
         <ManageForm

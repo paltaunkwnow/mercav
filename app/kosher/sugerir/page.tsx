@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
 import { SuggestPlaceForm } from "@/components/kosher/SuggestPlaceForm";
+import { BackLink, PageIntro } from "@/components/kosher/ui";
 
 export const metadata: Metadata = { title: "Sugerir un lugar" };
 
 export default function KosherSuggestPage() {
   return (
     <div className="mx-auto max-w-2xl">
-      <header className="mb-8">
-        <h1 className="font-display text-4xl font-semibold tracking-tight text-[var(--text-primary)] md:text-5xl">Sugerir un lugar</h1>
-        <p className="mt-3 text-[var(--text-secondary)]">
-          Entra como reporte comunitario y lo publica un moderador. Si tiene certificación, contanos la agencia y la revisamos.
-        </p>
-      </header>
+      <BackLink href="/kosher/mapa">Mapa</BackLink>
+      <PageIntro eyebrow="Sumá al atlas" title="Sugerir un lugar">
+        <p>Entra como reporte comunitario y lo publica un moderador. Si tiene certificación, contanos la agencia y la revisamos con ella.</p>
+      </PageIntro>
       <SuggestPlaceForm />
     </div>
   );

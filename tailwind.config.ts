@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
 
 const config: Config = {
   darkMode: ["class"],
@@ -98,7 +99,12 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // `light:` targets the cream theme (the html element gets .light).
+    plugin(({ addVariant }) => {
+      addVariant("light", ".light &");
+    }),
+  ],
 };
 export default config;
 // creado por pato dev y askforvini

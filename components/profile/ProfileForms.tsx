@@ -1,18 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, Calendar, Briefcase, GraduationCap, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import { Plus, Trash2, X } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
 
 import { Checkbox } from "@/components/ui/checkbox";
+
+const labelClass = "mb-2 block text-sm font-medium text-[var(--text-primary)]";
+const itemClass = "relative rounded-[1.25rem] border border-[var(--mv-hairline)] bg-[var(--mv-panel)] p-4 sm:p-5";
+const addClass =
+  "mv-focus flex h-12 w-full items-center justify-center gap-2 rounded-[0.875rem] border border-dashed border-[var(--mv-hairline-strong)] text-sm font-semibold text-[var(--text-secondary)] transition-colors duration-200 hover:border-[var(--color-border-gold)] hover:text-[var(--text-primary)] active:scale-[0.99]";
+
+function RemoveButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="mv-focus grid h-10 w-10 shrink-0 place-items-center rounded-xl text-[var(--text-tertiary)] transition-colors duration-200 hover:bg-red-500/10 hover:text-red-400"
+    >
+      <Trash2 className="h-4 w-4" aria-hidden />
+    </button>
+  );
+}
 
 // --- Experiencia ---
 export function ExperienceForm({ items, onChange }: { items: any[], onChange: (val: any[]) => void }) {
@@ -29,51 +45,53 @@ export function ExperienceForm({ items, onChange }: { items: any[], onChange: (v
   };
 
   return (
-    <div className="space-y-4">
-      {items.map((item) => (
-        <div key={item.id} className="p-4 rounded-2xl border border-border bg-bg-primary/50 relative group">
-          <button onClick={() => removeItem(item.id)} className="absolute top-4 right-4 text-gray-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
-            <Trash2 className="h-4 w-4" />
-          </button>
+    <div className="space-y-3">
+      {items.length === 0 && <p className="text-sm text-[var(--text-secondary)]">Todavía no agregaste experiencia.</p>}
+      {items.map((item, index) => (
+        <div key={item.id} className={itemClass}>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-[var(--text-primary)]">{item.position || item.company || `Experiencia ${index + 1}`}</p>
+            <RemoveButton onClick={() => removeItem(item.id)} label="Quitar esta experiencia" />
+          </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="text-xs text-gray-400 mb-1 block">Empresa</label>
-              <input value={item.company} onChange={e => updateItem(item.id, 'company', e.target.value)} className="w-full bg-bg-secondary border border-border rounded-xl px-3 py-2 text-sm text-white" placeholder="Ej. Google" />
+              <label htmlFor={`exp-company-${item.id}`} className={labelClass}>Empresa</label>
+              <input id={`exp-company-${item.id}`} autoComplete="organization" value={item.company} onChange={e => updateItem(item.id, 'company', e.target.value)} className="mv-input" placeholder="Ej. Estudio Andino" />
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-1 block">Cargo</label>
-              <input value={item.position} onChange={e => updateItem(item.id, 'position', e.target.value)} className="w-full bg-bg-secondary border border-border rounded-xl px-3 py-2 text-sm text-white" placeholder="Ej. Senior Developer" />
+              <label htmlFor={`exp-position-${item.id}`} className={labelClass}>Cargo</label>
+              <input id={`exp-position-${item.id}`} autoComplete="organization-title" value={item.position} onChange={e => updateItem(item.id, 'position', e.target.value)} className="mv-input" placeholder="Ej. Desarrollador senior" />
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-1 block">Fecha de Inicio</label>
-              <input type="date" value={item.startDate?.split('T')[0] || ''} onChange={e => updateItem(item.id, 'startDate', e.target.value)} className="w-full bg-bg-secondary border border-border rounded-xl px-3 py-2 text-sm text-white" />
+              <label htmlFor={`exp-start-${item.id}`} className={labelClass}>Fecha de inicio</label>
+              <input id={`exp-start-${item.id}`} type="date" value={item.startDate?.split('T')[0] || ''} onChange={e => updateItem(item.id, 'startDate', e.target.value)} className="mv-input mv-data" />
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-1 block">Fecha de Fin</label>
+              <label htmlFor={`exp-end-${item.id}`} className={labelClass}>Fecha de fin</label>
               {item.currentJob ? (
-                <div className="w-full bg-bg-secondary/40 border border-dashed border-border rounded-xl px-3 py-2 text-sm text-gray-600 italic">
+                <div id={`exp-end-${item.id}`} className="flex h-12 items-center rounded-[0.875rem] border border-dashed border-[var(--mv-hairline-strong)] px-4 text-sm text-[var(--text-tertiary)]">
                   Trabajo actual
                 </div>
               ) : (
-                <input type="date" value={item.endDate?.split('T')[0] || ''} onChange={e => updateItem(item.id, 'endDate', e.target.value)} className="w-full bg-bg-secondary border border-border rounded-xl px-3 py-2 text-sm text-white" />
+                <input id={`exp-end-${item.id}`} type="date" value={item.endDate?.split('T')[0] || ''} onChange={e => updateItem(item.id, 'endDate', e.target.value)} className="mv-input mv-data" />
               )}
             </div>
             <div className="md:col-span-2">
-              <div className="flex items-center gap-3 w-fit">
-                <Checkbox 
+              <div className="flex w-fit items-center gap-3">
+                <Checkbox
                   id={`current-${item.id}`}
-                  checked={item.currentJob} 
-                  onCheckedChange={checked => updateItem(item.id, 'currentJob', !!checked)} 
+                  checked={item.currentJob}
+                  onCheckedChange={checked => updateItem(item.id, 'currentJob', !!checked)}
                 />
-                <label htmlFor={`current-${item.id}`} className="text-sm text-gray-300 cursor-pointer select-none">Este es mi trabajo actual</label>
+                <label htmlFor={`current-${item.id}`} className="cursor-pointer select-none text-sm text-[var(--text-secondary)]">Es mi trabajo actual</label>
               </div>
             </div>
           </div>
         </div>
       ))}
-      <Button type="button" onClick={addItem} variant="outline" className="w-full border-dashed border-border py-6 hover:border-gold/50 hover:bg-gold/5">
-        <Plus className="h-4 w-4 mr-2" /> Añadir Experiencia
-      </Button>
+      <button type="button" onClick={addItem} className={addClass}>
+        <Plus className="h-4 w-4" aria-hidden /> Agregar experiencia
+      </button>
     </div>
   );
 }
@@ -93,50 +111,54 @@ export function EducationForm({ items, onChange }: { items: any[], onChange: (va
   };
 
   return (
-    <div className="space-y-4">
-      {items.map((item) => (
-        <div key={item.id} className="p-4 rounded-2xl border border-border bg-bg-primary/50 relative group">
-          <button onClick={() => removeItem(item.id)} className="absolute top-4 right-4 text-gray-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
-            <Trash2 className="h-4 w-4" />
-          </button>
+    <div className="space-y-3">
+      {items.length === 0 && <p className="text-sm text-[var(--text-secondary)]">Todavía no agregaste formación.</p>}
+      {items.map((item, index) => (
+        <div key={item.id} className={itemClass}>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-[var(--text-primary)]">{item.degree || item.institution || `Formación ${index + 1}`}</p>
+            <RemoveButton onClick={() => removeItem(item.id)} label="Quitar esta formación" />
+          </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
-              <label className="text-xs text-gray-400 mb-1 block">Institución</label>
-              <input value={item.institution} onChange={e => updateItem(item.id, 'institution', e.target.value)} className="w-full bg-bg-secondary border border-border rounded-xl px-3 py-2 text-sm text-white" placeholder="Ej. Universidad Central" />
+              <label htmlFor={`edu-inst-${item.id}`} className={labelClass}>Institución</label>
+              <input id={`edu-inst-${item.id}`} value={item.institution} onChange={e => updateItem(item.id, 'institution', e.target.value)} className="mv-input" placeholder="Ej. Universidad Mayor de San Andrés" />
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-1 block">Título</label>
-              <input value={item.degree} onChange={e => updateItem(item.id, 'degree', e.target.value)} className="w-full bg-bg-secondary border border-border rounded-xl px-3 py-2 text-sm text-white" placeholder="Ej. Licenciatura en Diseño" />
+              <label htmlFor={`edu-degree-${item.id}`} className={labelClass}>Título</label>
+              <input id={`edu-degree-${item.id}`} value={item.degree} onChange={e => updateItem(item.id, 'degree', e.target.value)} className="mv-input" placeholder="Ej. Licenciatura en Diseño" />
             </div>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <label className="text-xs text-gray-400 mb-1 block">Año Inicio</label>
-                <input type="number" value={item.startYear} onChange={e => updateItem(item.id, 'startYear', parseInt(e.target.value))} className="w-full bg-bg-secondary border border-border rounded-xl px-3 py-2 text-sm text-white" />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor={`edu-start-${item.id}`} className={labelClass}>Inicio</label>
+                <input id={`edu-start-${item.id}`} type="number" inputMode="numeric" value={item.startYear} onChange={e => updateItem(item.id, 'startYear', parseInt(e.target.value))} className="mv-input mv-data" />
               </div>
-              <div className="flex-1">
-                <label className="text-xs text-gray-400 mb-1 block">Año Fin</label>
-                <input type="number" disabled={item.currentlyStudying} value={item.endYear || ''} onChange={e => updateItem(item.id, 'endYear', parseInt(e.target.value))} className="w-full bg-bg-secondary border border-border rounded-xl px-3 py-2 text-sm text-white disabled:opacity-30" />
+              <div>
+                <label htmlFor={`edu-end-${item.id}`} className={labelClass}>Fin</label>
+                <input id={`edu-end-${item.id}`} type="number" inputMode="numeric" disabled={item.currentlyStudying} value={item.endYear || ''} onChange={e => updateItem(item.id, 'endYear', parseInt(e.target.value))} className="mv-input mv-data disabled:opacity-40" />
               </div>
             </div>
-            <div className="md:col-span-2 mt-2">
-              <div className="flex items-center gap-3 w-fit">
-                <Checkbox 
+            <div className="md:col-span-2">
+              <div className="flex w-fit items-center gap-3">
+                <Checkbox
                   id={`study-${item.id}`}
-                  checked={item.currentlyStudying} 
-                  onCheckedChange={checked => updateItem(item.id, 'currentlyStudying', !!checked)} 
+                  checked={item.currentlyStudying}
+                  onCheckedChange={checked => updateItem(item.id, 'currentlyStudying', !!checked)}
                 />
-                <label htmlFor={`study-${item.id}`} className="text-sm text-gray-300 cursor-pointer select-none">Actualmente estudiando aquí</label>
+                <label htmlFor={`study-${item.id}`} className="cursor-pointer select-none text-sm text-[var(--text-secondary)]">Estoy estudiando acá actualmente</label>
               </div>
             </div>
           </div>
         </div>
       ))}
-      <Button type="button" onClick={addItem} variant="outline" className="w-full border-dashed border-border py-6">
-        <Plus className="h-4 w-4 mr-2" /> Añadir Educación
-      </Button>
+      <button type="button" onClick={addItem} className={addClass}>
+        <Plus className="h-4 w-4" aria-hidden /> Agregar formación
+      </button>
     </div>
   );
 }
+
+const LEVEL_LABEL: Record<string, string> = { BASICO: "Básico", INTERMEDIO: "Medio", AVANZADO: "Experto" };
 
 // --- Habilidades (Skills) ---
 export function SkillsForm({ items, onChange }: { items: any[], onChange: (val: any[]) => void }) {
@@ -156,38 +178,52 @@ export function SkillsForm({ items, onChange }: { items: any[], onChange: (val: 
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
-        <input 
-          value={newSkill} 
-          onChange={e => setNewSkill(e.target.value)} 
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <label htmlFor="skill-new" className="sr-only">Nueva habilidad</label>
+        <input
+          id="skill-new"
+          value={newSkill}
+          onChange={e => setNewSkill(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-          className="flex-1 bg-bg-primary border border-border rounded-xl px-4 py-2 text-sm text-white focus:border-gold outline-none" 
-          placeholder="Escribe una habilidad... (Ej. React, Python)" 
+          className="mv-input flex-1"
+          placeholder="Ej. React, Python, Ventas"
         />
-        <Select value={newLevel} onValueChange={setNewLevel}>
-          <SelectTrigger className="w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="BASICO">Básico</SelectItem>
-            <SelectItem value="INTERMEDIO">Medio</SelectItem>
-            <SelectItem value="AVANZADO">Experto</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button type="button" onClick={addSkill} className="bg-gold text-black hover:bg-gold-light">
-          <Plus className="h-4 w-4" />
-        </Button>
+        <div className="flex gap-2">
+          <Select value={newLevel} onValueChange={setNewLevel}>
+            <SelectTrigger className="h-12 flex-1 rounded-[0.875rem] sm:w-36" aria-label="Nivel">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="BASICO">Básico</SelectItem>
+              <SelectItem value="INTERMEDIO">Medio</SelectItem>
+              <SelectItem value="AVANZADO">Experto</SelectItem>
+            </SelectContent>
+          </Select>
+          <button type="button" onClick={addSkill} aria-label="Agregar habilidad" className="mv-btn mv-btn-primary h-12 w-12 shrink-0 px-0">
+            <Plus className="h-5 w-5" aria-hidden />
+          </button>
+        </div>
       </div>
-      <div className="flex flex-wrap gap-2">
-        {items.map(skill => (
-          <Badge key={skill.id} variant="gold" className="py-1.5 px-3 flex items-center gap-2">
-            {skill.name} • <span className="text-[10px] opacity-70">{skill.level}</span>
-            <button onClick={() => removeSkill(skill.id)} className="hover:text-white transition-colors">
-              <X className="h-3 w-3" />
-            </button>
-          </Badge>
-        ))}
-      </div>
+      {items.length > 0 ? (
+        <ul className="flex flex-wrap gap-2">
+          {items.map(skill => (
+            <li key={skill.id} className="mv-chip mv-chip-gold h-9 gap-2 pl-3 pr-1 text-[13px]">
+              {skill.name}
+              <span className="font-medium opacity-70">{LEVEL_LABEL[skill.level] || skill.level}</span>
+              <button
+                type="button"
+                onClick={() => removeSkill(skill.id)}
+                aria-label={`Quitar ${skill.name}`}
+                className="mv-focus grid h-7 w-7 place-items-center rounded-full transition-colors hover:bg-black/10"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-[var(--text-secondary)]">Todavía no agregaste habilidades.</p>
+      )}
     </div>
   );
 }

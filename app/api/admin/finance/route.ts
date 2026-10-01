@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { isAdminUser } from "@/lib/admin"
+import { PLAN_MONTHLY_USD } from "@/lib/billing/plans"
 
 export async function GET(req: Request) {
   try {
@@ -75,8 +76,8 @@ export async function GET(req: Request) {
       select: { plan: true }
     })
     
-    // Fictional pricing values for plan commissions in system
-    const planPrices: Record<string, number> = { EMPRESA: 99.99, ELITE: 299.99 }
+    // Precios reales de los planes (lib/billing/plans.ts); antes había valores ficticios (99.99/299.99)
+    const planPrices: Record<string, number> = PLAN_MONTHLY_USD
     const jobsCommissions = jobSubscriptions.reduce((sum, sub) => sum + (planPrices[sub.plan as string] || 0), 0)
 
     return NextResponse.json({
@@ -95,7 +96,7 @@ export async function GET(req: Request) {
     })
   } catch (error: any) {
     console.error("Admin finance endpoint error:", error)
-    return NextResponse.json({ success: false, error: error.message || "Error interno" }, { status: 500 })
+    return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 })
   }
 }
 // creado por pato dev y askforvini

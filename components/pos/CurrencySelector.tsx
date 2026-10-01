@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { Search, ChevronDown, Check, Globe } from 'lucide-react';
+import { useState, useRef, useEffect, useId } from 'react';
+import { Search, ChevronDown, Check } from 'lucide-react';
 import { LATAM_CURRENCIES } from '@/lib/data/pos-data';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface CurrencySelectorProps {
   value: string;
@@ -15,6 +14,7 @@ export default function CurrencySelector({ value, onChange, label }: CurrencySel
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const buttonId = useId();
 
   const selectedCurrency = LATAM_CURRENCIES.find(c => c.code === value) || LATAM_CURRENCIES.find(c => c.code === 'USD');
 
@@ -35,78 +35,77 @@ export default function CurrencySelector({ value, onChange, label }: CurrencySel
 
   return (
     <div className="space-y-2" ref={containerRef}>
-      {label && <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">{label}</label>}
+      {label && <label htmlFor={buttonId} className="block text-sm font-semibold text-[var(--text-secondary)]">{label}</label>}
       
       <div className="relative">
         <button
+          id={buttonId}
           type="button"
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full h-14 bg-bg-secondary border border-white/5 rounded-2xl px-5 flex items-center justify-between group hover:border-gold/30 transition-all duration-300"
+          className="mv-focus flex h-14 w-full items-center justify-between gap-3 rounded-[0.875rem] border border-[var(--mv-hairline-strong)] bg-[color-mix(in_srgb,var(--color-bg-tertiary)_70%,transparent)] px-4 text-left transition-colors duration-150 hover:border-[var(--color-border-gold)]"
         >
-          <div className="flex items-center gap-3">
-            <span className="text-xl">{selectedCurrency?.flag}</span>
-            <div className="text-left">
-              <p className="text-white font-bold text-sm leading-none">{selectedCurrency?.code}</p>
-              <p className="text-gray-500 text-[10px] uppercase font-black tracking-tighter mt-1">{selectedCurrency?.name}</p>
-            </div>
-          </div>
-          <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+          <span className="flex min-w-0 items-center gap-3">
+            <span className="mv-data inline-flex h-8 min-w-[3.25rem] items-center justify-center rounded-lg bg-[var(--mv-gold-wash)] px-2 text-sm font-semibold text-gold">{selectedCurrency?.code}</span>
+            <span className="truncate text-sm font-medium text-[var(--text-primary)]">{selectedCurrency?.name}</span>
+          </span>
+          <ChevronDown className={`h-4 w-4 shrink-0 text-[var(--text-secondary)] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} aria-hidden />
         </button>
 
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute z-[100] top-full mt-2 w-full bg-[#111] border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-3xl"
-            >
-              <div className="p-3 border-b border-white/5 bg-white/5">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <input
-                    autoFocus
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Buscar moneda..."
-                    className="w-full h-10 bg-black/40 border border-white/5 rounded-xl pl-10 pr-4 text-sm text-white focus:outline-none focus:border-gold/30 transition-all"
-                  />
-                </div>
+        {isOpen && (
+          <div
+            className="mv-pop mv-menu absolute top-full z-[100] mt-2 w-full overflow-hidden rounded-2xl"
+            style={{ transformOrigin: 'top center' }}
+            onKeyDown={(e) => { if (e.key === 'Escape') { setIsOpen(false); document.getElementById(buttonId)?.focus(); } }}
+          >
+            <div className="border-b border-[var(--mv-hairline)] p-2">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-tertiary)]" aria-hidden />
+                <input
+                  autoFocus
+                  type="text"
+                  aria-label="Buscar moneda"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar moneda o código"
+                  autoComplete="off"
+                  className="mv-input h-11 pl-9 text-sm"
+                />
               </div>
+            </div>
 
-              <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                {filteredCurrencies.map((currency) => (
-                  <button
-                    key={currency.code}
-                    type="button"
-                    onClick={() => {
-                      onChange(currency.code);
-                      setIsOpen(false);
-                      setSearch('');
-                    }}
-                    className={`w-full p-4 flex items-center justify-between hover:bg-gold/10 transition-colors group ${value === currency.code ? 'bg-gold/5' : ''}`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className="text-2xl grayscale group-hover:grayscale-0 transition-all">{currency.flag}</span>
-                      <div className="text-left">
-                        <p className={`font-bold text-sm ${value === currency.code ? 'text-gold' : 'text-white'}`}>{currency.code}</p>
-                        <p className="text-gray-500 text-[10px] uppercase font-black tracking-tighter">{currency.name}</p>
-                      </div>
-                    </div>
-                    {value === currency.code && <Check className="w-4 h-4 text-gold" />}
-                  </button>
-                ))}
-                {filteredCurrencies.length === 0 && (
-                  <div className="p-8 text-center">
-                    <Globe className="w-8 h-8 text-gray-700 mx-auto mb-2 opacity-20" />
-                    <p className="text-gray-500 text-xs font-black uppercase tracking-widest">No se encontraron monedas</p>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            <ul className="custom-scrollbar max-h-[300px] overflow-y-auto p-1.5" role="listbox" aria-label="Monedas">
+              {filteredCurrencies.map((currency) => {
+                const selected = value === currency.code;
+                return (
+                  <li key={currency.code} role="option" aria-selected={selected}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onChange(currency.code);
+                        setIsOpen(false);
+                        setSearch('');
+                      }}
+                      className={`mv-focus flex min-h-12 w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left transition-colors duration-150 hover:bg-[var(--mv-panel-hover)] ${selected ? 'bg-[var(--mv-gold-wash)]' : ''}`}
+                    >
+                      <span className="flex min-w-0 items-center gap-3">
+                        <span className={`mv-data w-12 shrink-0 text-sm font-semibold ${selected ? 'text-gold' : 'text-[var(--text-primary)]'}`}>{currency.code}</span>
+                        <span className="truncate text-sm text-[var(--text-secondary)]">{currency.name}</span>
+                      </span>
+                      {selected && <Check className="h-4 w-4 shrink-0 text-gold" aria-hidden />}
+                    </button>
+                  </li>
+                );
+              })}
+              {filteredCurrencies.length === 0 && (
+                <li className="px-4 py-8 text-center text-sm text-[var(--text-secondary)]">
+                  No encontramos esa moneda. Probá con el código, por ejemplo <span className="mv-data">USD</span>.
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );

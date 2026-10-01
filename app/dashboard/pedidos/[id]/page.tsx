@@ -8,9 +8,10 @@ export default async function OrderDashboardPage({ params }: { params: { id: str
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect("/login");
 
+  // Solo los campos que usa el cliente: nunca serializar password/twoFactorSecret a props.
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    include: { roles: { select: { role: true } } }
+    select: { id: true, name: true, avatar: true, roles: { select: { role: true } } }
   });
 
   if (!user) redirect("/login");
@@ -27,6 +28,19 @@ export default async function OrderDashboardPage({ params }: { params: { id: str
       package: true,
       milestones: { orderBy: { createdAt: 'asc' } },
       files: { orderBy: { createdAt: 'desc' } },
+      // Para "Detalles de factura" e "Historial": solo datos registrados en la base.
+      transactions: {
+        select: { id: true, amount: true, currency: true, status: true, createdAt: true },
+        orderBy: { createdAt: 'asc' }
+      },
+      tickets: {
+        select: { id: true, userId: true, status: true, createdAt: true },
+        orderBy: { createdAt: 'asc' }
+      },
+      reviews: {
+        select: { id: true, rating: true, createdAt: true },
+        orderBy: { createdAt: 'asc' }
+      },
     }
   });
 
@@ -67,6 +81,7 @@ export default async function OrderDashboardPage({ params }: { params: { id: str
       initialMessages={JSON.parse(JSON.stringify(conversation?.messages || []))}
       conversationId={conversation?.id || null}
       isProvider={isProvider}
+      isClient={isClient}
     />
   );
 }

@@ -2,12 +2,26 @@
 
 import { useState, useEffect } from "react"
 import { 
-  Search, Users, Crown, ShieldCheck, Lock, Globe, ShieldAlert,
-  Loader2, Check, Calendar, ChevronRight, Clock, MessageSquare, AlertCircle
+  Search, Users, ShieldCheck, Lock, ShieldAlert,
+  Loader2, ChevronDown, MessageSquare, Paperclip, History, UserX
 } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
 import { AdminUserActions } from "./AdminControls"
-import { CustomSelect } from "@/components/ui/CustomSelect"
+import { AdminDialog } from "./AdminDialog"
+import { cn } from "@/lib/utils"
+import {
+  AdminPanel, Avatar, EmptyState, Field, IconButton, InlineAlert, KeyValue, LoadingState, MobileCard, StatusBadge, fmt, table,
+} from "./ui"
+
+const PLANS = [
+  { value: "FREE", label: "Free" },
+  { value: "PROFESSIONAL", label: "Professional" },
+  { value: "EMPRESA", label: "Empresa" },
+  { value: "ELITE", label: "Elite" },
+] as const
+
+const planLabel = (plan: string) => PLANS.find((p) => p.value === plan)?.label ?? (plan === "PRO" ? "Professional" : plan)
+const planTone = (plan: string) =>
+  plan === "PROFESSIONAL" || plan === "PRO" ? "gold" : plan === "EMPRESA" || plan === "ELITE" ? "info" : "neutral"
 
 interface UsersAdminTabProps {
   initialUsers: any[]
@@ -133,400 +147,385 @@ export function UsersAdminTab({ initialUsers }: UsersAdminTabProps) {
     }
   }
 
+  const closePlan = () => setPlanModalUser(null)
+
+  const userStatus = (user: any) =>
+    user.isSanctioned ? (
+      <StatusBadge tone="danger"><ShieldAlert className="h-3.5 w-3.5" aria-hidden /> Sancionado</StatusBadge>
+    ) : user.isVerified ? (
+      <StatusBadge tone="info"><ShieldCheck className="h-3.5 w-3.5" aria-hidden /> Verificado</StatusBadge>
+    ) : (
+      <StatusBadge>Sin verificar</StatusBadge>
+    )
+
+  const planButton = (user: any) => (
+    <button
+      type="button"
+      onClick={() => {
+        setPlanModalUser(user)
+        setPlan(user.plan)
+        setErrorMsg(null)
+      }}
+      aria-label={`Plan ${planLabel(user.plan)}. Cambiar plan de ${user.name}`}
+      className="mv-focus group inline-flex items-center gap-1 rounded-full"
+    >
+      <StatusBadge tone={planTone(user.plan)} className="group-hover:border-[var(--color-border-gold)]">
+        {planLabel(user.plan)}
+        <ChevronDown className="h-3 w-3 opacity-70" aria-hidden />
+      </StatusBadge>
+    </button>
+  )
+
+  const rowActions = (user: any, isAdmin: boolean) => (
+    <div className="flex items-center justify-end gap-1.5">
+      <IconButton icon={History} label={`Historial de sanciones de ${user.name}`} onClick={() => handleOpenSanctions(user)} />
+      <IconButton icon={MessageSquare} label={`Auditar conversaciones de ${user.name}`} onClick={() => handleOpenChats(user)} />
+      <span aria-hidden className="mx-0.5 h-6 w-px bg-[var(--mv-hairline-strong)]" />
+      <AdminUserActions 
+        userId={user.id} 
+        userName={user.name} 
+        isVerified={user.isVerified} 
+        isSanctioned={user.isSanctioned} 
+        targetIsAdmin={isAdmin}
+      />
+    </div>
+  )
+
   return (
-    <div className="space-y-6">
-      {/* Search Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 bg-white/[0.02] border border-white/5 rounded-3xl backdrop-blur-xl">
-        <div>
-          <h3 className="font-bold text-lg">Directorio de Miembros</h3>
-          <p className="text-xs text-gray-500 mt-1">Busca por nombre, usuario, email, NIT o CI</p>
-        </div>
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-          <input 
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar por Nombre / NIT / CI..." 
-            className="bg-black/40 border border-white/5 rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-gold/50 transition-all w-full text-white placeholder:text-gray-600"
-          />
-          {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-gold" />}
-        </div>
-      </div>
-
-      {/* Users Table */}
-      <div className="rounded-3xl border border-white/5 bg-black/40 backdrop-blur-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-400 min-w-[1000px]">
-            <thead>
-              <tr className="bg-white/[0.02] border-b border-white/5 text-[10px] uppercase tracking-widest text-gray-600">
-                <th className="px-6 py-5 font-bold">Profesional</th>
-                <th className="px-6 py-5 font-bold">Identificación / Cuenta</th>
-                <th className="px-6 py-5 font-bold">Seguridad</th>
-                <th className="px-6 py-5 font-bold">Plan</th>
-                <th className="px-6 py-5 font-bold text-center">Estado</th>
-                <th className="px-6 py-5 text-right font-bold">Moderación</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {users.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-16 text-center text-gray-500 italic text-xs">
-                    Ningún usuario coincide con los criterios de búsqueda.
-                  </td>
-                </tr>
-              ) : (
-                users.map(user => {
-                  const isAdmin = user.roles?.some((r: any) => r.role === 'ADMIN');
-                  return (
-                    <tr key={user.id} className="group hover:bg-white/[0.03] transition-all">
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full overflow-hidden bg-bg-tertiary flex items-center justify-center font-bold text-white text-xs border border-white/5">
-                            {user.avatar ? (
-                              <img src={user.avatar} className="h-full w-full object-cover" alt="" />
-                            ) : (
-                              user.name.charAt(0)
-                            )}
+    <div className="flex flex-col gap-6">
+      <AdminPanel
+        id="users-directory"
+        title="Directorio"
+        description={loading ? "Buscando…" : `${fmt.number(users.length)} ${users.length === 1 ? "cuenta" : "cuentas"}${q ? ` para “${q}”` : ""}`}
+        bodyClassName="p-0"
+        actions={
+          <div className="relative w-full sm:w-80">
+            <label htmlFor="users-search" className="sr-only">Buscar por nombre, usuario, email, NIT o CI</label>
+            <Search aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-tertiary)]" />
+            <input 
+              id="users-search"
+              type="search"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Nombre, usuario, email, NIT o CI" 
+              autoComplete="off"
+              className="mv-input h-10 pl-10 pr-10 text-sm"
+            />
+            {loading && <Loader2 aria-hidden className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-gold" />}
+          </div>
+        }
+      >
+        {users.length === 0 ? (
+          <div className="p-5">
+            {loading ? (
+              <LoadingState label="Buscando usuarios…" />
+            ) : (
+              <EmptyState icon={UserX} title="Ningún usuario coincide" description="Probá con otro nombre, email, NIT o CI." />
+            )}
+          </div>
+        ) : (
+          <div aria-busy={loading} className={cn("transition-opacity duration-200", loading && "opacity-60")}>
+            {/* Desktop */}
+            <div className={cn("hidden lg:block", table.wrap)}>
+              <table className={table.table}>
+                <thead>
+                  <tr>
+                    <th scope="col" className={table.th}>Usuario</th>
+                    <th scope="col" className={table.th}>Cuenta</th>
+                    <th scope="col" className={table.th}>2FA</th>
+                    <th scope="col" className={table.th}>Plan</th>
+                    <th scope="col" className={table.th}>Estado</th>
+                    <th scope="col" className={cn(table.th, "text-right")}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map(user => {
+                    const isAdmin = user.roles?.some((r: any) => r.role === 'ADMIN');
+                    return (
+                      <tr key={user.id} className={table.tr}>
+                        <td className={table.td}>
+                          <div className="flex items-center gap-3">
+                            <Avatar name={user.name} src={user.avatar} />
+                            <div className="min-w-0">
+                              <p className="truncate font-semibold text-[var(--text-primary)]">{user.name}</p>
+                              <p className="truncate text-xs text-[var(--text-tertiary)]">{user.email}</p>
+                            </div>
                           </div>
-                          <div className="flex flex-col">
-                            <span className="text-white font-semibold text-base">{user.name}</span>
-                            <span className="text-xs text-gray-500">{user.email}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-5">
-                        <div className="flex flex-col space-y-1">
+                        </td>
+                        <td className={table.td}>
                           <div className="flex items-center gap-2">
-                            <span className="text-white text-xs">@{user.username}</span>
-                            {isAdmin && (
-                              <div className="flex items-center gap-1 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/30">
-                                <ShieldCheck className="w-2.5 h-2.5 text-blue-400" />
-                                <span className="text-[8px] text-blue-400 font-black uppercase tracking-tighter">ADMIN</span>
-                              </div>
-                            )}
+                            <span className="text-[var(--text-primary)]">@{user.username}</span>
+                            {isAdmin && <StatusBadge tone="info" className="h-5 px-2 text-[0.6875rem]">Admin</StatusBadge>}
                           </div>
-                          <span className="text-[10px] text-gray-500 font-mono">
-                            {user.nit && `NIT: ${user.nit}`} {user.ci && `| CI: ${user.ci}`}
-                            {!user.nit && !user.ci && "Sin NIT / CI"}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-2">
+                          <p className="mv-data mt-0.5 text-xs text-[var(--text-tertiary)]">
+                            {user.nit && `NIT ${user.nit}`}{user.nit && user.ci && " · "}{user.ci && `CI ${user.ci}`}
+                            {!user.nit && !user.ci && "Sin NIT ni CI"}
+                          </p>
+                        </td>
+                        <td className={table.td}>
                           {user.twoFactorEnabled ? (
-                            <div className="flex items-center gap-1 text-green-400 bg-green-400/10 px-2 py-1 rounded-lg border border-green-400/20 text-[10px] font-bold">
-                              <Lock className="h-3 w-3" /> 2FA ACTIVO
-                            </div>
+                            <StatusBadge tone="success"><Lock className="h-3 w-3" aria-hidden /> Activo</StatusBadge>
                           ) : (
-                            <div className="flex items-center gap-1 text-gray-500 bg-white/5 px-2 py-1 rounded-lg border border-white/10 text-[10px]">
-                              <Globe className="h-3 w-3" /> NO 2FA
-                            </div>
+                            <span className="text-xs text-[var(--text-tertiary)]">No</span>
                           )}
+                        </td>
+                        <td className={table.td}>{planButton(user)}</td>
+                        <td className={table.td}>{userStatus(user)}</td>
+                        <td className={table.td}>{rowActions(user, isAdmin)}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile / tablet */}
+            <ul className="lg:hidden">
+              {users.map(user => {
+                const isAdmin = user.roles?.some((r: any) => r.role === 'ADMIN');
+                return (
+                  <MobileCard key={user.id}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <Avatar name={user.name} src={user.avatar} />
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-[var(--text-primary)]">{user.name}</p>
+                          <p className="truncate text-xs text-[var(--text-tertiary)]">@{user.username} · {user.email}</p>
                         </div>
-                      </td>
-                      <td className="px-6 py-5">
-                        <button
-                          onClick={() => {
-                            setPlanModalUser(user)
-                            setPlan(user.plan)
-                            setErrorMsg(null)
-                          }}
-                          className={`text-[10px] font-black px-2.5 py-1 rounded-md border text-left flex items-center gap-1.5 hover:scale-105 transition-all ${
-                            user.plan === 'PROFESSIONAL' || user.plan === 'PRO' ? 'bg-gold text-black border-gold' : 
-                            user.plan === 'ELITE' ? 'bg-purple-500 text-white border-purple-500' :
-                            user.plan === 'EMPRESA' ? 'bg-blue-500 text-white border-blue-500' :
-                            'bg-white/10 text-white border-white/10'
-                          }`}
-                          title="Cambiar Plan"
-                        >
-                          <span>{user.plan}</span>
-                          <ChevronRight className="h-3 w-3" />
-                        </button>
-                      </td>
-                      <td className="px-6 py-5 text-center">
-                        {user.isSanctioned ? (
-                           <div className="inline-flex items-center gap-1 text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20 text-[10px] font-black">
-                             <ShieldAlert className="h-3 w-3" /> SANCIONADO
-                           </div>
-                        ) : user.isVerified ? (
-                          <div className="inline-flex items-center gap-1 text-blue-400 bg-blue-400/10 px-2.5 py-1 rounded-full border border-blue-400/20 text-[10px] font-bold">
-                             <ShieldCheck className="h-3 w-3" /> VERIFICADO
-                          </div>
-                        ) : (
-                          <div className="inline-flex items-center gap-1 text-gray-500 bg-gray-500/10 px-2.5 py-1 rounded-full border border-gray-500/20 text-[10px]">
-                            PENDIENTE
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-5 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {/* Sanciones History Button */}
-                          <button
-                            onClick={() => handleOpenSanctions(user)}
-                            className="p-2 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all text-xs"
-                            title="Historial de Sanciones"
-                          >
-                            <ShieldAlert className="h-4 w-4" />
-                          </button>
-
-                          {/* Chat Inspector Button */}
-                          <button
-                            onClick={() => handleOpenChats(user)}
-                            className="p-2 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all text-xs"
-                            title="Auditar Conversaciones"
-                          >
-                            <MessageSquare className="h-4 w-4" />
-                          </button>
-
-                          <AdminUserActions 
-                            userId={user.id} 
-                            userName={user.name} 
-                            isVerified={user.isVerified} 
-                            isSanctioned={user.isSanctioned} 
-                            targetIsAdmin={isAdmin}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Plan Modal */}
-      <AnimatePresence>
-        {planModalUser && (
-          <div className="fixed top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setPlanModalUser(null)} className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              animate={{ opacity: 1, scale: 1 }} 
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative bg-[#0d0d0d] border border-white/10 rounded-[3rem] p-10 w-full max-w-md shadow-2xl z-10"
-            >
-              <h3 className="text-2xl font-black uppercase text-white mb-2">Cambiar Plan</h3>
-              <p className="text-xs text-gold uppercase font-mono tracking-widest mb-6">Usuario: @{planModalUser.username}</p>
-
-              <div className="space-y-6">
-                <div>
-                  <CustomSelect
-                    label="Plan Comercial"
-                    value={plan}
-                    onChange={(val) => setPlan(val)}
-                    options={[
-                      { value: "FREE", label: "FREE" },
-                      { value: "PROFESSIONAL", label: "PROFESSIONAL" },
-                      { value: "EMPRESA", label: "EMPRESA" },
-                      { value: "ELITE", label: "ELITE" },
-                    ]}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 mb-2">Duración (Días, 0 para ilimitado)</label>
-                  <input 
-                    type="number"
-                    value={durationDays}
-                    onChange={(e) => setDurationDays(e.target.value)}
-                    className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-white text-xs outline-none focus:border-gold/50 font-mono"
-                    placeholder="30"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 mb-2">Razón del cambio (Cortesía/Soporte) *</label>
-                  <textarea 
-                    value={planReason}
-                    onChange={(e) => setPlanReason(e.target.value)}
-                    className="w-full bg-white/[0.02] border border-white/10 rounded-xl p-4 text-white text-xs outline-none focus:border-gold/50 h-24 resize-none placeholder:text-gray-800"
-                    placeholder="Justifica detalladamente la modificación manual..."
-                  />
-                </div>
-
-                {errorMsg && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-xs flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>{errorMsg}</span>
-                  </div>
-                )}
-
-                <div className="flex gap-3 pt-2">
-                  <button onClick={() => setPlanModalUser(null)} className="flex-1 h-12 border border-white/10 rounded-xl text-xs font-bold text-gray-500 hover:text-white hover:bg-white/5 transition-all">Cancelar</button>
-                  <button onClick={handlePlanSubmit} disabled={planLoading} className="flex-1 h-12 bg-gold text-black rounded-xl text-xs font-black uppercase tracking-widest hover:bg-yellow-500 transition-all flex items-center justify-center">
-                    {planLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar"}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Sanctions Timelines Modal */}
-      <AnimatePresence>
-        {sanctionsUser && (
-          <div className="fixed top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSanctionsUser(null)} className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              animate={{ opacity: 1, scale: 1 }} 
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative bg-[#0d0d0d] border border-white/10 rounded-[3rem] p-10 w-full max-w-lg shadow-2xl z-10"
-            >
-              <h3 className="text-2xl font-black uppercase text-white mb-2">Historial de Sanciones</h3>
-              <p className="text-xs text-gold uppercase font-mono tracking-widest mb-6">Usuario: @{sanctionsUser.username}</p>
-
-              {sanctionsLoading ? (
-                <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-gold" /></div>
-              ) : sanctions.length === 0 ? (
-                <div className="py-16 text-center text-gray-500 text-xs italic">El usuario no tiene antecedentes de sanciones o suspensiones registradas.</div>
-              ) : (
-                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                  {sanctions.map((san, idx) => (
-                    <div key={san.id || idx} className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 relative">
-                      <div className="absolute top-4 right-4 flex items-center gap-1.5">
-                        <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${san.isActive ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-gray-500/10 text-gray-500 border border-gray-500/20'}`}>
-                          {san.isActive ? 'Activo' : 'Finalizado'}
-                        </span>
                       </div>
-                      <p className="text-xs font-bold text-white mb-1">Infracción #{sanctions.length - idx}</p>
-                      <p className="text-[11px] text-gray-400 leading-relaxed mb-3">"{san.reason}"</p>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[9px] font-mono text-gray-600">
-                        <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {new Date(san.startDate).toLocaleDateString()}</span>
-                        {san.endDate && <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> Expira: {new Date(san.endDate).toLocaleDateString()}</span>}
-                        <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> Por: {san.suspendedBy}</span>
-                      </div>
+                      {userStatus(user)}
                     </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="mt-8 flex justify-end">
-                <button onClick={() => setSanctionsUser(null)} className="px-8 h-12 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all">Cerrar</button>
-              </div>
-            </motion.div>
+                    <dl className="flex flex-col gap-1.5">
+                      <KeyValue label="Plan">{planButton(user)}</KeyValue>
+                      <KeyValue label="2FA">{user.twoFactorEnabled ? "Activo" : "No"}</KeyValue>
+                      {(user.nit || user.ci) && (
+                        <KeyValue label="NIT / CI" mono>{[user.nit, user.ci].filter(Boolean).join(" · ")}</KeyValue>
+                      )}
+                      {isAdmin && <KeyValue label="Rol">Administrador</KeyValue>}
+                    </dl>
+                    {rowActions(user, isAdmin)}
+                  </MobileCard>
+                )
+              })}
+            </ul>
           </div>
         )}
-      </AnimatePresence>
+      </AdminPanel>
 
-      {/* Chat Audit Log Inspector Modal */}
-      <AnimatePresence>
-        {chatsUser && (
-          <div className="fixed top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setChatsUser(null)} className="absolute inset-0 bg-black/95 backdrop-blur-[20px]" />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              animate={{ opacity: 1, scale: 1 }} 
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative bg-[#0d0d0d] border border-white/10 rounded-[3rem] p-10 w-full max-w-4xl h-[85vh] shadow-2xl z-10 flex flex-col"
-            >
-              {/* Header */}
-              <div className="mb-6 flex items-start justify-between">
-                <div>
-                  <h3 className="text-2xl font-black uppercase text-white mb-1">Auditoría de Conversaciones</h3>
-                  <p className="text-xs text-gold uppercase font-mono tracking-widest">Usuario: @{chatsUser.username} · {chatsUser.name}</p>
+      {/* Plan */}
+      <AdminDialog
+        open={!!planModalUser}
+        onClose={closePlan}
+        title="Cambiar plan"
+        description={planModalUser ? `${planModalUser.name} · @${planModalUser.username}` : undefined}
+        footer={
+          <>
+            <button type="button" onClick={closePlan} className="mv-btn mv-btn-ghost mv-btn-sm">Cancelar</button>
+            <button type="button" onClick={handlePlanSubmit} disabled={planLoading} className="mv-btn mv-btn-primary mv-btn-sm">
+              {planLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+              Guardar plan
+            </button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-5">
+          <fieldset>
+            <legend className="mb-2 text-sm font-semibold text-[var(--text-primary)]">Plan</legend>
+            <div className="grid grid-cols-2 gap-2">
+              {PLANS.map((option) => (
+                <label
+                  key={option.value}
+                  className={cn(
+                    "flex h-11 cursor-pointer items-center gap-2.5 rounded-[0.875rem] border px-3.5 text-sm font-medium transition-colors duration-150 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold",
+                    plan === option.value
+                      ? "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-[var(--text-primary)]"
+                      : "border-[var(--mv-hairline-strong)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="admin-plan"
+                    value={option.value}
+                    checked={plan === option.value}
+                    onChange={() => setPlan(option.value)}
+                    className="h-4 w-4 accent-[#D4AF37]"
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <Field label="Duración en días" htmlFor="plan-days" hint="Usá 0 para que no venza.">
+            <input 
+              id="plan-days"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              value={durationDays}
+              onChange={(e) => setDurationDays(e.target.value)}
+              aria-describedby="plan-days-hint"
+              className="mv-input mv-data"
+              placeholder="30"
+            />
+          </Field>
+
+          <Field label="Motivo del cambio" htmlFor="plan-reason" hint="Obligatorio. Por ejemplo: cortesía, compensación de soporte.">
+            <textarea 
+              id="plan-reason"
+              value={planReason}
+              onChange={(e) => setPlanReason(e.target.value)}
+              aria-describedby="plan-reason-hint"
+              aria-invalid={!!errorMsg && !planReason.trim()}
+              className="mv-input h-24 resize-none py-3 text-sm"
+              placeholder="Explicá por qué cambiás el plan manualmente"
+            />
+          </Field>
+
+          {errorMsg && <InlineAlert>{errorMsg}</InlineAlert>}
+        </div>
+      </AdminDialog>
+
+      {/* Sanctions history */}
+      <AdminDialog
+        open={!!sanctionsUser}
+        onClose={() => setSanctionsUser(null)}
+        icon={<History className="h-5 w-5" />}
+        title="Historial de sanciones"
+        description={sanctionsUser ? `${sanctionsUser.name} · @${sanctionsUser.username}` : undefined}
+      >
+        {sanctionsLoading ? (
+          <LoadingState label="Cargando historial…" />
+        ) : sanctions.length === 0 ? (
+          <EmptyState icon={ShieldCheck} title="Sin antecedentes" description="Esta cuenta no tiene sanciones ni suspensiones registradas." />
+        ) : (
+          <ol className="flex flex-col gap-3">
+            {sanctions.map((san, idx) => (
+              <li key={san.id || idx} className="rounded-[1rem] border border-[var(--mv-hairline-strong)] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">Sanción {sanctions.length - idx}</p>
+                  <StatusBadge tone={san.isActive ? "danger" : "neutral"}>{san.isActive ? "Vigente" : "Finalizada"}</StatusBadge>
                 </div>
-                <button onClick={() => setChatsUser(null)} className="px-6 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl text-xs font-bold text-white transition-all">Cerrar</button>
-              </div>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">{san.reason}</p>
+                <dl className="mt-3 flex flex-col gap-1.5 border-t border-[var(--mv-hairline)] pt-3">
+                  <KeyValue label="Desde" mono>{fmt.date(san.startDate)}</KeyValue>
+                  {san.endDate && <KeyValue label="Hasta" mono>{fmt.date(san.endDate)}</KeyValue>}
+                  <KeyValue label="Aplicada por">{san.suspendedBy}</KeyValue>
+                </dl>
+              </li>
+            ))}
+          </ol>
+        )}
+      </AdminDialog>
 
-              {chatsLoading ? (
-                <div className="flex-1 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-gold" /></div>
-              ) : conversations.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center text-gray-500 text-xs italic">El usuario no tiene conversaciones de mensajería activa en el sistema.</div>
-              ) : (
-                <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-12 gap-6">
-                  {/* Left Column: Conversaciones list */}
-                  <div className="md:col-span-4 border border-white/5 rounded-2xl bg-white/[0.01] p-3 overflow-y-auto custom-scrollbar flex flex-col gap-2">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-600 p-2 border-b border-white/5">Chats Detectados ({conversations.length})</p>
-                    {conversations.map(conv => {
-                      const otherParticipant = conv.participants.find((p: any) => p.id !== chatsUser.id) || conv.participants[0]
-                      const lastMsg = conv.messages?.[conv.messages.length - 1]
-                      return (
-                        <button
-                          key={conv.id}
-                          onClick={() => setActiveConv(conv)}
-                          className={`w-full text-left p-3 rounded-xl border transition-all flex items-center gap-3 ${
-                            activeConv?.id === conv.id 
-                              ? 'bg-gold/10 border-gold/40 text-gold' 
-                              : 'bg-black/20 border-white/5 text-gray-400 hover:border-white/10 hover:text-white'
-                          }`}
-                        >
-                          <div className="w-8 h-8 rounded-full overflow-hidden bg-white/5 flex-shrink-0 flex items-center justify-center text-[10px] font-black">
-                            {otherParticipant?.avatar ? <img src={otherParticipant.avatar} className="w-full h-full object-cover" alt="" /> : otherParticipant?.name?.charAt(0)}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold truncate text-white">@{otherParticipant?.username || "Otro"}</p>
-                            <p className="text-[10px] text-gray-500 truncate leading-normal mt-0.5">{lastMsg ? lastMsg.content : "Sin mensajes"}</p>
-                          </div>
-                        </button>
-                      )
-                    })}
+      {/* Chat audit */}
+      <AdminDialog
+        open={!!chatsUser}
+        onClose={() => setChatsUser(null)}
+        size="xl"
+        icon={<MessageSquare className="h-5 w-5" />}
+        title="Auditoría de conversaciones"
+        description={chatsUser ? `${chatsUser.name} · @${chatsUser.username}. Solo lectura.` : undefined}
+        bodyClassName="p-0 sm:p-0"
+      >
+        {chatsLoading ? (
+          <LoadingState label="Cargando conversaciones…" />
+        ) : conversations.length === 0 ? (
+          <div className="p-5"><EmptyState icon={MessageSquare} title="Sin conversaciones" description="Esta cuenta no tiene conversaciones de mensajería." /></div>
+        ) : (
+          <div className="grid h-[min(70dvh,40rem)] grid-cols-1 md:grid-cols-[18rem_minmax(0,1fr)]">
+            <div className={cn("min-h-0 overflow-y-auto border-[var(--mv-hairline)] md:border-r", activeConv && "hidden md:block")}>
+              <p className="sticky top-0 border-b border-[var(--mv-hairline)] bg-bg-secondary px-5 py-3 text-xs font-semibold text-[var(--text-secondary)]">
+                {conversations.length} {conversations.length === 1 ? "conversación" : "conversaciones"}
+              </p>
+              <ul className="p-2">
+                {conversations.map(conv => {
+                  const otherParticipant = conv.participants.find((p: any) => p.id !== chatsUser.id) || conv.participants[0]
+                  const lastMsg = conv.messages?.[conv.messages.length - 1]
+                  const current = activeConv?.id === conv.id
+                  return (
+                    <li key={conv.id}>
+                      <button
+                        type="button"
+                        onClick={() => setActiveConv(conv)}
+                        aria-current={current ? "true" : undefined}
+                        className={cn(
+                          "mv-focus flex w-full items-center gap-3 rounded-[0.875rem] p-3 text-left transition-colors duration-150",
+                          current ? "bg-[var(--mv-gold-wash)]" : "hover:bg-[var(--mv-panel-hover)]",
+                        )}
+                      >
+                        <Avatar name={otherParticipant?.name} src={otherParticipant?.avatar} size="sm" />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-semibold text-[var(--text-primary)]">@{otherParticipant?.username || "Otro"}</span>
+                          <span className="block truncate text-xs text-[var(--text-tertiary)]">{lastMsg ? lastMsg.content : "Sin mensajes"}</span>
+                        </span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+
+            <div className={cn("flex min-h-0 flex-col", !activeConv && "hidden md:flex")}>
+              {activeConv ? (
+                <>
+                  <div className="flex items-center gap-3 border-b border-[var(--mv-hairline)] px-5 py-3">
+                    <button
+                      type="button"
+                      onClick={() => setActiveConv(null)}
+                      className="mv-focus -ml-2 inline-flex h-10 items-center rounded-full px-2 text-sm text-[var(--text-secondary)] md:hidden"
+                    >
+                      ← Volver
+                    </button>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
+                        Con @{activeConv.participants.find((p: any) => p.id !== chatsUser.id)?.username || "usuario"}
+                      </p>
+                      <p className="mv-data truncate text-xs text-[var(--text-tertiary)]">{activeConv.id}</p>
+                    </div>
                   </div>
-
-                  {/* Right Column: Active Conversation Messages */}
-                  <div className="md:col-span-8 border border-white/5 rounded-2xl bg-black/40 flex flex-col overflow-hidden relative">
-                    {activeConv ? (
-                      <>
-                        {/* Selected Chat Header */}
-                        <div className="p-4 border-b border-white/5 bg-white/[0.01] flex items-center justify-between">
-                          <div>
-                            <p className="text-xs font-bold text-white">Chat con @{activeConv.participants.find((p: any) => p.id !== chatsUser.id)?.username || "Usuario"}</p>
-                            <p className="text-[9px] text-gray-600 uppercase font-mono tracking-widest mt-0.5">ID: {activeConv.id}</p>
-                          </div>
-                        </div>
-
-                        {/* Messages bubbles scroll */}
-                        <div className="flex-1 p-6 overflow-y-auto custom-scrollbar space-y-4 bg-[#080808]/40">
-                          {activeConv.messages?.length === 0 ? (
-                            <p className="text-center text-gray-600 text-xs italic py-10">No hay mensajes en esta conversación.</p>
-                          ) : (
-                            activeConv.messages.map((msg: any) => {
-                              const isTargetSender = msg.senderId === chatsUser.id
-                              return (
-                                <div key={msg.id} className={`flex flex-col ${isTargetSender ? 'items-end' : 'items-start'}`}>
-                                  <div className="flex items-center gap-1.5 mb-1">
-                                    <span className="text-[9px] text-gray-600 font-black">@{msg.sender.username}</span>
-                                    <span className="text-[8px] text-gray-700 font-mono">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                  </div>
-                                  <div className={`p-3.5 rounded-2xl text-xs max-w-sm font-medium leading-relaxed shadow-sm ${
-                                    isTargetSender 
-                                      ? 'bg-gold/10 text-gold rounded-tr-none border border-gold/10' 
-                                      : 'bg-white/5 text-gray-300 rounded-tl-none border border-white/5'
-                                  }`}>
-                                    {msg.content}
-                                    {msg.attachmentUrl && (
-                                      <div className="mt-2 pt-2 border-t border-white/10">
-                                        <a href={msg.attachmentUrl} target="_blank" rel="noreferrer" className="text-[10px] text-gold hover:underline flex items-center gap-1.5">
-                                          <AlertCircle className="w-3.5 h-3.5" /> Ver Adjunto
-                                        </a>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              )
-                            })
-                          )}
-                        </div>
-                      </>
+                  <ol className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
+                    {activeConv.messages?.length === 0 ? (
+                      <li className="py-10 text-center text-sm text-[var(--text-tertiary)]">No hay mensajes en esta conversación.</li>
                     ) : (
-                      <div className="flex-1 flex flex-col items-center justify-center text-gray-600 p-8 text-center space-y-4">
-                        <MessageSquare className="w-12 h-12 text-gray-800" />
-                        <div>
-                          <p className="text-xs font-bold text-white">Ningún Chat Seleccionado</p>
-                          <p className="text-[10px] text-gray-600 max-w-xs mt-1 leading-relaxed">Selecciona una de las conversaciones de la izquierda para desplegar y auditar el historial de mensajería completo.</p>
-                        </div>
-                      </div>
+                      activeConv.messages.map((msg: any) => {
+                        const isTargetSender = msg.senderId === chatsUser.id
+                        return (
+                          <li key={msg.id} className={cn("flex flex-col", isTargetSender ? "items-end" : "items-start")}>
+                            <p className="mb-1 flex items-center gap-1.5 text-xs text-[var(--text-tertiary)]">
+                              <span className="font-semibold">@{msg.sender.username}</span>
+                              <time className="mv-data" dateTime={msg.createdAt}>{fmt.dateTime(msg.createdAt)}</time>
+                            </p>
+                            <div
+                              className={cn(
+                                "max-w-[85%] rounded-[1rem] border px-3.5 py-2.5 text-sm leading-relaxed sm:max-w-md",
+                                isTargetSender
+                                  ? "rounded-tr-sm border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-[var(--text-primary)]"
+                                  : "rounded-tl-sm border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] text-[var(--text-secondary)]",
+                              )}
+                            >
+                              {msg.content}
+                              {msg.attachmentUrl && (
+                                <a href={msg.attachmentUrl} target="_blank" rel="noreferrer" className="mv-link mt-2 flex items-center gap-1.5 text-xs">
+                                  <Paperclip className="h-3.5 w-3.5" aria-hidden /> Ver adjunto
+                                </a>
+                              )}
+                            </div>
+                          </li>
+                        )
+                      })
                     )}
-                  </div>
+                  </ol>
+                </>
+              ) : (
+                <div className="flex flex-1 items-center justify-center p-8">
+                  <EmptyState icon={Users} title="Elegí una conversación" description="Seleccioná un chat de la lista para ver el historial completo." />
                 </div>
               )}
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
+      </AdminDialog>
     </div>
   )
 }

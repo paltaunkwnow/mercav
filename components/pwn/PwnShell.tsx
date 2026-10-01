@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion, useReducedMotion } from "framer-motion";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { BellRing, X } from "lucide-react";
 import { pwnFetch, readForumSync } from "@/components/pwn/api";
 import { PWN_FEEDS_UPDATED, PWN_NOTIFICATIONS_UPDATED } from "@/components/pwn/events";
 import { focusRing } from "@/components/pwn/format";
@@ -118,7 +119,7 @@ export function FadeIn({ children, className }: { children: ReactNode; className
       className={className}
       initial={reduce ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: reduce ? 0 : 0.45, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: reduce ? 0 : 0.45, ease: [0.23, 1, 0.32, 1] }}
     >
       {children}
     </motion.div>
@@ -148,71 +149,100 @@ export function PwnShell({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(id);
   }, [notice]);
 
+  // Keep the active tab in view on narrow screens without moving the page.
+  const railRef = useRef<HTMLUListElement>(null);
+  useEffect(() => {
+    const rail = railRef.current;
+    const active = rail?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!rail || !active) return;
+    const left = active.offsetLeft - rail.clientWidth / 2 + active.clientWidth / 2;
+    rail.scrollTo({ left: Math.max(0, left), behavior: "auto" });
+  }, [pathname, navItems.length]);
+
   return (
     <div className="relative min-h-screen w-full bg-bg-primary pb-28">
       <PwnPresencePatrol onNotice={onNotice} />
-      <div className="pointer-events-none absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
-        <div className="absolute left-1/2 top-0 h-[420px] w-full -translate-x-1/2 bg-gold/[0.03] blur-[120px]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[44rem] overflow-hidden" aria-hidden>
+        <div className="mv-aura" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--mv-hairline)_1px,transparent_1px),linear-gradient(to_bottom,var(--mv-hairline)_1px,transparent_1px)] bg-[size:48px_48px] opacity-70 [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,#000_30%,transparent_100%)]" />
       </div>
 
       <div className="relative z-10 pt-24 md:pt-28">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-gold">Mercav Pwn</p>
-              <p className="mt-1 text-sm text-gray-400">Cyber Intelligence & Exposure Monitoring</p>
-              <Link href="/pwn/terminos" className={`mt-2 inline-block text-xs text-gray-500 underline-offset-4 hover:text-gold hover:underline ${focusRing}`}>
-                Términos de uso de Pwn
-              </Link>
-            </div>
-            <p className="font-display text-sm tracking-wide text-white-soft">Detect. Investigate. Protect.</p>
+        <div className="mv-container">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="mv-kicker">Mercav Pwn</span>
+              <span className="text-sm text-[var(--text-secondary)]">Ciberinteligencia defensiva: exposición, filtraciones y alertas.</span>
+            </p>
+            <Link
+              href="/pwn/terminos"
+              className={`self-start text-xs text-[var(--text-tertiary)] underline-offset-4 transition-colors hover:text-gold hover:underline sm:self-auto ${focusRing} rounded`}
+            >
+              Términos de uso de Pwn
+            </Link>
           </div>
+        </div>
 
-          <nav aria-label="Secciones de Mercav Pwn" className="-mx-4 mb-8 px-4 md:mx-0 md:px-0">
-            <ul className="scrollbar-hide flex gap-2 overflow-x-auto pb-1">
-              {navItems.map((item) => {
-                const active = item.href === "/pwn" ? pathname === "/pwn" : pathname === item.href || pathname.startsWith(`${item.href}/`);
-                return (
-                  <li key={item.href} className="shrink-0">
-                    <Link
-                      href={item.href}
-                      aria-current={active ? "page" : undefined}
-                      className={`inline-flex h-10 items-center rounded-xl px-3 text-sm font-medium transition-colors ${focusRing} ${
-                        active ? "bg-gold/10 text-gold" : "text-gray-400 hover:bg-white/5 hover:text-white"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
+        <nav
+          aria-label="Secciones de Mercav Pwn"
+          className="sticky top-[5.25rem] z-40 mt-4 sm:top-[5.75rem]"
+        >
+          <div className="mv-container">
+            <div className="mv-menu relative rounded-full p-1">
+              <ul
+                ref={railRef}
+                className="scrollbar-hide flex gap-1 overflow-x-auto scroll-smooth [mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] lg:[mask-image:none]"
+              >
+                {navItems.map((item) => {
+                  const active = item.href === "/pwn" ? pathname === "/pwn" : pathname === item.href || (pathname ?? "").startsWith(`${item.href}/`);
+                  return (
+                    <li key={item.href} className="shrink-0 first:pl-1 last:pr-6 lg:flex-1 lg:first:pl-0 lg:last:pr-0">
+                      <Link
+                        href={item.href}
+                        aria-current={active ? "page" : undefined}
+                        className={`relative flex h-10 items-center justify-center whitespace-nowrap rounded-full px-4 text-sm font-medium outline-none transition-[background-color,color,box-shadow] duration-200 focus-visible:shadow-[inset_0_0_0_2px_var(--color-gold)] ${
+                          active
+                            ? "bg-[var(--mv-gold-wash)] font-semibold text-gold shadow-[inset_0_0_0_1px_var(--color-border-gold)]"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]"
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
+        </nav>
 
+        <div className="mv-container mt-8 md:mt-10">
           {notice ? (
             <div
               role="status"
               aria-live="polite"
-              className="mb-6 flex flex-col gap-3 rounded-2xl border border-gold/40 bg-gold/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+              className="mv-pop mv-menu mb-8 flex flex-col gap-4 rounded-[1.5rem] border border-[var(--color-border-gold)] p-4 sm:flex-row sm:items-center sm:justify-between md:p-5"
             >
-              <div>
-                <p className="text-sm font-semibold text-white">{notice.title}</p>
-                <p className="mt-1 text-sm text-gray-300">{notice.body}</p>
+              <div className="flex items-start gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[var(--mv-gold-wash)] text-gold">
+                  <BellRing className="h-[18px] w-[18px]" aria-hidden />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">{notice.title}</p>
+                  <p className="mt-0.5 text-sm text-[var(--text-secondary)]">{notice.body}</p>
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <Link
-                  href="/pwn/signals?kind=LEAKS"
-                  className={`text-sm font-semibold text-gold underline-offset-4 hover:underline ${focusRing}`}
-                >
+              <div className="flex items-center gap-2 sm:shrink-0">
+                <Link href="/pwn/signals?kind=LEAKS" className="mv-btn mv-btn-primary mv-btn-sm flex-1 sm:flex-none">
                   Ver señales
                 </Link>
                 <button
                   type="button"
                   onClick={() => setNotice(null)}
-                  className={`text-sm text-gray-400 hover:text-white ${focusRing}`}
+                  aria-label="Cerrar aviso"
+                  className="mv-btn mv-btn-ghost mv-btn-sm w-10 px-0"
                 >
-                  Cerrar
+                  <X className="h-4 w-4" aria-hidden />
                 </button>
               </div>
             </div>

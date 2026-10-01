@@ -6,6 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowUp, Flag, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { kosherFetch, useKosherViewer } from "@/components/kosher/KosherViewer";
+import { primaryButton, secondaryButton } from "@/components/kosher/ui";
 import { cn } from "@/lib/utils";
 
 type Message = {
@@ -135,24 +136,24 @@ export function ThreadView({
   if (!viewer.signedIn) {
     return (
       <div className={cn("flex flex-col justify-center", className)}>
-        <div className="mx-auto w-full max-w-md rounded-2xl border border-border bg-bg-tertiary/60 p-5 text-sm">
-          <p className="font-medium text-[var(--text-primary)]">
+        <div className="mx-auto w-full max-w-md rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] p-5 text-sm">
+          <p className="font-semibold text-[var(--text-primary)]">
             La conversación es solo para miembros.
           </p>
           <p className="mt-1 text-[var(--text-secondary)]">
             Entrá con tu cuenta Mercav para leer y escribir. Así la comunidad
             sabe con quién habla.
           </p>
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4 flex flex-wrap gap-2">
             <Link
               href="/login?callbackUrl=/kosher/chat"
-              className="inline-flex h-10 items-center rounded-full bg-gold px-4 text-sm font-semibold text-black"
+              className={primaryButton}
             >
               Iniciar sesión
             </Link>
             <Link
               href="/register"
-              className="inline-flex h-10 items-center rounded-full border border-border px-4 text-sm font-medium text-[var(--text-primary)]"
+              className={secondaryButton}
             >
               Crear cuenta
             </Link>
@@ -178,14 +179,14 @@ export function ThreadView({
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="h-12 animate-pulse rounded-2xl bg-bg-tertiary"
+                className="h-12 animate-pulse rounded-2xl bg-[var(--mv-panel-hover)]"
                 style={{ width: `${70 - i * 12}%` }}
               />
             ))}
           </li>
         )}
         {loaded && messages.length === 0 && (
-          <li className="rounded-2xl border border-dashed border-border px-4 py-6 text-center text-sm text-[var(--text-secondary)]">
+          <li className="rounded-2xl border border-dashed border-[var(--mv-hairline-strong)] px-4 py-8 text-center text-sm text-[var(--text-secondary)]">
             Todavía no hay mensajes. Contá qué encontraste, preguntá por
             horarios o avisá de una cena de Shabat.
           </li>
@@ -201,11 +202,13 @@ export function ThreadView({
               transition={{ type: "spring", stiffness: 420, damping: 34 }}
               className={cn("group flex gap-2.5", m.mine && "flex-row-reverse")}
             >
-              <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-bg-tertiary text-xs font-semibold text-gold ring-1 ring-border">
+              <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-[var(--mv-gold-wash)] text-xs font-semibold text-gold ring-1 ring-inset ring-[var(--mv-hairline)]">
                 {m.avatar ? (
                   <img
                     src={m.avatar}
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -230,15 +233,15 @@ export function ThreadView({
                   className={cn(
                     "mt-1 inline-block whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-left text-sm leading-relaxed",
                     m.mine
-                      ? "rounded-tr-md bg-gold text-black"
-                      : "rounded-tl-md border border-border bg-bg-secondary text-[var(--text-primary)]",
+                      ? "rounded-tr-md bg-gold text-[var(--mv-on-gold)]"
+                      : "rounded-tl-md border border-[var(--mv-hairline)] bg-[var(--mv-panel-hover)] text-[var(--text-primary)]",
                   )}
                 >
                   {m.body}
                 </p>
                 <div
                   className={cn(
-                    "mt-1 flex gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100",
+                    "mt-1 flex gap-1 transition-opacity duration-200 focus-within:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0",
                     m.mine && "justify-end",
                   )}
                 >
@@ -246,7 +249,7 @@ export function ThreadView({
                     <button
                       type="button"
                       onClick={() => remove(m.id)}
-                      className="inline-flex h-7 items-center gap-1 rounded-full px-2 text-[11px] text-[var(--text-tertiary)] hover:text-red-500"
+                      className="mv-focus inline-flex h-8 items-center gap-1 rounded-full px-2.5 text-xs text-[var(--text-secondary)] hover:text-red-500"
                     >
                       <Trash2 className="h-3 w-3" aria-hidden /> Borrar
                     </button>
@@ -256,7 +259,7 @@ export function ThreadView({
                       type="button"
                       disabled={m.flagged}
                       onClick={() => flag(m.id)}
-                      className="inline-flex h-7 items-center gap-1 rounded-full px-2 text-[11px] text-[var(--text-tertiary)] hover:text-red-500 disabled:opacity-60"
+                      className="mv-focus inline-flex h-8 items-center gap-1 rounded-full px-2.5 text-xs text-[var(--text-secondary)] hover:text-red-500 disabled:opacity-60"
                     >
                       <Flag className="h-3 w-3" aria-hidden />{" "}
                       {m.flagged ? "Reportado" : "Reportar"}
@@ -270,13 +273,13 @@ export function ThreadView({
       </ol>
 
       {viewer.shabbatLocked ? (
-        <p className="mt-3 rounded-2xl bg-techelet-dim px-4 py-3 text-sm text-[var(--text-secondary)]">
+        <p role="status" className="mt-3 rounded-2xl bg-techelet-dim px-4 py-3 text-sm text-[var(--text-primary)]">
           Modo Shabat activo. Podés leer; escribir vuelve después de Havdalá.
         </p>
       ) : (
         <form
           onSubmit={send}
-          className="mt-3 flex items-end gap-2 rounded-[1.4rem] border border-border bg-bg-secondary p-1.5 focus-within:border-gold/40"
+          className="mt-3 flex items-end gap-2 rounded-[1.5rem] border border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] p-1.5 transition-[border-color,box-shadow] duration-150 focus-within:border-[var(--color-border-gold)] focus-within:shadow-[0_0_0_3px_var(--mv-gold-wash)]"
         >
           <label htmlFor={`msg-${threadKey}`} className="sr-only">
             Escribí un mensaje
@@ -298,15 +301,15 @@ export function ThreadView({
             rows={1}
             maxLength={500}
             placeholder="Escribí un mensaje breve…"
-            className="max-h-32 min-h-[40px] flex-1 resize-none bg-transparent px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)]"
+            className="max-h-32 min-h-[44px] flex-1 resize-none bg-transparent px-3 py-2.5 text-base text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] md:text-sm"
           />
           <button
             type="submit"
             disabled={!body.trim() || sending}
             aria-label="Enviar mensaje"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold text-black transition-transform active:scale-95 disabled:opacity-40"
+            className="mv-focus grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gold text-[var(--mv-on-gold)] transition-transform duration-150 active:scale-[0.97] disabled:opacity-40"
           >
-            <ArrowUp className="h-4 w-4" />
+            <ArrowUp className="h-4 w-4" aria-hidden />
           </button>
         </form>
       )}

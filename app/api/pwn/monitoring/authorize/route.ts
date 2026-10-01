@@ -223,8 +223,10 @@ export async function PATCH(request: NextRequest) {
     }
 
     const now = new Date();
-    const updated = await prisma.pwnMonitoringTarget.update({
-      where: { id: target.id },
+    // Update condicionado al estado REQUESTED: si dos admins deciden a la vez, solo uno gana
+    // (evita decisiones pisadas y notificaciones duplicadas al dueño).
+    const decided = await prisma.pwnMonitoringTarget.updateMany({
+      where: { id: target.id, verificationStatus: "REQUESTED" },
       data: approved
         ? {
             verificationStatus: "VERIFIED",
@@ -238,6 +240,12 @@ export async function PATCH(request: NextRequest) {
             verifiedByUserId: user.id,
             verificationTokenHash: null,
           },
+    });
+    if (decided.count === 0) {
+      return NextResponse.json({ success: false, error: "No hay una solicitud pendiente." }, { status: 409 });
+    }
+    const updated = await prisma.pwnMonitoringTarget.findUniqueOrThrow({
+      where: { id: target.id },
       select: ownerSelect,
     });
 

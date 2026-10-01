@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getKosherViewer } from "@/lib/kosher/server";
 import { nextShabbat } from "@/lib/kosher/zmanim";
@@ -7,6 +6,7 @@ import { listCities } from "@/lib/kosher/cities";
 import { ALERT_TOPICS } from "@/lib/kosher/notify";
 import { AlertsForm } from "@/components/kosher/CommunityForms";
 import { KosherProfileForm } from "@/components/kosher/KosherProfileForm";
+import { PageIntro, SignInCard } from "@/components/kosher/ui";
 
 export const metadata: Metadata = { title: "Mi perfil" };
 
@@ -17,26 +17,20 @@ export default async function KosherProfilePage() {
 
   if (!viewer) {
     return (
-      <div className="mx-auto max-w-xl rounded-[2rem] border border-border bg-bg-secondary p-10 text-center">
-        <h1 className="font-display text-3xl font-semibold text-[var(--text-primary)]">Tu perfil Kosher</h1>
-        <p className="mt-3 text-[var(--text-secondary)]">Usá tu cuenta Mercav para guardar tu ciudad, tu corriente y el modo Shabat.</p>
-        <div className="mt-8 flex justify-center gap-3">
-          <Link href="/login?callbackUrl=/kosher/perfil" className="inline-flex h-12 items-center rounded-full bg-gold px-7 text-sm font-semibold text-black">Iniciar sesión</Link>
-          <Link href="/register" className="inline-flex h-12 items-center rounded-full border border-border px-7 text-sm font-semibold text-[var(--text-primary)]">Crear cuenta</Link>
-        </div>
+      <div className="mx-auto max-w-2xl">
+        <PageIntro eyebrow="Mi perfil" title="Tu perfil Kosher">
+          <p>Guardá tu ciudad, tu corriente y el modo Shabat. Es tu misma cuenta Mercav, sin otro registro.</p>
+        </PageIntro>
+        <SignInCard callbackUrl="/kosher/perfil">Iniciá sesión para guardar tus preferencias y recibir alertas de tu ciudad.</SignInCard>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-2xl">
-      <header className="mb-8">
-        <p className="text-sm text-[var(--text-tertiary)]">Shalom, {viewer.name.split(" ")[0]}</p>
-        <h1 className="font-display text-4xl font-semibold tracking-tight text-[var(--text-primary)] md:text-5xl">Tu perfil Kosher</h1>
-        <p className="mt-3 text-[var(--text-secondary)]">
-          Es tu misma cuenta Mercav. Estas preferencias solo se usan dentro de Mercav Kosher.
-        </p>
-      </header>
+      <PageIntro eyebrow={`Shalom, ${viewer.name.split(" ")[0]}`} title="Tu perfil Kosher">
+        <p>Es tu misma cuenta Mercav. Estas preferencias solo se usan dentro de Mercav Kosher.</p>
+      </PageIntro>
       <KosherProfileForm
         communities={communities}
         initial={{

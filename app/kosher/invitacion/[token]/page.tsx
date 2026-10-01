@@ -14,16 +14,23 @@ export default async function KosherInvitePage({ params }: { params: { token: st
   const place = invite ? await prisma.kosherPlace.findUnique({ where: { id: invite.placeId }, select: { slug: true, name: true, type: true, city: true } }) : null;
   const viewer = await getKosherViewer();
 
-  if (!invite || !place) return <EmptyState>Esta invitación no existe. Revisá que el enlace esté completo.</EmptyState>;
+  if (!invite || !place)
+    return (
+      <div className="mx-auto max-w-xl">
+        <PageIntro eyebrow="Invitación" title="No encontramos esta invitación" />
+        <EmptyState>Revisá que el enlace esté completo, o pedí uno nuevo al equipo de Mercav Kosher.</EmptyState>
+      </div>
+    );
 
   if (invite.usedAt) {
     const mine = viewer?.id === invite.usedById;
     return (
       <div className="mx-auto max-w-xl">
+        <PageIntro eyebrow="Invitación" title={mine ? "Invitación aceptada" : "Invitación usada"} />
         <EmptyState>
           {mine ? "Ya aceptaste esta invitación." : "Esta invitación ya se usó. Pedí una nueva al equipo de Mercav Kosher."}
           {mine && (
-            <span className="mt-4 block">
+            <span className="mt-5 block">
               <Link href={`/kosher/lugar/${place.slug}/administrar`} className={primaryButton}>
                 Administrar {place.name}
               </Link>
@@ -33,7 +40,13 @@ export default async function KosherInvitePage({ params }: { params: { token: st
       </div>
     );
   }
-  if (invite.expiresAt < new Date()) return <EmptyState>Esta invitación venció. Pedí una nueva al equipo de Mercav Kosher.</EmptyState>;
+  if (invite.expiresAt < new Date())
+    return (
+      <div className="mx-auto max-w-xl">
+        <PageIntro eyebrow="Invitación" title="Esta invitación venció" />
+        <EmptyState>Pedí una nueva al equipo de Mercav Kosher.</EmptyState>
+      </div>
+    );
 
   return (
     <div className="mx-auto max-w-xl">

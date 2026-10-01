@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { MINYAN_SIZE, PRAYER } from "@/lib/kosher/labels";
 import { notifyUser } from "@/lib/kosher/notify";
@@ -15,10 +16,20 @@ export async function POST(_request: Request, { params }: { params: { id: string
   const key = { minyanId_userId: { minyanId: minyan.id, userId: viewer.id } };
   const existing = await prisma.kosherMinyanRsvp.findUnique({ where: key });
   if (existing) {
-    await prisma.kosherMinyanRsvp.delete({ where: key });
+    // deleteMany: un doble clic concurrente no revienta con P2025.
+    await prisma.kosherMinyanRsvp.deleteMany({ where: { minyanId: minyan.id, userId: viewer.id } });
     return NextResponse.json({ success: true, going: false });
   }
-  await prisma.kosherMinyanRsvp.create({ data: { minyanId: minyan.id, userId: viewer.id } });
+  try {
+    await prisma.kosherMinyanRsvp.create({ data: { minyanId: minyan.id, userId: viewer.id } });
+  } catch (error) {
+    // Otro request del mismo usuario ganó la carrera: ya está anotado, sin re-notificar.
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      const count = await prisma.kosherMinyanRsvp.count({ where: { minyanId: minyan.id } });
+      return NextResponse.json({ success: true, going: true, count });
+    }
+    throw error;
+  }
   const count = await prisma.kosherMinyanRsvp.count({ where: { minyanId: minyan.id } });
   if (count === MINYAN_SIZE) {
     const going = await prisma.kosherMinyanRsvp.findMany({ where: { minyanId: minyan.id }, select: { userId: true } });

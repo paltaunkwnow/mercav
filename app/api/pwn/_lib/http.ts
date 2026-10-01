@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
@@ -117,6 +118,13 @@ export function validationError(details?: unknown): NextResponse {
 
 export function providerError(error: unknown): NextResponse | null {
   if (!(error instanceof PwnProviderError)) return null;
+  if (error.rateLimited) {
+    console.warn(`Pwn provider rate limited: ${error.provider}`);
+    return NextResponse.json(
+      { success: false, error: "El proveedor externo está limitando consultas. Intenta de nuevo en un momento." },
+      { status: 429, headers: { "Retry-After": String(error.retryAfterSeconds ?? 60) } },
+    );
+  }
   console.error(`Pwn provider failure: ${error.provider}`);
   return NextResponse.json(
     { success: false, error: "El proveedor externo no está disponible" },
@@ -148,6 +156,19 @@ export function clientIp(request: NextRequest): string {
     .map((hop) => hop.trim())
     .filter(Boolean);
   return hops?.length ? hops[hops.length - 1] : "unknown";
+}
+
+/**
+ * Valida `Authorization: Bearer <CRON_SECRET>` en tiempo constante.
+ * Se comparan digests SHA-256 para que el largo del header no filtre información.
+ */
+export function isCronAuthorized(request: NextRequest): boolean {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return false;
+  const header = request.headers.get("authorization") ?? "";
+  const expected = createHash("sha256").update(`Bearer ${secret}`).digest();
+  const received = createHash("sha256").update(header).digest();
+  return timingSafeEqual(expected, received);
 }
 
 export function isAdmin(user: PwnSessionUser): boolean {

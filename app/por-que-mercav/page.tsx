@@ -1,261 +1,247 @@
-"use client";
-
-import { CheckCircle2, Globe2, Shield, Zap, TrendingUp, Users, Wallet, BarChart3, ArrowRight, Sparkles, Heart, Target, Award, Clock, DollarSign, Lock } from "lucide-react";
-import { motion } from "framer-motion";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import {
+  ArrowRight,
+  Briefcase,
+  Check,
+  Clock,
+  DollarSign,
+  Eye,
+  Globe2,
+  Heart,
+  Languages,
+  Layers,
+  Megaphone,
+  Scale,
+  Target,
+  Users,
+  X,
+} from "lucide-react";
+import { ButtonLink, CTABand, Container, Reveal, Section, SectionHeading } from "@/components/site/primitives";
 
-const fadeUp = {
-  initial: { opacity: 0, y: 30 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-50px" },
-};
+const PROBLEMS = [
+  {
+    icon: Megaphone,
+    title: "Publicidad fragmentada",
+    desc: "Alquilar un espacio publicitario suele requerir conocer al dueño en persona. No había infraestructura digital que conecte anunciantes con propietarios de espacios.",
+  },
+  {
+    icon: Users,
+    title: "Talento aislado",
+    desc: "Freelancers de la región compiten en plataformas extranjeras con comisiones altas, precios en dólares y soporte que no habla su idioma.",
+  },
+  {
+    icon: Briefcase,
+    title: "Empleo desconectado",
+    desc: "Las bolsas de empleo de la región están desactualizadas, con una experiencia pobre y sin integración con perfiles profesionales.",
+  },
+];
+
+const PRINCIPLES = [
+  { icon: Globe2, title: "Hecho para Latam", desc: "Precios acordes a nuestra realidad y soporte en español nativo. No adaptamos herramientas de afuera: construimos desde cero para la región." },
+  { icon: Scale, title: "Sin intermediarios abusivos", desc: "No escondemos información de contacto ni ponemos trabas artificiales. Tu primer alquiler de espacio no paga comisión de plataforma." },
+  { icon: Eye, title: "Transparencia", desc: "Precios claros desde el primer clic, reseñas de clientes reales y las mismas reglas para todos los usuarios." },
+  { icon: DollarSign, title: "Precios para la región", desc: "Diez dólares no significan lo mismo en cada país. Los planes están pensados para la realidad económica latinoamericana." },
+  { icon: Target, title: "Enfoque en resultados", desc: "Cada función existe para generar valor real. Medimos el éxito por conexiones concretadas y transacciones completadas, no por métricas de vanidad." },
+  { icon: Clock, title: "Rapidez sin atajos", desc: "Publicar un servicio, encontrar un profesional o contratar con pago protegido lleva pocos pasos. Tu tiempo es el recurso más valioso." },
+];
+
+const COMPARISON = [
+  { them: "Comisiones altas en cada transacción", us: "Tu primer alquiler sin comisión de plataforma. Después, comisiones claras antes de confirmar." },
+  { them: "Plataformas en inglés traducidas a medias", us: "Construido en español desde la primera línea de código." },
+  { them: "Soporte automatizado con respuestas genéricas", us: "Soporte de personas, en tu idioma." },
+  { them: "Una herramienta distinta para cada necesidad", us: "Un solo ecosistema, con todo integrado bajo tu perfil." },
+  { them: "Precios en dólares sin contexto regional", us: "Planes pensados para la realidad económica de la región." },
+];
+
+const MODULES = ["Ads", "Services", "Jobs", "POS", "Tools", "Pwn", "Kosher"];
 
 export default function PorQueMercavPage() {
   return (
-    <div className="w-full min-h-screen bg-bg-primary overflow-hidden">
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-24">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_center,_var(--tw-gradient-stops))] from-gold/8 via-transparent to-transparent pointer-events-none" />
-        <div className="container mx-auto px-4 max-w-5xl relative z-10 text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="mb-6 inline-flex items-center rounded-full border border-gold/20 bg-gold/5 px-4 py-1.5 text-sm text-gold"
-          >
-            <Sparkles className="h-3.5 w-3.5 mr-2" />
-            Manifiesto Mercav
-          </motion.div>
-          
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-8 leading-tight"
-          >
-            Por qué <span className="text-gold italic">Mercav</span>
-          </motion.h1>
-          
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-xl text-gray-400 mb-6 max-w-3xl mx-auto leading-relaxed"
-          >
-            Latinoamérica está llena de talento y negocios increíbles, pero las herramientas para conectarlos siempre han estado diseñadas para otros mercados.
-          </motion.p>
-          
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-lg text-gold/80 font-medium max-w-2xl mx-auto"
-          >
-            Mercav nace para cambiar eso. Para siempre.
-          </motion.p>
-        </div>
-      </section>
-
-      {/* The Problem Section */}
-      <section className="blend-from-primary blend-to-primary relative w-full overflow-hidden bg-bg-secondary py-24 section-transition">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <motion.div {...fadeUp} transition={{ duration: 0.5 }} className="text-center mb-16">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">El problema que nadie resolvía</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">Durante décadas, Latinoamérica operó con herramientas pensadas para otros continentes.</p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { 
-                icon: Globe2, 
-                title: "Publicidad Fragmentada", 
-                desc: "Alquilar un espacio publicitario en Latam requiere conocer al dueño personalmente. No hay infraestructura digital para conectar anunciantes con propietarios de espacios.",
-                stat: "85%",
-                statLabel: "opera sin plataforma"
-              },
-              { 
-                icon: Users, 
-                title: "Talento Aislado", 
-                desc: "Freelancers latinoamericanos compiten en plataformas extranjeras con comisiones del 20-30%, precios en dólares y sin soporte en español real.",
-                stat: "30%",
-                statLabel: "en comisiones abusivas"
-              },
-              { 
-                icon: TrendingUp, 
-                title: "Empleo Desconectado", 
-                desc: "Las bolsas de empleo en la región están desactualizadas, con mala UX y sin integración con perfiles profesionales verificados.",
-                stat: "70%",
-                statLabel: "abandona el proceso"
-              }
-            ].map((problem, i) => (
-              <motion.div 
-                key={i}
-                {...fadeUp}
-                transition={{ duration: 0.5, delay: i * 0.15 }}
-                className="relative overflow-hidden rounded-2xl bg-bg-tertiary border border-border p-8 group hover:border-red-500/20 transition-all"
-              >
-                <div className="h-12 w-12 rounded-xl bg-red-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <problem.icon className="h-6 w-6 text-red-400" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-3">{problem.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed mb-6">{problem.desc}</p>
-                <div className="pt-4 border-t border-border">
-                  <span className="text-2xl font-bold text-red-400 font-mono">{problem.stat}</span>
-                  <span className="text-xs text-gray-500 ml-2 uppercase tracking-wider">{problem.statLabel}</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* The Solution - Core Features */}
-      <section className="w-full py-24 bg-bg-primary">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <motion.div {...fadeUp} transition={{ duration: 0.5 }} className="text-center mb-16">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">La solución: <span className="text-gold">un ecosistema completo</span></h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">Mercav integra todo lo que un negocio o profesional latinoamericano necesita bajo un solo techo.</p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {[
-              { icon: CheckCircle2, title: "Hecho para Latam", desc: "Métodos de pago locales, precios acordes a nuestra realidad y soporte en español nativo. No adaptamos herramientas gringas: construimos desde cero para nosotros.", color: "gold" },
-              { icon: Shield, title: "Cero Intermediarios Abusivos", desc: "No cobramos márgenes del 30%. No escondemos información de contacto. No ponemos trabas artificiales. Tu primer alquiler de espacio es 100% libre de comisión.", color: "gold" },
-              { icon: Zap, title: "Ecosistema Todo en Uno", desc: "Publicidad offline, talento digital, bolsa de empleo y herramientas de gestión empresarial. Todo integrado, todo bajo una misma cuenta y perfil profesional.", color: "gold" },
-              { icon: Lock, title: "Transparencia Absoluta", desc: "Precios claros desde el primer clic. Perfiles verificados con datos reales. Reseñas auténticas. Reglas justas para todos los usuarios de la plataforma sin excepciones.", color: "gold" },
-              { icon: DollarSign, title: "Precios Justos para la Región", desc: "Entendemos que $10 USD no significa lo mismo en cada país. Nuestros planes están diseñados pensando en la realidad económica de cada mercado latinoamericano.", color: "gold" },
-              { icon: Target, title: "Enfoque en Resultados", desc: "Cada funcionalidad existe para generar valor real. Sin features de relleno, sin métricas vanidosas. Medimos éxito por conexiones reales y transacciones completadas.", color: "gold" },
-              { icon: Clock, title: "Rapidez sin Sacrificios", desc: "Publicar un servicio toma menos de 3 minutos. Encontrar un profesional, segundos. Contratar con garantía, un par de clics. El tiempo es tu recurso más valioso.", color: "gold" },
-              { icon: Heart, title: "Construido con Pasión", desc: "Mercav no es un proyecto de venture capital. Es una misión personal de un fundador que creció viendo los problemas de primera mano. Cada pixel tiene intención.", color: "gold" }
-            ].map((feature, i) => (
-              <motion.div 
-                key={i} 
-                {...fadeUp}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="bg-bg-secondary p-8 rounded-2xl border border-border hover:border-gold/30 transition-all group hover:shadow-lg hover:shadow-gold/5"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="h-11 w-11 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0 group-hover:bg-gold/20 group-hover:scale-110 transition-all">
-                    <feature.icon className="w-5 h-5 text-gold" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
-                    <p className="text-gray-400 text-sm leading-relaxed">{feature.desc}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How we're different */}
-      <section className="blend-from-primary blend-to-primary relative w-full overflow-hidden bg-bg-secondary py-24 section-transition">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <motion.div {...fadeUp} transition={{ duration: 0.5 }} className="text-center mb-16">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">Lo que nos hace diferentes</h2>
-          </motion.div>
-
-          <div className="grid gap-4 max-w-3xl mx-auto">
-            {[
-              { them: "Comisiones del 20-30% por transacción", us: "Tu primer alquiler sin comisión. Después, comisiones justas y transparentes." },
-              { them: "Plataformas en inglés traducidas con Google", us: "Construido en español nativo desde la primera línea de código." },
-              { them: "Soporte automatizado con bots genéricos", us: "Soporte humano real, rápido y en tu idioma." },
-              { them: "Herramientas separadas para cada necesidad", us: "Un solo ecosistema con todo integrado bajo tu perfil profesional." },
-              { them: "Precios en USD sin contexto regional", us: "Precios locales adaptados a la realidad de cada país." },
-            ].map((comp, i) => (
-              <motion.div 
-                key={i}
-                {...fadeUp}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-0 rounded-2xl overflow-hidden border border-border"
-              >
-                <div className="p-5 bg-red-500/5 border-b md:border-b-0 md:border-r border-border flex items-center gap-3">
-                  <div className="h-2 w-2 rounded-full bg-red-500/60 flex-shrink-0" />
-                  <span className="text-sm text-gray-400 line-through decoration-red-500/30">{comp.them}</span>
-                </div>
-                <div className="p-5 bg-gold/5 flex items-center gap-3">
-                  <div className="h-2 w-2 rounded-full bg-gold flex-shrink-0" />
-                  <span className="text-sm text-white font-medium">{comp.us}</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Highlight */}
-      <section className="w-full py-20 bg-bg-primary">
-        <div className="container mx-auto px-4 max-w-4xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {[
-              { label: "Países en Latam", val: "15+" },
-              { label: "Módulos Integrados", val: "4" },
-              { label: "Comisión Primer Alquiler", val: "$0" },
-              { label: "Idioma Nativo", val: "ES" },
-            ].map((stat, i) => (
-              <motion.div 
-                key={i} 
-                {...fadeUp}
-                transition={{ duration: 0.5, delay: i * 0.1, type: "spring" }}
-                className="flex flex-col items-center"
-              >
-                <span className="font-display text-3xl md:text-4xl font-bold text-gold mb-2">{stat.val}</span>
-                <span className="text-xs text-gray-400 uppercase tracking-wider">{stat.label}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* The Vision */}
-      <section className="blend-from-primary relative w-full overflow-hidden bg-bg-secondary py-24 section-transition">
-        <div className="container mx-auto px-4 max-w-3xl text-center">
-          <motion.div {...fadeUp} transition={{ duration: 0.6 }}>
-            <Award className="h-12 w-12 text-gold mx-auto mb-8" />
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-8 leading-tight">
-              Nuestra visión
-            </h2>
-            <div className="space-y-6 text-gray-300 text-lg leading-relaxed">
-              <p>
-                Imaginamos un continente donde cualquier emprendedor, freelancer o empresa pequeña tiene acceso a las mismas herramientas profesionales que las grandes corporaciones.
-              </p>
-              <p>
-                Donde contratar talento, alquilar publicidad o encontrar empleo no depende de quién conoces, sino de la calidad de lo que ofreces.
-              </p>
-              <p className="text-gold font-medium text-xl">
-                Mercav es esa visión hecha realidad. Y recién estamos empezando.
-              </p>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="w-full py-24 bg-bg-primary relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gold/8 via-transparent to-transparent pointer-events-none" />
-        <div className="container mx-auto px-4 max-w-3xl relative z-10 text-center">
-          <motion.div {...fadeUp} transition={{ duration: 0.6 }}>
-            <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-              ¿Listo para ser parte del <span className="text-gold">cambio</span>?
-            </h2>
-            <p className="text-gray-400 text-lg mb-10 max-w-xl mx-auto">
-              Únete a miles de empresas y profesionales que ya confían en Mercav para crecer.
+    <div className="w-full bg-bg-primary">
+      {/* Hero */}
+      <header className="relative w-full overflow-hidden pb-16 pt-28 md:pb-24 md:pt-36">
+        <div className="mv-aura" aria-hidden />
+        <Container className="relative">
+          <Reveal className="max-w-4xl">
+            <p className="mv-kicker">Por qué Mercav</p>
+            <h1 className="mv-h1 mt-5">
+              Latinoamérica tiene el talento. <span className="mv-gold-text">Le faltaban las herramientas.</span>
+            </h1>
+            <p className="mv-lead mt-6">
+              La región está llena de talento y de negocios que funcionan, pero las herramientas para conectarlos fueron diseñadas para otros mercados. Mercav nace para cambiar eso.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-gold text-black hover:bg-gold-light h-14 px-8 rounded-xl font-semibold text-lg transition-all hover:shadow-lg hover:shadow-gold/20">
-                <Link href="/register">
-                  Empezar gratis <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="border-gold/40 text-gold hover:bg-gold/10 h-14 px-8 rounded-xl font-medium text-lg bg-transparent">
-                <Link href="/nosotros">Conocer al fundador</Link>
-              </Button>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <ButtonLink href="/register" size="lg" className="w-full sm:w-auto">
+                Empezar gratis <ArrowRight className="h-4 w-4" aria-hidden />
+              </ButtonLink>
+              <ButtonLink href="#el-problema" tone="secondary" size="lg" className="w-full sm:w-auto">
+                Leer el porqué
+              </ButtonLink>
             </div>
-          </motion.div>
-        </div>
-      </section>
+          </Reveal>
+        </Container>
+      </header>
+
+      {/* 1. Problema */}
+      <Section tone="raised" id="el-problema" labelledBy="pq-problema">
+        <Container>
+          <SectionHeading
+            id="pq-problema"
+            kicker="El problema"
+            title="Durante años, la región trabajó con herramientas pensadas para otros continentes."
+          />
+          <ol className="mt-14 grid gap-4 md:grid-cols-3">
+            {PROBLEMS.map(({ icon: Icon, title, desc }, i) => (
+              <Reveal as="li" key={title} delay={i * 60} className="mv-panel flex flex-col p-6 md:p-8">
+                <div className="flex items-center justify-between">
+                  <span className="grid h-11 w-11 place-items-center rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] text-[var(--text-secondary)]">
+                    <Icon className="h-5 w-5" aria-hidden />
+                  </span>
+                  <span className="mv-data text-sm text-[var(--text-tertiary)]">0{i + 1}</span>
+                </div>
+                <h3 className="mv-h3 mt-6">{title}</h3>
+                <p className="mv-body mt-3">{desc}</p>
+              </Reveal>
+            ))}
+          </ol>
+        </Container>
+      </Section>
+
+      {/* 2. Solución */}
+      <Section labelledBy="pq-solucion">
+        <Container>
+          <div className="grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
+            <div className="lg:sticky lg:top-28 lg:self-start">
+              <SectionHeading
+                id="pq-solucion"
+                kicker="La solución"
+                title="Un ecosistema completo, bajo una sola cuenta."
+                lead="Publicidad offline, talento digital, bolsa de empleo y herramientas de gestión. Todo integrado bajo el mismo perfil profesional."
+              />
+              <Reveal className="liquid-glass mt-10 rounded-[1.75rem] p-6 md:p-7">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-gold/10 text-gold">
+                    <Layers className="h-5 w-5" aria-hidden />
+                  </span>
+                  <p className="font-semibold text-[var(--text-primary)]">Una cuenta, todos los módulos</p>
+                </div>
+                <ul className="mt-5 flex flex-wrap gap-1.5" aria-label="Módulos de Mercav">
+                  {MODULES.map((m) => (
+                    <li key={m} className="mv-chip">
+                      {m}
+                    </li>
+                  ))}
+                </ul>
+              </Reveal>
+            </div>
+            <ul className="grid gap-x-10 gap-y-10 sm:grid-cols-2">
+              {PRINCIPLES.map(({ icon: Icon, title, desc }) => (
+                <li key={title} className="flex flex-col gap-3 border-t border-[var(--mv-hairline)] pt-6">
+                  <Icon className="h-5 w-5 text-gold" aria-hidden />
+                  <h3 className="text-lg font-semibold tracking-tight text-[var(--text-primary)]">{title}</h3>
+                  <p className="mv-body">{desc}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Container>
+      </Section>
+
+      {/* 3. Por qué ahora */}
+      <Section tone="raised" tight labelledBy="pq-ahora">
+        <Container>
+          <div className="grid gap-8 md:grid-cols-[0.8fr_1.2fr] md:items-end md:gap-16">
+            <SectionHeading id="pq-ahora" kicker="Por qué ahora" title="La región ya trabaja en digital." />
+            <Reveal>
+              <p className="mv-lead">
+                Hay más personas conectadas, más negocios digitalizándose y más profesionales que eligen trabajar de forma independiente. Lo que faltaba era una plataforma hecha para ellos, en su idioma y con sus reglas.
+              </p>
+            </Reveal>
+          </div>
+        </Container>
+      </Section>
+
+      {/* 4. Cómo nos diferenciamos */}
+      <Section labelledBy="pq-diferencia">
+        <Container>
+          <SectionHeading id="pq-diferencia" kicker="Cómo" title="Lo que hacemos distinto." lead="Lo habitual en la industria, y lo que encontrás en Mercav." />
+          <div className="mt-12 hidden grid-cols-2 gap-4 px-6 text-sm font-semibold md:grid">
+            <p className="text-[var(--text-tertiary)]">Lo habitual</p>
+            <p className="text-gold">En Mercav</p>
+          </div>
+          <ul className="mt-6 space-y-3 md:mt-3">
+            {COMPARISON.map((c) => (
+              <li key={c.us} className="mv-panel grid overflow-hidden rounded-[1.25rem] md:grid-cols-2">
+                <div className="flex items-start gap-3 px-5 py-4 md:px-6 md:py-5">
+                  <X className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-tertiary)]" aria-hidden />
+                  <p className="text-[0.9375rem] text-[var(--text-secondary)]">
+                    <span className="sr-only">Lo habitual: </span>
+                    {c.them}
+                  </p>
+                </div>
+                <div className="flex items-start gap-3 border-t border-[var(--mv-hairline)] bg-[var(--mv-gold-wash)] px-5 py-4 md:border-l md:border-t-0 md:px-6 md:py-5">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden />
+                  <p className="text-[0.9375rem] font-medium text-[var(--text-primary)]">
+                    <span className="sr-only">En Mercav: </span>
+                    {c.us}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Container>
+      </Section>
+
+      {/* 5. Confianza: quién lo construye y hacia dónde va */}
+      <Section tone="raised" labelledBy="pq-vision">
+        <Container>
+          <div className="grid gap-12 lg:grid-cols-2 lg:gap-20">
+            <div>
+              <SectionHeading id="pq-vision" kicker="Nuestra visión" title="Las mismas herramientas que una gran empresa, al alcance de cualquiera." />
+              <Reveal className="mt-8 space-y-5">
+                <p className="mv-body text-base">
+                  Imaginamos un continente donde cualquier emprendedor, freelancer o empresa pequeña accede a las mismas herramientas profesionales que las grandes corporaciones.
+                </p>
+                <p className="mv-body text-base">
+                  Donde contratar talento, alquilar publicidad o encontrar empleo no depende de a quién conocés, sino de la calidad de lo que ofrecés. Recién estamos empezando.
+                </p>
+              </Reveal>
+            </div>
+            <Reveal className="mv-panel flex flex-col justify-between gap-8 p-6 md:p-9">
+              <div>
+                <span className="grid h-11 w-11 place-items-center rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] text-gold">
+                  <Heart className="h-5 w-5" aria-hidden />
+                </span>
+                <h3 className="mv-h3 mt-6">Construido con intención</h3>
+                <p className="mv-body mt-3">
+                  Mercav no es un proyecto de capital de riesgo. Es una misión personal de un fundador que creció viendo estos problemas de primera mano, en Santa Cruz de la Sierra. Cada detalle tiene un porqué.
+                </p>
+              </div>
+              <ul className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-[var(--text-secondary)]">
+                <li className="inline-flex items-center gap-2">
+                  <Languages className="h-4 w-4 text-gold" aria-hidden /> Español nativo
+                </li>
+                <li className="inline-flex items-center gap-2">
+                  <Check className="h-4 w-4 text-gold" aria-hidden /> Primer alquiler sin comisión
+                </li>
+              </ul>
+              <Link href="/nosotros" className="mv-link inline-flex w-fit items-center gap-2 text-sm">
+                Conocer al fundador <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </Reveal>
+          </div>
+        </Container>
+      </Section>
+
+      <CTABand
+        title="¿Listo para ser parte del cambio?"
+        lead="Creá tu cuenta gratis y empezá a usar Mercav hoy."
+        action={
+          <ButtonLink href="/register" size="lg" className="w-full sm:w-auto">
+            Empezar gratis <ArrowRight className="h-4 w-4" aria-hidden />
+          </ButtonLink>
+        }
+      />
     </div>
   );
 }

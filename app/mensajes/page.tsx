@@ -6,25 +6,18 @@ import {
   Search, 
   Send, 
   MoreVertical, 
-  Phone, 
-  Video, 
-  Paperclip, 
-  Smile, 
   User,
   Loader2,
   ArrowLeft,
-  Circle,
   UserPlus,
   X,
-  CheckCircle2,
-  ShieldCheck,
-  Trash2
+  SquarePen,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { Button } from "@/components/ui/button";
+import { BodyPortal } from "@/components/auth/BodyPortal";
 import { encryptMessage, decryptMessage } from "@/lib/crypto";
 import { Toast } from "@/components/ui/toast";
 
@@ -48,6 +41,10 @@ function MensajesUI() {
   const [searchConvQuery, setSearchConvQuery] = useState("");
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Evita que una respuesta vieja pise los mensajes de otra conversación y
+  // que el parámetro ?to= dispare varios POST de contacto mientras se actualiza la URL.
+  const activeConvIdRef = useRef<string | null>(null);
+  const contactingRef = useRef<string | null>(null);
   const currentUserId = (session?.user as any)?.id;
   const isAuthLoading = status === "loading";
 
@@ -86,7 +83,7 @@ function MensajesUI() {
             participants: [admin, session?.user],
             messages: [{
               id: 'admin-welcome-virtual',
-              content: encryptMessage("¡Hola! Bienvenido al canal oficial de Soporte Mercav. 🛡️\n\nEstamos aquí para ayudarte 24/7 con:\n• Reportes de fraude o usuarios sospechosos.\n• Problemas técnicos con tu POS o publicaciones.\n• Dudas sobre pagos y comisiones.\n• Sugerencias para mejorar la plataforma.\n\nEscríbenos tu duda detallada y un miembro de nuestro staff te atenderá lo antes posible."),
+              content: encryptMessage("¡Hola! Este es el canal oficial de soporte de Mercav.\n\nPodemos ayudarte con:\n• Reportes de fraude o usuarios sospechosos.\n• Problemas técnicos con tu POS o publicaciones.\n• Dudas sobre pagos y comisiones.\n• Sugerencias para mejorar la plataforma.\n\nEscribinos tu consulta con el mayor detalle posible y alguien del equipo te va a responder."),
               senderId: admin.id,
               createdAt: new Date().toISOString()
             }]
@@ -107,6 +104,7 @@ function MensajesUI() {
     try {
       const res = await fetch(`/api/conversations/${convId}/messages`);
       const data = await res.json();
+      if (activeConvIdRef.current !== convId) return;
       if (data.success) {
         const decryptedMessages = data.data.map((m: any) => ({
           ...m,
@@ -118,7 +116,7 @@ function MensajesUI() {
         if (isAdminChat) {
           decryptedMessages.unshift({
             id: 'admin-welcome',
-            content: "¡Hola! Bienvenido al canal oficial de Soporte Mercav. 🛡️\n\nEstamos aquí para ayudarte 24/7 con:\n• Reportes de fraude o usuarios sospechosos.\n• Problemas técnicos con tu POS o publicaciones.\n• Dudas sobre pagos y comisiones.\n• Sugerencias para mejorar la plataforma.\n\nEscríbenos tu duda detallada y un miembro de nuestro staff te atenderá lo antes posible.",
+            content: "¡Hola! Este es el canal oficial de soporte de Mercav.\n\nPodemos ayudarte con:\n• Reportes de fraude o usuarios sospechosos.\n• Problemas técnicos con tu POS o publicaciones.\n• Dudas sobre pagos y comisiones.\n• Sugerencias para mejorar la plataforma.\n\nEscribinos tu consulta con el mayor detalle posible y alguien del equipo te va a responder.",
             senderId: selectedConv.participants.find((p: any) => p.email === 'admin@mercav.lat')?.id,
             createdAt: selectedConv.createdAt,
             isOfficial: true
@@ -126,17 +124,19 @@ function MensajesUI() {
         }
 
         setMessages(decryptedMessages);
+      } else {
+        setMessages([]);
       }
     } catch (err) {
       console.error(err);
     } finally {
-      setMessagesLoading(false);
+      if (activeConvIdRef.current === convId) setMessagesLoading(false);
     }
   };
 
   useEffect(() => {
-    const convId = searchParams.get("convId");
-    const toUserId = searchParams.get("to");
+    const convId = searchParams?.get("convId");
+    const toUserId = searchParams?.get("to");
 
     if (!isAuthLoading && currentUserId) {
       if (convId) {
@@ -154,6 +154,7 @@ function MensajesUI() {
           router.replace('/mensajes');
           return;
         }
+        if (contactingRef.current === toUserId) return;
         handleDirectContact(toUserId);
       }
     }
@@ -167,6 +168,7 @@ function MensajesUI() {
       return;
     }
     
+    contactingRef.current = userId;
     setIsContacting(userId);
     try {
       const res = await fetch('/api/messages/contact', {
@@ -188,10 +190,12 @@ function MensajesUI() {
       setToast({ visible: true, message: "Error de conexión al iniciar el chat", type: "error" });
     } finally {
       setIsContacting(null);
+      contactingRef.current = null;
     }
   };
 
   useEffect(() => {
+    activeConvIdRef.current = selectedConv?.id ?? null;
     if (selectedConv && !selectedConv.isVirtual) {
       fetchMessages(selectedConv.id);
     } else if (selectedConv?.isVirtual) {
@@ -275,9 +279,14 @@ function MensajesUI() {
         const decryptedNewMsg = { ...data.data, content: originalMessage };
         setMessages(prev => [...prev, decryptedNewMsg]);
         fetchConversations(); // Refresh list to remove virtual and show real
+      } else {
+        setNewMessage(originalMessage);
+        setToast({ visible: true, message: data.error || "No se pudo enviar el mensaje", type: "error" });
       }
     } catch (err) {
       console.error(err);
+      setNewMessage(originalMessage);
+      setToast({ visible: true, message: "Error de conexión al enviar el mensaje", type: "error" });
     }
   };
 
@@ -285,327 +294,363 @@ function MensajesUI() {
     return participants.find(p => p.id !== currentUserId) || participants[0];
   };
 
+  const formatTime = (value: string) => new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const avatarFor = (u: any) => u?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u?.name || 'Usuario')}&background=1a1a1a&color=D4AF37`;
+  const filteredConversations = conversations.filter(conv => {
+    const other = getOtherParticipant(conv.participants);
+    return other?.name?.toLowerCase().includes(searchConvQuery.toLowerCase());
+  });
+  const otherInThread = selectedConv ? getOtherParticipant(selectedConv.participants) : null;
+
   if (isAuthLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-bg-primary">
-        <Loader2 className="w-8 h-8 text-gold animate-spin" />
+      <div className="flex h-[100dvh] items-center justify-center bg-bg-primary" role="status">
+        <Loader2 className="h-7 w-7 animate-spin text-gold" aria-hidden />
+        <span className="sr-only">Cargando mensajes</span>
       </div>
     );
   }
 
   return (
-    <div className="flex h-[calc(100vh-128px)] md:h-[calc(100vh-64px)] w-full max-w-[1600px] mx-auto bg-[#050505] overflow-hidden mt-16">
-      {/* Sidebar */}
-      <div className={`w-full md:w-[450px] border-r border-white/5 flex flex-col bg-bg-primary relative z-20 ${selectedConv ? 'hidden md:flex' : 'flex'}`}>
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-display font-black text-white tracking-tighter">Mensajes</h1>
-            <button 
-              onClick={() => setIsSearchOpen(true)}
-              className="p-3 bg-white/5 hover:bg-gold hover:text-black rounded-2xl transition-all border border-white/5"
-            >
-              <UserPlus size={20} />
-            </button>
-          </div>
-          
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-gold transition-colors w-4 h-4" />
-            <input 
-              placeholder="Buscar conversaciones..."
-              value={searchConvQuery}
-              onChange={(e) => setSearchConvQuery(e.target.value)}
-              className="w-full bg-white/[0.03] border border-white/5 rounded-2xl h-12 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-gold/30 transition-all"
-            />
-          </div>
-        </div>
-
-        {/* Conversations List */}
-        <div className="flex-1 overflow-y-auto no-scrollbar">
-          {convsLoading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 text-gold animate-spin mb-4" />
-              <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Sincronizando...</p>
+    <div className="mx-auto flex h-[100dvh] w-full max-w-[88rem] flex-col px-3 pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] pt-[calc(5rem+env(safe-area-inset-top,0px))] sm:px-6 md:pb-6 md:pt-28 lg:px-8">
+      <div className="mv-panel flex min-h-0 flex-1 overflow-hidden rounded-[1.5rem] md:rounded-[1.75rem]">
+        {/* Inbox */}
+        <section
+          aria-labelledby="inbox-title"
+          className={`min-h-0 w-full flex-col border-r border-[var(--mv-hairline)] md:flex md:w-[22rem] lg:w-[24rem] ${selectedConv ? 'hidden' : 'flex'}`}
+        >
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <h1 id="inbox-title" className="font-display text-2xl font-semibold tracking-tight text-[var(--text-primary)]">Mensajes</h1>
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(true)}
+                aria-label="Nueva conversación"
+                className="mv-btn mv-btn-secondary h-10 w-10 px-0"
+              >
+                <SquarePen className="h-[18px] w-[18px]" aria-hidden />
+              </button>
             </div>
-          ) : conversations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 px-10 text-center opacity-40">
-              <MessageSquare size={48} className="text-gray-700 mb-4" />
-              <p className="text-sm text-gray-500">No tienes chats activos aún. ¡Inicia uno nuevo!</p>
+
+            <div className="relative mt-4">
+              <label htmlFor="conv-search" className="sr-only">Buscar conversaciones</label>
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-tertiary)]" aria-hidden />
+              <input
+                id="conv-search"
+                type="search"
+                placeholder="Buscar conversaciones"
+                value={searchConvQuery}
+                onChange={(e) => setSearchConvQuery(e.target.value)}
+                className="mv-input h-11 pl-10 text-[15px]"
+              />
             </div>
-          ) : (
-            conversations
-              .filter(conv => {
-                const other = getOtherParticipant(conv.participants);
-                return other?.name?.toLowerCase().includes(searchConvQuery.toLowerCase());
-              })
-              .map((conv) => {
-              const other = getOtherParticipant(conv.participants);
-              const lastMsg = conv.messages?.[0];
-              const isSelected = selectedConv?.id === conv.id;
-              
-              return (
-                <button
-                  key={conv.id}
-                  onClick={() => setSelectedConv(conv)}
-                  className={`w-full p-5 flex items-center gap-4 transition-all relative group border-b border-white/[0.02] ${
-                    isSelected ? 'bg-white/[0.04]' : 'hover:bg-white/[0.02]'
-                  }`}
-                >
-                  {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-gold shadow-[0_0_15px_rgba(255,215,0,0.5)]" />}
-                  <div className="relative flex-shrink-0">
-                    <img 
-                      src={other?.avatar || `https://ui-avatars.com/api/?name=${other?.name || 'User'}`} 
-                      className={`w-14 h-14 rounded-2xl object-cover border-2 transition-all ${isSelected ? 'border-gold shadow-lg shadow-gold/20' : 'border-white/5'}`}
-                      alt={other?.name}
-                    />
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-bg-primary rounded-full shadow-lg" />
-                  </div>
-                  <div className="flex-1 text-left min-w-0">
-                    <div className="flex justify-between items-center mb-1">
-                      <h3 className={`font-bold truncate text-sm ${isSelected ? 'text-gold' : 'text-white'}`}>{other?.name}</h3>
-                      <span className="text-[10px] text-gray-500 font-bold">
-                        {lastMsg ? new Date(lastMsg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                      </span>
-                    </div>
-                    {other?.profile?.headline && (
-                      <p className="text-[9px] text-gold/60 font-black uppercase tracking-widest mb-1 truncate">{other.profile.headline}</p>
-                    )}
-                    <p className="text-xs text-gray-400 truncate pr-4">
-                      {lastMsg?.senderId === currentUserId ? <span className="text-gold font-bold mr-1">Tú:</span> : ''}
-                      {lastMsg ? decryptMessage(lastMsg.content) : 'Empezar chat...'}
-                    </p>
-                  </div>
+          </div>
+
+          <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-2">
+            {convsLoading ? (
+              <ul className="space-y-1 px-1" aria-label="Cargando conversaciones">
+                {[0, 1, 2, 3].map((i) => (
+                  <li key={i} className="flex animate-pulse items-center gap-3 rounded-2xl p-3">
+                    <span className="h-12 w-12 shrink-0 rounded-2xl bg-[var(--mv-panel-hover)]" />
+                    <span className="flex-1 space-y-2">
+                      <span className="block h-3 w-2/5 rounded-full bg-[var(--mv-panel-hover)]" />
+                      <span className="block h-3 w-4/5 rounded-full bg-[var(--mv-panel-hover)]" />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : conversations.length === 0 ? (
+              <div className="flex flex-col items-center px-6 py-16 text-center">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl border border-[var(--mv-hairline)] text-[var(--text-tertiary)]">
+                  <MessageSquare className="h-5 w-5" aria-hidden />
+                </span>
+                <p className="mt-4 font-semibold text-[var(--text-primary)]">Todavía no tenés conversaciones</p>
+                <p className="mt-1 text-sm text-[var(--text-secondary)]">Buscá a una persona o empresa para escribirle.</p>
+                <button type="button" onClick={() => setIsSearchOpen(true)} className="mv-btn mv-btn-primary mv-btn-sm mt-5">
+                  Nueva conversación
                 </button>
-              );
-            })
-          )}
-        </div>
-      </div>
-
-      {/* Main Chat Area */}
-      <div className={`flex-1 flex flex-col bg-[#080808] relative ${!selectedConv ? 'hidden md:flex' : 'flex'}`}>
-        {selectedConv ? (
-          <>
-            {/* Chat Header */}
-            <header className="p-6 border-b border-white/5 bg-white/[0.01] backdrop-blur-3xl flex items-center justify-between z-10">
-              <div className="flex items-center gap-4">
-                <button onClick={() => setSelectedConv(null)} className="md:hidden p-2 text-gray-400 hover:text-white mr-2">
-                  <ArrowLeft size={20} />
-                </button>
-                <div className="relative">
-                  <img 
-                    src={getOtherParticipant(selectedConv.participants)?.avatar || `https://ui-avatars.com/api/?name=${getOtherParticipant(selectedConv.participants)?.name}`} 
-                    className="w-12 h-12 rounded-2xl object-cover border border-white/10"
-                    alt="Chat"
-                  />
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-[#080808] rounded-full" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-black text-white flex items-center gap-2 tracking-tight">
-                    {getOtherParticipant(selectedConv.participants)?.name}
-                    <ShieldCheck size={18} className="text-gold" />
-                  </h2>
-                  <p className="text-[11px] text-gold font-black uppercase tracking-[0.15em]">Seguridad: Cifrado de extremo a extremo</p>
-                </div>
               </div>
-              <div className="flex items-center gap-2 relative">
-                 <button 
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="p-3 text-gray-500 hover:text-white transition-colors rounded-xl hover:bg-white/5"
-                 >
-                   <MoreVertical size={20} />
-                 </button>
-
-                 <AnimatePresence>
-                   {isMenuOpen && (
-                     <>
-                       <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
-                       <motion.div 
-                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                         className="absolute right-0 top-full mt-2 w-48 bg-bg-secondary border border-white/10 rounded-2xl shadow-2xl z-20 overflow-hidden"
-                       >
-                         <div className="p-2 space-y-1">
-                           <Link 
-                            href={`/perfil/${getOtherParticipant(selectedConv.participants)?.id}`}
-                            className="flex items-center gap-3 p-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-                           >
-                             <User size={16} /> Ver Perfil
-                           </Link>
-                           <button className="w-full flex items-center gap-3 p-3 text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-all">
-                             <Trash2 size={16} /> Borrar Chat
-                           </button>
-                         </div>
-                       </motion.div>
-                     </>
-                   )}
-                 </AnimatePresence>
-              </div>
-            </header>
-
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
-              <AnimatePresence initial={false}>
-                {messagesLoading ? (
-                  <div className="flex h-full items-center justify-center">
-                    <Loader2 className="w-8 h-8 text-gold animate-spin" />
-                  </div>
-                ) : messages.map((m, i) => {
-                  const isMine = m.senderId === currentUserId;
+            ) : filteredConversations.length === 0 ? (
+              <p className="px-4 py-10 text-center text-sm text-[var(--text-secondary)]">Ninguna conversación coincide con “{searchConvQuery}”.</p>
+            ) : (
+              <ul className="space-y-0.5">
+                {filteredConversations.map((conv) => {
+                  const other = getOtherParticipant(conv.participants);
+                  const lastMsg = conv.messages?.[0];
+                  const isSelected = selectedConv?.id === conv.id;
                   return (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      key={m.id}
-                      className={`flex ${isMine ? "justify-end" : "justify-start"}`}
-                    >
-                      <div className={`max-w-[70%] group relative`}>
-                         <div className={`px-5 py-3.5 rounded-[1.5rem] text-sm leading-relaxed shadow-2xl ${
-                          isMine 
-                            ? "bg-gold text-black font-medium rounded-tr-none" 
-                            : "bg-white/[0.03] border border-white/5 text-gray-200 rounded-tl-none"
-                        }`}>
-                          {decryptMessage(m.content)}
-                        </div>
-                        <div className={`mt-2 text-[9px] font-black uppercase tracking-widest text-gray-600 ${isMine ? "text-right" : "text-left"}`}>
-                          {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      </div>
-                    </motion.div>
+                    <li key={conv.id}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedConv(conv)}
+                        aria-current={isSelected ? 'true' : undefined}
+                        className={`mv-focus relative flex w-full items-center gap-3 rounded-2xl p-3 text-left transition-colors duration-200 ${
+                          isSelected ? 'bg-[var(--mv-panel-hover)]' : 'hover:bg-[var(--mv-panel-hover)]'
+                        }`}
+                      >
+                        {isSelected && <span aria-hidden className="absolute inset-y-3 left-0 w-[3px] rounded-full bg-gold" />}
+                        <img
+                          src={avatarFor(other)}
+                          className="h-12 w-12 shrink-0 rounded-2xl border border-[var(--mv-hairline)] object-cover"
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-baseline justify-between gap-2">
+                            <span className="truncate text-[15px] font-semibold text-[var(--text-primary)]">{other?.name}</span>
+                            {lastMsg && <span className="mv-data shrink-0 text-[11px] text-[var(--text-tertiary)]">{formatTime(lastMsg.createdAt)}</span>}
+                          </span>
+                          {other?.profile?.headline && (
+                            <span className="block truncate text-xs text-[var(--text-tertiary)]">{other.profile.headline}</span>
+                          )}
+                          <span className="mt-0.5 block truncate text-sm text-[var(--text-secondary)]">
+                            {lastMsg?.senderId === currentUserId ? <span className="font-medium text-[var(--text-primary)]">Vos: </span> : null}
+                            {lastMsg ? decryptMessage(lastMsg.content) : 'Empezá la conversación'}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
                   );
                 })}
-              </AnimatePresence>
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input Area */}
-            <div className="p-6 border-t border-white/5 bg-white/[0.01]">
-              <form onSubmit={handleSendMessage} className="relative flex items-center gap-4 w-full">
-                <div className="flex gap-2">
-                  <button type="button" className="p-3 text-gray-500 hover:text-gold transition-colors bg-white/5 rounded-2xl border border-white/5"><Paperclip size={20} /></button>
-                  <button type="button" className="p-3 text-gray-500 hover:text-gold transition-colors bg-white/5 rounded-2xl border border-white/5"><Smile size={20} /></button>
-                </div>
-                <div className="relative flex-1">
-                  <input 
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Escribe tu mensaje con seguridad..."
-                    className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] h-14 pl-6 pr-12 text-sm text-white focus:outline-none focus:border-gold/30 transition-all placeholder:text-gray-600"
-                  />
-                  <button 
-                    type="submit"
-                    disabled={!newMessage.trim()}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-gold text-black rounded-xl hover:bg-gold-light transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
-                  >
-                    <Send size={18} />
-                  </button>
-                </div>
-              </form>
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
-             <div className="w-24 h-24 bg-white/[0.02] border border-white/5 rounded-[2rem] flex items-center justify-center mb-8 relative">
-                <MessageSquare size={40} className="text-gold" />
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-gold text-black rounded-full flex items-center justify-center text-[10px] font-black">!</div>
-             </div>
-             <h2 className="text-3xl font-display font-black text-white mb-4 tracking-tighter">Tus Conversaciones Seguras</h2>
-             <p className="text-gray-500 max-w-md leading-relaxed">
-               Selecciona un chat de la lista lateral o busca un nuevo profesional para iniciar una comunicación cifrada de extremo a extremo.
-             </p>
-             <Button 
-               onClick={() => setIsSearchOpen(true)}
-               className="mt-8 bg-white/5 hover:bg-gold hover:text-black border border-white/10 rounded-2xl px-8 h-12 font-black uppercase tracking-widest text-[10px]"
-             >
-               Buscar Personas
-             </Button>
+              </ul>
+            )}
           </div>
-        )}
-      </div>
+        </section>
 
-      {/* User Search Overlay */}
-      <AnimatePresence>
-        {isSearchOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-4"
-          >
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              className="bg-bg-secondary border border-white/10 rounded-[3rem] w-full max-w-2xl overflow-hidden shadow-2xl"
-            >
-              <div className="p-8 border-b border-white/5 flex items-center justify-between">
-                <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                  <UserPlus className="text-gold" /> Iniciar Nueva Conversación
-                </h3>
-                <button onClick={() => setIsSearchOpen(false)} className="p-2 hover:bg-white/5 rounded-full text-gray-500 hover:text-white transition-all">
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className="p-8">
-                <div className="relative mb-8">
-                  <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gold w-5 h-5" />
-                  <input 
-                    autoFocus
-                    placeholder="Escribe el nombre o @usuario..."
-                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl h-16 pl-16 pr-6 text-lg text-white focus:outline-none focus:border-gold/50 transition-all shadow-xl"
-                    onChange={(e) => {
-                      setUserSearchQuery(e.target.value);
-                      searchUsers(e.target.value);
-                    }}
+        {/* Thread */}
+        <section
+          aria-label={otherInThread ? `Conversación con ${otherInThread.name}` : 'Conversación'}
+          className={`min-h-0 flex-1 flex-col md:flex ${!selectedConv ? 'hidden' : 'flex'}`}
+        >
+          {selectedConv ? (
+            <>
+              <header className="flex items-center justify-between gap-3 border-b border-[var(--mv-hairline)] px-3 py-3 sm:px-5">
+                <div className="flex min-w-0 items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedConv(null)}
+                    aria-label="Volver a la lista"
+                    className="mv-focus grid h-10 w-10 shrink-0 place-items-center rounded-xl text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)] md:hidden"
+                  >
+                    <ArrowLeft className="h-5 w-5" aria-hidden />
+                  </button>
+                  <img
+                    src={avatarFor(otherInThread)}
+                    className="h-10 w-10 shrink-0 rounded-xl border border-[var(--mv-hairline)] object-cover"
+                    alt=""
                   />
+                  <div className="min-w-0">
+                    <h2 className="truncate font-semibold text-[var(--text-primary)]">{otherInThread?.name}</h2>
+                    {otherInThread?.profile?.headline ? (
+                      <p className="truncate text-xs text-[var(--text-secondary)]">{otherInThread.profile.headline}</p>
+                    ) : otherInThread?.username ? (
+                      <p className="mv-data truncate text-xs text-[var(--text-secondary)]">@{otherInThread.username}</p>
+                    ) : null}
+                  </div>
                 </div>
-
-                <div className="space-y-4 max-h-[400px] overflow-y-auto no-scrollbar pr-2">
-                  {isSearchingUsers ? (
-                    <div className="flex flex-col items-center justify-center py-12">
-                      <Loader2 className="w-8 h-8 text-gold animate-spin mb-4" />
-                      <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Buscando profesionales...</p>
-                    </div>
-                  ) : userSearchResults.length > 0 ? (
-                    userSearchResults.map((u) => (
-                      <button 
-                        key={u.id}
-                        onClick={() => handleDirectContact(u.id)}
-                        className="w-full flex items-center justify-between p-5 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/[0.05] hover:border-gold/30 transition-all group"
-                      >
-                        <div className="flex items-center gap-4">
-                          <img src={u.avatar || `https://ui-avatars.com/api/?name=${u.name}`} className="w-14 h-14 rounded-2xl object-cover border border-white/10" />
-                          <div className="text-left">
-                            <p className="font-bold text-white group-hover:text-gold transition-colors">{u.name}</p>
-                            <p className="text-xs text-gray-500 font-mono">@{u.username || 'usuario'}</p>
-                          </div>
-                        </div>
-                        <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                          isContacting === u.id ? "bg-white/10 text-gray-400" : "bg-gold/10 text-gold group-hover:bg-gold group-hover:text-black"
-                        }`}>
-                          {isContacting === u.id ? (
-                            <Loader2 size={14} className="animate-spin" />
-                          ) : (
-                            "Escribir"
-                          )}
-                        </div>
-                      </button>
-                    ))
-                  ) : userSearchQuery ? (
-                    <div className="text-center py-12">
-                      <p className="text-gray-500 italic">No encontramos a nadie con ese nombre.</p>
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 opacity-30">
-                      <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">Comienza a escribir para buscar</p>
-                    </div>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    aria-label="Opciones de la conversación"
+                    aria-haspopup="menu"
+                    aria-expanded={isMenuOpen}
+                    className="mv-focus grid h-10 w-10 place-items-center rounded-xl text-[var(--text-secondary)] transition-colors hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]"
+                  >
+                    <MoreVertical className="h-5 w-5" aria-hidden />
+                  </button>
+                  {isMenuOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} aria-hidden />
+                      <div role="menu" className="mv-pop mv-menu absolute right-0 top-full z-20 mt-2 w-52 origin-top-right rounded-2xl p-1.5">
+                        <Link
+                          role="menuitem"
+                          href={`/perfil/${otherInThread?.username || otherInThread?.id}`}
+                          onClick={() => setIsMenuOpen(false)}
+                          className="mv-focus flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--mv-panel-hover)]"
+                        >
+                          <User className="h-4 w-4 text-[var(--text-secondary)]" aria-hidden /> Ver perfil
+                        </Link>
+                      </div>
+                    </>
                   )}
                 </div>
+              </header>
+
+              <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-5 sm:px-6" role="log" aria-label="Mensajes">
+                {messagesLoading ? (
+                  <div className="flex h-full items-center justify-center" role="status">
+                    <Loader2 className="h-6 w-6 animate-spin text-gold" aria-hidden />
+                    <span className="sr-only">Cargando mensajes</span>
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="flex h-full flex-col items-center justify-center text-center">
+                    <p className="font-semibold text-[var(--text-primary)]">Sin mensajes todavía</p>
+                    <p className="mt-1 text-sm text-[var(--text-secondary)]">Escribí el primero para empezar la conversación.</p>
+                  </div>
+                ) : (
+                  <ol className="space-y-2">
+                    {messages.map((m, i) => {
+                      const isMine = m.senderId === currentUserId;
+                      const prev = messages[i - 1];
+                      const grouped = prev && prev.senderId === m.senderId;
+                      return (
+                        <li key={m.id} className={`mv-fade flex ${isMine ? 'justify-end' : 'justify-start'} ${grouped ? '' : 'pt-2'}`}>
+                          <div className={`flex max-w-[85%] flex-col sm:max-w-[70%] ${isMine ? 'items-end' : 'items-start'}`}>
+                            <div
+                              className={`whitespace-pre-wrap break-words px-4 py-2.5 text-[15px] leading-relaxed ${
+                                isMine
+                                  ? 'rounded-[1.25rem] rounded-br-md bg-gold text-[var(--mv-on-gold)]'
+                                  : 'rounded-[1.25rem] rounded-bl-md border border-[var(--mv-hairline)] bg-[var(--mv-panel-hover)] text-[var(--text-primary)]'
+                              }`}
+                            >
+                              {decryptMessage(m.content)}
+                            </div>
+                            <time dateTime={m.createdAt ? new Date(m.createdAt).toISOString() : undefined} className="mv-data mt-1 px-1 text-[11px] text-[var(--text-tertiary)]">
+                              {m.createdAt ? formatTime(m.createdAt) : ''}
+                            </time>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                )}
+                <div ref={messagesEndRef} />
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+              <div className="border-t border-[var(--mv-hairline)] p-2.5 sm:p-3">
+                <form onSubmit={handleSendMessage} className="mv-menu flex items-center gap-2 rounded-full p-1.5 pl-4">
+                  <label htmlFor="composer" className="sr-only">Mensaje para {otherInThread?.name}</label>
+                  <input
+                    id="composer"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Escribí un mensaje"
+                    autoComplete="off"
+                    enterKeyHint="send"
+                    className="h-11 min-w-0 flex-1 bg-transparent text-base text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)]"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newMessage.trim()}
+                    aria-label="Enviar mensaje"
+                    className="mv-btn mv-btn-primary h-11 w-11 shrink-0 px-0"
+                  >
+                    <Send className="h-[18px] w-[18px]" aria-hidden />
+                  </button>
+                </form>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-1 flex-col items-center justify-center p-10 text-center">
+              <span className="grid h-14 w-14 place-items-center rounded-2xl border border-[var(--mv-hairline)] text-gold">
+                <MessageSquare className="h-6 w-6" aria-hidden />
+              </span>
+              <h2 className="mv-h3 mt-5">Elegí una conversación</h2>
+              <p className="mv-body mt-2 max-w-sm">Seleccioná un chat de la lista o buscá a una persona o empresa para escribirle.</p>
+              <button type="button" onClick={() => setIsSearchOpen(true)} className="mv-btn mv-btn-secondary mt-6">
+                <UserPlus className="h-4 w-4" aria-hidden /> Nueva conversación
+              </button>
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* New conversation dialog */}
+      <BodyPortal>
+        <AnimatePresence>
+          {isSearchOpen && (
+            <div className="fixed inset-0 z-[200] flex items-end justify-center p-3 sm:items-start sm:p-4 sm:pt-[12vh]">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="absolute inset-0 bg-black/50"
+                onClick={() => setIsSearchOpen(false)}
+                aria-hidden
+              />
+              <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="new-chat-title"
+                onKeyDown={(e) => e.key === 'Escape' && setIsSearchOpen(false)}
+                initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                className="mv-menu relative flex max-h-[min(36rem,calc(100dvh-1.5rem))] w-full max-w-xl flex-col overflow-hidden rounded-[1.75rem]"
+              >
+                <div className="flex items-center justify-between gap-3 px-5 pb-3 pt-5 sm:px-6">
+                  <h2 id="new-chat-title" className="mv-h3">Nueva conversación</h2>
+                  <button
+                    type="button"
+                    onClick={() => setIsSearchOpen(false)}
+                    aria-label="Cerrar"
+                    className="mv-focus grid h-10 w-10 place-items-center rounded-full text-[var(--text-secondary)] transition-colors hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]"
+                  >
+                    <X className="h-5 w-5" aria-hidden />
+                  </button>
+                </div>
+
+                <div className="px-5 sm:px-6">
+                  <label htmlFor="user-search" className="sr-only">Buscar por nombre o usuario</label>
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-tertiary)]" aria-hidden />
+                    <input
+                      id="user-search"
+                      type="search"
+                      autoFocus
+                      autoComplete="off"
+                      placeholder="Nombre o @usuario"
+                      className="mv-input pl-10"
+                      onChange={(e) => {
+                        setUserSearchQuery(e.target.value);
+                        searchUsers(e.target.value);
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="scrollbar-hide mt-3 min-h-[10rem] flex-1 overflow-y-auto overscroll-contain px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4" aria-live="polite">
+                  {isSearchingUsers ? (
+                    <div className="flex items-center justify-center gap-2 py-12 text-sm text-[var(--text-secondary)]" role="status">
+                      <Loader2 className="h-4 w-4 animate-spin text-gold" aria-hidden /> Buscando…
+                    </div>
+                  ) : userSearchResults.length > 0 ? (
+                    <ul className="space-y-0.5 pb-2">
+                      {userSearchResults.map((u) => (
+                        <li key={u.id}>
+                          <button
+                            type="button"
+                            onClick={() => handleDirectContact(u.id)}
+                            disabled={isContacting === u.id}
+                            className="mv-focus flex w-full items-center gap-3 rounded-2xl p-3 text-left transition-colors duration-200 hover:bg-[var(--mv-panel-hover)]"
+                          >
+                            <img src={avatarFor(u)} className="h-11 w-11 shrink-0 rounded-xl border border-[var(--mv-hairline)] object-cover" alt="" loading="lazy" decoding="async" />
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate font-semibold text-[var(--text-primary)]">{u.name}</span>
+                              <span className="mv-data block truncate text-xs text-[var(--text-secondary)]">@{u.username || 'usuario'}</span>
+                            </span>
+                            <span className="mv-chip mv-chip-gold shrink-0">
+                              {isContacting === u.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-label="Abriendo" /> : 'Escribir'}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : userSearchQuery ? (
+                    <p className="py-12 text-center text-sm text-[var(--text-secondary)]">No encontramos a nadie con ese nombre.</p>
+                  ) : (
+                    <p className="py-12 text-center text-sm text-[var(--text-tertiary)]">Escribí para buscar personas y empresas.</p>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </BodyPortal>
 
       <Toast 
         isVisible={toast.visible}
@@ -620,8 +665,9 @@ function MensajesUI() {
 export default function MensajesPage() {
   return (
     <Suspense fallback={
-      <div className="flex h-screen items-center justify-center bg-bg-primary">
-        <Loader2 className="w-8 h-8 text-gold animate-spin" />
+      <div className="flex h-[100dvh] items-center justify-center bg-bg-primary" role="status">
+        <Loader2 className="h-7 w-7 animate-spin text-gold" aria-hidden />
+        <span className="sr-only">Cargando mensajes</span>
       </div>
     }>
       <MensajesUI />

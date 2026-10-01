@@ -1,40 +1,36 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { 
-  Briefcase, 
-  MonitorPlay, 
-  Megaphone, 
-  MessageSquare, 
-  Plus, 
+import {
+  Briefcase,
+  MonitorPlay,
+  Megaphone,
+  MessageSquare,
+  Plus,
   ArrowRight,
-  TrendingUp,
-  Search,
   Users,
   Star,
   Clock,
   ChevronRight,
-  Loader2,
   Settings,
-  Bell,
   Store,
+  Wrench,
+  Shield,
+  UserCheck,
+  LifeBuoy,
   Sparkles,
-  Zap,
-  DollarSign,
-  Bookmark
 } from "lucide-react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { ButtonLink, Container, PageHero, Section, GlassPanel } from "@/components/site/primitives";
 
-export default function DashboardClient({ 
-  user, 
-  totalApplicants, 
+export default function DashboardClient({
+  user,
+  totalApplicants,
   totalViews,
   totalEarnings,
   totalSaved
-}: { 
-  user: any, 
+}: {
+  user: any,
   totalApplicants: number,
   totalViews: number,
   totalEarnings: number,
@@ -42,252 +38,223 @@ export default function DashboardClient({
 }) {
   const [loading, setLoading] = useState(false);
 
+  const firstName = (user.name || "").split(" ")[0];
+
   const categories = [
     {
-      title: "Empleos y Vacantes",
-      desc: "Gestiona tus búsquedas de talento o revisa tus postulaciones activas.",
-      icon: Briefcase,
-      color: "bg-gold/10 text-gold",
-      gradientAccent: "from-amber-500/10 to-orange-500/10",
-      link: "/empleos/mis-empleos",
-      stats: `${user.jobPosts?.length || 0} Activos`,
-      action: "Mis Vacantes"
-    },
-    {
-      title: "Servicios Freelance",
-      desc: "Controla tus ofertas de servicios o haz seguimiento a tus pedidos contratados.",
-      icon: MonitorPlay,
-      color: "bg-blue-500/10 text-blue-400",
-      gradientAccent: "from-blue-500/10 to-violet-500/10",
-      link: "/servicios/mis-servicios",
-      stats: `${user.services?.length || 0} Activos`,
-      action: "Mis Servicios"
-    },
-    {
-      title: "Espacios de Publicidad",
-      desc: "Administra tus vallas, pantallas y letreros disponibles para reserva.",
+      title: "Ads",
+      sub: "Espacios publicitarios",
+      desc: "Administrá tus vallas, pantallas y letreros disponibles para reserva.",
       icon: Megaphone,
-      color: "bg-emerald-500/10 text-emerald-400",
-      gradientAccent: "from-emerald-500/10 to-teal-500/10",
       link: "/anuncios/mis-espacios",
-      stats: `${user.spaces.length} Espacios`,
-      action: "Gestionar"
+      stats: `${user.spaces.length} ${user.spaces.length === 1 ? "espacio" : "espacios"}`,
+      action: "Gestionar espacios",
+      pending: false,
     },
     {
-      title: "Mensajería Directa",
-      desc: "Comunícate de forma segura con profesionales y empresas en toda Latinoamérica.",
-      icon: MessageSquare,
-      color: "bg-purple-500/10 text-purple-400",
-      gradientAccent: "from-purple-500/10 to-pink-500/10",
-      link: "/mensajes",
-      stats: "Chat Seguro",
-      action: "Abrir Chats"
+      title: "Services",
+      sub: "Servicios freelance",
+      desc: "Controlá tus servicios publicados y seguí los pedidos que contrataste.",
+      icon: MonitorPlay,
+      link: "/servicios/mis-servicios",
+      stats: `${user.services?.length || 0} ${(user.services?.length || 0) === 1 ? "servicio" : "servicios"}`,
+      action: "Ver mis servicios",
+      pending: false,
     },
     {
-      title: "Punto de Venta (POS)",
-      desc: "Gestiona las ventas físicas de tu local, el inventario y genera tickets profesionales.",
+      title: "Empleos",
+      sub: "Vacantes y talento",
+      desc: "Gestioná tus búsquedas de talento y las vacantes que tenés activas.",
+      icon: Briefcase,
+      link: "/empleos/mis-empleos",
+      stats: `${user.jobPosts?.length || 0} ${(user.jobPosts?.length || 0) === 1 ? "vacante" : "vacantes"}`,
+      action: "Ver mis vacantes",
+      pending: false,
+    },
+    {
+      title: "POS",
+      sub: "Punto de venta",
+      desc: "Cobrá en tu local, llevá el inventario y emití tickets desde el navegador.",
       icon: Store,
-      color: "bg-orange-500/10 text-orange-400",
-      gradientAccent: "from-orange-500/10 to-red-500/10",
       link: user.posConfig ? "/dashboard/pos" : "/dashboard/pos/config",
       stats: user.posConfig ? "Configurado" : "Pendiente",
-      action: user.posConfig ? "Abrir Terminal" : "Configurar Local"
-    }
+      action: user.posConfig ? "Abrir terminal" : "Configurar local",
+      pending: !user.posConfig,
+    },
   ];
 
   const statCards = [
-    { label: "Postulantes", value: totalApplicants, sub: "En tus vacantes", icon: Users, accent: "text-blue-400" },
-    { label: "Visualizaciones", value: totalViews >= 1000 ? `${(totalViews / 1000).toFixed(1)}k` : totalViews, sub: "Impacto total", icon: TrendingUp, accent: "text-emerald-400" },
-    { label: "Ingresos", value: `$${totalEarnings.toLocaleString()}`, sub: "Pagos recibidos", icon: DollarSign, accent: "text-gold" },
-    { label: "Guardados", value: totalSaved, sub: "Usuarios interesados", icon: Bookmark, accent: "text-purple-400" },
+    { label: "Postulantes", value: totalApplicants, sub: "En tus vacantes" },
+    { label: "Visualizaciones", value: totalViews >= 1000 ? `${(totalViews / 1000).toFixed(1)}k` : totalViews, sub: "De tus vacantes" },
+    { label: "Ingresos", value: new Intl.NumberFormat("es-AR", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(totalEarnings), sub: "Pagos recibidos" },
+    { label: "Guardados", value: totalSaved, sub: "Usuarios interesados" },
+  ];
+
+  const management = [
+    { label: "Pedidos", link: "/dashboard/pedidos", icon: Clock, sub: "Compras, ventas, pagos y reportes" },
+    { label: "Clientes", link: "/dashboard/clientes", icon: Users, sub: "Pedidos y reservas que recibiste" },
+    { label: "Postulantes", link: "/dashboard/postulantes", icon: UserCheck, sub: "Candidatos de tus vacantes" },
+    { label: "Mensajes", link: "/mensajes", icon: MessageSquare, sub: "Conversaciones con clientes y equipos" },
+  ];
+
+  const moreModules = [
+    { label: "Herramientas", link: "/herramientas", icon: Wrench },
+    { label: "Pwn", link: "/pwn", icon: Shield },
+    { label: "Kosher", link: "/kosher", icon: Star },
+    { label: "Ajustes del POS", link: "/dashboard/pos/config", icon: Settings },
+    { label: "Premium", link: "/premium", icon: Sparkles },
   ];
 
   return (
-    <div className="w-full min-h-screen bg-bg-primary text-white pt-24 pb-32 overflow-hidden section-transition">
-      {/* Background Decor */}
-      <div className="fixed top-0 left-0 w-full h-full pointer-events-none opacity-20">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-gold/10 rounded-full blur-[200px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/5 rounded-full blur-[200px]" />
-      </div>
+    <div className="w-full min-h-screen bg-bg-primary">
+      <PageHero
+        kicker="Tu panel"
+        title={firstName ? <>Hola, <span className="mv-gold-text">{firstName}</span></> : "Tu panel"}
+        lead="Todo lo que pasa en tu cuenta de Mercav, en un solo lugar: publicaciones, pedidos, clientes y módulos."
+        actions={
+          <>
+            <ButtonLink href="/dashboard/crear" size="lg" className="w-full sm:w-auto">
+              <Plus className="h-5 w-5" aria-hidden /> Nueva publicación
+            </ButtonLink>
+            <ButtonLink href="/perfil/editar" tone="secondary" size="lg" className="w-full sm:w-auto">
+              <Settings className="h-5 w-5" aria-hidden /> Ajustes de perfil
+            </ButtonLink>
+          </>
+        }
+      >
+        {user.badges && user.badges.length > 0 && (
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            <span className="text-sm text-[var(--text-secondary)]">Insignias</span>
+            <ul className="flex flex-wrap items-center gap-2">
+              {user.badges.map((badge: any) => (
+                <li key={badge.id} className="mv-chip h-9 pl-1.5" title={badge.name}>
+                  <img src={badge.icon} alt="" width={24} height={24} className="h-6 w-6 object-contain" />
+                  <span>{badge.name}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-      <div className="container mx-auto px-4 max-w-7xl relative z-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-16">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <div className="flex items-center gap-4 mb-4 flex-wrap">
-              <h1 className="text-3xl sm:text-4xl md:text-6xl font-display font-black tracking-tighter">
-                Bienvenido, <span className="gradient-text-gold">{user.name.split(' ')[0]}</span>
-              </h1>
-              {user.badges && user.badges.length > 0 && (
-                <div className="flex items-center gap-2 mt-2">
-                  {user.badges.map((badge: any) => (
-                    <div key={badge.id} className="group relative flex items-center justify-center">
-                      <div className="h-10 w-10 md:h-12 md:w-12 flex items-center justify-center cursor-help transition-transform hover:scale-110">
-                        <img src={badge.icon} alt={badge.name} className="max-w-full max-h-full object-contain filter drop-shadow-[0_20px_20px_rgba(0,0,0,0.5)]" />
-                      </div>
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-3 py-1.5 bg-gold text-black text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-2xl">
-                        {badge.name}
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-gold" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <p className="text-gray-500 text-base md:text-lg max-w-xl leading-relaxed">
-              Tu centro de mando para todo lo que sucede en Mercav. Gestiona, explora y crece.
-            </p>
-          </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="flex flex-wrap gap-3"
-          >
-            <Button asChild className="bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-white rounded-2xl h-12 md:h-14 px-6 md:px-8 font-bold transition-all glassmorphism hover:border-white/15">
-              <Link href="/perfil/editar"><Settings className="w-5 h-5 mr-2" /> Ajustes</Link>
-            </Button>
-            <Button asChild className="bg-gold text-black hover:bg-gold-light rounded-2xl h-12 md:h-14 px-8 md:px-10 font-black uppercase tracking-widest text-[10px] md:text-xs shadow-xl shadow-gold/20 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-gold/30">
-              <Link href="/dashboard/crear"><Plus className="w-5 h-5 mr-2" /> Nueva Publicación</Link>
-            </Button>
-          </motion.div>
-        </div>
-
-        {/* Quick Stats Banner */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.15 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-16"
-        >
-          {statCards.map((stat, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 + i * 0.08 }}
-              className="bg-bg-secondary/50 border border-white/5 rounded-2xl md:rounded-3xl p-5 md:p-6 hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300 group glassmorphism card-hover-premium"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <stat.icon className={`w-4 h-4 ${stat.accent} opacity-60 group-hover:opacity-100 transition-opacity`} />
-                <div className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em]">{stat.label}</div>
+        <GlassPanel as="section" className="p-5 sm:p-8">
+          <h2 id="dash-resumen" className="sr-only">Resumen</h2>
+          <dl aria-labelledby="dash-resumen" className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
+            {statCards.map((stat, i) => (
+              <div key={i} className="flex flex-col gap-1.5 lg:border-l lg:border-[var(--mv-hairline)] lg:pl-6 lg:first:border-l-0 lg:first:pl-0">
+                <dt className="text-sm font-medium text-[var(--text-secondary)]">{stat.label}</dt>
+                <dd className="mv-data break-words text-xl font-medium tracking-tight text-[var(--text-primary)] sm:text-2xl md:text-3xl">{stat.value}</dd>
+                <dd className="text-xs text-[var(--text-tertiary)]">{stat.sub}</dd>
               </div>
-              <div className="text-xl md:text-2xl font-mono font-black text-white mb-1">{stat.value}</div>
-              <div className="text-gray-600 text-[9px] font-bold uppercase tracking-wider">{stat.sub}</div>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Main Categories Hub */}
-        <div className="mb-16">
-          <div className="flex items-center gap-4 mb-10">
-            <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/5" />
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-3.5 w-3.5 text-gold" />
-              <h2 className="text-xs font-black text-white uppercase tracking-[0.4em]">Tu Ecosistema de Gestión</h2>
-            </div>
-            <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/5" />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-            {categories.map((cat, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + i * 0.08, duration: 0.5 }}
-                className="group relative"
-              >
-                <Link href={cat.link} className="block bg-bg-secondary/50 border border-white/5 p-8 md:p-10 rounded-3xl hover:border-gold/30 hover:bg-white/[0.03] transition-all duration-500 overflow-hidden glassmorphism card-hover-premium relative">
-                  {/* Gradient accent on hover */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${cat.gradientAccent} opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
-                  
-                  <div className="absolute top-0 right-0 p-8 md:p-10 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none group-hover:scale-110 transition-transform duration-700">
-                    <cat.icon size={160} />
-                  </div>
-                  
-                  <div className="relative z-10">
-                    <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl ${cat.color} flex items-center justify-center mb-6 md:mb-8 group-hover:scale-110 transition-transform duration-300 border border-white/5`}>
-                      <cat.icon size={28} />
-                    </div>
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="text-xl md:text-2xl font-bold text-white group-hover:text-gold transition-colors duration-300">{cat.title}</h3>
-                      <span className="bg-white/5 px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors border border-white/5">{cat.stats}</span>
-                    </div>
-                    <p className="text-gray-500 max-w-md leading-relaxed mb-8 md:mb-10 text-sm">{cat.desc}</p>
-                    <div className="flex items-center text-xs font-black uppercase tracking-widest text-gold">
-                      {cat.action} <ArrowRight size={16} className="ml-2 group-hover:translate-x-2 transition-transform duration-300" />
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
             ))}
-          </div>
-        </div>
+          </dl>
+        </GlassPanel>
+      </PageHero>
 
-        {/* Shortcuts Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8"
-        >
-          <div className="lg:col-span-8">
-             <div className="bg-bg-secondary/50 border border-white/5 rounded-3xl p-8 md:p-10 glassmorphism">
-                <div className="flex justify-between items-center mb-8 md:mb-10">
-                   <h2 className="text-lg md:text-xl font-bold text-white flex items-center gap-3">
-                      <Zap className="text-gold h-5 w-5" /> Accesos Rápidos
-                   </h2>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                  {[
-                    { label: "Mis Clientes", link: "/dashboard/clientes", icon: Users, sub: "Pedidos y reservas" },
-                    { label: "Seguimiento", link: "/dashboard/pedidos", icon: Clock, sub: "Estado de entregas" },
-                    { label: "Ajustes del POS", link: "/dashboard/pos/config", icon: Settings, sub: "Local y moneda" },
-                    { label: "Premium", link: "/premium", icon: Star, sub: "Mejora tu visibilidad" },
-                  ].map((item, i) => (
-                    <Link key={i} href={item.link} className="flex items-center justify-between p-5 md:p-6 bg-white/[0.02] rounded-2xl border border-white/5 hover:border-gold/20 hover:bg-white/[0.04] transition-all duration-300 group">
-                       <div className="flex items-center gap-3 md:gap-4">
-                          <div className="p-2.5 md:p-3 bg-white/5 rounded-xl text-gray-400 group-hover:text-gold group-hover:bg-gold/5 transition-all duration-300">
-                             <item.icon size={22} />
-                          </div>
-                          <div>
-                             <div className="font-bold text-white text-sm md:text-base group-hover:text-gold transition-colors duration-300">{item.label}</div>
-                             <div className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">{item.sub}</div>
-                          </div>
-                       </div>
-                       <ChevronRight size={18} className="text-gray-700 group-hover:text-gold group-hover:translate-x-1 transition-all duration-300 flex-shrink-0" />
+      <Section tight labelledBy="dash-modulos" className="pt-6 md:pt-8">
+        <Container>
+          <div className="mb-8 flex flex-col gap-3">
+            <p className="mv-kicker">Módulos</p>
+            <h2 id="dash-modulos" className="mv-h3">Lo que publicás y gestionás</h2>
+          </div>
+
+          <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {categories.map((cat) => (
+              <li key={cat.title}>
+                <Link
+                  href={cat.link}
+                  className="mv-panel mv-panel-interactive mv-focus group flex h-full flex-col gap-5 p-6 outline-none md:p-8"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--mv-gold-wash)] text-gold">
+                        <cat.icon className="h-5 w-5" aria-hidden />
+                      </span>
+                      <div>
+                        <h3 className="mv-h3">{cat.title}</h3>
+                        <p className="text-sm text-[var(--text-secondary)]">{cat.sub}</p>
+                      </div>
+                    </div>
+                    <span className={cat.pending ? "mv-chip shrink-0" : "mv-chip mv-chip-gold shrink-0"}>{cat.stats}</span>
+                  </div>
+                  <p className="mv-body max-w-md">{cat.desc}</p>
+                  <span className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-gold">
+                    {cat.action}
+                    <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden />
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          <nav aria-label="Otros módulos" className="mt-6">
+            <ul className="flex flex-wrap gap-2">
+              {moreModules.map((item) => (
+                <li key={item.link}>
+                  <Link
+                    href={item.link}
+                    className="mv-chip mv-focus h-10 gap-2 px-4 text-sm outline-none transition-colors duration-200 hover:border-[var(--color-border-gold)] hover:text-[var(--text-primary)]"
+                  >
+                    <item.icon className="h-4 w-4 text-gold" aria-hidden />
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </Container>
+      </Section>
+
+      <Section tight labelledBy="dash-gestion" className="pt-0 md:pt-0">
+        <Container>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+            <div className="lg:col-span-8">
+              <div className="mb-6 flex flex-col gap-3">
+                <p className="mv-kicker">Gestión</p>
+                <h2 id="dash-gestion" className="mv-h3">Pedidos, clientes y candidatos</h2>
+              </div>
+              <ul className="mv-panel divide-y divide-[var(--mv-hairline)] overflow-hidden">
+                {management.map((item) => (
+                  <li key={item.link}>
+                    <Link
+                      href={item.link}
+                      className="group flex min-h-[4.5rem] items-center justify-between gap-4 px-5 py-4 outline-none transition-colors duration-200 hover:bg-[var(--mv-panel-hover)] focus-visible:bg-[var(--mv-panel-hover)] md:px-6"
+                    >
+                      <span className="flex items-center gap-4">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--mv-hairline)] text-[var(--text-secondary)] transition-colors duration-200 group-hover:text-gold">
+                          <item.icon className="h-[18px] w-[18px]" aria-hidden />
+                        </span>
+                        <span className="flex flex-col">
+                          <span className="font-semibold text-[var(--text-primary)]">{item.label}</span>
+                          <span className="text-sm text-[var(--text-secondary)]">{item.sub}</span>
+                        </span>
+                      </span>
+                      <ChevronRight className="h-5 w-5 shrink-0 text-[var(--text-tertiary)] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-gold" aria-hidden />
                     </Link>
-                  ))}
-                </div>
-             </div>
-          </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          <div className="lg:col-span-4">
-             <div className="bg-gradient-to-br from-gold/10 to-transparent border border-gold/10 rounded-3xl p-8 md:p-10 h-full flex flex-col justify-between relative overflow-hidden">
-                {/* Decorative glow */}
-                <div className="absolute top-0 right-0 w-40 h-40 bg-gold/10 blur-[80px] rounded-full -mr-10 -mt-10" />
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
-                
-                <div className="relative z-10">
-                   <h3 className="text-xl md:text-2xl font-bold text-white mb-4">¿Necesitas Ayuda?</h3>
-                   <p className="text-gray-500 leading-relaxed mb-8 text-sm">Nuestro equipo de soporte está disponible para ayudarte a escalar tu negocio en Mercav.</p>
-                </div>
-                <Button asChild className="w-full h-12 md:h-14 bg-white text-black hover:bg-gray-100 rounded-2xl font-black uppercase tracking-widest text-[10px] relative z-10 hover:scale-[1.02] active:scale-[0.98] transition-transform">
-                   <Link href="/soporte">
-                      Contactar Soporte
-                   </Link>
-                </Button>
-             </div>
+            <aside aria-labelledby="dash-ayuda" className="flex flex-col lg:col-span-4">
+              <div className="mb-6 flex flex-col gap-3">
+                <p className="mv-kicker">Soporte</p>
+                <h2 id="dash-ayuda" className="mv-h3">¿Necesitás ayuda?</h2>
+              </div>
+              <div className="mv-panel flex flex-1 flex-col gap-4 p-6 md:p-8">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--mv-gold-wash)] text-gold">
+                  <LifeBuoy className="h-5 w-5" aria-hidden />
+                </span>
+                <p className="mv-body">
+                  Si algo no funciona como esperás con un pedido, un pago o un módulo, escribinos y lo revisamos con vos.
+                </p>
+                <ButtonLink href="/soporte" tone="secondary" className="mt-auto w-full">
+                  Contactar soporte
+                </ButtonLink>
+              </div>
+            </aside>
           </div>
-        </motion.div>
-      </div>
+        </Container>
+      </Section>
     </div>
   );
 }

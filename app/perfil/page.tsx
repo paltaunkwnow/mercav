@@ -1,6 +1,6 @@
-import { User, Settings, Shield, Bell, ChevronRight, LogOut, Edit3, MapPin, Globe2, Briefcase, Sparkles } from "lucide-react";
+import { Settings, Shield, Bell, ChevronRight, Pencil, MapPin, Globe2, Briefcase, KeyRound, BadgeCheck, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Container, buttonClass } from "@/components/site/primitives";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -25,106 +25,117 @@ export default async function PerfilPage() {
     redirect("/login");
   }
 
+  const isAdmin = user.username === "admin";
+  const profileType = user.profile?.profileType === "EMPRESA" || user.profile?.profileType === "COMPANY" ? "Empresa" : "Profesional";
+  const publicHref = `/perfil/${user.username || user.id}`;
+
+  const accountLinks = [
+    { icon: Settings, label: "Configuración", desc: "Apariencia y accesos a cada ajuste de tu cuenta", href: "/perfil/configuracion" },
+    { icon: KeyRound, label: "Seguridad y 2FA", desc: "Verificación en dos pasos para iniciar sesión", href: "/perfil/editar#security" },
+    { icon: Bell, label: "Notificaciones", desc: "Alertas de mensajes y actividad", href: "/notificaciones-settings" },
+    { icon: Shield, label: "Privacidad", desc: "Cómo tratamos tus datos en Mercav", href: "/privacidad" },
+    { icon: Briefcase, label: "Mis publicaciones", desc: "Tus anuncios, servicios y vacantes", href: "/dashboard" },
+  ];
+
   return (
-    <div className="w-full min-h-screen bg-bg-primary pb-24 pt-24 overflow-hidden section-transition">
-      {/* Background decoration */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-20 right-[20%] w-[400px] h-[400px] bg-gold/[0.02] blur-[150px] rounded-full" />
-        <div className="absolute bottom-20 left-[15%] w-[300px] h-[300px] bg-gold/[0.015] blur-[120px] rounded-full" />
-      </div>
-
-      <div className="container mx-auto px-4 max-w-2xl relative z-10">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="font-display text-3xl md:text-4xl font-black text-white tracking-tight">Mi Perfil</h1>
-            <p className="text-gray-500 text-sm mt-1">Gestiona tu identidad en Mercav</p>
-          </div>
-          <Button asChild variant="outline" className="h-10 border-gold/30 text-gold hover:bg-gold/10 hover:border-gold/50 rounded-xl px-5 transition-all duration-300 hover:scale-105">
-            <Link href="/perfil/editar">
-              <Edit3 className="w-4 h-4 mr-2" /> Editar Perfil
-            </Link>
-          </Button>
-        </div>
-        
-        {/* Profile Card */}
-        <div className="bg-bg-secondary/70 backdrop-blur-xl border border-white/[0.06] p-7 md:p-8 rounded-3xl flex flex-col md:flex-row items-center md:items-start gap-6 mb-8 relative overflow-hidden group glassmorphism card-hover-premium">
-          {/* Gold glow effect */}
-          <div className="absolute top-0 right-0 w-40 h-40 bg-gold/5 blur-[80px] rounded-full -mr-20 -mt-20 group-hover:bg-gold/10 transition-all duration-700" />
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
-          
-          <div className="w-24 h-24 bg-bg-tertiary rounded-2xl border-2 border-gold/30 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-xl shadow-black/20 group-hover:border-gold/50 transition-all duration-300">
-            {user.avatar ? (
-              <img src={user.avatar} className="w-full h-full object-cover" />
+    <div className="relative w-full overflow-hidden bg-bg-primary pb-16 pt-24 md:pb-24 md:pt-28">
+      <div className="mv-aura" aria-hidden />
+      <Container className="relative max-w-[60rem]">
+        {/* Profile header */}
+        <section aria-label="Mi perfil" className="mv-panel overflow-hidden">
+          <div className="relative h-36 w-full bg-bg-tertiary sm:h-48">
+            {user.coverImage ? (
+              <img src={user.coverImage} alt="" className="h-full w-full object-cover" />
             ) : (
-              <User className="w-12 h-12 text-gray-500" />
+              <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(212,175,55,0.22),transparent_60%),linear-gradient(135deg,var(--color-bg-tertiary),var(--color-bg-primary))]" />
             )}
+            <div aria-hidden className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent" />
           </div>
-          
-          <div className="flex-1 text-center md:text-left">
-            <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2">
-              <h2 className="text-2xl font-bold text-white">{user.name}</h2>
-              {user.isVerified && (
-                user.username === "admin" ? (
-                  <span className="bg-gold/10 text-gold text-[10px] font-black px-3 py-1 rounded-full border border-gold/30 w-fit mx-auto md:mx-0 tracking-[0.1em]">ADMINISTRADOR</span>
+
+          <div className="px-5 pb-6 sm:px-8 sm:pb-8">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <div className="relative -mt-12 h-24 w-24 shrink-0 overflow-hidden rounded-[1.5rem] border-4 border-bg-secondary bg-bg-tertiary shadow-xl sm:-mt-14 sm:h-28 sm:w-28">
+                {user.avatar ? (
+                  <img src={user.avatar} alt={`Foto de ${user.name}`} className="h-full w-full object-cover" />
                 ) : (
-                  <span className="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-500/20 w-fit mx-auto md:mx-0">VERIFICADO</span>
-                )
-              )}
-            </div>
-            <p className="text-gray-400 mb-4">@{user.username || 'usuario'}</p>
-            
-            <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-500">
-              {user.location && (
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-gold/60" />
-                  {user.location}
-                </div>
-              )}
-              <div className="flex items-center gap-1.5">
-                <Globe2 className="w-4 h-4 text-gold/60" />
-                {user.profile?.profileType === 'COMPANY' ? 'Empresa' : 'Profesional'}
+                  <span className="grid h-full w-full place-items-center font-display text-4xl font-semibold text-gold/60" aria-hidden>
+                    {(user.name || "?").charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Link href="/perfil/editar" className={buttonClass("primary", "md", "w-full sm:w-auto")}>
+                  <Pencil className="h-4 w-4" aria-hidden /> Editar perfil
+                </Link>
+                <Link href={publicHref} className={buttonClass("secondary", "md", "w-full sm:w-auto")}>
+                  Ver perfil público <ArrowUpRight className="h-4 w-4" aria-hidden />
+                </Link>
               </div>
             </div>
-          </div>
-          
-          <Button asChild variant="secondary" className="bg-bg-tertiary/50 text-gray-300 hover:text-white border border-white/[0.06] rounded-xl hover:border-white/15 backdrop-blur-sm transition-all duration-300">
-            <Link href={`/perfil/${user.username}`}>
-              Ver perfil público
-            </Link>
-          </Button>
-        </div>
 
-        {/* Settings Menu */}
-        <div className="bg-bg-secondary/70 backdrop-blur-xl border border-white/[0.06] rounded-3xl overflow-hidden shadow-xl shadow-black/10 glassmorphism">
-          <div className="p-5 border-b border-white/5">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-gold" />
-              <span className="text-xs font-black text-white uppercase tracking-[0.2em]">Gestión de cuenta</span>
+            <div className="mt-5">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="mv-h3 text-2xl sm:text-[1.75rem]">{user.name}</h1>
+                {user.isVerified && (
+                  isAdmin ? (
+                    <span className="mv-chip mv-chip-gold">Administrador</span>
+                  ) : (
+                    <span className="mv-chip text-blue-400"><BadgeCheck className="h-3.5 w-3.5" aria-hidden /> Verificado</span>
+                  )
+                )}
+              </div>
+              <p className="mv-data mt-1 text-sm text-[var(--text-secondary)]">@{user.username || "usuario"}</p>
+              {user.profile?.headline && <p className="mt-3 text-base font-medium text-[var(--text-primary)]">{user.profile.headline}</p>}
+              {user.bio && <p className="mv-body mt-2 max-w-2xl">{user.bio}</p>}
+
+              <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-[var(--text-secondary)]">
+                {user.location && (
+                  <li className="flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4 text-gold" aria-hidden /> {user.location}
+                  </li>
+                )}
+                <li className="flex items-center gap-1.5">
+                  <Globe2 className="h-4 w-4 text-gold" aria-hidden /> {profileType}
+                </li>
+              </ul>
             </div>
           </div>
-          {[
-            { icon: Settings, label: "Configuración de Cuenta", desc: "Email, contraseña, apariencia y preferencias", href: "/perfil/configuracion" },
-            { icon: Shield, label: "Privacidad y Seguridad", desc: "Quién puede ver tu perfil y contenido", href: "/privacidad" },
-            { icon: Bell, label: "Notificaciones", desc: "Alertas de mensajes y actividad", href: "/notificaciones-settings" },
-            { icon: Briefcase, label: "Mis Publicaciones", desc: "Gestiona tus anuncios, servicios y empleos", href: "/dashboard" }
-          ].map((item, i) => (
-            <Link href={item.href} key={i}>
-              <div className={`p-5 flex items-center gap-4 md:gap-5 hover:bg-white/[0.03] transition-all duration-300 cursor-pointer group ${i !== 3 ? 'border-b border-white/5' : ''}`}>
-                <div className="w-11 h-11 md:w-12 md:h-12 rounded-xl bg-bg-primary/80 border border-white/5 flex items-center justify-center group-hover:border-gold/20 group-hover:bg-gold/5 transition-all duration-300">
-                  <item.icon className="w-5 h-5 md:w-6 md:h-6 text-gray-400 group-hover:text-gold transition-colors duration-300" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="block text-white font-bold group-hover:text-gold transition-colors duration-300">{item.label}</span>
-                  <span className="text-xs text-gray-500 block truncate">{item.desc}</span>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-600 group-hover:text-gold group-hover:translate-x-1 transition-all duration-300 flex-shrink-0" />
-              </div>
-            </Link>
-          ))}
-        </div>
+        </section>
 
-        <LogoutButton />
-      </div>
+        {/* Account */}
+        <section aria-labelledby="perfil-cuenta" className="mt-10">
+          <h2 id="perfil-cuenta" className="mv-h3">Tu cuenta</h2>
+          <p className="mv-body mt-1">Todo lo que configurás acá se aplica a cada módulo de Mercav.</p>
+          <ul className="mv-panel mt-5 overflow-hidden p-1.5">
+            {accountLinks.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="mv-focus group flex items-center gap-4 rounded-[1.1rem] p-3.5 transition-colors duration-200 hover:bg-[var(--mv-panel-hover)] sm:p-4"
+                >
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] text-[var(--text-secondary)] transition-colors duration-200 group-hover:text-gold">
+                    <item.icon className="h-5 w-5" aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold text-[var(--text-primary)]">{item.label}</span>
+                    <span className="block truncate text-sm text-[var(--text-secondary)]">{item.desc}</span>
+                  </span>
+                  <ChevronRight className="h-5 w-5 shrink-0 text-[var(--text-tertiary)] transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Session */}
+        <section aria-labelledby="perfil-sesion" className="mt-10 flex flex-col gap-4 rounded-[1.5rem] border border-red-500/20 bg-red-500/[0.04] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div>
+            <h2 id="perfil-sesion" className="font-semibold text-[var(--text-primary)]">Sesión</h2>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">Cerrá la sesión en este dispositivo.</p>
+          </div>
+          <LogoutButton />
+        </section>
+      </Container>
     </div>
   );
 }

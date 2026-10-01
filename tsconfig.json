@@ -23,5 +23,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "prisma.config.ts", "Implementacion Nueva Kosher"]
+  "exclude": ["node_modules", "prisma.config.ts", "Implementacion Nueva Kosher", "lib/pwn/__tests__"]
 }

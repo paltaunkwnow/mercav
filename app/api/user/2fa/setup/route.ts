@@ -44,8 +44,6 @@ export async function GET(req: Request) {
     });
     const qrCodeUrl = await QRCode.toDataURL(otpauth);
 
-    console.log(`2FA Setup: Secret generated for ${user.email}`);
-
     return NextResponse.json({ 
       secret, 
       qrCodeUrl 

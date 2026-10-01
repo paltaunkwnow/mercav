@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "incremental": false
+  },
+  "include": ["next-env.d.ts", "lib/pwn/__tests__/**/*.ts"],
+  "exclude": ["node_modules"]
+}

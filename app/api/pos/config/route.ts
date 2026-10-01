@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { BUSINESS_TYPES } from "@/lib/pos/business";
+import { requireManager } from "@/lib/pos/staff";
 
 const configSchema = z.object({
   shopName: z.string().max(120).nullish(),
@@ -18,6 +19,8 @@ const configSchema = z.object({
   taxRate: z.coerce.number().min(0).max(100).default(0),
   pricesIncludeTax: z.boolean().default(true),
   paymentMethods: z.array(z.enum(["CASH", "CARD", "TRANSFER", "QR", "OTHER"])).min(1).default(["CASH"]),
+  // Mercav Kosher place to publish stock to; only places this user manages.
+  kosherPlaceId: z.string().max(64).nullish(),
 });
 
 export async function GET() {
@@ -45,14 +48,25 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { id: true }
+      select: { id: true, posConfig: { select: { id: true } } }
     });
 
     if (!user) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
+    if (user.posConfig) {
+      const gate = await requireManager(req, user.posConfig.id);
+      if (!gate.ok) return gate.response;
+    }
 
     const parsed = configSchema.safeParse(await req.json().catch(() => null));
     if (!parsed.success) return NextResponse.json({ success: false, error: "Revisá los datos de la configuración" }, { status: 400 });
     const data = { ...parsed.data, paymentMethods: Array.from(new Set(parsed.data.paymentMethods)) };
+    if (data.kosherPlaceId) {
+      const manages = await prisma.kosherPlaceManager.findUnique({
+        where: { placeId_userId: { placeId: data.kosherPlaceId, userId: user.id } },
+        select: { placeId: true },
+      });
+      if (!manages) return NextResponse.json({ success: false, error: "Solo podés vincular un lugar de Mercav Kosher que administrás" }, { status: 403 });
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id: user.id },

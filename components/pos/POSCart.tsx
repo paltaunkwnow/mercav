@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { ShoppingCart, Trash2, Minus, Plus, Receipt, Tag, Truck, UserCheck, UtensilsCrossed, ShoppingBag, Store, Home, Bike } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ORDER_TYPE_LABELS, ORDER_TYPES_WITH_CHANNEL, getUnit, type BusinessType, type OrderTypeId } from '@/lib/pos/business';
 import { computeSale, type DiscountType } from '@/lib/pos/pricing';
 import { currencyDecimals, formatMoney } from '@/lib/pos/money';
@@ -82,72 +81,99 @@ export default function POSCart({ items, onUpdateQuantity, onSetQuantity, onRemo
     });
   };
 
+  // F9 or Ctrl/Cmd+Enter opens checkout. F9 works while typing; Ctrl+Enter doesn't.
+  const checkoutRef = useRef(handleCheckoutClick);
+  checkoutRef.current = handleCheckoutClick;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const f9 = e.key === 'F9';
+      const ctrlEnter = e.key === 'Enter' && (e.ctrlKey || e.metaKey);
+      if (!f9 && !ctrlEnter) return;
+      if (document.querySelector('[aria-modal="true"]')) return;
+      const t = e.target as HTMLElement | null;
+      if (ctrlEnter && t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return;
+      e.preventDefault();
+      checkoutRef.current();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const lineTotal = (id: string) => pricing.lines.find((l) => l.productId === id)?.gross;
+  const segClass = (active: boolean) =>
+    `mv-focus rounded-xl border text-sm font-semibold transition-colors duration-150 ${
+      active
+        ? 'border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold'
+        : 'border-[var(--mv-hairline-strong)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+    }`;
+  const fieldLabel = 'flex items-center gap-2 text-sm font-semibold text-[var(--text-secondary)]';
+
   return (
-    <div className="flex flex-col h-full lg:min-h-full bg-black/20 backdrop-blur-xl border-l border-white/5">
-      {/* Cart Header */}
-      <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5 sticky top-0 lg:static z-20 backdrop-blur-xl">
+    <section aria-labelledby="pos-cart-title" className="flex flex-col h-full lg:min-h-full bg-[var(--color-bg-secondary)] lg:border-l border-[var(--mv-hairline)]">
+      {/* Cart header */}
+      <div className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-[var(--mv-hairline)] bg-[var(--color-bg-secondary)] px-4 py-3 lg:static lg:px-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center text-gold">
-            <ShoppingCart size={20} />
-          </div>
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--mv-gold-wash)] text-gold">
+            <ShoppingCart size={18} aria-hidden />
+          </span>
           <div>
-            <h3 className="text-white font-bold">Carrito</h3>
-            <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">{items.length} {items.length === 1 ? 'producto' : 'productos'}</p>
+            <h2 id="pos-cart-title" className="text-base font-semibold text-[var(--text-primary)]">Carrito</h2>
+            <p className="mv-data text-xs text-[var(--text-secondary)]" aria-live="polite">{items.length} {items.length === 1 ? 'producto' : 'productos'}</p>
           </div>
         </div>
-        <button 
+        <button
+          type="button"
           onClick={onClear}
+          disabled={items.length === 0}
           aria-label="Vaciar carrito"
-          className="text-gray-500 hover:text-red-500 transition-colors"
+          className="mv-focus inline-flex h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold text-[var(--text-secondary)] transition-colors duration-150 hover:text-red-400 disabled:opacity-40 disabled:hover:text-[var(--text-secondary)]"
         >
-          <Trash2 size={18} />
+          <Trash2 size={16} aria-hidden />
+          <span>Vaciar</span>
         </button>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main content */}
       <div className="lg:flex-1 lg:overflow-y-auto custom-scrollbar">
-        {/* Cart Items */}
-        <div className="p-4 space-y-4">
-          <AnimatePresence mode="popLayout">
+        {/* Cart items */}
+        {items.length > 0 ? (
+          <ul className="divide-y divide-[var(--mv-hairline)] px-4 lg:px-5" aria-label="Productos en el carrito">
             {items.map((item) => {
               const unit = getUnit(item.unit);
+              const gross = lineTotal(item.id);
               return (
-                <motion.div
-                  layout
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  key={item.id}
-                  className="bg-bg-secondary/50 border border-white/5 rounded-2xl p-4 flex items-center justify-between gap-3 group"
-                >
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-white font-bold text-sm truncate">{item.name}</h4>
-                    <p className="text-gold font-mono font-bold text-xs">
+                <li key={item.id} className="flex items-center gap-3 py-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{item.name}</p>
+                    <p className="mv-data mt-0.5 text-xs text-[var(--text-secondary)]">
                       {formatMoney(item.price, currency)}{unit.id !== 'UNIT' && ` / ${unit.short}`}
+                      {gross !== undefined && <span className="text-[var(--text-primary)]"> · {formatMoney(gross, currency)}</span>}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex shrink-0 items-center gap-1.5">
                     {unit.id === 'UNIT' ? (
-                      <div className="flex items-center bg-black/40 rounded-xl border border-white/5 overflow-hidden">
+                      <div className="flex items-center rounded-xl border border-[var(--mv-hairline-strong)]">
                         <button
+                          type="button"
                           onClick={() => onUpdateQuantity(item.id, -1)}
                           aria-label={`Quitar una unidad de ${item.name}`}
-                          className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/5 transition-all"
+                          className="mv-focus grid h-11 w-11 place-items-center rounded-l-xl text-[var(--text-secondary)] transition-colors duration-150 hover:text-[var(--text-primary)] active:bg-[var(--mv-panel-hover)]"
                         >
-                          <Minus size={14} />
+                          <Minus size={16} aria-hidden />
                         </button>
-                        <span className="w-8 text-center text-white font-bold text-sm">{item.quantity}</span>
+                        <span className="mv-data w-8 text-center text-sm font-semibold text-[var(--text-primary)]" aria-label={`Cantidad: ${item.quantity}`}>{item.quantity}</span>
                         <button
+                          type="button"
                           onClick={() => onUpdateQuantity(item.id, 1)}
                           aria-label={`Agregar una unidad de ${item.name}`}
-                          className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/5 transition-all"
+                          className="mv-focus grid h-11 w-11 place-items-center rounded-r-xl text-[var(--text-secondary)] transition-colors duration-150 hover:text-[var(--text-primary)] active:bg-[var(--mv-panel-hover)]"
                         >
-                          <Plus size={14} />
+                          <Plus size={16} aria-hidden />
                         </button>
                       </div>
                     ) : (
-                      <label className="flex items-center bg-black/40 rounded-xl border border-white/5 focus-within:border-gold/40 pr-3">
+                      <label className="flex h-11 items-center rounded-xl border border-[var(--mv-hairline-strong)] pr-3 focus-within:border-[var(--color-border-gold)]">
                         <span className="sr-only">Cantidad de {item.name}, unidad: {unit.name.toLowerCase()}</span>
                         <input
                           key={item.quantity}
@@ -162,88 +188,101 @@ export default function POSCart({ items, onUpdateQuantity, onSetQuantity, onRemo
                             else e.target.value = String(item.quantity);
                           }}
                           onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-                          className="w-20 h-8 bg-transparent text-right text-white font-bold text-sm font-mono outline-none px-2"
+                          className="mv-data h-full w-20 bg-transparent px-2 text-right text-sm font-semibold text-[var(--text-primary)] outline-none"
                         />
-                        <span className="text-xs text-gray-500">{unit.short}</span>
+                        <span className="text-xs text-[var(--text-secondary)]">{unit.short}</span>
                       </label>
                     )}
                     <button
+                      type="button"
                       onClick={() => onRemove(item.id)}
                       aria-label={`Quitar ${item.name}`}
-                      className="w-8 h-8 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100 transition-all hover:bg-red-500 hover:text-white"
+                      className="mv-focus grid h-11 w-11 place-items-center rounded-xl text-[var(--text-tertiary)] transition-colors duration-150 hover:bg-red-500/10 hover:text-red-400"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={16} aria-hidden />
                     </button>
                   </div>
-                </motion.div>
+                </li>
               );
             })}
-          </AnimatePresence>
-          {items.length === 0 && (
-            <div className="h-full flex flex-col items-center justify-center text-gray-700 opacity-20 py-20">
-              <ShoppingCart size={60} strokeWidth={1} />
-              <p className="mt-4 font-black uppercase tracking-widest text-[10px]">El carrito está vacío</p>
-            </div>
-          )}
-        </div>
+          </ul>
+        ) : (
+          <div className="flex flex-col items-center px-6 py-12 text-center lg:py-16">
+            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--mv-panel)] text-[var(--text-tertiary)] ring-1 ring-inset ring-[color:var(--mv-hairline-strong)]">
+              <ShoppingCart size={22} strokeWidth={1.5} aria-hidden />
+            </span>
+            <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">El carrito está vacío</p>
+            <p className="mt-1 max-w-[16rem] text-sm text-[var(--text-secondary)]">Tocá un producto o escaneá un código para empezar la venta.</p>
+          </div>
+        )}
 
-        {/* Cart Options */}
-        <div className="p-6 bg-white/5 border-t border-white/5 space-y-6">
+        {/* Cart options */}
+        <div className="space-y-5 border-t border-[var(--mv-hairline)] px-4 py-5 lg:px-5">
           {business.orderTypes.length > 1 && (
-            <div className={`grid gap-2 ${business.orderTypes.length >= 4 ? 'grid-cols-4' : business.orderTypes.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
-              {business.orderTypes.map(type => {
-                const Icon = ORDER_ICONS[type];
-                return (
-                  <button
-                    key={type}
-                    aria-pressed={orderType === type}
-                    onClick={() => setOrderType(type)}
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${orderType === type ? 'bg-gold border-gold text-primary-foreground shadow-lg shadow-gold/20' : 'bg-black/40 border-white/5 text-gray-500 hover:border-gold/30'}`}
-                  >
-                    <Icon size={16} className="mb-1" />
-                    <span className="text-[8px] font-black uppercase tracking-tighter text-center">{ORDER_TYPE_LABELS[type]}</span>
-                  </button>
-                );
-              })}
-            </div>
+            <fieldset className="space-y-2">
+              <legend className={`${fieldLabel} mb-2`}>Tipo de venta</legend>
+              <div className={`grid gap-2 ${business.orderTypes.length >= 4 ? 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4' : business.orderTypes.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                {business.orderTypes.map(type => {
+                  const Icon = ORDER_ICONS[type];
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      aria-pressed={orderType === type}
+                      onClick={() => setOrderType(type)}
+                      className={`${segClass(orderType === type)} flex min-h-14 flex-col items-center justify-center gap-1 px-2 py-2 text-xs`}
+                    >
+                      <Icon size={16} aria-hidden />
+                      <span className="text-center leading-tight">{ORDER_TYPE_LABELS[type]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
           )}
 
           {showChannels && (
-            <div className="space-y-2">
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1 flex items-center gap-2">
-                <Truck size={12} /> Canal
-              </span>
-              <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+            <fieldset className="space-y-2">
+              <legend className={`${fieldLabel} mb-2`}>
+                <Truck size={14} aria-hidden /> Canal
+              </legend>
+              <div className="scrollbar-hide flex gap-2 overflow-x-auto">
                 <button
+                  type="button"
+                  aria-pressed={!deliveryChannel}
                   onClick={() => setDeliveryChannel('')}
-                  className={`px-4 py-2 rounded-lg whitespace-nowrap text-[8px] font-black uppercase tracking-widest transition-all ${!deliveryChannel ? 'bg-foreground text-background' : 'bg-black/40 text-gray-500 border border-white/5'}`}
+                  className={`${segClass(!deliveryChannel)} h-11 shrink-0 whitespace-nowrap rounded-full px-4`}
                 >
                   Ninguno
                 </button>
                 {business.channels.map(ch => (
                   <button
                     key={ch}
+                    type="button"
+                    aria-pressed={deliveryChannel === ch}
                     onClick={() => setDeliveryChannel(ch)}
-                    className={`px-4 py-2 rounded-lg whitespace-nowrap text-[8px] font-black uppercase tracking-widest transition-all ${deliveryChannel === ch ? 'bg-foreground text-background' : 'bg-black/40 text-gray-500 border border-white/5 hover:border-white/20'}`}
+                    className={`${segClass(deliveryChannel === ch)} h-11 shrink-0 whitespace-nowrap rounded-full px-4`}
                   >
                     {ch}
                   </button>
                 ))}
               </div>
-            </div>
+            </fieldset>
           )}
 
           {/* Discounts */}
-          <div className="space-y-3">
-            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1 flex items-center gap-2">
-              <Tag size={12} /> Descuento Aplicado
-            </span>
-            <div className="flex gap-2">
-              {([['NONE', 'Sin desc.'], ['PERCENTAGE', 'Porcentaje %'], ['FIXED', 'Monto Fijo']] as const).map(([id, label]) => (
+          <fieldset className="space-y-2">
+            <legend className={`${fieldLabel} mb-2`}>
+              <Tag size={14} aria-hidden /> Descuento
+            </legend>
+            <div className="grid grid-cols-3 gap-2">
+              {([['NONE', 'Sin descuento'], ['PERCENTAGE', 'Porcentaje'], ['FIXED', 'Monto fijo']] as const).map(([id, label]) => (
                 <button
                   key={id}
+                  type="button"
+                  aria-pressed={discountType === id}
                   onClick={() => { setDiscountType(id); if (id === 'NONE') setDiscountValue(0); }}
-                  className={`flex-1 h-10 rounded-lg text-[8px] font-black uppercase tracking-widest border transition-all ${discountType === id ? 'bg-foreground text-background border-foreground' : 'bg-black/40 border-white/5 text-gray-500'}`}
+                  className={`${segClass(discountType === id)} h-11 px-2 text-xs sm:text-sm`}
                 >
                   {label}
                 </button>
@@ -253,64 +292,67 @@ export default function POSCart({ items, onUpdateQuantity, onSetQuantity, onRemo
               <div className="relative">
                 <input
                   type="number"
+                  inputMode="decimal"
                   min={0}
                   max={discountType === 'PERCENTAGE' ? 100 : undefined}
-                  aria-label="Valor del descuento"
+                  aria-label={discountType === 'PERCENTAGE' ? 'Porcentaje de descuento' : `Monto de descuento en ${currency}`}
                   value={discountValue || ''}
                   onChange={(e) => setDiscountValue(Math.max(0, Number(e.target.value)))}
-                  placeholder={discountType === 'PERCENTAGE' ? "Ej: 10 (%)" : "Ej: 5.00"}
-                  className="w-full h-12 bg-black/40 border border-white/5 rounded-xl px-4 text-white text-sm outline-none focus:border-gold/30 transition-all font-mono"
+                  placeholder={discountType === 'PERCENTAGE' ? "Ej: 10" : "Ej: 5.00"}
+                  className="mv-input mv-data pr-16"
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-xs font-bold">
+                <span className="mv-data pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-[var(--text-secondary)]">
                   {discountType === 'PERCENTAGE' ? '%' : currency}
                 </span>
               </div>
             )}
-          </div>
+          </fieldset>
 
           {/* Subtotals */}
-          <div className="space-y-2 pt-4 border-t border-white/10 pb-8 lg:pb-0">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500 uppercase font-black tracking-widest text-[10px]">Subtotal</span>
-              <span className="text-white font-mono font-bold">{formatMoney(pricing.subtotal, currency)}</span>
+          <dl className="space-y-2 border-t border-[var(--mv-hairline)] pt-4 text-sm">
+            <div className="flex justify-between gap-4">
+              <dt className="text-[var(--text-secondary)]">Subtotal</dt>
+              <dd className="mv-data text-[var(--text-primary)]">{formatMoney(pricing.subtotal, currency)}</dd>
             </div>
             {pricing.discount > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-red-500 uppercase font-black tracking-widest text-[10px]">Descuento</span>
-                <span className="text-red-500 font-mono font-bold">- {formatMoney(pricing.discount, currency)}</span>
+              <div className="flex justify-between gap-4">
+                <dt className="text-red-400">Descuento</dt>
+                <dd className="mv-data text-red-400">- {formatMoney(pricing.discount, currency)}</dd>
               </div>
             )}
             {pricing.tax > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500 uppercase font-black tracking-widest text-[10px]">
+              <div className="flex justify-between gap-4">
+                <dt className="text-[var(--text-secondary)]">
                   {pricesIncludeTax ? `${taxName} incluido` : taxName}
-                </span>
-                <span className="text-gray-300 font-mono font-bold">
+                </dt>
+                <dd className="mv-data text-[var(--text-secondary)]">
                   {pricesIncludeTax ? '' : '+ '}{formatMoney(pricing.tax, currency)}
-                </span>
+                </dd>
               </div>
             )}
-          </div>
+          </dl>
         </div>
       </div>
 
-      {/* Footer (Total & Button) */}
-      <div className="p-6 lg:pb-6 bg-bg-secondary border-t border-white/5 space-y-4 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] sticky bottom-0 lg:static z-20 backdrop-blur-xl">
-        <div className="flex justify-between items-end">
-          <span className="text-white uppercase font-black tracking-[0.2em] text-xs pb-1">Total a Pagar</span>
-          <span className="text-gold font-mono font-bold text-4xl lg:text-3xl leading-none">{formatMoney(pricing.total, currency)}</span>
+      {/* Total bar */}
+      <div className="liquid-glass sticky bottom-0 z-20 space-y-3 rounded-none border-x-0 border-b-0 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] lg:static lg:px-5 lg:pb-5">
+        <div className="flex items-baseline justify-between gap-4" aria-live="polite" aria-atomic="true">
+          <span className="text-sm font-semibold text-[var(--text-secondary)]">Total</span>
+          <span className="mv-data text-3xl font-semibold leading-none tracking-tight text-[var(--text-primary)]">{formatMoney(pricing.total, currency)}</span>
         </div>
 
         <button
+          type="button"
           onClick={handleCheckoutClick}
           disabled={items.length === 0}
-          className="w-full h-16 bg-gold hover:bg-gold-light text-primary-foreground font-black uppercase tracking-[0.3em] text-sm rounded-2xl shadow-2xl shadow-gold/20 flex items-center justify-center gap-3 disabled:opacity-30 disabled:cursor-not-allowed group transition-all"
+          aria-keyshortcuts="F9 Control+Enter"
+          className="mv-btn mv-btn-primary mv-btn-lg w-full"
         >
-          <Receipt size={20} className="group-hover:scale-110 transition-transform" />
-          Procesar Venta
+          <Receipt size={20} aria-hidden />
+          {items.length === 0 ? 'Agregá productos para cobrar' : 'Cobrar'}
         </button>
       </div>
-    </div>
+    </section>
   );
 }
 // creado por pato dev y askforvini

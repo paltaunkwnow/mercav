@@ -15,14 +15,14 @@ export async function AnnouncementBar() {
   if (!config?.announcementText) return null;
 
   const content = (
-    <div className="bg-gradient-to-r from-gold via-yellow-400 to-gold text-black py-2.5 px-4 text-center text-[10px] md:text-xs font-black uppercase tracking-[0.15em] flex items-center justify-center gap-2 group transition-all hover:from-gold-light hover:via-yellow-300 hover:to-gold-light relative overflow-hidden">
+    <div className="bg-gradient-to-r from-gold via-yellow-400 to-gold text-[#0A0A0A] py-2.5 px-4 text-center text-[13px] font-semibold flex items-center justify-center gap-2 group transition-colors hover:from-gold-light hover:via-yellow-300 hover:to-gold-light relative overflow-hidden">
       {/* Shimmer effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full motion-safe:group-hover:translate-x-full transition-transform duration-700" />
       
-      <Bell className="h-3 w-3 animate-pulse relative z-10" />
+      <Bell className="h-3.5 w-3.5 relative z-10" aria-hidden />
       <span className="relative z-10">{config.announcementText}</span>
       {config.announcementLink && (
-        <span className="hidden md:inline-block bg-black/10 px-2 py-0.5 rounded-full text-[8px] ml-2 group-hover:bg-black/20 transition-colors font-black relative z-10">
+        <span className="hidden md:inline-block bg-black/10 px-2.5 py-0.5 rounded-full text-xs ml-2 group-hover:bg-black/20 transition-colors font-semibold relative z-10">
           Ver más
         </span>
       )}

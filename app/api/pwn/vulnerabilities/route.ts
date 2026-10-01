@@ -6,6 +6,7 @@ import {
   disabledResponse,
   getPwnSessionUser,
   internalError,
+  providerError,
   unauthorized,
   validationError,
 } from "../_lib/http";
@@ -120,6 +121,7 @@ export async function GET(request: NextRequest) {
       data: payloadOf(record),
     });
   } catch (error) {
-    return internalError("vulnerability lookup", error);
+    // Fallas/límites de NVD → 502/429 en vez de 500 genérico.
+    return providerError(error) ?? internalError("vulnerability lookup", error);
   }
 }

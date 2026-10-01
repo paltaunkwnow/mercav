@@ -65,7 +65,7 @@ export async function GET() {
     })
   } catch (error: any) {
     console.error("Backup system error:", error)
-    return new Response(error.message || "Error interno", { status: 500 })
+    return new Response("Error interno", { status: 500 })
   }
 }
 // creado por pato dev y askforvini

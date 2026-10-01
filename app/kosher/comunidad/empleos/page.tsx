@@ -41,19 +41,19 @@ export default async function KosherJobsPage() {
           «hebreo» o «comunidad judía» para aparecer acá.
         </EmptyState>
       ) : (
-        <ul className="grid gap-3 md:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {jobs.map((j) => (
             <li key={j.id}>
               <Link
                 href={`/empleos/${j.id}`}
-                className="group flex h-full flex-col rounded-[1.75rem] border border-border bg-bg-secondary p-6 transition-colors hover:border-gold/35"
+                className="mv-panel mv-panel-interactive mv-focus group flex h-full flex-col p-6"
               >
                 <div className="flex items-start gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gold/10 text-gold">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[var(--mv-gold-wash)] text-gold">
                     <Briefcase className="h-5 w-5" aria-hidden />
                   </span>
                   <div className="min-w-0">
-                    <h2 className="font-display text-lg font-semibold text-[var(--text-primary)] group-hover:text-gold">{j.title}</h2>
+                    <h2 className="mv-h3">{j.title}</h2>
                     {j.company && <p className="text-sm text-[var(--text-secondary)]">{j.company.name}</p>}
                   </div>
                 </div>

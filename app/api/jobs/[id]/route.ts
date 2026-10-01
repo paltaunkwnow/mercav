@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { EmploymentType } from "@prisma/client";
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -13,8 +14,15 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             id: true,
             name: true,
             avatar: true,
-            headline: true
+            isVerified: true,
+            // `headline` vive en Profile, no en User
+            profile: { select: { headline: true } }
           }
+        },
+        // La página de postulación usa job.questions; antes no se incluían y nunca se mostraban
+        questions: {
+          select: { id: true, question: true, type: true, options: true, isRequired: true },
+          orderBy: { createdAt: "asc" }
         },
         _count: {
           select: { applications: true }
@@ -64,16 +72,27 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ success: false, error: "No tienes permiso para editar esta vacante" }, { status: 403 });
     }
 
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ success: false, error: "JSON inválido" }, { status: 400 });
+    }
+    const text = (v: unknown, max: number) => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : undefined);
+    const money = (v: unknown) => {
+      const n = Number(v || 0);
+      return Number.isFinite(n) && n >= 0 ? Math.round(n) : 0;
+    };
+    if (body.employmentType !== undefined && !(Object.values(EmploymentType) as string[]).includes(body.employmentType)) {
+      return NextResponse.json({ success: false, error: "Tipo de empleo inválido" }, { status: 400 });
+    }
     const updated = await prisma.jobPost.update({
       where: { id: params.id },
       data: {
-        title: body.title,
-        description: body.description,
-        city: body.city,
+        title: text(body.title, 150),
+        description: text(body.description, 10000),
+        city: text(body.city, 100),
         employmentType: body.employmentType,
-        salaryMin: Number(body.salaryMin || 0),
-        salaryMax: Number(body.salaryMax || 0),
+        salaryMin: money(body.salaryMin),
+        salaryMax: money(body.salaryMax),
       }
     });
 

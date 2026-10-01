@@ -22,28 +22,30 @@ export async function POST(req: Request) {
     let ownerUsername = "Desconocido"
 
     // 1. Fetch content from database and resolve owner
+    // (solo campos públicos del dueño: antes se archivaba el User completo, con hash de contraseña
+    // y secreto 2FA, dentro de DeletedContentHistory.contentData)
     if (targetType === "POST") {
       contentData = await prisma.post.findUnique({
         where: { id: targetId },
-        include: { author: true }
+        include: { author: { select: { id: true, username: true, name: true } } }
       })
       if (contentData) ownerUsername = contentData.author.username
     } else if (targetType === "SERVICE") {
       contentData = await prisma.service.findUnique({
         where: { id: targetId },
-        include: { provider: true }
+        include: { provider: { select: { id: true, username: true, name: true } } }
       })
       if (contentData) ownerUsername = contentData.provider.username
     } else if (targetType === "SPACE") {
       contentData = await prisma.space.findUnique({
         where: { id: targetId },
-        include: { owner: true }
+        include: { owner: { select: { id: true, username: true, name: true } } }
       })
       if (contentData) ownerUsername = contentData.owner.username
     } else if (targetType === "JOB") {
       contentData = await prisma.jobPost.findUnique({
         where: { id: targetId },
-        include: { company: true }
+        include: { company: { select: { id: true, username: true, name: true } } }
       })
       if (contentData) ownerUsername = contentData.company.username
     }
@@ -97,7 +99,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, message: "Contenido eliminado y archivado con éxito" })
   } catch (error: any) {
     console.error("Content deletion error:", error)
-    return NextResponse.json({ success: false, error: error.message || "Error interno" }, { status: 500 })
+    return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 })
   }
 }
 // creado por pato dev y askforvini

@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
 import { X, ArrowRight, Wallet, User, Plus, Trash2, Loader2 } from 'lucide-react';
 import { PAYMENT_METHODS, paymentMethodLabel } from '@/lib/pos/business';
 import { cashDenominations, currencyDecimals, formatMoney, roundMoney } from '@/lib/pos/money';
@@ -83,6 +82,37 @@ export default function POSPaymentModal({ isOpen, onClose, onConfirm, total, cur
     return () => clearTimeout(delayDebounce);
   }, [clientNit]);
 
+  // Keyboard: Escape closes, Tab stays inside the dialog, focus returns to the trigger on close.
+  const panelRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const processingRef = useRef(processing);
+  processingRef.current = processing;
+  useEffect(() => {
+    if (!isOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (!processingRef.current) onCloseRef.current();
+        return;
+      }
+      if (e.key !== 'Tab' || !panelRef.current) return;
+      const nodes = panelRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+      );
+      if (!nodes.length) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      previous?.focus?.();
+    };
+  }, [isOpen]);
+
   const amountOf = (l: PaymentLine) => Math.max(0, Number(l.amount) || 0);
   const paid = r(lines.reduce((s, l) => s + amountOf(l), 0));
   const nonCash = r(lines.filter((l) => l.method !== 'CASH').reduce((s, l) => s + amountOf(l), 0));
@@ -136,66 +166,76 @@ export default function POSPaymentModal({ isOpen, onClose, onConfirm, total, cur
     });
   };
 
+  const statusLabel = missing > 0 ? 'Falta' : 'Cambio';
+  const confirmLabel = processing
+    ? 'Registrando venta…'
+    : missing > 0
+      ? `Falta ${formatMoney(missing, currency)}`
+      : nonCashTooHigh
+        ? 'Revisá los montos'
+        : 'Confirmar venta';
+  const label = 'block text-sm font-semibold text-[var(--text-secondary)]';
+
   return (
-    <AnimatePresence>
+    <>
       {isOpen && (
-        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="payment-title">
-          <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" onClick={onClose} />
-          
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="relative w-full max-w-lg bg-bg-secondary border border-white/10 rounded-3xl lg:rounded-[3rem] shadow-[0_50px_100px_rgba(0,0,0,0.5)] overflow-hidden max-h-[92vh] overflow-y-auto custom-scrollbar"
+        <div className="fixed inset-0 z-[500] flex items-end justify-center p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="payment-title">
+          <div className="mv-fade absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
+
+          <div
+            ref={panelRef}
+            className="mv-pop mv-menu custom-scrollbar relative max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto rounded-[1.75rem]"
           >
-            <div className="p-6 lg:p-10 space-y-6">
-              <header className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-gold/10 flex items-center justify-center text-gold">
-                    <Wallet className="w-5 h-5 lg:w-6 lg:h-6" />
-                  </div>
+            <div className="space-y-5 p-5 sm:p-7">
+              <header className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-11 w-11 place-items-center rounded-xl bg-[var(--mv-gold-wash)] text-gold">
+                    <Wallet size={22} aria-hidden />
+                  </span>
                   <div>
-                    <h2 id="payment-title" className="text-xl lg:text-2xl font-bold text-white">Procesar Pago</h2>
-                    <p className="text-[10px] lg:text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Uno o varios medios de pago</p>
+                    <h2 id="payment-title" className="mv-h3">Cobrar</h2>
+                    <p className="text-sm text-[var(--text-secondary)]">Podés combinar varios medios de pago.</p>
                   </div>
                 </div>
-                <button onClick={onClose} aria-label="Cerrar" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-500 hover:text-white transition-colors">
-                  <X size={20} />
+                <button type="button" onClick={onClose} aria-label="Cerrar cobro" className="mv-focus grid h-11 w-11 shrink-0 place-items-center rounded-full text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
+                  <X size={20} aria-hidden />
                 </button>
               </header>
 
-              <div className="grid grid-cols-3 gap-2 lg:gap-3">
-                <div className="p-3 lg:p-4 bg-white/5 rounded-2xl border border-white/5 text-center">
-                  <p className="text-[8px] lg:text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Total</p>
-                  <p className="text-sm lg:text-xl font-mono font-black text-white">{formatMoney(total, currency)}</p>
+              <div className="rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] p-4">
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="text-sm font-semibold text-[var(--text-secondary)]">Total a cobrar</span>
+                  <span className="mv-data text-3xl font-semibold tracking-tight text-[var(--text-primary)]">{formatMoney(total, currency)}</span>
                 </div>
-                <div className="p-3 lg:p-4 bg-white/5 rounded-2xl border border-white/5 text-center">
-                  <p className="text-[8px] lg:text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Pagado</p>
-                  <p className="text-sm lg:text-xl font-mono font-black text-white">{formatMoney(paid, currency)}</p>
-                </div>
-                <div className={`p-3 lg:p-4 rounded-2xl border text-center transition-all ${missing > 0 ? 'bg-white/5 border-white/5' : 'bg-green-500/10 border-green-500/20'}`}>
-                  <p className="text-[8px] lg:text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">{missing > 0 ? 'Falta' : 'Cambio'}</p>
-                  <p className={`text-sm lg:text-xl font-mono font-black ${missing > 0 ? 'text-gold' : 'text-green-400'}`}>
-                    {formatMoney(missing > 0 ? missing : change, currency)}
-                  </p>
-                </div>
+                <dl className="mt-3 grid grid-cols-2 gap-2 border-t border-[var(--mv-hairline)] pt-3" aria-live="polite" aria-atomic="true">
+                  <div>
+                    <dt className="text-xs font-medium text-[var(--text-secondary)]">Pagado</dt>
+                    <dd className="mv-data text-lg font-semibold text-[var(--text-primary)]">{formatMoney(paid, currency)}</dd>
+                  </div>
+                  <div className="text-right">
+                    <dt className="text-xs font-medium text-[var(--text-secondary)]">{statusLabel}</dt>
+                    <dd className={`mv-data text-lg font-semibold ${missing > 0 ? 'text-gold' : 'text-green-400'}`}>
+                      {formatMoney(missing > 0 ? missing : change, currency)}
+                    </dd>
+                  </div>
+                </dl>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {lines.map((line, i) => (
-                  <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-3">
+                  <div key={i} className="space-y-2 rounded-2xl border border-[var(--mv-hairline)] p-3">
                     <div className="flex items-center gap-2">
                       <label className="sr-only" htmlFor={`method-${i}`}>Medio de pago</label>
                       <select
                         id={`method-${i}`}
                         value={line.method}
                         onChange={(e) => updateLine(i, { method: e.target.value })}
-                        className="h-12 bg-bg-primary border border-white/5 rounded-xl px-3 text-sm text-white outline-none focus:border-gold/30 font-bold"
+                        className="mv-input h-14 w-auto max-w-[45%] shrink-0 px-3 text-sm font-semibold"
                       >
                         {available.map((m) => <option key={m} value={m}>{paymentMethodLabel(m)}</option>)}
                       </select>
-                      <div className="relative flex-1">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gold font-mono text-xs font-black">{currency}</span>
+                      <div className="relative min-w-0 flex-1">
+                        <span className="mv-data pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[var(--text-secondary)]">{currency}</span>
                         <input
                           autoFocus={i === 0}
                           type="number"
@@ -206,16 +246,17 @@ export default function POSPaymentModal({ isOpen, onClose, onConfirm, total, cur
                           onChange={(e) => updateLine(i, { amount: e.target.value })}
                           onKeyDown={(e) => { if (e.key === 'Enter') handleConfirmClick(); }}
                           placeholder={line.method === 'CASH' ? 'Recibido' : '0'}
-                          className="w-full h-12 bg-bg-primary border border-white/5 rounded-xl pl-14 pr-3 text-right text-xl text-white font-mono font-black outline-none focus:border-gold transition-all placeholder:text-sm placeholder:font-sans placeholder:text-gray-600"
+                          className="mv-input mv-data h-14 pl-14 pr-3 text-right text-xl font-semibold placeholder:font-sans placeholder:text-sm"
                         />
                       </div>
                       {lines.length > 1 && (
                         <button
+                          type="button"
                           onClick={() => setLines((prev) => prev.filter((_, idx) => idx !== i))}
                           aria-label={`Quitar pago en ${paymentMethodLabel(line.method)}`}
-                          className="w-10 h-12 rounded-xl text-gray-500 hover:text-red-500 flex items-center justify-center"
+                          className="mv-focus grid h-11 w-11 shrink-0 place-items-center rounded-xl text-[var(--text-tertiary)] transition-colors hover:bg-red-500/10 hover:text-red-400"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={16} aria-hidden />
                         </button>
                       )}
                     </div>
@@ -226,56 +267,61 @@ export default function POSPaymentModal({ isOpen, onClose, onConfirm, total, cur
                         value={line.reference}
                         onChange={(e) => updateLine(i, { reference: e.target.value })}
                         placeholder="Referencia o últimos 4 dígitos (opcional)"
-                        className="w-full h-10 bg-bg-primary border border-white/5 rounded-xl px-3 text-xs text-white outline-none focus:border-gold/30"
+                        autoComplete="off"
+                        className="mv-input mv-data h-11 text-sm"
                       />
                     )}
                   </div>
                 ))}
 
                 {nonCashTooHigh && (
-                  <p className="text-xs text-red-400 px-1">Los pagos que no son en efectivo no pueden superar el total. El cambio solo se entrega en efectivo.</p>
+                  <p role="alert" className="px-1 text-sm font-medium text-red-400">Los pagos que no son en efectivo no pueden superar el total. El cambio solo se entrega en efectivo.</p>
                 )}
 
                 {available.length > 1 && missing > 0 && lines.length < 6 && (
                   <button
+                    type="button"
                     onClick={addLine}
-                    className="w-full h-11 rounded-xl border border-dashed border-white/10 text-gray-400 hover:text-gold hover:border-gold/40 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                    className="mv-focus flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--mv-hairline-strong)] text-sm font-semibold text-[var(--text-secondary)] transition-colors hover:border-[var(--color-border-gold)] hover:text-gold"
                   >
-                    <Plus size={14} /> Dividir el pago
+                    <Plus size={16} aria-hidden /> Dividir el pago
                   </button>
                 )}
               </div>
 
               {available.includes('CASH') && (
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setCash('exact')}
-                    className="h-10 bg-gold/10 hover:bg-gold/20 border border-gold/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-gold transition-all"
-                  >
-                    Exacto
-                  </button>
-                  {cashDenominations(currency).map(val => (
+                <div className="space-y-2">
+                  <p className={label} id="cash-quick">Efectivo rápido</p>
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-6" role="group" aria-labelledby="cash-quick">
                     <button
-                      key={val}
                       type="button"
-                      onClick={() => setCash(val)}
-                      className="h-10 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-[10px] font-black tracking-widest text-gray-400 hover:text-white transition-all"
+                      onClick={() => setCash('exact')}
+                      className="mv-focus h-11 rounded-xl border border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-sm font-semibold text-gold transition-transform duration-150 active:scale-[0.97]"
                     >
-                      {val.toLocaleString('es-419')}
+                      Exacto
                     </button>
-                  ))}
+                    {cashDenominations(currency).map(val => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setCash(val)}
+                        className="mv-focus mv-data h-11 rounded-xl border border-[var(--mv-hairline-strong)] text-sm font-semibold text-[var(--text-primary)] transition-transform duration-150 active:scale-[0.97]"
+                      >
+                        {val.toLocaleString('es-419')}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              <div className="p-5 bg-white/5 rounded-[1.5rem] border border-white/5 space-y-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <User size={12} className="text-gold" />
-                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Datos de Facturación (Opcional)</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <fieldset className="space-y-3 rounded-2xl border border-[var(--mv-hairline)] p-4">
+                <legend className="flex items-center gap-2 px-1 text-sm font-semibold text-[var(--text-secondary)]">
+                  <User size={14} className="text-gold" aria-hidden />
+                  Datos para la factura <span className="font-normal text-[var(--text-tertiary)]">(opcional)</span>
+                </legend>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <label htmlFor="client-nit" className="text-[8px] font-black text-gray-500 uppercase tracking-widest block">{fiscal.taxIdLabel}</label>
+                    <label htmlFor="client-nit" className={label}>{fiscal.taxIdLabel}</label>
                     <div className="relative">
                       <input
                         id="client-nit"
@@ -283,53 +329,54 @@ export default function POSPaymentModal({ isOpen, onClose, onConfirm, total, cur
                         value={clientNit}
                         onChange={(e) => setClientNit(e.target.value)}
                         placeholder="Ej: 12345678"
-                        className="w-full h-12 bg-bg-primary border border-white/5 rounded-xl px-4 text-xs text-white outline-none focus:border-gold/30 transition-all font-mono"
+                        autoComplete="off"
+                        aria-describedby={clientNit ? 'client-status' : undefined}
+                        className="mv-input mv-data pr-10"
                       />
                       {isSearching && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                          <div className="w-4 h-4 border-2 border-gold border-t-transparent rounded-full animate-spin" />
-                        </div>
+                        <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-gold" aria-label="Buscando cliente" />
                       )}
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label htmlFor="client-name" className="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Razón Social</label>
+                    <label htmlFor="client-name" className={label}>Razón social</label>
                     <input
                       id="client-name"
                       type="text"
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
-                      placeholder={isNewClient ? "Nombre Cliente Nuevo" : "Razón Social o Nombre"}
-                      className={`w-full h-12 bg-bg-primary border rounded-xl px-4 text-xs text-white outline-none transition-all ${isNewClient ? 'border-gold/40 focus:border-gold' : 'border-white/5 focus:border-gold/30'}`}
+                      placeholder={isNewClient ? "Nombre del cliente nuevo" : "Razón social o nombre"}
+                      autoComplete="off"
+                      className={`mv-input ${isNewClient ? 'border-[var(--color-border-gold)]' : ''}`}
                     />
                   </div>
                 </div>
-                {isNewClient && clientNit && (
-                  <p className="text-[9px] text-gold font-black uppercase tracking-widest text-center mt-1">
-                    Cliente nuevo: escribí su razón social para guardarlo.
-                  </p>
-                )}
-                {!isNewClient && clientNit && clientName && (
-                  <p className="text-[9px] text-green-400 font-black uppercase tracking-widest text-center mt-1">
-                    Cliente encontrado.
-                  </p>
-                )}
-              </div>
+                <p id="client-status" aria-live="polite" className="text-sm">
+                  {isNewClient && clientNit && (
+                    <span className="text-gold">Cliente nuevo: escribí su razón social para guardarlo.</span>
+                  )}
+                  {!isNewClient && clientNit && clientName && (
+                    <span className="text-green-400">Cliente encontrado.</span>
+                  )}
+                </p>
+              </fieldset>
 
               <button
+                type="button"
                 onClick={handleConfirmClick}
                 disabled={!canConfirm}
-                className={`w-full h-16 lg:h-20 rounded-2xl lg:rounded-[2rem] font-black uppercase tracking-[0.4em] text-[10px] lg:text-xs flex items-center justify-center gap-4 transition-all shadow-2xl ${canConfirm ? 'bg-gold text-primary-foreground shadow-gold/20 hover:scale-[1.02] active:scale-95' : 'bg-gray-800 text-gray-600 cursor-not-allowed'}`}
+                aria-busy={processing || undefined}
+                className={`mv-btn mv-btn-lg w-full ${canConfirm || processing ? 'mv-btn-primary' : 'border border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] disabled:opacity-100 disabled:text-[var(--text-secondary)]'}`}
               >
-                {processing ? <Loader2 size={18} className="animate-spin" /> : null}
-                {missing > 0 ? `Falta ${formatMoney(missing, currency)}` : 'Confirmar Venta'}
-                {!processing && missing === 0 && <ArrowRight size={18} />}
+                {processing ? <Loader2 size={18} className="animate-spin" aria-hidden /> : null}
+                <span className={missing > 0 && !processing ? 'mv-data' : undefined}>{confirmLabel}</span>
+                {!processing && canConfirm && <ArrowRight size={18} aria-hidden />}
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
-    </AnimatePresence>
+    </>
   );
 }
 // creado por pato dev y askforvini

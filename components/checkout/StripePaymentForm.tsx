@@ -6,8 +6,7 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
-import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface StripePaymentFormProps {
@@ -47,65 +46,65 @@ export default function StripePaymentForm({ amount, disabled }: StripePaymentFor
     setIsLoading(false);
   };
 
+  const formatted = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(amount || 0);
+
   return (
-    <form id="payment-form" onSubmit={handleSubmit} className="space-y-6">
-      <div className="p-6 rounded-2xl bg-black/40 border border-white/5 backdrop-blur-xl shadow-2xl">
-        <h3 className="text-xl font-display font-bold text-white mb-6 flex justify-between items-center">
-          Detalles de Pago
-          <span className="text-gold text-2xl">${(amount || 0).toLocaleString()}</span>
-        </h3>
+    <form id="payment-form" onSubmit={handleSubmit} className="space-y-4" aria-busy={isLoading}>
+      <div className="mv-panel p-5 sm:p-6">
+        <div className="mb-5 flex items-baseline justify-between gap-4">
+          <h3 className="font-display text-lg font-semibold text-[var(--text-primary)]">Datos de pago</h3>
+          <span className="mv-data text-lg font-medium text-gold">{formatted}</span>
+        </div>
         
-        <div className="stripe-element-container mb-6">
+        <div className="stripe-element-container mb-6 min-h-[12rem]">
           <PaymentElement 
+            // El tema/variables visuales van en `appearance` de <Elements> (StripeWrapper)
             options={{
               layout: 'tabs',
-              theme: 'night',
-              variables: {
-                colorPrimary: '#D4AF37',
-                colorBackground: '#111111',
-                colorText: '#ffffff',
-                colorDanger: '#ff3333',
-                fontFamily: 'var(--font-sans)',
-                spacingUnit: '4px',
-                borderRadius: '8px',
-              },
             }}
           />
         </div>
 
-        <Button
+        <button
+          type="submit"
           disabled={isLoading || !stripe || !elements || disabled}
           id="submit"
-          className="w-full h-14 bg-gold hover:bg-gold-light text-black font-bold text-lg rounded-xl transition-all duration-300 shadow-lg shadow-gold/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mv-btn mv-btn-primary mv-btn-lg w-full"
         >
           {isLoading ? (
-            <div className="flex items-center justify-center gap-2">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Procesando...</span>
-            </div>
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
+              <span>Procesando pago…</span>
+            </>
           ) : (
-            `Pagar $${(amount || 0).toLocaleString()}`
+            <>
+              <Lock className="h-4 w-4" aria-hidden />
+              <span>Pagar <span className="mv-data">{formatted}</span></span>
+            </>
           )}
-        </Button>
+        </button>
 
         <AnimatePresence>
           {message && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               id="payment-message"
-              className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center"
+              role="alert"
+              className="mt-4 flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
             >
-              {message}
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+              <span>{message}</span>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
       
-      <p className="text-center text-xs text-gray-500">
-        Tus pagos están protegidos con encriptación SSL de grado bancario. 
-        Al pagar, aceptas nuestros <a href="/terminos" className="text-gold hover:underline">Términos de Servicio</a>.
+      <p className="px-1 text-xs leading-relaxed text-[var(--text-secondary)]">
+        El pago lo procesa Stripe; Mercav no almacena los datos de tu tarjeta. Al pagar aceptás los{' '}
+        <a href="/terminos" className="mv-link font-medium">Términos del servicio</a>.
       </p>
     </form>
   );

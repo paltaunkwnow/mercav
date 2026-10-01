@@ -2,11 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { MoonStar } from "lucide-react";
 import { toast } from "sonner";
 import { DENOMINATION, STREAM } from "@/lib/kosher/labels";
 import { kosherFetch } from "@/components/kosher/KosherViewer";
+import { fieldClass, labelClass, primaryButton } from "@/components/kosher/ui";
 import { cn } from "@/lib/utils";
 
 type Community = { slug: string; name: string; city: string; countryCode: string; lat: number; lng: number; timezone: string; candles: string | null; havdalah: string | null };
@@ -21,13 +22,13 @@ type Initial = {
   orthodoxStream: string | null;
 };
 
-const field =
-  "h-12 w-full rounded-xl border border-border bg-bg-tertiary px-4 text-sm text-[var(--text-primary)] outline-none hover:border-gold/30 focus:border-gold/50 focus:ring-2 focus:ring-gold/15";
+const field = fieldClass;
 
 export function KosherProfileForm({ communities, initial, role }: { communities: Community[]; initial: Initial; role: string }) {
   const router = useRouter();
   const [state, setState] = useState(initial);
   const [saving, setSaving] = useState(false);
+  const reduce = useReducedMotion();
   const selected = communities.find((c) => c.city === state.city && c.countryCode === state.countryCode);
   const clock = (iso: string) => new Intl.DateTimeFormat("es", { timeZone: selected!.timezone, weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
 
@@ -59,13 +60,13 @@ export function KosherProfileForm({ communities, initial, role }: { communities:
 
   return (
     <div className="space-y-4">
-      <section className="rounded-[2rem] border border-border bg-bg-secondary p-6 md:p-8">
-        <h2 className="font-display text-xl font-semibold text-[var(--text-primary)]">Tu ciudad</h2>
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">Abre tu sala de chat por defecto y calcula el horario de Shabat.</p>
-        <label className="sr-only" htmlFor="k-city-select">Ciudad</label>
+      <section aria-labelledby="k-pref-city" className="mv-panel p-6 md:p-8">
+        <h2 id="k-pref-city" className="mv-h3">Tu ciudad y tu corriente</h2>
+        <p className="mt-2 text-sm text-[var(--text-secondary)]">La ciudad abre tu sala de chat por defecto y calcula el horario de Shabat.</p>
+        <label className={cn(labelClass, "mt-6")} htmlFor="k-city-select">Ciudad</label>
         <select
           id="k-city-select"
-          className={cn(field, "mt-4")}
+          className={field}
           value={selected?.slug ?? ""}
           onChange={(e) => {
             const c = communities.find((x) => x.slug === e.target.value);
@@ -78,9 +79,9 @@ export function KosherProfileForm({ communities, initial, role }: { communities:
           ))}
         </select>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <div className="mt-5 grid gap-5 md:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-[var(--text-secondary)]" htmlFor="k-denom">Corriente</label>
+            <label className={labelClass} htmlFor="k-denom">Corriente</label>
             <select id="k-denom" className={field} value={state.denomination ?? ""} onChange={(e) => setState((s) => ({ ...s, denomination: e.target.value || null }))}>
               <option value="">Prefiero no decir</option>
               {Object.entries(DENOMINATION).map(([v, l]) => (
@@ -89,8 +90,8 @@ export function KosherProfileForm({ communities, initial, role }: { communities:
             </select>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-[var(--text-secondary)]" htmlFor="k-stream">Dentro de la ortodoxia</label>
-            <select id="k-stream" className={field} disabled={state.denomination !== "orthodox"} value={state.orthodoxStream ?? ""} onChange={(e) => setState((s) => ({ ...s, orthodoxStream: e.target.value || null }))}>
+            <label className={labelClass} htmlFor="k-stream">Dentro de la ortodoxia</label>
+            <select id="k-stream" className={cn(field, "disabled:opacity-50")} disabled={state.denomination !== "orthodox"} value={state.orthodoxStream ?? ""} onChange={(e) => setState((s) => ({ ...s, orthodoxStream: e.target.value || null }))}>
               <option value="">—</option>
               {Object.entries(STREAM).map(([v, l]) => (
                 <option key={v} value={v}>{l}</option>
@@ -98,22 +99,22 @@ export function KosherProfileForm({ communities, initial, role }: { communities:
             </select>
           </div>
         </div>
-        <button type="button" disabled={saving} onClick={() => save()} className="mt-6 h-11 rounded-full bg-gold px-6 text-sm font-semibold text-black disabled:opacity-50">
-          Guardar
+        <button type="button" disabled={saving} onClick={() => save()} className={cn(primaryButton, "mt-6 w-full sm:w-auto")}>
+          {saving ? "Guardando…" : "Guardar preferencias"}
         </button>
       </section>
 
-      <section className="rounded-[2rem] border border-border bg-bg-secondary p-6 md:p-8">
+      <section aria-labelledby="k-pref-shabbat" className="mv-panel p-6 md:p-8">
         <div className="flex items-start justify-between gap-6">
           <div>
-            <h2 className="flex items-center gap-2 font-display text-xl font-semibold text-[var(--text-primary)]">
+            <h2 id="k-pref-shabbat" className="mv-h3 flex items-center gap-2">
               <MoonStar className="h-5 w-5 text-techelet" aria-hidden /> Modo Shabat
             </h2>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+            <p id="k-shabbat-desc" className="mt-2 text-sm text-[var(--text-secondary)]">
               Mercav Kosher queda en solo lectura desde el encendido de velas hasta Havdalá en tu ciudad.
             </p>
             {selected?.candles && selected.havdalah && (
-              <p className="mt-3 text-xs text-[var(--text-tertiary)]">
+              <p className="mt-3 text-xs leading-relaxed text-[var(--text-secondary)]">
                 Este Shabat en {selected.city}: velas {clock(selected.candles)}, Havdalá {clock(selected.havdalah)} (18 y 42 minutos). Confirmá los zmanim con tu rabino.
               </p>
             )}
@@ -122,7 +123,8 @@ export function KosherProfileForm({ communities, initial, role }: { communities:
             type="button"
             role="switch"
             aria-checked={state.shabbatMode}
-            aria-label="Modo Shabat"
+            aria-labelledby="k-pref-shabbat"
+            aria-describedby="k-shabbat-desc"
             disabled={saving}
             onClick={() => {
               const next = { ...state, shabbatMode: !state.shabbatMode };
@@ -133,10 +135,10 @@ export function KosherProfileForm({ communities, initial, role }: { communities:
               setState(next);
               save(next);
             }}
-            className={cn("relative h-8 w-14 shrink-0 rounded-full transition-colors", state.shabbatMode ? "bg-techelet" : "bg-bg-tertiary ring-1 ring-border")}
+            className={cn("mv-focus relative mt-1 h-8 w-14 shrink-0 rounded-full transition-colors duration-200 disabled:opacity-60", state.shabbatMode ? "bg-techelet" : "bg-[var(--mv-panel-hover)] ring-1 ring-inset ring-[var(--mv-hairline-strong)]")}
           >
             <motion.span
-              layout
+              layout={!reduce}
               transition={{ type: "spring", stiffness: 520, damping: 34 }}
               className={cn("absolute top-1 h-6 w-6 rounded-full bg-white shadow", state.shabbatMode ? "right-1" : "left-1")}
             />
@@ -144,7 +146,7 @@ export function KosherProfileForm({ communities, initial, role }: { communities:
         </div>
       </section>
 
-      <p className="px-2 text-xs text-[var(--text-tertiary)]">Rol en Mercav Kosher: {role}.</p>
+      <p className="px-1 text-sm text-[var(--text-secondary)]">Rol en Mercav Kosher: <span className="font-semibold text-[var(--text-primary)]">{role}</span>.</p>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { getKosherViewer, publicAuthorName } from "@/lib/kosher/server";
 import { EDITABLE_FIELDS } from "@/lib/kosher/edits";
 import { CHESED_KIND, EVENT_KIND, MEALS, PLACE_TYPES, STATUS } from "@/lib/kosher/labels";
 import { ModerationQueue, type QueueItem } from "@/components/kosher/ModerationQueue";
+import { EmptyState, PageIntro } from "@/components/kosher/ui";
 
 export const metadata: Metadata = { title: "Moderación" };
 
@@ -17,9 +18,9 @@ export default async function KosherModerationPage() {
   const viewer = await getKosherViewer();
   if (!viewer?.isModerator) {
     return (
-      <div className="mx-auto max-w-xl rounded-[2rem] border border-border bg-bg-secondary p-10 text-center">
-        <h1 className="font-display text-2xl font-semibold text-[var(--text-primary)]">Moderación</h1>
-        <p className="mt-3 text-[var(--text-secondary)]">Esta sección es para moderadores locales, agencias y el equipo de Mercav.</p>
+      <div className="mx-auto max-w-2xl">
+        <PageIntro eyebrow="Moderación" title="Solo para moderadores" />
+        <EmptyState>Esta sección es para moderadores locales, agencias y el equipo de Mercav.</EmptyState>
       </div>
     );
   }
@@ -119,13 +120,12 @@ export default async function KosherModerationPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <header className="mb-8">
-        <h1 className="font-display text-4xl font-semibold tracking-tight text-[var(--text-primary)]">Moderación</h1>
-        <p className="mt-3 text-[var(--text-secondary)]">
-          Aprobá lo que tenga fuente. En disputas, marcá el estado como “En disputa”: la app no decide quién tiene razón. Para
-          administración de fichas y certificados, confirmá por teléfono o correo institucional antes de aprobar.
+      <PageIntro eyebrow={`${items.length} ${items.length === 1 ? "pendiente" : "pendientes"}`} title="Moderación">
+        <p>
+          Aprobá lo que tenga fuente. En disputas, marcá el estado como “En disputa”: la app no decide quién tiene razón. Para administración de
+          fichas y certificados, confirmá por teléfono o correo institucional antes de aprobar.
         </p>
-      </header>
+      </PageIntro>
       <ModerationQueue items={items} />
     </div>
   );

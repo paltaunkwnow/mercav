@@ -3,13 +3,12 @@
 export * from "./GlobalSettingsForm";
 
 import { useState } from "react"
-import { Trash2, ShieldAlert, CheckCircle2, Loader2, Check, Users } from "lucide-react"
+import { Trash2, ShieldAlert, ShieldCheck, CheckCircle2, Loader2, Check, Users, X } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import { createPortal } from "react-dom"
-import { useEffect } from "react"
 import { ConfirmModal } from "@/components/ui/confirm-modal"
 import { Toast } from "@/components/ui/toast"
+import { AdminDialog } from "./AdminDialog"
+import { Field, IconButton, RowButton, StatusBadge } from "./ui"
 
 export function AdminUserActions({ 
   userId, 
@@ -33,12 +32,7 @@ export function AdminUserActions({
     type: "info",
     visible: false
   });
-  const [mounted, setMounted] = useState(false);
   const router = useRouter()
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleAction = async (action: string) => {
     setLoading(action)
@@ -78,7 +72,7 @@ export function AdminUserActions({
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1.5">
       <Toast 
         isVisible={toast.visible} 
         message={toast.message} 
@@ -87,40 +81,40 @@ export function AdminUserActions({
       />
       
       {targetIsAdmin ? (
-        <div className="px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase tracking-tighter flex items-center gap-1.5">
-           <ShieldAlert className="h-3 w-3" /> Protegido
-        </div>
+        <StatusBadge tone="info">
+          <ShieldCheck className="h-3.5 w-3.5" aria-hidden /> Protegido
+        </StatusBadge>
       ) : (
         <>
           {!isVerified && (
-            <button 
+            <IconButton
+              icon={CheckCircle2}
+              tone="success"
+              label={`Verificar a ${userName}`}
               onClick={() => setModal({ open: true, action: "VERIFY_USER" })}
               disabled={!!loading}
-              className="p-2 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all"
-              title="Verificar Usuario"
-            >
-              {loading === "VERIFY_USER" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-            </button>
+              loading={loading === "VERIFY_USER"}
+            />
           )}
           
           {!isSanctioned ? (
-            <button 
+            <IconButton
+              icon={ShieldAlert}
+              tone="danger"
+              label={`Sancionar a ${userName}`}
               onClick={() => setModal({ open: true, action: "SANCTION_USER" })}
               disabled={!!loading}
-              className="p-2 rounded-lg bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-white transition-all"
-              title="Sancionar Usuario"
-            >
-              {loading === "SANCTION_USER" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldAlert className="h-4 w-4" />}
-            </button>
+              loading={loading === "SANCTION_USER"}
+            />
           ) : (
-            <button 
+            <IconButton
+              icon={ShieldCheck}
+              tone="info"
+              label={`Quitar la sanción a ${userName}`}
               onClick={() => handleAction("REVOKE_SANCTION")}
               disabled={!!loading}
-              className="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all"
-              title="Quitar Sanción"
-            >
-              {loading === "REVOKE_SANCTION" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-            </button>
+              loading={loading === "REVOKE_SANCTION"}
+            />
           )}
         </>
       )}
@@ -129,88 +123,61 @@ export function AdminUserActions({
         <ConfirmModal 
           isOpen={modal.open}
           setIsOpen={(open) => !open && setModal(null)}
-          title={modal.action === "VERIFY_USER" ? "Verificar Usuario" : "Moderación"}
-          description={`¿Confirmas la acción para ${userName}?`}
+          title={modal.action === "VERIFY_USER" ? "Verificar usuario" : "Moderación"}
+          description={`¿Confirmás la acción para ${userName}?`}
           variant={modal.action === "VERIFY_USER" ? "info" : "danger"}
           onConfirm={() => handleAction(modal.action)}
         />
       )}
 
-      {mounted && createPortal(
-        <AnimatePresence>
-          {modal && modal.action === "SANCTION_USER" && (
-            <div className="fixed top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-4 overflow-hidden">
-               <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setModal(null)}
-                  className="absolute inset-0 bg-black/95 backdrop-blur-[20px]"
-                  style={{ width: '100vw', height: '100vh' }}
-               />
-               <motion.div 
-                  initial={{ opacity: 0, scale: 0.9, y: 40 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: 40 }}
-                  className="relative bg-bg-secondary border border-gold/20 rounded-[3rem] p-12 w-full max-w-lg shadow-[0_0_150px_rgba(212,175,55,0.15)] overflow-hidden"
-               >
-                  {/* Premium Decoration */}
-                  <div className="absolute -top-10 -right-10 opacity-10 pointer-events-none text-gold">
-                     <ShieldAlert size={200} />
-                  </div>
-
-                  <div className="flex items-center gap-6 mb-10 relative z-10">
-                     <div className="w-16 h-16 bg-gold/10 rounded-[1.5rem] flex items-center justify-center text-gold border border-gold/20 shadow-[0_0_30px_rgba(212,175,55,0.1)]">
-                        <ShieldAlert size={32} />
-                     </div>
-                     <div>
-                        <h3 className="text-3xl font-black text-white tracking-tighter uppercase">Sancionar</h3>
-                        <p className="text-gold font-mono text-xs tracking-widest uppercase">Usuario: @{userName}</p>
-                     </div>
-                  </div>
-                  
-                  <div className="space-y-8 relative z-10">
-                     <div>
-                        <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-3 ml-2">Motivo del procedimiento</label>
-                        <textarea 
-                           value={sanctionReason}
-                           onChange={(e) => setSanctionReason(e.target.value)}
-                           className="w-full bg-white/[0.02] border border-white/5 rounded-[2rem] p-6 text-white text-base focus:outline-none focus:border-gold/40 h-40 resize-none transition-all placeholder:text-gray-800"
-                           placeholder="Detalla la violación de términos..."
-                        />
-                     </div>
-                     <div>
-                        <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-3 ml-2">Periodo de restricción (Días)</label>
-                        <input 
-                           type="number"
-                           value={sanctionDays}
-                           onChange={(e) => setSanctionDays(e.target.value)}
-                           className="w-full bg-white/[0.02] border border-white/5 rounded-[1.5rem] h-16 px-6 text-white text-xl focus:outline-none focus:border-gold/40 transition-all font-mono"
-                        />
-                     </div>
-                  </div>
-
-                  <div className="flex gap-4 mt-12 relative z-10">
-                     <button 
-                        onClick={() => setModal(null)} 
-                        className="flex-1 h-16 rounded-2xl border border-white/10 text-gray-500 font-black uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
-                     >
-                        Abortar
-                     </button>
-                     <button 
-                        onClick={() => handleAction("SANCTION_USER")}
-                        disabled={!sanctionReason || !!loading}
-                        className="flex-2 h-16 px-10 rounded-2xl bg-gold text-primary-foreground font-black uppercase tracking-widest text-xs hover:bg-gold-light transition-all disabled:opacity-30 shadow-[0_0_40px_rgba(212,175,55,0.2)]"
-                     >
-                        {loading === "SANCTION_USER" ? <Loader2 className="animate-spin mx-auto h-6 w-6" /> : "Ejecutar Sanción"}
-                     </button>
-                  </div>
-               </motion.div>
-            </div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
+      <AdminDialog
+        open={!!modal && modal.action === "SANCTION_USER"}
+        onClose={() => setModal(null)}
+        tone="danger"
+        icon={<ShieldAlert className="h-5 w-5" />}
+        title={`Sancionar a ${userName}`}
+        description="La cuenta queda restringida durante el período indicado. Podés quitar la sanción en cualquier momento."
+        footer={
+          <>
+            <button type="button" onClick={() => setModal(null)} className="mv-btn mv-btn-ghost mv-btn-sm">
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={() => handleAction("SANCTION_USER")}
+              disabled={!sanctionReason || !!loading}
+              className="mv-btn mv-btn-sm bg-red-600 text-[#fff] hover:bg-red-700"
+            >
+              {loading === "SANCTION_USER" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+              Aplicar sanción
+            </button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-5">
+          <Field label="Motivo" htmlFor={`sanction-reason-${userId}`} hint="Obligatorio. Queda en el historial de la cuenta.">
+            <textarea
+              id={`sanction-reason-${userId}`}
+              value={sanctionReason}
+              onChange={(e) => setSanctionReason(e.target.value)}
+              aria-describedby={`sanction-reason-${userId}-hint`}
+              className="mv-input h-32 resize-none py-3 text-sm"
+              placeholder="Describí qué regla se incumplió"
+            />
+          </Field>
+          <Field label="Duración en días" htmlFor={`sanction-days-${userId}`}>
+            <input
+              id={`sanction-days-${userId}`}
+              type="number"
+              inputMode="numeric"
+              min={1}
+              value={sanctionDays}
+              onChange={(e) => setSanctionDays(e.target.value)}
+              className="mv-input mv-data"
+            />
+          </Field>
+        </div>
+      </AdminDialog>
     </div>
   )
 }
@@ -245,26 +212,27 @@ export function AdminPostActions({
   }
 
   const getTitle = () => {
-    if (action === "DELETE_SERVICE") return "Eliminar Servicio";
-    if (action === "DELETE_SPACE") return "Eliminar Espacio";
-    return "Eliminar Publicación";
+    if (action === "DELETE_SERVICE") return "Eliminar servicio";
+    if (action === "DELETE_SPACE") return "Eliminar espacio";
+    return "Eliminar publicación";
   }
 
   return (
     <>
-      <button 
+      <IconButton
+        icon={Trash2}
+        tone="danger"
+        label={getTitle()}
         onClick={() => setModalOpen(true)}
-        disabled={loading}
-        className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
-      >
-        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-      </button>
+        loading={loading}
+      />
 
       <ConfirmModal 
         isOpen={modalOpen}
         setIsOpen={setModalOpen}
         title={getTitle()}
-        description={`¿Estás seguro de que deseas eliminar este elemento? Se borrará permanentemente del sistema.`}
+        description="Se borra de forma permanente y deja de verse en el sitio. Esta acción no se puede deshacer."
+        confirmText="Eliminar"
         variant="danger"
         onConfirm={handleDelete}
       />
@@ -296,29 +264,22 @@ export function AdminCompanyActions({ requestId, currentStatus }: { requestId: s
   if (currentStatus !== "PENDING") return null;
 
   return (
-    <div className="flex justify-end gap-2">
-      <button 
-        onClick={() => handleAction("APPROVE_COMPANY_MEMBER")}
-        disabled={!!loading}
-        className="p-2 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-lg shadow-green-500/5"
-        title="Aprobar Solicitud"
-      >
-        {loading === "APPROVE_COMPANY_MEMBER" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-      </button>
-      <button 
-        onClick={() => handleAction("REJECT_COMPANY_MEMBER")}
-        disabled={!!loading}
-        className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/5"
-        title="Rechazar Solicitud"
-      >
-        {loading === "REJECT_COMPANY_MEMBER" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldAlert className="h-4 w-4" />}
-      </button>
+    <div className="flex flex-wrap justify-end gap-2">
+      <RowButton tone="success" onClick={() => handleAction("APPROVE_COMPANY_MEMBER")} disabled={!!loading}>
+        {loading === "APPROVE_COMPANY_MEMBER" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Check className="h-4 w-4" aria-hidden />}
+        Aprobar
+      </RowButton>
+      <RowButton tone="danger" onClick={() => handleAction("REJECT_COMPANY_MEMBER")} disabled={!!loading}>
+        {loading === "REJECT_COMPANY_MEMBER" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <X className="h-4 w-4" aria-hidden />}
+        Rechazar
+      </RowButton>
     </div>
   )
 }
 
 export function AdminTicketActions({ ticketId, currentStatus, otherParty, isPartyInvited }: { ticketId: string, currentStatus: string, otherParty?: any, isPartyInvited?: boolean }) {
   const [loading, setLoading] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const router = useRouter()
 
   const handleAction = async (action: string) => {
@@ -352,35 +313,44 @@ export function AdminTicketActions({ ticketId, currentStatus, otherParty, isPart
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1.5">
        {otherParty && !isPartyInvited && (
-          <button 
+          <IconButton
+            icon={Users}
+            tone="gold"
+            label={`Invitar a @${otherParty.username || "la otra parte"} al ticket`}
             onClick={() => handleAction('INVITE_PARTY')}
             disabled={!!loading}
-            className="p-2 rounded-lg bg-gold/10 text-gold hover:bg-gold hover:text-black transition-all"
-            title="Invitar a la otra parte"
-          >
-             {loading === 'INVITE_PARTY' ? <Loader2 size={16} className="animate-spin" /> : <Users size={16} />}
-          </button>
+            loading={loading === 'INVITE_PARTY'}
+          />
        )}
        {currentStatus !== 'RESOLVED' && (
-         <button 
+         <IconButton
+           icon={Check}
+           tone="success"
+           label="Marcar como resuelto"
            onClick={() => handleAction('RESOLVE')}
            disabled={!!loading}
-           className="p-2 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all"
-           title="Resolver Ticket"
-         >
-            {loading === 'RESOLVE' ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-         </button>
+           loading={loading === 'RESOLVE'}
+         />
        )}
-       <button 
-          onClick={() => handleAction('DELETE')}
+       <IconButton
+          icon={Trash2}
+          tone="danger"
+          label="Eliminar ticket"
+          onClick={() => setConfirmDelete(true)}
           disabled={!!loading}
-          className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
-          title="Eliminar Ticket"
-       >
-          {loading === 'DELETE' ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-       </button>
+          loading={loading === 'DELETE'}
+       />
+       <ConfirmModal
+          isOpen={confirmDelete}
+          setIsOpen={setConfirmDelete}
+          title="Eliminar ticket"
+          description="Se borra el ticket y su conversación. Esta acción no se puede deshacer."
+          confirmText="Eliminar"
+          variant="danger"
+          onConfirm={() => handleAction('DELETE')}
+       />
     </div>
   );
 }

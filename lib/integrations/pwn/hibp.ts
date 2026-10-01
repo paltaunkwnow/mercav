@@ -5,6 +5,7 @@ import {
   ConnectorResponse,
   PwnConnector,
   PwnProviderError,
+  rateLimitedError,
 } from "./types";
 import { breachesForDomain } from "@/lib/pwn/hibp-domain";
 
@@ -144,6 +145,7 @@ export async function fetchHibpBreachCatalog(): Promise<ConnectorResponse<HibpBr
   } catch {
     return { configured: false };
   }
+  if (response.status === 429) throw rateLimitedError("HIBP", response);
   if (!response.ok) throw new PwnProviderError("HIBP");
   let payload: unknown;
   try {
@@ -180,6 +182,8 @@ export const hibpConnector: PwnConnector<HibpQuery, HibpBreach[]> = {
     const response = await hibpRequest(path);
 
     if (response.status === 404) return { configured: true, data: [] };
+    // HIBP aplica límite por API key: lo distinguimos para devolver 429 con Retry-After.
+    if (response.status === 429) throw rateLimitedError("HIBP", response);
     if (!response.ok) throw new PwnProviderError("HIBP");
 
     let payload: unknown;
@@ -245,6 +249,7 @@ export async function fetchPasswordRange(
     return { configured: false };
   }
   try {
+    if (response.status === 429) throw rateLimitedError("HIBP Passwords", response);
     if (!response.ok) throw new PwnProviderError("HIBP Passwords");
     const body = await response.text();
     const lines = body

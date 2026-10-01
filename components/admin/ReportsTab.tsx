@@ -1,14 +1,49 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, type KeyboardEvent } from "react"
 import { 
-  ShieldAlert, AlertTriangle, Trash2, CheckCircle2, ChevronRight,
-  Eye, FileText, Calendar, User, Clock, Loader2, ArrowRight, Check, ShieldCheck
+  Trash2, CheckCircle2, Eye, FileText, Loader2, Check, Flag, LifeBuoy, Archive, ArrowUpRight
 } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { AdminTicketActions } from "./AdminControls"
+import { AdminDialog } from "./AdminDialog"
+import { cn } from "@/lib/utils"
+import {
+  Avatar, EmptyState, Field, InlineAlert, KeyValue, LoadingState, MobileCard, RowButton, StatusBadge, fmt, table, AdminPanel,
+} from "./ui"
+
+const TARGET_LABELS: Record<string, string> = {
+  POST: "Publicación",
+  SERVICE: "Servicio",
+  SPACE: "Espacio",
+  JOB: "Vacante",
+  JOB_POST: "Vacante",
+  USER: "Usuario",
+  COMMENT: "Comentario",
+  COMPANY: "Empresa",
+}
+const targetLabel = (t: string) => TARGET_LABELS[t?.toUpperCase?.()] ?? t
+
+const TICKET_STATUS: Record<string, { label: string; tone: "info" | "success" | "neutral" | "gold" }> = {
+  OPEN: { label: "Abierto", tone: "info" },
+  IN_PROGRESS: { label: "En curso", tone: "gold" },
+  RESOLVED: { label: "Resuelto", tone: "success" },
+  CLOSED: { label: "Cerrado", tone: "neutral" },
+}
+
+const TICKET_CATEGORY: Record<string, string> = {
+  PAYMENT_ERROR: "Error en el pago",
+  DOUBLE_PAYMENT: "Pago duplicado",
+  FRAUD: "Sospecha de fraude",
+  SCAM: "Estafa o no entrega",
+  TECHNICAL_ISSUE: "Problema técnico",
+}
+
+const SUBTABS = [
+  { id: "queue", label: "Cola de reportes", icon: Flag },
+  { id: "tickets", label: "Tickets de soporte", icon: LifeBuoy },
+  { id: "history", label: "Contenido eliminado", icon: Archive },
+] as const
 
 interface ReportsTabProps {
   tickets: any[]
@@ -182,392 +217,337 @@ export function ReportsTab({ tickets }: ReportsTabProps) {
     }
   }
 
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const onTabKey = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const delta = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0
+    const jump = event.key === "Home" ? 0 : event.key === "End" ? SUBTABS.length - 1 : null
+    if (!delta && jump === null) return
+    event.preventDefault()
+    const next = jump ?? (index + delta + SUBTABS.length) % SUBTABS.length
+    setActiveSubTab(SUBTABS[next].id)
+    tabRefs.current[next]?.focus()
+  }
+  const counts: Record<string, number | null> = {
+    queue: reports.length || groupedReports.length ? groupedReports.length : null,
+    tickets: tickets.length,
+    history: deletedHistory.length || null,
+  }
+
+  const author = previewContent?.author || previewContent?.provider || previewContent?.owner || previewContent?.company
+
   return (
-    <div className="space-y-6">
-      {/* Sub tabs navigation */}
-      <div className="flex gap-2 p-1 rounded-2xl bg-white/[0.02] border border-white/5 w-fit">
-        <button 
-          onClick={() => setActiveSubTab("queue")}
-          className={`rounded-xl px-5 py-2 text-xs font-bold uppercase tracking-wider transition-all ${activeSubTab === "queue" ? "bg-gold text-black shadow-lg shadow-gold/10" : "text-gray-500 hover:text-white"}`}
-        >
-          Cola de Reportes ({groupedReports.length})
-        </button>
-        <button 
-          onClick={() => setActiveSubTab("tickets")}
-          className={`rounded-xl px-5 py-2 text-xs font-bold uppercase tracking-wider transition-all ${activeSubTab === "tickets" ? "bg-gold text-black shadow-lg shadow-gold/10" : "text-gray-500 hover:text-white"}`}
-        >
-          Tickets de Soporte ({tickets.length})
-        </button>
-        <button 
-          onClick={() => setActiveSubTab("history")}
-          className={`rounded-xl px-5 py-2 text-xs font-bold uppercase tracking-wider transition-all ${activeSubTab === "history" ? "bg-gold text-black shadow-lg shadow-gold/10" : "text-gray-500 hover:text-white"}`}
-        >
-          Historial de Contenido Eliminado
-        </button>
+    <div className="flex flex-col gap-6">
+      {/* Sub tabs */}
+      <div role="tablist" aria-label="Vistas de reportes" className="scrollbar-hide -mx-1 flex gap-1 overflow-x-auto px-1">
+        {SUBTABS.map(({ id, label, icon: Icon }, index) => {
+          const selected = activeSubTab === id
+          return (
+            <button
+              key={id}
+              ref={(el) => { tabRefs.current[index] = el }}
+              role="tab"
+              id={`reports-tab-${id}`}
+              aria-selected={selected}
+              aria-controls={`reports-panel-${id}`}
+              tabIndex={selected ? 0 : -1}
+              onKeyDown={(e) => onTabKey(e, index)}
+              onClick={() => setActiveSubTab(id)}
+              className={cn(
+                "mv-focus inline-flex h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors duration-150",
+                selected
+                  ? "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-[var(--text-primary)]"
+                  : "border-transparent text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]",
+              )}
+            >
+              <Icon className={cn("h-4 w-4", selected ? "text-gold" : "text-[var(--text-tertiary)]")} aria-hidden />
+              {label}
+              {counts[id] !== null ? <span className="mv-data text-xs text-[var(--text-tertiary)]">{counts[id]}</span> : null}
+            </button>
+          )
+        })}
       </div>
 
-      {/* Floating Alert message */}
-      <AnimatePresence>
-        {successMessage && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="p-4 rounded-xl border border-green-500/20 bg-green-500/5 text-green-400 text-xs font-bold flex items-center gap-3 shadow-lg"
-          >
-            <Check className="w-4 h-4 shrink-0" />
-            <span>{successMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div aria-live="polite">{successMessage && <InlineAlert tone="success">{successMessage}</InlineAlert>}</div>
 
-      {/* Sub tab: Queue */}
+      {/* Queue */}
       {activeSubTab === "queue" && (
-        <div className="space-y-6">
+        <div role="tabpanel" id="reports-panel-queue" aria-labelledby="reports-tab-queue">
           {queueLoading ? (
-            <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-gold" /></div>
+            <LoadingState label="Cargando reportes…" />
           ) : groupedReports.length === 0 ? (
-            <div className="rounded-3xl border border-white/5 bg-black/40 p-12 text-center backdrop-blur-xl">
-              <div className="h-20 w-20 bg-gold/10 text-gold rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle2 className="h-10 w-10" />
-              </div>
-              <h3 className="text-xl font-bold mb-2">Comunidad en Paz</h3>
-              <p className="text-gray-500 max-w-md mx-auto leading-relaxed">No hay denuncias o reportes de contenido pendientes. El ecosistema está operando en armonía.</p>
-            </div>
+            <EmptyState icon={CheckCircle2} title="No hay reportes pendientes" description="Cuando alguien reporte contenido, aparecerá acá agrupado por elemento." />
           ) : (
-            <div className="grid gap-6">
-              {groupedReports.map((group, idx) => (
-                <div key={`${group.targetType}-${group.targetId}`} className="rounded-3xl border border-white/5 bg-black/40 p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:border-white/10 transition-all group">
-                  <div className="flex items-center gap-5">
-                    <div className="h-14 w-14 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center text-gray-500 group-hover:text-yellow-500 transition-colors relative shrink-0">
-                      <ShieldAlert size={28} />
-                      <span className="absolute -top-2.5 -right-2.5 bg-yellow-500 text-black text-[9px] font-black w-6 h-6 rounded-full flex items-center justify-center border border-[#121212] shadow-xl">
-                        {group.reports.length}
-                      </span>
+            <AdminPanel id="queue" title="Pendientes de revisión" description="Agrupados por contenido, del más reportado al menos reportado." bodyClassName="p-0">
+              <ul>
+                {groupedReports.map((group) => (
+                  <li
+                    key={`${group.targetType}-${group.targetId}`}
+                    className="flex flex-col gap-4 border-b border-[var(--mv-hairline)] px-5 py-4 last:border-b-0 md:px-6 xl:flex-row xl:items-center xl:justify-between"
+                  >
+                    <div className="flex min-w-0 items-start gap-4">
+                      <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-[0.875rem] border border-red-500/25 bg-red-500/10 text-red-400">
+                        <span className="mv-data text-sm font-medium leading-none">{group.reports.length}</span>
+                        <span className="sr-only">reportes</span>
+                      </div>
+                      <div className="min-w-0 space-y-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <StatusBadge tone="neutral">{targetLabel(group.targetType)}</StatusBadge>
+                          <span className="mv-data truncate text-xs text-[var(--text-tertiary)]" title={group.targetId}>{group.targetId.slice(0, 18)}…</span>
+                        </div>
+                        <p className="text-sm text-[var(--text-primary)]">
+                          <span className="font-semibold">{group.reasons.join(", ")}</span>
+                        </p>
+                        <p className="text-xs text-[var(--text-tertiary)]">
+                          {group.reporters.length ? (
+                            <>Reportado por {group.reporters.slice(0, 3).join(", ")}{group.reporters.length > 3 && ` y ${group.reporters.length - 3} más`} · </>
+                          ) : null}
+                          Último <span className="mv-data">{fmt.date(group.newestDate)}</span>
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-3">
-                        <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border border-yellow-500/30 text-yellow-500 bg-yellow-500/5">
-                          {group.targetType}
-                        </span>
-                        <span className="text-[10px] text-gray-600 font-mono">ID: {group.targetId.slice(0, 18)}...</span>
-                      </div>
-                      <h4 className="text-base font-bold text-white line-clamp-1">Reportado por: {group.reporters.slice(0, 3).join(", ")} {group.reporters.length > 3 && `y ${group.reporters.length - 3} más`}</h4>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px] text-gray-500 font-mono">
-                        <span>Motivo(s): <span className="text-gray-300 font-bold">{group.reasons.join(", ")}</span></span>
-                        <span>·</span>
-                        <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> Último: {new Date(group.newestDate).toLocaleDateString()}</span>
-                      </div>
+                    <div className="grid shrink-0 grid-cols-3 gap-2 sm:flex">
+                      <RowButton onClick={() => handleOpenPreview(group.targetType, group.targetId)}>
+                        <Eye className="h-4 w-4" aria-hidden /> Ver
+                      </RowButton>
+                      <RowButton tone="success" onClick={() => handleDismissReports(group.targetType, group.targetId)}>
+                        <Check className="h-4 w-4" aria-hidden /> Desestimar
+                      </RowButton>
+                      <RowButton tone="danger" onClick={() => setDeleteTarget({ type: group.targetType, id: group.targetId })}>
+                        <Trash2 className="h-4 w-4" aria-hidden /> Eliminar
+                      </RowButton>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 shrink-0 w-full md:w-auto">
-                    <button
-                      onClick={() => handleOpenPreview(group.targetType, group.targetId)}
-                      className="flex-1 md:flex-none h-11 px-5 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-xs hover:bg-white/10 transition-all flex items-center justify-center gap-2"
-                    >
-                      <Eye className="w-4 h-4 text-gold" /> Previsualizar
-                    </button>
-                    
-                    <button
-                      onClick={() => handleDismissReports(group.targetType, group.targetId)}
-                      className="flex-1 md:flex-none h-11 px-5 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 font-bold text-xs hover:bg-green-500 hover:text-white transition-all flex items-center justify-center gap-2"
-                    >
-                      <Check className="w-4 h-4" /> Desestimar
-                    </button>
-
-                    <button
-                      onClick={() => setDeleteTarget({ type: group.targetType, id: group.targetId })}
-                      className="flex-1 md:flex-none h-11 px-5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 font-bold text-xs hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
-                    >
-                      <Trash2 className="w-4 h-4" /> Eliminar
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  </li>
+                ))}
+              </ul>
+            </AdminPanel>
           )}
         </div>
       )}
 
-      {/* Sub tab: Tickets */}
+      {/* Tickets */}
       {activeSubTab === "tickets" && (
-        <div className="space-y-6">
-          <div className="grid gap-6">
-            {tickets.map((ticket: any) => {
-              const otherParty = ticket.order ? (
-                ticket.userId === ticket.order.clientId ? ticket.order.service.provider : ticket.order.client
-              ) : null
+        <div role="tabpanel" id="reports-panel-tickets" aria-labelledby="reports-tab-tickets">
+          {tickets.length === 0 ? (
+            <EmptyState icon={LifeBuoy} title="No hay tickets" description="Los tickets que abran los usuarios desde sus pedidos aparecerán acá." />
+          ) : (
+            <AdminPanel id="tickets" title="Tickets" description="Del más reciente al más antiguo." bodyClassName="p-0">
+              <ul>
+                {tickets.map((ticket: any) => {
+                  const otherParty = ticket.order ? (
+                    ticket.userId === ticket.order.clientId ? ticket.order.service.provider : ticket.order.client
+                  ) : null
+                  const st = TICKET_STATUS[ticket.status] ?? { label: ticket.status, tone: "neutral" as const }
 
-              return (
-                <div key={ticket.id} className="rounded-3xl border border-white/5 bg-black/40 p-8 flex flex-col gap-6 hover:border-gold/20 transition-all group">
-                  <div className="flex flex-wrap items-start justify-between gap-6">
-                    <div className="flex items-center gap-6">
-                       <div className="h-14 w-14 bg-white/5 rounded-2xl flex items-center justify-center text-gray-500 group-hover:text-gold transition-colors">
-                          <ShieldAlert size={28} />
-                       </div>
-                       <div>
-                          <div className="flex items-center gap-3 mb-1">
-                             <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${
-                               ticket.status === 'OPEN' ? 'border-blue-500/50 text-blue-400 bg-blue-500/5' : 
-                               ticket.status === 'RESOLVED' ? 'border-green-500/50 text-green-400 bg-green-500/5' : 
-                               'border-gray-500/50 text-gray-400 bg-gray-500/5'
-                             }`}>
-                               {ticket.status}
-                             </span>
-                             <span className="text-[10px] text-gold font-bold">Categoría: {
-                               ticket.category === "PAYMENT_ERROR" ? "Error en el Pago" :
-                               ticket.category === "DOUBLE_PAYMENT" ? "Pago Duplicado" :
-                               ticket.category === "FRAUD" ? "Sospecha de Fraude" :
-                               ticket.category === "SCAM" ? "Estafa / No entrega" :
-                               ticket.category === "TECHNICAL_ISSUE" ? "Problema Técnico" :
-                               "Otro"
-                             }</span>
+                  return (
+                    <li key={ticket.id} className="flex flex-col gap-4 border-b border-[var(--mv-hairline)] px-5 py-4 last:border-b-0 md:px-6">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0 space-y-1.5">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <StatusBadge tone={st.tone}>{st.label}</StatusBadge>
+                            <span className="text-xs text-[var(--text-secondary)]">{TICKET_CATEGORY[ticket.category] ?? "Otro"}</span>
                           </div>
-                          <h4 className="text-lg font-bold text-white mb-1">{ticket.subject}</h4>
-                          <p className="text-xs text-gray-500">Reportado por <span className="text-gray-300">@{ticket.user.username}</span> · {new Date(ticket.createdAt).toLocaleDateString()}</p>
-                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                       <Button asChild variant="outline" className="rounded-xl border-white/5 bg-white/5 hover:bg-white/10 h-10 px-5 text-xs font-bold">
-                          <Link href={`/dashboard/pedidos/tickets/${ticket.id}`}>Ver Conversación</Link>
-                       </Button>
-                       <AdminTicketActions 
-                          ticketId={ticket.id} 
-                          currentStatus={ticket.status} 
-                          otherParty={otherParty} 
-                          isPartyInvited={!!ticket.involvedUserId} 
-                       />
-                    </div>
-                  </div>
-
-                  <div className="pt-6 border-t border-white/5 flex flex-wrap gap-8">
-                     <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20">
-                           <User size={14} />
+                          <h3 className="text-[0.9375rem] font-semibold text-[var(--text-primary)]">{ticket.subject}</h3>
+                          <p className="text-xs text-[var(--text-tertiary)]">
+                            Abierto <span className="mv-data">{fmt.dateTime(ticket.createdAt)}</span>
+                          </p>
                         </div>
-                        <div>
-                           <p className="text-[8px] font-black uppercase tracking-widest text-gray-600">Reportante</p>
-                           <p className="text-xs font-bold text-white">@{ticket.user.username}</p>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <Link href={`/dashboard/pedidos/tickets/${ticket.id}`} className="mv-btn mv-btn-secondary mv-btn-sm">
+                            Ver conversación <ArrowUpRight className="h-4 w-4" aria-hidden />
+                          </Link>
+                          <AdminTicketActions 
+                            ticketId={ticket.id} 
+                            currentStatus={ticket.status} 
+                            otherParty={otherParty} 
+                            isPartyInvited={!!ticket.involvedUserId} 
+                          />
                         </div>
-                     </div>
+                      </div>
 
-                     {otherParty && (
-                        <div className="flex items-center gap-3">
-                           <div className="h-8 w-8 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400 border border-purple-500/20">
-                              <User size={14} />
-                           </div>
-                           <div>
-                              <p className="text-[8px] font-black uppercase tracking-widest text-gray-600">Contraparte Detectada</p>
-                              <p className="text-xs font-bold text-white">@{otherParty.username}</p>
-                           </div>
-                        </div>
-                     )}
-
-                     {ticket.involvedUser && (
-                        <div className="flex items-center gap-3">
-                           <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center text-green-400 border border-green-500/20">
-                              <User size={14} />
-                           </div>
-                           <div>
-                              <p className="text-[8px] font-black uppercase tracking-widest text-gray-600">Usuario Invitado</p>
-                              <p className="text-xs font-bold text-white">@{ticket.involvedUser.username}</p>
-                           </div>
-                        </div>
-                     )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+                      <dl className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
+                        <Party label="Reporta" username={ticket.user.username} />
+                        {otherParty && <Party label="Contraparte" username={otherParty.username} />}
+                        {ticket.involvedUser && <Party label="Invitado al ticket" username={ticket.involvedUser.username} />}
+                      </dl>
+                    </li>
+                  )
+                })}
+              </ul>
+            </AdminPanel>
+          )}
         </div>
       )}
 
-      {/* Sub tab: Deleted History */}
+      {/* Deleted history */}
       {activeSubTab === "history" && (
-        <div className="space-y-6">
+        <div role="tabpanel" id="reports-panel-history" aria-labelledby="reports-tab-history">
           {historyLoading ? (
-            <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-gold" /></div>
+            <LoadingState label="Cargando historial…" />
           ) : deletedHistory.length === 0 ? (
-            <div className="py-16 text-center text-gray-500 text-xs italic bg-[#121212]/20 border border-white/5 rounded-3xl">
-              No hay registros de contenidos eliminados en el historial de auditoría.
-            </div>
+            <EmptyState icon={Archive} title="Sin contenido eliminado" description="Cada eliminación desde moderación queda archivada acá con su respaldo." />
           ) : (
-            <div className="rounded-3xl border border-white/5 bg-black/40 backdrop-blur-xl overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-gray-400 min-w-[900px]">
+            <AdminPanel id="history" title="Contenido eliminado" description="Cada registro conserva una copia del contenido original." bodyClassName="p-0">
+              <div className={cn("hidden md:block", table.wrap)}>
+                <table className={table.table}>
                   <thead>
-                    <tr className="bg-white/[0.02] border-b border-white/5 text-[10px] uppercase tracking-widest text-gray-600">
-                      <th className="px-6 py-5 font-bold">Tipo / ID Original</th>
-                      <th className="px-6 py-5 font-bold">Propietario original</th>
-                      <th className="px-6 py-5 font-bold">Razón de eliminación</th>
-                      <th className="px-6 py-5 font-bold">Eliminado por</th>
-                      <th className="px-6 py-5 font-bold">Fecha / Hora</th>
-                      <th className="px-6 py-5 text-right font-bold">Respaldo</th>
+                    <tr>
+                      <th scope="col" className={table.th}>Contenido</th>
+                      <th scope="col" className={table.th}>Propietario</th>
+                      <th scope="col" className={table.th}>Motivo</th>
+                      <th scope="col" className={table.th}>Eliminado por</th>
+                      <th scope="col" className={table.th}>Fecha</th>
+                      <th scope="col" className={cn(table.th, "text-right")}>Respaldo</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody>
                     {deletedHistory.map(item => (
-                      <tr key={item.id} className="group hover:bg-white/[0.03] transition-all text-xs">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-red-500/10 text-red-500 border border-red-500/20">
-                              {item.contentType}
-                            </span>
-                            <span className="font-mono text-gray-500">{item.contentId.slice(0, 12)}...</span>
-                          </div>
+                      <tr key={item.id} className={table.tr}>
+                        <td className={table.td}>
+                          <StatusBadge>{targetLabel(item.contentType)}</StatusBadge>
+                          <p className="mv-data mt-1 text-xs text-[var(--text-tertiary)]" title={item.contentId}>{item.contentId.slice(0, 12)}…</p>
                         </td>
-                        <td className="px-6 py-4 text-white font-bold">@{item.contentOwner}</td>
-                        <td className="px-6 py-4 text-gray-300 max-w-xs truncate leading-normal">"{item.reason}"</td>
-                        <td className="px-6 py-4">
-                          <span className="text-blue-400 font-bold">@{item.deletedBy?.username || "ADMIN"}</span>
+                        <td className={cn(table.td, "text-[var(--text-primary)]")}>@{item.contentOwner}</td>
+                        <td className={cn(table.td, "max-w-xs")}>
+                          <p className="line-clamp-2" title={item.reason}>{item.reason}</p>
                         </td>
-                        <td className="px-6 py-4 text-gray-500 font-mono">{new Date(item.deletedAt).toLocaleString()}</td>
-                        <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => setViewBackupData(item.contentData)}
-                            className="p-2 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
-                            title="Ver Backup JSON"
-                          >
-                            <FileText className="w-4 h-4" />
-                          </button>
+                        <td className={table.td}>@{item.deletedBy?.username || "admin"}</td>
+                        <td className={cn(table.td, "mv-data whitespace-nowrap text-xs")}>{fmt.dateTime(item.deletedAt)}</td>
+                        <td className={cn(table.td, "text-right")}>
+                          <RowButton onClick={() => setViewBackupData(item.contentData)}>
+                            <FileText className="h-4 w-4" aria-hidden /> Ver
+                          </RowButton>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            </div>
+              <ul className="md:hidden">
+                {deletedHistory.map(item => (
+                  <MobileCard key={item.id}>
+                    <div className="flex items-center justify-between gap-3">
+                      <StatusBadge>{targetLabel(item.contentType)}</StatusBadge>
+                      <span className="mv-data text-xs text-[var(--text-tertiary)]">{fmt.dateTime(item.deletedAt)}</span>
+                    </div>
+                    <p className="text-sm text-[var(--text-secondary)]">{item.reason}</p>
+                    <dl className="flex flex-col gap-1.5">
+                      <KeyValue label="Propietario">@{item.contentOwner}</KeyValue>
+                      <KeyValue label="Eliminado por">@{item.deletedBy?.username || "admin"}</KeyValue>
+                      <KeyValue label="ID" mono>{item.contentId.slice(0, 12)}…</KeyValue>
+                    </dl>
+                    <RowButton className="self-start" onClick={() => setViewBackupData(item.contentData)}>
+                      <FileText className="h-4 w-4" aria-hidden /> Ver respaldo
+                    </RowButton>
+                  </MobileCard>
+                ))}
+              </ul>
+            </AdminPanel>
           )}
         </div>
       )}
 
-      {/* Content Preview Modal */}
-      <AnimatePresence>
-        {previewType && (
-          <div className="fixed top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setPreviewType("")} className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              animate={{ opacity: 1, scale: 1 }} 
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative bg-[#0d0d0d] border border-white/10 rounded-[3rem] p-10 w-full max-w-xl shadow-2xl z-10"
-            >
-              <h3 className="text-2xl font-black uppercase text-white mb-2 flex items-center gap-3">
-                <Eye className="text-gold" /> Vista Previa
-              </h3>
-              <p className="text-xs text-gold uppercase font-mono tracking-widest mb-6">Módulo: {previewType}</p>
-
-              {previewLoading ? (
-                <div className="py-16 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-gold" /></div>
-              ) : !previewContent ? (
-                <p className="py-16 text-center text-gray-500 text-xs italic">No se pudo recuperar la previsualización del contenido.</p>
-              ) : (
-                <div className="space-y-6">
-                  {/* Author / Provider */}
-                  <div className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-2xl">
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-bg-tertiary flex items-center justify-center font-bold text-white text-xs">
-                      {previewContent.author?.avatar || previewContent.provider?.avatar || previewContent.owner?.avatar || previewContent.company?.avatar ? (
-                        <img src={previewContent.author?.avatar || previewContent.provider?.avatar || previewContent.owner?.avatar || previewContent.company?.avatar} className="w-full h-full object-cover" alt="" />
-                      ) : (
-                        (previewContent.author?.name || previewContent.provider?.name || previewContent.owner?.name || previewContent.company?.name || "U").charAt(0)
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-bold text-white text-sm">@{previewContent.author?.username || previewContent.provider?.username || previewContent.owner?.username || previewContent.company?.username || "Usuario"}</p>
-                      <p className="text-[10px] text-gray-500">Publicado: {new Date(previewContent.createdAt).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-
-                  {/* Body Content */}
-                  <div className="space-y-4 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar border-t border-b border-white/5 py-4">
-                    <h4 className="font-black text-white text-lg leading-tight">{previewContent.title}</h4>
-                    <p className="text-xs text-gray-400 leading-relaxed whitespace-pre-wrap">{previewContent.content || previewContent.description || previewContent.requirements}</p>
-                    {previewContent.images && previewContent.images.length > 0 && (
-                      <div className="grid grid-cols-2 gap-2 mt-4">
-                        {previewContent.images.map((img: any, i: number) => (
-                          <img key={i} src={typeof img === 'string' ? img : img.url} className="rounded-xl aspect-video object-cover" alt="" />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex justify-end">
-                    <button onClick={() => setPreviewType("")} className="px-8 h-12 bg-gold text-black rounded-xl text-xs font-bold hover:bg-yellow-500 transition-all">Entendido</button>
-                  </div>
+      {/* Preview */}
+      <AdminDialog
+        open={!!previewType}
+        onClose={() => setPreviewType("")}
+        icon={<Eye className="h-5 w-5" />}
+        title="Vista previa"
+        description={previewType ? `${targetLabel(previewType)} reportado` : undefined}
+        footer={
+          <button type="button" onClick={() => setPreviewType("")} className="mv-btn mv-btn-secondary mv-btn-sm">Cerrar</button>
+        }
+      >
+        {previewLoading ? (
+          <LoadingState label="Cargando contenido…" />
+        ) : !previewContent ? (
+          <EmptyState title="No se pudo cargar" description="El contenido pudo haber sido eliminado o no está disponible." />
+        ) : (
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <Avatar name={author?.name || "U"} src={author?.avatar} />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-[var(--text-primary)]">@{author?.username || "usuario"}</p>
+                <p className="text-xs text-[var(--text-tertiary)]">Publicado <span className="mv-data">{fmt.date(previewContent.createdAt)}</span></p>
+              </div>
+            </div>
+            <div className="rounded-[1rem] border border-[var(--mv-hairline-strong)] p-4">
+              {previewContent.title && <h3 className="mb-2 font-semibold text-[var(--text-primary)]">{previewContent.title}</h3>}
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--text-secondary)]">
+                {previewContent.content || previewContent.description || previewContent.requirements}
+              </p>
+              {previewContent.images && previewContent.images.length > 0 && (
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  {previewContent.images.map((img: any, i: number) => (
+                    <img key={i} src={typeof img === 'string' ? img : img.url} className="aspect-video rounded-[0.75rem] object-cover" alt="" loading="lazy" decoding="async" />
+                  ))}
                 </div>
               )}
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
+      </AdminDialog>
 
-      {/* Delete Content Modal prompting for reason */}
-      <AnimatePresence>
-        {deleteTarget && (
-          <div className="fixed top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDeleteTarget(null)} className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              animate={{ opacity: 1, scale: 1 }} 
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative bg-[#0d0d0d] border border-white/10 rounded-[3rem] p-10 w-full max-w-md shadow-2xl z-10"
+      {/* Delete with reason */}
+      <AdminDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        tone="danger"
+        icon={<Trash2 className="h-5 w-5" />}
+        title="Eliminar contenido"
+        description="Se borra del sitio, se archiva una copia y se cierran sus reportes. No se puede deshacer desde acá."
+        footer={
+          <>
+            <button type="button" onClick={() => setDeleteTarget(null)} className="mv-btn mv-btn-ghost mv-btn-sm">Cancelar</button>
+            <button
+              type="button"
+              onClick={handleDeleteContent}
+              disabled={deleteLoading || !deleteReason.trim()}
+              className="mv-btn mv-btn-sm bg-red-600 text-[#fff] hover:bg-red-700"
             >
-              <h3 className="text-2xl font-black uppercase text-white mb-2 flex items-center gap-3">
-                <Trash2 className="text-red-500" /> Eliminar Contenido
-              </h3>
-              <p className="text-xs text-red-500 uppercase font-mono tracking-widest mb-6">Confirmación de Moderación Administrativa</p>
+              {deleteLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+              Eliminar contenido
+            </button>
+          </>
+        }
+      >
+        <Field label="Motivo de la eliminación" htmlFor="delete-reason" hint="Obligatorio. Queda en el historial de contenido eliminado.">
+          <textarea 
+            id="delete-reason"
+            value={deleteReason}
+            onChange={(e) => setDeleteReason(e.target.value)}
+            aria-describedby="delete-reason-hint"
+            className="mv-input h-32 resize-none py-3 text-sm"
+            placeholder="Explicá qué regla incumple este contenido"
+          />
+        </Field>
+      </AdminDialog>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 mb-2">Motivo de eliminación *</label>
-                  <textarea 
-                    value={deleteReason}
-                    onChange={(e) => setDeleteReason(e.target.value)}
-                    className="w-full bg-white/[0.02] border border-white/10 rounded-xl p-4 text-white text-xs outline-none focus:border-red-500/40 h-32 resize-none placeholder:text-gray-800"
-                    placeholder="Justifica por qué estás eliminando este contenido..."
-                  />
-                </div>
+      {/* JSON backup */}
+      <AdminDialog
+        open={!!viewBackupData}
+        onClose={() => setViewBackupData(null)}
+        size="lg"
+        icon={<FileText className="h-5 w-5" />}
+        title="Respaldo del contenido"
+        description="Copia completa archivada al momento de eliminarlo."
+        footer={
+          <button type="button" onClick={() => setViewBackupData(null)} className="mv-btn mv-btn-secondary mv-btn-sm">Cerrar</button>
+        }
+      >
+        <pre className="mv-data max-h-[55dvh] select-text overflow-auto whitespace-pre rounded-[1rem] border border-[var(--mv-hairline-strong)] bg-bg-primary/60 p-4 text-xs leading-relaxed text-[var(--text-secondary)]">
+          {JSON.stringify(viewBackupData, null, 2)}
+        </pre>
+      </AdminDialog>
+    </div>
+  )
+}
 
-                <div className="flex gap-3">
-                  <button onClick={() => setDeleteTarget(null)} className="flex-1 h-12 border border-white/10 rounded-xl text-xs font-bold text-gray-500 hover:text-white hover:bg-white/5 transition-all">Cancelar</button>
-                  <button onClick={handleDeleteContent} disabled={deleteLoading || !deleteReason.trim()} className="flex-1 h-12 bg-red-500 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-600 transition-all flex items-center justify-center">
-                    {deleteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirmar Eliminación"}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* JSON Backup Viewer Modal */}
-      <AnimatePresence>
-        {viewBackupData && (
-          <div className="fixed top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setViewBackupData(null)} className="absolute inset-0 bg-black/95 backdrop-blur-xl" />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              animate={{ opacity: 1, scale: 1 }} 
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative bg-[#0d0d0d] border border-white/10 rounded-[3rem] p-10 w-full max-w-2xl h-[70vh] shadow-2xl z-10 flex flex-col"
-            >
-              <h3 className="text-2xl font-black uppercase text-white mb-2">Respaldo JSON de Contenido</h3>
-              <p className="text-xs text-gold uppercase font-mono tracking-widest mb-6">Datos completos archivados del post</p>
-
-              <div className="flex-1 min-h-0 bg-black/50 border border-white/5 rounded-2xl p-6 overflow-auto font-mono text-[10px] text-gray-400 custom-scrollbar select-text whitespace-pre">
-                {JSON.stringify(viewBackupData, null, 2)}
-              </div>
-
-              <div className="mt-8 flex justify-end">
-                <button onClick={() => setViewBackupData(null)} className="px-8 h-12 bg-gold text-black rounded-xl text-xs font-bold hover:bg-yellow-500 transition-all">Cerrar</button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+function Party({ label, username }: { label: string; username: string }) {
+  return (
+    <div className="flex items-baseline gap-2">
+      <dt className="text-[var(--text-tertiary)]">{label}</dt>
+      <dd className="font-medium text-[var(--text-primary)]">@{username}</dd>
     </div>
   )
 }

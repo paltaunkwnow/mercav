@@ -1,8 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { focusRing, pwnFieldClassLg, pwnFormLabelClass } from "@/components/pwn/format";
+import { buttonClass } from "@/components/site/primitives";
+import { pwnFieldClassLg, pwnFieldLabelClass, pwnFormLabelClass } from "@/components/pwn/format";
+import { pwnErrorTextClass } from "@/components/pwn/ui";
 
 export function SearchForm({
   id,
@@ -64,21 +65,17 @@ export function SearchForm({
           aria-describedby={[hintId, errorId].filter(Boolean).join(" ") || undefined}
           className={pwnFieldClassLg}
         />
-        <Button
-          type="submit"
-          disabled={disabled}
-          className={`h-12 shrink-0 rounded-xl bg-gold px-6 font-semibold text-black hover:bg-gold-light ${focusRing}`}
-        >
+        <button type="submit" disabled={disabled} className={buttonClass("primary", "md", "w-full shrink-0 sm:w-auto sm:min-w-[8.5rem]")}>
           {submitLabel}
-        </Button>
+        </button>
       </div>
       {hint ? (
-        <p id={hintId} className="text-xs leading-relaxed text-gray-500">
+        <p id={hintId} className="text-xs leading-relaxed text-[var(--text-tertiary)]">
           {hint}
         </p>
       ) : null}
       {error ? (
-        <p id={errorId} role="alert" className="text-sm text-red-200">
+        <p id={errorId} role="alert" className={pwnErrorTextClass}>
           {error}
         </p>
       ) : null}
@@ -89,11 +86,11 @@ export function SearchForm({
 export function Field({ label, htmlFor, children, hint }: { label: string; htmlFor: string; children: ReactNode; hint?: string }) {
   return (
     <div className="space-y-2">
-      <label htmlFor={htmlFor} className={pwnFormLabelClass}>
+      <label htmlFor={htmlFor} className={pwnFieldLabelClass}>
         {label}
       </label>
       {children}
-      {hint ? <p className="text-xs text-gray-500">{hint}</p> : null}
+      {hint ? <p className="text-xs text-[var(--text-tertiary)]">{hint}</p> : null}
     </div>
   );
 }

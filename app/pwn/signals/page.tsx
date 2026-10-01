@@ -14,11 +14,13 @@ import {
 } from "@/components/pwn/api";
 import { SourceBadge } from "@/components/pwn/SourceBadge";
 import { BoliviaPriorityBadge, GovernmentPriorityBadge, SignalKindBadge, VerificationBadge } from "@/components/pwn/RiskBadge";
-import { DisabledState, EmptyState, ErrorState, LoadingState } from "@/components/pwn/EmptyState";
+import { DisabledState, EmptyState, ErrorState, LoadingState, UnauthorizedState } from "@/components/pwn/EmptyState";
 import { FadeIn, usePwnFeedRefresh } from "@/components/pwn/PwnShell";
 import { PWN_FEEDS_UPDATED } from "@/components/pwn/events";
-import { focusRing, formatRelative, formatWhen, pwnPanelClass } from "@/components/pwn/format";
-import { Button } from "@/components/ui/button";
+import { focusRing, formatRelative, formatWhen, pwnCardClass } from "@/components/pwn/format";
+import { PwnPageHeader } from "@/components/pwn/ui";
+import { buttonClass } from "@/components/site/primitives";
+import { ArrowUpRight, Pause, Play, RefreshCw, X } from "lucide-react";
 
 type KindFilter = "ALL" | "LEAKS" | "DATA" | "GOV" | "BO" | ForumSignalKind;
 
@@ -61,12 +63,12 @@ function apiQuery(filter: KindFilter, author: string | null): string {
   return params.toString();
 }
 
-function StatPill({ label, value }: { label: string; value: number }) {
+function StatPill({ label, value, strong }: { label: string; value: number; strong?: boolean }) {
   return (
-    <span className="inline-flex items-baseline gap-2 rounded-xl border border-white/10 bg-bg-secondary/80 px-3 py-2 text-xs text-gray-300">
-      <span className="min-w-[1.25rem] font-mono text-sm font-semibold tabular-nums text-gold">{value}</span>
-      <span className="text-gray-400">{label}</span>
-    </span>
+    <div className={`mv-panel flex min-w-[8.5rem] shrink-0 flex-col-reverse gap-1 rounded-[1.25rem] px-4 py-3 ${strong ? "border-[var(--color-border-gold)]" : ""}`}>
+      <dt className="text-xs text-[var(--text-secondary)]">{label}</dt>
+      <dd className={`font-display text-2xl font-semibold tabular-nums ${strong ? "text-gold" : "text-[var(--text-primary)]"}`}>{value}</dd>
+    </div>
   );
 }
 
@@ -149,52 +151,65 @@ export default function ForumSignalsPage() {
   const items = result?.ok ? result.data.items : [];
 
   return (
-    <FadeIn className="space-y-6">
-      <header className="max-w-3xl">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <h1 className="font-display text-4xl font-black tracking-tight text-white md:text-5xl">Ciberpatrullaje</h1>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] uppercase tracking-wide ${live ? "border-emerald-400/40 text-emerald-200" : "border-white/10 text-gray-500"}`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${live ? "bg-emerald-300" : "bg-gray-500"}`} />
+    <FadeIn className="space-y-8">
+      <PwnPageHeader
+        kicker="Señales"
+        title="Ciberpatrullaje"
+        lead="Titulares de foros, stealer logs, robos a empresas y reclamos de ransomware. El archivo ya está en base de datos; acá solo se consultan novedades y te avisamos si entra una filtración nueva. Solo metadatos: autor, título y enlace. Sin volcados ni .onion."
+        actions={
+          <>
+            <span
+              role="status"
+              className={`inline-flex h-10 items-center justify-center gap-2 rounded-full border px-4 text-sm font-medium ${
+                live ? "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold" : "border-[var(--mv-hairline-strong)] text-[var(--text-secondary)]"
+              }`}
+            >
+              <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${live ? "bg-gold" : "bg-[var(--text-tertiary)]"}`} />
               {live ? "En vivo" : "Pausado"}
             </span>
-            <Button type="button" variant="outline" className={`rounded-xl border-white/10 text-white ${focusRing}`} onClick={() => setLive((value) => !value)}>
+            <button type="button" className={buttonClass("ghost", "sm", "w-full sm:w-auto")} onClick={() => setLive((value) => !value)}>
+              {live ? <Pause className="h-4 w-4" aria-hidden /> : <Play className="h-4 w-4" aria-hidden />}
               {live ? "Pausar" : "Reanudar"}
-            </Button>
-            <Button type="button" variant="outline" onClick={() => void patrol()} disabled={patrolling} className={`rounded-xl border-white/10 text-white ${focusRing}`}>
+            </button>
+            <button type="button" onClick={() => void patrol()} disabled={patrolling} className={buttonClass("secondary", "sm", "w-full sm:w-auto")}>
+              <RefreshCw className={`h-4 w-4 ${patrolling ? "animate-spin motion-reduce:animate-none" : ""}`} aria-hidden />
               {patrolling ? "Actualizando…" : "Actualizar ahora"}
-            </Button>
-          </div>
-        </div>
-        <p className="mt-3 text-sm leading-relaxed text-gray-400">
-          Titulares de foros, stealer logs, robos a empresas y reclamos de ransomware. El archivo ya está en base de datos; aquí solo se consultan novedades y te avisamos si entra una filtración nueva. Solo metadatos: autor, título y enlace. Sin volcados ni .onion.
-        </p>
+            </button>
+          </>
+        }
+      >
         {syncAt ? (
-          <p className="mt-2 font-mono text-xs text-gray-500">Última sincronización: {formatWhen(syncAt) ?? formatRelative(syncAt) ?? syncAt}</p>
+          <p className="text-xs text-[var(--text-tertiary)]">
+            Última sincronización: <span className="mv-data">{formatWhen(syncAt) ?? formatRelative(syncAt) ?? syncAt}</span>
+          </p>
         ) : null}
         {authorFilter ? (
-          <p className="mt-2 text-sm text-gold">
-            Autor: {authorFilter}{" "}
-            <Link href="/pwn/signals?kind=LEAKS" className={`underline-offset-4 hover:underline ${focusRing}`}>
-              quitar filtro
+          <p className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] py-1 pl-3 pr-1 text-sm text-[var(--text-primary)]">
+            Autor: <span className="font-semibold text-gold">{authorFilter}</span>
+            <Link
+              href="/pwn/signals?kind=LEAKS"
+              aria-label="Quitar filtro de autor"
+              className={`grid h-7 w-7 place-items-center rounded-full text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)] ${focusRing}`}
+            >
+              <X className="h-3.5 w-3.5" aria-hidden />
             </Link>
           </p>
         ) : null}
-      </header>
+      </PwnPageHeader>
 
       {stats ? (
-        <div className="flex flex-wrap gap-2" aria-label="Contadores">
-          <StatPill label="Bolivia" value={stats.bolivia} />
-          <StatPill label="Gobierno" value={stats.government} />
+        <dl className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Contadores">
+          <StatPill label="Bolivia" value={stats.bolivia} strong />
+          <StatPill label="Gobierno" value={stats.government} strong />
           <StatPill label="Empresas" value={stats.corporate} />
           <StatPill label="Stealer logs" value={stats.stealer} />
           <StatPill label="Bases de datos" value={stats.database} />
           <StatPill label="Cuentas" value={stats.credentials} />
           <StatPill label="Total" value={stats.total} />
-        </div>
+        </dl>
       ) : null}
 
-      <nav aria-label="Filtrar por tipo de señal" className={`flex flex-wrap gap-2 ${pwnPanelClass}`}>
+      <nav aria-label="Filtrar por tipo de señal" className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
         {FILTERS.map((f) => {
           const href = buildSignalsUrl(f.id);
           const active = !authorFilter && activeFilter === f.id;
@@ -203,33 +218,41 @@ export default function ForumSignalsPage() {
               key={f.id}
               href={href}
               aria-current={active ? "page" : undefined}
-              className={`rounded-xl border px-3 py-2 text-xs font-semibold uppercase tracking-wide transition ${focusRing} ${
-                active ? "border-gold/50 bg-gold/10 text-gold" : "border-white/10 text-gray-400 hover:border-white/20 hover:text-white"
+              className={`inline-flex h-10 shrink-0 items-center rounded-full border px-4 text-sm font-medium transition-[background-color,border-color,color] duration-200 ${focusRing} ${
+                active
+                  ? "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold"
+                  : "border-[var(--mv-hairline-strong)] text-[var(--text-secondary)] hover:border-[var(--color-border-gold)] hover:text-[var(--text-primary)]"
               }`}
             >
               {f.label}
             </Link>
           );
         })}
-        <Link href="/pwn/actors" className={`rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 hover:text-white ${focusRing}`}>
-          Por autor
+        <Link
+          href="/pwn/actors"
+          className={`inline-flex h-10 shrink-0 items-center gap-1 rounded-full px-4 text-sm font-medium text-[var(--text-secondary)] hover:text-gold ${focusRing}`}
+        >
+          Por autor <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
         </Link>
       </nav>
 
       {loading ? <LoadingState label="Cargando señales…" /> : null}
       {!loading && result && !result.ok && result.reason === "disabled" ? <DisabledState title="Señales no disponibles" /> : null}
-      {!loading && result && !result.ok && result.reason !== "disabled" ? (
+      {!loading && result && !result.ok && result.reason === "unauthorized" ? (
+        <UnauthorizedState callbackPath="/pwn/signals" description="El ciberpatrullaje se muestra a cuentas con sesión iniciada." />
+      ) : null}
+      {!loading && result && !result.ok && result.reason !== "disabled" && result.reason !== "unauthorized" ? (
         <ErrorState message={result.message} onRetry={() => void load(activeFilter, authorFilter)} />
       ) : null}
 
       {!loading && result?.ok && items.length === 0 ? (
         <EmptyState
           title="Nada en este filtro"
-          description="El archivo se mantiene en segundo plano. Si este filtro sigue vacío, prueba Stealer logs, Empresas o Todas."
+          description="El archivo se mantiene en segundo plano. Si este filtro sigue vacío, probá Stealer logs, Empresas o Todas."
           action={
-            <Button asChild variant="outline" className={`rounded-xl border-white/10 text-white ${focusRing}`}>
-              <Link href="/pwn/signals?kind=ALL">Ver todas</Link>
-            </Button>
+            <Link href="/pwn/signals?kind=ALL" className={buttonClass("secondary", "sm")}>
+              Ver todas
+            </Link>
           }
         />
       ) : null}
@@ -239,38 +262,45 @@ export default function ForumSignalsPage() {
           {items.map((item) => (
             <li
               key={item.id}
-              className={`rounded-3xl border bg-bg-secondary/70 p-5 ${
-                item.isGovernment || item.isBolivia ? "border-red-400/40 border-solid" : "border-dashed border-white/20"
+              className={`${pwnCardClass} ${
+                item.isGovernment || item.isBolivia
+                  ? "!border-red-400/40 [.light_&]:!border-red-700/30"
+                  : "border-dashed !border-[var(--mv-hairline-strong)]"
               }`}
             >
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <BoliviaPriorityBadge active={item.isBolivia} />
                 <GovernmentPriorityBadge active={item.isGovernment} />
                 <SignalKindBadge kind={item.signalKind} />
                 <VerificationBadge status={item.verificationStatus} />
                 {item.breachName ? (
-                  <span className="rounded-lg border border-gold/30 px-2 py-1 text-[10px] uppercase tracking-wide text-gold">
+                  <span className="inline-flex h-6 items-center rounded-full border border-[var(--color-border-gold)] px-2.5 text-[11px] font-semibold text-gold">
                     HIBP · {item.breachName}
                   </span>
                 ) : null}
-                {item.forum ? <span className="rounded-lg border border-white/10 px-2 py-1 text-xs text-gray-400">{item.forum}</span> : null}
               </div>
-              <h2 className="mt-3 font-display text-xl text-white">{item.title}</h2>
-              <p className="mt-2 text-xs text-gray-500">
+              <h2 className="mt-3 text-lg font-semibold leading-snug tracking-tight text-[var(--text-primary)] md:text-xl">{item.title}</h2>
+              <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[var(--text-tertiary)]">
                 {item.author ? (
                   <>
-                    <Link href={`/pwn/signals?author=${encodeURIComponent(item.author)}`} className={`text-gold underline-offset-4 hover:underline ${focusRing}`}>
+                    <Link href={`/pwn/signals?author=${encodeURIComponent(item.author)}`} className={`font-medium text-gold underline-offset-4 hover:underline ${focusRing}`}>
                       {item.author}
                     </Link>
-                    {" · "}
+                    <span aria-hidden>·</span>
                   </>
                 ) : null}
-                {formatWhen(item.publishedAt) ?? formatRelative(item.lastSeenAt) ?? "Fecha no indicada"}
+                {item.forum ? (
+                  <>
+                    <span>{item.forum}</span>
+                    <span aria-hidden>·</span>
+                  </>
+                ) : null}
+                <span className="mv-data">{formatWhen(item.publishedAt) ?? formatRelative(item.lastSeenAt) ?? "Fecha no indicada"}</span>
               </p>
-              <div className="mt-4 flex flex-wrap items-center gap-3">
+              <div className="mt-4 flex flex-col gap-3 border-t border-[var(--mv-hairline)] pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <SourceBadge source={item.source} href={item.link} />
-                <a href={item.link} target="_blank" rel="noopener noreferrer" className={`text-sm text-gold underline-offset-4 hover:underline ${focusRing}`}>
-                  Abrir en la fuente
+                <a href={item.link} target="_blank" rel="noopener noreferrer" className={`mv-link inline-flex items-center gap-1 text-sm ${focusRing}`}>
+                  Abrir en la fuente <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
                 </a>
               </div>
             </li>

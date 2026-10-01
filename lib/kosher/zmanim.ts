@@ -122,8 +122,22 @@ export function nextShabbat(c: ZmanimCity, now = new Date()) {
   };
 }
 
+/**
+ * Fecha civil de `date` vista en `timeZone`, como Date con componentes locales del servidor
+ * (mediodía para esquivar DST). @hebcal/core usa getFullYear/getMonth/getDate locales,
+ * así que sin esto un servidor en UTC calculaba los zmanim del día siguiente a la noche en América.
+ */
+export function cityCivilDate(date: Date, timeZone: string) {
+  const [y, m, d] = dayKey(date, timeZone).split("-").map(Number);
+  return new Date(y, m - 1, d, 12);
+}
+
 export function isShabbatOrYomTov(c: ZmanimCity, now = new Date()) {
-  const items = calendarFor(c, 4, new Date(now.getTime() - 3 * 86_400_000)).filter((i) => i.time);
+  // 5 días hacia atrás: un iom tov de 2 días pegado a Shabat dura ~73 h entre velas y Havdalá;
+  // con 3 días la vela inicial podía quedar fuera de la ventana y el modo Shabat se liberaba antes.
+  const items = calendarFor(c, 7, new Date(now.getTime() - 5 * 86_400_000))
+    .filter((i) => i.time)
+    .sort((a, b) => a.time!.localeCompare(b.time!));
   let active = false;
   for (const i of items) {
     if (new Date(i.time!).getTime() > now.getTime()) break;
@@ -141,7 +155,9 @@ export function hebrewDate(date = new Date()) {
   return `${hd.getDate()} de ${MONTHS[month] ?? month} de ${hd.getFullYear()}`;
 }
 
-export function dayZmanim(c: ZmanimCity, date = new Date()) {
+export function dayZmanim(c: ZmanimCity, instant = new Date()) {
+  // Día civil de la ciudad, no del servidor.
+  const date = cityCivilDate(instant, c.timezone);
   const z = new Zmanim(cityLocation(c), date, false);
   const rows: [string, Date][] = [
     ["Alot hashajar", z.alotHaShachar()],

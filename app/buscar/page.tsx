@@ -1,56 +1,76 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { 
-  Search, 
-  Users, 
-  Briefcase, 
-  MonitorPlay, 
-  Megaphone, 
-  Loader2, 
-  ArrowRight,
-  Filter,
-  MapPin,
-  Star,
-  Clock,
-  ArrowLeft
-} from "lucide-react";
+import { Search, Users, Briefcase, MonitorPlay, Megaphone, ArrowRight, MapPin, type LucideIcon } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { Container, ButtonLink } from "@/components/site/primitives";
+import { BackLink, CardSkeletonGrid, EmptyState, MediaFrame, SPACE_TYPE_LABEL, formatMoney, labelFor } from "@/components/anuncios/market-ui";
+import { cn } from "@/lib/utils";
+
+function ResultGroup({ id, icon: Icon, title, href, linkLabel, children }: { id: string; icon: LucideIcon; title: string; href?: string; linkLabel?: string; children: ReactNode }) {
+  return (
+    <section aria-labelledby={id} className="flex flex-col gap-5">
+      <div className="flex items-end justify-between gap-4">
+        <h2 id={id} className="flex items-center gap-3 font-display text-xl font-semibold tracking-tight text-[var(--text-primary)] md:text-2xl">
+          <Icon className="h-5 w-5 text-gold" aria-hidden />
+          {title}
+        </h2>
+        {href && linkLabel ? (
+          <Link href={href} className="mv-link shrink-0 text-sm">
+            {linkLabel}
+          </Link>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Initial({ name, className }: { name?: string; className?: string }) {
+  return (
+    <span aria-hidden className={cn("grid shrink-0 place-items-center bg-[var(--mv-panel-hover)] font-semibold text-[var(--text-secondary)]", className)}>
+      {(name || "?").charAt(0).toUpperCase()}
+    </span>
+  );
+}
 import { SeekField } from "@/components/motion/SeekField";
 
 function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const initialQuery = searchParams.get("q") || "";
+  const initialQuery = searchParams?.get("q") || "";
   
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
 
+  // La URL manda: si cambia ?q= (por ejemplo desde el buscador del header) se sincroniza el
+  // campo, y una respuesta vieja no puede pisar los resultados de la búsqueda nueva.
   useEffect(() => {
-    if (initialQuery) {
-      performSearch(initialQuery);
-    }
-  }, [initialQuery]);
-
-  const performSearch = async (q: string) => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&tipo=all`);
-      const data = await res.json();
-      if (data.success) {
-        setResults(data.data);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
+    setQuery(initialQuery);
+    if (!initialQuery) {
+      setResults(null);
       setLoading(false);
+      return;
     }
-  };
+    let cancelled = false;
+    setLoading(true);
+    fetch(`/api/search?q=${encodeURIComponent(initialQuery)}&tipo=all`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && data.success) setResults(data.data);
+      })
+      .catch((err) => console.error(err))
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialQuery]);
 
   const tabs = [
     { id: "all", label: "Todo", icon: Search },
@@ -61,196 +81,210 @@ function SearchContent() {
   ];
 
   const renderEmpty = () => (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="w-20 h-20 bg-white/5 border border-white/5 rounded-3xl flex items-center justify-center mb-8">
-        <Search className="w-10 h-10 text-gray-700" />
-      </div>
-      <h2 className="text-2xl font-display font-bold text-white mb-2">No encontramos resultados</h2>
-      <p className="text-gray-500 max-w-sm">Intenta buscar con otras palabras clave o explora nuestras categorías.</p>
-    </div>
+    <EmptyState
+      icon={Search}
+      title="No encontramos resultados"
+      body="Probá con otras palabras o recorré los catálogos de cada módulo."
+      action={
+        <ButtonLink href="/explorar" tone="secondary" className="w-full sm:w-auto">
+          Explorar categorías
+        </ButtonLink>
+      }
+    />
   );
 
   return (
-    <div className="max-w-6xl mx-auto py-12 px-4">
-      {/* Search Header */}
-      <div className="mb-12 flex justify-center">
-        <SeekField
-          defaultOpen
-          value={query}
-          onValueChange={setQuery}
-          onSubmit={(next) => router.push(`/buscar?q=${encodeURIComponent(next)}`)}
-          placeholder="¿Qué estás buscando en Mercav?"
-          shut={64}
-          openWidth={640}
-          persistent
-        />
+    <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-6">
+        <h1 className="mv-h1">
+          {initialQuery ? (
+            <>
+              Resultados para <span className="text-gold">“{initialQuery}”</span>
+            </>
+          ) : (
+            "Buscar en Mercav"
+          )}
+        </h1>
+        <div className="flex justify-start">
+          <SeekField
+            defaultOpen
+            value={query}
+            onValueChange={setQuery}
+            onSubmit={(next) => router.push(`/buscar?q=${encodeURIComponent(next)}`)}
+            placeholder="¿Qué estás buscando en Mercav?"
+            shut={64}
+            openWidth={640}
+            persistent
+          />
+        </div>
+
+        {/* Filter by type */}
+        <div role="group" aria-label="Filtrar por tipo" className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+          {tabs.map((tab) => {
+            const on = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "mv-focus flex h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors duration-200",
+                  on
+                    ? "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-[var(--text-primary)]"
+                    : "border-[var(--mv-hairline-strong)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
+                )}
+              >
+                <tab.icon className="h-4 w-4 text-gold" aria-hidden />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex flex-wrap items-center justify-center gap-2 mb-16">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-3 px-6 py-3 rounded-2xl border transition-all font-bold text-xs uppercase tracking-widest ${
-              activeTab === tab.id 
-                ? 'bg-gold text-primary-foreground border-gold shadow-lg shadow-gold/20' 
-                : 'bg-white/5 border-white/5 text-gray-400 hover:border-white/10 hover:text-white'
-            }`}
-          >
-            <tab.icon size={16} />
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <div className="mv-divider" aria-hidden />
 
       {/* Results */}
-      <div className="space-y-16">
+      <div aria-live="polite" aria-busy={loading}>
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-10 h-10 text-gold animate-spin mb-4" />
-            <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Buscando lo mejor para ti...</p>
-          </div>
+          <CardSkeletonGrid count={3} />
         ) : results ? (
-          <div className="grid gap-16">
+          <div className="flex flex-col gap-14">
             {/* Users Section */}
             {(activeTab === 'all' || activeTab === 'users') && results.users?.length > 0 && (
-              <section>
-                <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                    <Users className="text-gold" size={24} /> Personas y Profesionales
-                  </h3>
-                  <Link href="#" className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-gold transition-colors">Ver todos</Link>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <ResultGroup id="r-users" icon={Users} title="Personas y profesionales">
+                <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {results.users.map((u: any) => (
-                    <div 
-                      key={u.id} 
-                      className="bg-white/[0.02] border border-white/5 p-6 rounded-[2.5rem] hover:border-gold/20 hover:bg-white/[0.04] transition-all group relative overflow-hidden"
-                    >
-                      {/* Full card link for profile */}
-                      <Link 
-                        href={`/perfil/${u.username || u.id}`} 
-                        className="absolute inset-0 z-10"
-                      />
-
-                      <div className="flex items-center gap-4 mb-4 relative z-0">
-                        <img 
-                          src={u.avatar || `https://ui-avatars.com/api/?name=${u.name}`} 
-                          className="w-16 h-16 rounded-2xl object-cover border border-white/5 group-hover:scale-105 transition-transform" 
-                          alt={u.name}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-white group-hover:text-gold transition-colors truncate">{u.name}</h4>
-                          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest truncate">{u.profile?.headline || 'Usuario de Mercav'}</p>
+                    <li key={u.id} className="mv-panel mv-panel-interactive relative flex flex-col gap-4 p-5">
+                      <div className="flex items-center gap-4">
+                        {u.avatar ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={u.avatar} alt="" loading="lazy" decoding="async" className="h-14 w-14 shrink-0 rounded-2xl object-cover" />
+                        ) : (
+                          <Initial name={u.name} className="h-14 w-14 rounded-2xl text-lg" />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <h3 className="truncate font-semibold text-[var(--text-primary)]">
+                            <Link href={`/perfil/${u.username || u.id}`} className="outline-none after:absolute after:inset-0 after:rounded-[1.5rem] focus-visible:after:ring-2 focus-visible:after:ring-gold">
+                              {u.name}
+                            </Link>
+                          </h3>
+                          <p className="truncate text-sm text-[var(--text-secondary)]">{u.profile?.headline || "Usuario de Mercav"}</p>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between relative z-20">
-                        <div className="flex items-center text-[10px] text-gray-500 font-bold uppercase tracking-widest gap-2">
-                          <MapPin size={12} className="text-gold" /> {u.location || 'Bolivia'}
-                        </div>
-                        <Button asChild size="sm" className="bg-gold/10 text-gold hover:bg-gold hover:text-black rounded-xl text-[10px] font-black uppercase tracking-widest h-8 px-4">
-                          <Link href={`/mensajes?to=${u.id}`}>Escribir</Link>
-                        </Button>
+                      <div className="flex items-center justify-between gap-3">
+                        {u.location || u.country ? (
+                          <span className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--text-secondary)]">
+                            <MapPin className="h-3.5 w-3.5 shrink-0 text-gold" aria-hidden />
+                            <span className="truncate">{u.location || u.country}</span>
+                          </span>
+                        ) : (
+                          <span />
+                        )}
+                        <ButtonLink href={`/mensajes?to=${u.id}`} tone="secondary" size="sm" className="relative z-10">
+                          Escribir
+                        </ButtonLink>
                       </div>
-                    </div>
+                    </li>
                   ))}
-                </div>
-              </section>
+                </ul>
+              </ResultGroup>
             )}
 
             {/* Jobs Section */}
             {(activeTab === 'all' || activeTab === 'jobs') && results.jobs?.length > 0 && (
-              <section>
-                 <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                    <Briefcase className="text-gold" size={24} /> Oportunidades Laborales
-                  </h3>
-                  <Link href="/empleos" className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-gold transition-colors">Ver cartelera</Link>
-                </div>
-                <div className="grid gap-4">
+              <ResultGroup id="r-jobs" icon={Briefcase} title="Vacantes" href="/empleos" linkLabel="Ver todas las vacantes">
+                <ul className="flex flex-col gap-3">
                   {results.jobs.map((j: any) => (
-                    <Link href={`/empleos/${j.id}`} key={j.id} className="bg-white/[0.02] border border-white/5 p-6 rounded-[2rem] hover:border-gold/20 hover:bg-white/[0.04] transition-all flex items-center justify-between group">
-                      <div className="flex items-center gap-6">
-                        <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center flex-shrink-0">
-                          <Briefcase className="text-gold w-6 h-6" />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-white group-hover:text-gold transition-colors text-lg">{j.title}</h4>
-                          <div className="flex items-center gap-4 text-xs text-gray-500 font-medium">
-                            <span>{j.company?.name}</span>
-                            <span className="w-1 h-1 rounded-full bg-gray-700" />
-                            <span className="flex items-center"><MapPin size={12} className="mr-1" /> {j.city}</span>
-                          </div>
-                        </div>
+                    <li key={j.id} className="mv-panel mv-panel-interactive group relative flex items-center gap-4 p-5">
+                      {j.company?.avatar ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={j.company.avatar} alt="" loading="lazy" decoding="async" className="h-12 w-12 shrink-0 rounded-2xl object-cover" />
+                      ) : (
+                        <Initial name={j.company?.name} className="h-12 w-12 rounded-2xl" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate font-semibold text-[var(--text-primary)] md:text-lg">
+                          <Link href={`/empleos/${j.id}`} className="outline-none after:absolute after:inset-0 after:rounded-[1.5rem] focus-visible:after:ring-2 focus-visible:after:ring-gold">
+                            {j.title}
+                          </Link>
+                        </h3>
+                        <p className="flex flex-wrap items-center gap-x-3 text-sm text-[var(--text-secondary)]">
+                          {j.company?.name ? <span>{j.company.name}</span> : null}
+                          {j.city ? (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3.5 w-3.5 text-gold" aria-hidden /> {j.city}
+                            </span>
+                          ) : null}
+                        </p>
                       </div>
-                      <div className="hidden md:block">
-                        <div className="text-xs font-black uppercase tracking-widest text-gold bg-gold/10 px-4 py-2 rounded-xl">Postular Ahora</div>
-                      </div>
-                    </Link>
+                      <ArrowRight className="h-4 w-4 shrink-0 text-gold transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
+                    </li>
                   ))}
-                </div>
-              </section>
+                </ul>
+              </ResultGroup>
             )}
 
             {/* Services Section */}
             {(activeTab === 'all' || activeTab === 'services') && results.services?.length > 0 && (
-              <section>
-                <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                    <MonitorPlay className="text-gold" size={24} /> Servicios Freelance
-                  </h3>
-                  <Link href="/servicios" className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-gold transition-colors">Explorar servicios</Link>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {results.services.map((s: any) => (
-                    <Link href={`/servicios/${s.id}`} key={s.id} className="bg-bg-secondary border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-gold/20 hover:bg-white/[0.04] transition-all group">
-                      <div className="h-48 bg-bg-tertiary relative overflow-hidden">
-                        <img src={`https://source.unsplash.com/featured/?professional,service,${s.title.split(' ')[0]}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                        <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-xl px-3 py-1.5 rounded-xl border border-white/10 text-white font-mono font-bold text-xs">
-                          ${s.packages?.[0]?.price || 0}
+              <ResultGroup id="r-services" icon={MonitorPlay} title="Servicios" href="/servicios" linkLabel="Ver todos los servicios">
+                <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {results.services.map((s: any) => {
+                    const price = formatMoney(s.packages?.[0]?.price);
+                    return (
+                      <li key={s.id} className="mv-panel mv-panel-interactive relative flex flex-col gap-4 p-5">
+                        <h3 className="line-clamp-2 font-display text-lg font-semibold leading-snug tracking-tight text-[var(--text-primary)]">
+                          <Link href={`/servicios/${s.id}`} className="outline-none after:absolute after:inset-0 after:rounded-[1.5rem] focus-visible:after:ring-2 focus-visible:after:ring-gold">
+                            {s.title}
+                          </Link>
+                        </h3>
+                        <div className="mt-auto flex items-center justify-between gap-3 border-t border-[var(--mv-hairline)] pt-4">
+                          <span className="flex min-w-0 items-center gap-2 text-sm text-[var(--text-secondary)]">
+                            {s.provider?.avatar ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={s.provider.avatar} alt="" loading="lazy" decoding="async" className="h-6 w-6 rounded-full object-cover" />
+                            ) : (
+                              <Initial name={s.provider?.name} className="h-6 w-6 rounded-full text-xs" />
+                            )}
+                            <span className="truncate">{s.provider?.name}</span>
+                          </span>
+                          <span className="mv-data shrink-0 text-sm font-semibold text-[var(--text-primary)]">{price ? `Desde ${price}` : "A consultar"}</span>
                         </div>
-                      </div>
-                      <div className="p-6">
-                        <h4 className="font-bold text-white group-hover:text-gold transition-colors mb-2 line-clamp-1">{s.title}</h4>
-                        <div className="flex items-center gap-3">
-                          <img src={s.provider?.avatar || `https://ui-avatars.com/api/?name=${s.provider?.name}`} className="w-6 h-6 rounded-lg object-cover" />
-                          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{s.provider?.name}</span>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </ResultGroup>
             )}
 
             {/* Spaces Section */}
-             {(activeTab === 'all' || activeTab === 'spaces') && results.spaces?.length > 0 && (
-              <section>
-                 <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                    <Megaphone className="text-gold" size={24} /> Espacios Publicitarios
-                  </h3>
-                  <Link href="/anuncios" className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-gold transition-colors">Ver ecosistema</Link>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {(activeTab === 'all' || activeTab === 'spaces') && results.spaces?.length > 0 && (
+              <ResultGroup id="r-spaces" icon={Megaphone} title="Espacios publicitarios" href="/anuncios" linkLabel="Ver todos los espacios">
+                <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {results.spaces.map((sp: any) => (
-                    <Link href={`/anuncios/${sp.id}`} key={sp.id} className="bg-white/[0.02] border border-white/5 p-6 rounded-[3rem] hover:border-gold/20 hover:bg-white/[0.04] transition-all group flex gap-6">
-                      <div className="w-40 h-40 bg-bg-tertiary rounded-[2rem] overflow-hidden flex-shrink-0 border border-white/5">
-                        <img src={sp.images?.[0]?.url || "https://images.unsplash.com/photo-1542204165-65bf26472b9b"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                      </div>
-                      <div className="flex-1 flex flex-col justify-center">
-                        <div className="text-[10px] text-gold font-black uppercase tracking-widest mb-2">{sp.type}</div>
-                        <h4 className="text-xl font-bold text-white group-hover:text-gold transition-colors mb-3 leading-tight">{sp.title}</h4>
-                        <div className="flex items-center gap-4 text-xs text-gray-500 font-bold uppercase tracking-widest">
-                          <span className="flex items-center"><MapPin size={12} className="mr-1 text-gold" /> {sp.city}</span>
-                          <span className="flex items-center text-white"><Star size={12} className="mr-1 text-gold fill-gold" /> 4.9</span>
+                    <li key={sp.id} className="mv-panel mv-panel-interactive group relative flex flex-col overflow-hidden">
+                      <MediaFrame src={sp.images?.[0]?.url} alt="" icon={Megaphone} />
+                      <div className="flex flex-1 flex-col gap-2 p-5">
+                        <span className="mv-chip w-fit">{labelFor(SPACE_TYPE_LABEL, sp.type)}</span>
+                        <h3 className="line-clamp-2 font-display text-lg font-semibold leading-snug tracking-tight text-[var(--text-primary)]">
+                          <Link href={`/anuncios/${sp.id}`} className="outline-none after:absolute after:inset-0 after:rounded-[1.5rem] focus-visible:after:ring-2 focus-visible:after:ring-gold">
+                            {sp.title}
+                          </Link>
+                        </h3>
+                        <div className="mt-auto flex items-center justify-between gap-3 pt-2 text-sm text-[var(--text-secondary)]">
+                          <span className="flex items-center gap-1.5">
+                            <MapPin className="h-3.5 w-3.5 text-gold" aria-hidden /> {sp.city}
+                          </span>
+                          <span className="mv-data font-semibold text-[var(--text-primary)]">
+                            {formatMoney(sp.pricePerMonth, sp.currency) ?? "A consultar"}
+                          </span>
                         </div>
                       </div>
-                    </Link>
+                    </li>
                   ))}
-                </div>
-              </section>
+                </ul>
+              </ResultGroup>
             )}
 
             {/* If no results in the active tab */}
@@ -260,11 +294,14 @@ function SearchContent() {
               renderEmpty()
             }
           </div>
-        ) : !initialQuery && (
-          <div className="flex flex-col items-center justify-center py-20 opacity-50">
-            <Search size={64} className="text-gray-800 mb-6" />
-            <p className="text-gray-500 font-black uppercase tracking-[0.3em] text-xs">Escribe algo arriba para comenzar</p>
-          </div>
+        ) : initialQuery ? (
+          renderEmpty()
+        ) : (
+          <EmptyState
+            icon={Search}
+            title="Escribí algo para empezar"
+            body="Buscamos a la vez en personas, vacantes, servicios y espacios publicitarios."
+          />
         )}
       </div>
     </div>
@@ -273,26 +310,16 @@ function SearchContent() {
 
 export default function SearchPage() {
   return (
-    <div className="w-full min-h-screen bg-bg-primary pt-24 pb-32 relative overflow-hidden">
-      {/* Background Decor */}
-      <div className="fixed top-0 left-0 w-full h-full pointer-events-none opacity-20 overflow-hidden">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-gold/10 rounded-full blur-[150px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/5 rounded-full blur-[150px]" />
-      </div>
-
-      <div className="container mx-auto px-4 relative z-10">
-        <Link href="/dashboard" className="inline-flex items-center text-gray-500 hover:text-gold transition-colors mb-12 text-xs font-black uppercase tracking-widest">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Volver al Panel
-        </Link>
-        
-        <Suspense fallback={
-          <div className="flex h-[50vh] items-center justify-center">
-            <Loader2 className="w-10 h-10 text-gold animate-spin" />
-          </div>
-        }>
+    <div className="relative w-full bg-bg-primary pb-14 pt-28 md:pb-24 md:pt-36">
+      <div className="mv-aura" aria-hidden />
+      <Container className="relative">
+        <div className="mb-8">
+          <BackLink href="/dashboard">Volver al panel</BackLink>
+        </div>
+        <Suspense fallback={<CardSkeletonGrid count={3} />}>
           <SearchContent />
         </Suspense>
-      </div>
+      </Container>
     </div>
   );
 }

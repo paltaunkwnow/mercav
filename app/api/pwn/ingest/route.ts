@@ -89,7 +89,9 @@ export async function POST(request: NextRequest) {
         sourceUrl: breach.sourceUrl,
         verificationStatus,
         confidenceScore: confidence.score,
-        claimedRecordCount: breach.pwnCount,
+        // Prisma Int es int32.
+        claimedRecordCount:
+          breach.pwnCount == null ? null : Math.min(Math.max(0, breach.pwnCount), 2_147_483_647),
         dataTypes: breach.dataClasses,
         severity: risk.level,
       };
@@ -100,7 +102,8 @@ export async function POST(request: NextRequest) {
           });
       await prisma.pwnIngestionJob.update({
         where: { id: job.id },
-        data: { status: "COMPLETED", finishedAt: new Date() },
+        // Mismo estado que el ciclo/foros ("SUCCESS"); "COMPLETED" no lo lee nadie.
+        data: { status: "SUCCESS", finishedAt: new Date() },
       });
       await writeAudit({
         actorId: user.id,
@@ -173,7 +176,8 @@ export async function POST(request: NextRequest) {
     });
     await prisma.pwnIngestionJob.update({
       where: { id: job.id },
-      data: { status: "COMPLETED", finishedAt: new Date() },
+      // Mismo estado que el ciclo/foros ("SUCCESS"); "COMPLETED" no lo lee nadie.
+        data: { status: "SUCCESS", finishedAt: new Date() },
     });
     await writeAudit({
       actorId: user.id,

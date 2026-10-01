@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { randomBytes } from "node:crypto";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/app/api/pwn/_lib/rate-limit";
 import { slugify } from "@/lib/kosher/geo";
@@ -40,19 +42,29 @@ export async function POST(request: NextRequest) {
 
   const base = slugify(`${input.city}-${input.name}`) || "lugar";
   const taken = await prisma.kosherPlace.count({ where: { slug: { startsWith: base } } });
-  const place = await prisma.kosherPlace.create({
-    data: {
-      ...input,
-      agencyName: input.agencyName || null,
-      notes: input.notes || null,
-      slug: taken ? `${base}-${taken + 1}` : base,
-      status: "community_report",
-      source: "community",
-      confirmedAt: new Date(),
-      published: viewer.isModerator,
-      createdById: viewer.id,
-    },
-  });
+  const create = (slug: string) =>
+    prisma.kosherPlace.create({
+      data: {
+        ...input,
+        agencyName: input.agencyName || null,
+        notes: input.notes || null,
+        slug,
+        status: "community_report",
+        source: "community",
+        confirmedAt: new Date(),
+        published: viewer.isModerator,
+        createdById: viewer.id,
+      },
+    });
+  let place;
+  try {
+    place = await create(taken ? `${base}-${taken + 1}` : base);
+  } catch (error) {
+    // Dos altas simultáneas (o un slug "base-N" ya usado) chocan con el unique de slug:
+    // reintentamos una vez con un sufijo aleatorio en lugar de devolver 500.
+    if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") throw error;
+    place = await create(`${base}-${randomBytes(3).toString("hex")}`);
+  }
 
   return NextResponse.json({ success: true, slug: place.slug, published: place.published }, { status: 201 });
 }

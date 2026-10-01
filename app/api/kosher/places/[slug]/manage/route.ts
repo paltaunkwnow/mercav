@@ -2,13 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { isHttpUrl } from "@/lib/kosher/edits";
 import { forbidden, getKosherViewer, kosherError, managesPlace, unauthorized, writeGuard } from "@/lib/kosher/server";
 
 const time = z.string().trim().regex(/^([01]?\d|2[0-3]):[0-5]\d$/, "Usá el formato 24 h, por ejemplo 07:30.").optional();
 
 const schema = z.object({
   phone: z.string().trim().max(40).nullable(),
-  website: z.string().trim().url("El sitio tiene que empezar con https://").max(300).nullable(),
+  // refine: url() de zod deja pasar `javascript:`, que después se renderiza como href.
+  website: z
+    .string()
+    .trim()
+    .url("El sitio tiene que empezar con https://")
+    .max(300)
+    .refine(isHttpUrl, "El sitio tiene que empezar con https://")
+    .nullable(),
   notes: z.string().trim().max(800).nullable(),
   prayerTimes: z.object({ shacharit: time, mincha: time, maariv: time }).nullable(),
 });

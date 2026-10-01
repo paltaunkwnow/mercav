@@ -51,8 +51,8 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.warn("Error updating notifications:", error);
-    return NextResponse.json({ success: true });
+    console.error("Error updating notifications:", error);
+    return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 });
   }
 }
 // creado por pato dev y askforvini

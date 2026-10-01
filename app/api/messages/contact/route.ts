@@ -10,7 +10,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
     }
 
-    const { targetUserId, context, contextId } = await req.json();
+    const body = await req.json().catch(() => null);
+    const targetUserId = typeof body?.targetUserId === "string" ? body.targetUserId : "";
+    // Validar contra el enum: un valor arbitrario hacía fallar Prisma con 500
+    const context = ["GENERAL", "JOB_APPLICATION", "SERVICE_ORDER", "SPACE_INQUIRY"].includes(body?.context)
+      ? (body.context as "GENERAL" | "JOB_APPLICATION" | "SERVICE_ORDER" | "SPACE_INQUIRY")
+      : "GENERAL";
+    const contextId = typeof body?.contextId === "string" ? body.contextId.slice(0, 120) : null;
     if (!targetUserId) {
       return NextResponse.json({ success: false, error: "Usuario destino no especificado" }, { status: 400 });
     }

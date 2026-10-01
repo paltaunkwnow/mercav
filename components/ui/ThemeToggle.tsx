@@ -8,25 +8,26 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
 
   return (
     <button
+      type="button"
       onClick={toggleTheme}
-      className={`liquid-glass liquid-glass-clear relative group flex items-center justify-center w-10 h-10 rounded-full transition-all duration-500 hover:scale-110
+      className={`mv-focus liquid-glass liquid-glass-clear relative group flex items-center justify-center w-9 h-9 rounded-full transition-[transform,color] duration-200 active:scale-95
         ${theme === "dark"
           ? "text-gray-300 hover:text-gold"
           : "text-gray-600 hover:text-amber-700"
         } ${className}`}
       title={theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-      aria-label="Toggle theme"
+      aria-label={theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
     >
       {/* Glow effect on hover */}
-      <div className={`absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-md ${
+      <div aria-hidden className={`absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md ${
         theme === "dark" ? "bg-gold/20" : "bg-amber-300/30"
       }`} />
       
-      <div className="relative z-10 transition-transform duration-500">
+      <div aria-hidden className="relative z-10">
         {theme === "dark" ? (
-          <Sun className="h-[18px] w-[18px] group-hover:rotate-90 transition-transform duration-500" />
+          <Sun className="h-[18px] w-[18px] motion-safe:group-hover:rotate-90 transition-transform duration-300" />
         ) : (
-          <Moon className="h-[18px] w-[18px] group-hover:-rotate-12 transition-transform duration-500" />
+          <Moon className="h-[18px] w-[18px] motion-safe:group-hover:-rotate-12 transition-transform duration-300" />
         )}
       </div>
     </button>

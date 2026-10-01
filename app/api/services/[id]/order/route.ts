@@ -11,14 +11,30 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const user = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!user) return NextResponse.json({ success: false, error: "Usuario no encontrado" }, { status: 404 });
 
-    const body = await req.json();
-    const { packageId } = body;
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ success: false, error: "JSON inválido" }, { status: 400 });
+    }
+    const packageId = typeof body?.packageId === "string" ? body.packageId : "";
+    if (!packageId) return NextResponse.json({ success: false, error: "Paquete requerido" }, { status: 400 });
 
     const svcPackage = await prisma.servicePackage.findUnique({ where: { id: packageId } });
-    if (!svcPackage) return NextResponse.json({ success: false, error: "Paquete no encontrado" }, { status: 404 });
-    
+    // SEGURIDAD: el paquete tiene que ser de ESTE servicio; si no, se podía pedir un servicio caro
+    // pagando el paquete barato de otro.
+    if (!svcPackage || svcPackage.serviceId !== params.id) {
+      return NextResponse.json({ success: false, error: "Paquete no encontrado" }, { status: 404 });
+    }
+
     const service = await prisma.service.findUnique({ where: { id: params.id } });
     if (!service) return NextResponse.json({ success: false, error: "Servicio no encontrado" }, { status: 404 });
+    if (!service.isActive || service.isUnderReview) {
+      return NextResponse.json({ success: false, error: "Este servicio no está disponible" }, { status: 409 });
+    }
+    if (service.providerId === user.id) {
+      return NextResponse.json({ success: false, error: "No podés contratar tu propio servicio" }, { status: 400 });
+    }
 
     const pricing = calculateServicesCommission(Number(svcPackage.price));
 
@@ -32,7 +48,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         totalPrice: pricing.totalPrice,
         platformFee: pricing.platformFee,
         providerPayout: pricing.providerPayout,
-        briefing: body.briefing || ""
+        briefing: typeof body.briefing === "string" ? body.briefing.slice(0, 5000) : ""
       }
     });
 

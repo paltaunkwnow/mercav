@@ -1,6 +1,8 @@
 "use client";
 
-import { pwnFieldClass, pwnFieldLabelClass, pwnPanelClass, focusRing } from "@/components/pwn/format";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { buttonClass } from "@/components/site/primitives";
+import { pwnFieldClass, pwnFieldLabelClass } from "@/components/pwn/format";
 import { PwnSelect } from "@/components/pwn/PwnSelect";
 
 export function ListControls({
@@ -35,13 +37,23 @@ export function ListControls({
   onPage: (page: number) => void;
 }) {
   return (
-    <div className={`mb-5 space-y-4 ${pwnPanelClass}`}>
-      <div className="grid gap-3 md:grid-cols-3">
-        <div className="space-y-2 md:col-span-1">
+    <div className="mv-panel mb-5 space-y-4 rounded-[1.5rem] p-4 md:p-5">
+      <div className="grid gap-3 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="space-y-2">
           <label htmlFor="pwn-list-query" className={pwnFieldLabelClass}>
             {queryLabel}
           </label>
-          <input id="pwn-list-query" value={query} onChange={(event) => onQuery(event.target.value)} className={pwnFieldClass} type="search" />
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-tertiary)]" aria-hidden />
+            <input
+              id="pwn-list-query"
+              value={query}
+              onChange={(event) => onQuery(event.target.value)}
+              className={`${pwnFieldClass} pl-10`}
+              type="search"
+              autoComplete="off"
+            />
+          </div>
         </div>
         {filterOptions && onFilter ? (
           <div className="space-y-2">
@@ -57,28 +69,30 @@ export function ListControls({
             />
           </div>
         ) : null}
-        <div className="space-y-2">
+        <div className={`space-y-2 ${filterOptions && onFilter ? "" : "md:col-span-2"}`}>
           <label htmlFor="pwn-list-sort" className={pwnFieldLabelClass}>
             Orden
           </label>
           <PwnSelect id="pwn-list-sort" value={sort} onValueChange={onSort} options={sortOptions} aria-label="Orden" />
         </div>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-400">
+      <div className="flex flex-col gap-3 border-t border-[var(--mv-hairline)] pt-4 text-sm text-[var(--text-secondary)] sm:flex-row sm:items-center sm:justify-between">
         <p>
-          {total} {total === 1 ? "registro" : "registros"}
+          <span className="mv-data font-semibold text-[var(--text-primary)]">{total}</span> {total === 1 ? "registro" : "registros"}
         </p>
-        <div className="flex items-center gap-2">
-          <button type="button" className={`h-9 rounded-lg border border-white/10 px-3 text-white disabled:opacity-40 ${focusRing}`} onClick={() => onPage(page - 1)} disabled={page <= 1}>
+        <nav aria-label="Paginación" className="flex items-center justify-between gap-2 sm:justify-end">
+          <button type="button" className={buttonClass("secondary", "sm", "px-3")} onClick={() => onPage(page - 1)} disabled={page <= 1}>
+            <ChevronLeft className="h-4 w-4" aria-hidden />
             Anterior
           </button>
-          <span aria-live="polite">
-            Página {page} de {pages}
+          <span aria-live="polite" className="px-2 text-xs">
+            Página <span className="mv-data text-[var(--text-primary)]">{page}</span> de <span className="mv-data">{pages}</span>
           </span>
-          <button type="button" className={`h-9 rounded-lg border border-white/10 px-3 text-white disabled:opacity-40 ${focusRing}`} onClick={() => onPage(page + 1)} disabled={page >= pages}>
+          <button type="button" className={buttonClass("secondary", "sm", "px-3")} onClick={() => onPage(page + 1)} disabled={page >= pages}>
             Siguiente
+            <ChevronRight className="h-4 w-4" aria-hidden />
           </button>
-        </div>
+        </nav>
       </div>
     </div>
   );

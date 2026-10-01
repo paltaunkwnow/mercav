@@ -3,8 +3,8 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { ArrowLeft, Users, CreditCard, Calendar, CheckCircle2, Clock, Zap, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Users, ExternalLink } from "lucide-react";
+import { ButtonLink, Container, PageHero, Section, buttonClass } from "@/components/site/primitives";
 
 export default async function ClientesPage() {
   const session = await getServerSession(authOptions);
@@ -86,93 +86,161 @@ export default async function ClientesPage() {
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
+  const statusLabel: Record<string, string> = {
+    PENDING: "Pendiente",
+    CONFIRMED: "Confirmada",
+    ACTIVE: "Activa",
+    IN_PROGRESS: "En curso",
+    IN_REVIEW: "En revisión",
+    REVISION: "Con cambios",
+    COMPLETED: "Completado",
+    CANCELLED: "Cancelado",
+    DISPUTED: "En disputa",
+  };
+  const statusTone = (status: string) =>
+    status === "COMPLETED" || status === "CONFIRMED"
+      ? "border-green-500/25 bg-green-500/10 text-green-400"
+      : status === "PENDING"
+        ? "border-yellow-500/25 bg-yellow-500/10 text-yellow-400"
+        : status === "CANCELLED" || status === "DISPUTED"
+          ? "border-red-500/25 bg-red-500/10 text-red-400"
+          : "mv-chip-gold";
+  const manageHref = (client: (typeof allClients)[number]) =>
+    client.type === "Servicio" ? `/dashboard/pedidos/${client.id}` : `/dashboard/pedidos?tab=sales`;
+  const avatarSrc = (client: (typeof allClients)[number]) =>
+    client.clientAvatar || `https://ui-avatars.com/api/?name=${client.clientName}&background=random`;
+
   return (
-    <div className="w-full min-h-screen pt-24 pb-32 bg-bg-primary">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <Link href="/dashboard" className="inline-flex items-center text-gray-400 hover:text-gold transition-colors mb-8 text-sm font-medium">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Volver al Dashboard
-        </Link>
+    <div className="w-full min-h-screen bg-bg-primary">
+      <PageHero
+        kicker={
+          <>
+            <Link href="/dashboard" className="-my-2 rounded py-2 hover:underline mv-focus">Panel</Link>
+            <span aria-hidden>/</span>
+            <span>Clientes</span>
+          </>
+        }
+        title="Tus clientes"
+        lead="Los pedidos de tus servicios y las reservas de tus espacios, ordenados del más reciente al más antiguo."
+      />
 
-        <header className="mb-12">
-          <h1 className="font-display text-4xl font-bold text-white mb-2">Cartera de Clientes</h1>
-          <p className="text-gray-400">Gestiona tus pedidos y reservas activas en la plataforma.</p>
-        </header>
+      <Section tight labelledBy="clientes-lista" className="pt-0 md:pt-0">
+        <Container>
+          <h2 id="clientes-lista" className="sr-only">Listado de clientes</h2>
+          {allClients.length === 0 ? (
+            <div className="mv-panel flex flex-col items-start gap-4 p-8 md:p-12">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--mv-gold-wash)] text-gold">
+                <Users className="h-5 w-5" aria-hidden />
+              </span>
+              <h3 className="mv-h3">Todavía no tenés clientes</h3>
+              <p className="mv-body max-w-lg">
+                Cuando alguien contrate uno de tus servicios o reserve uno de tus espacios, lo vas a ver acá con el estado y el monto.
+              </p>
+              <div className="mt-2 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                <ButtonLink href="/dashboard/crear" className="w-full sm:w-auto">Publicar un servicio o espacio</ButtonLink>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="mb-4 text-sm text-[var(--text-secondary)]">
+                <span className="mv-data text-[var(--text-primary)]">{allClients.length}</span> {allClients.length === 1 ? "registro" : "registros"}
+              </p>
 
-        {allClients.length === 0 ? (
-          <div className="bg-bg-secondary rounded-2xl border border-border p-12 text-center">
-            <Users className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">Aún no tienes clientes</h3>
-            <p className="text-gray-400">Tus ventas y reservas aparecerán listadas aquí.</p>
-          </div>
-        ) : (
-          <div className="grid gap-6">
-            {allClients.map((client) => (
-              <div key={client.id} className="bg-bg-secondary border border-border rounded-2xl p-6 hover:border-gold/20 transition-all">
-                <div className="flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-full bg-bg-tertiary overflow-hidden border border-white/5">
-                      <img 
-                        src={client.clientAvatar || `https://ui-avatars.com/api/?name=${client.clientName}&background=random`} 
-                        alt={client.clientName} 
-                        className="w-full h-full object-cover"
-                      />
+              {/* Desktop: tabla */}
+              <div className="mv-panel hidden overflow-hidden lg:block">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--mv-hairline)] text-[var(--text-secondary)]">
+                      <th scope="col" className="px-6 py-4 font-medium">Cliente</th>
+                      <th scope="col" className="px-4 py-4 font-medium">Publicación</th>
+                      <th scope="col" className="px-4 py-4 font-medium">Estado</th>
+                      <th scope="col" className="px-4 py-4 font-medium">Fecha</th>
+                      <th scope="col" className="px-4 py-4 text-right font-medium">Monto</th>
+                      <th scope="col" className="px-6 py-4 text-right font-medium"><span className="sr-only">Acciones</span></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--mv-hairline)]">
+                    {allClients.map((client) => (
+                      <tr key={client.id} className="transition-colors duration-200 hover:bg-[var(--mv-panel-hover)]">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <img src={avatarSrc(client)} alt="" width={40} height={40} loading="lazy" decoding="async" className="h-10 w-10 shrink-0 rounded-full border border-[var(--mv-hairline)] object-cover" />
+                            <div className="min-w-0">
+                              <p className="truncate font-semibold text-[var(--text-primary)]">{client.clientName}</p>
+                              <p className="truncate text-xs text-[var(--text-tertiary)]">{client.clientEmail}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="max-w-[16rem] px-4 py-4">
+                          <p className="truncate text-[var(--text-primary)]">{client.itemName}</p>
+                          <p className="text-xs text-[var(--text-secondary)]">{client.type}</p>
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className={`mv-chip ${statusTone(client.status)}`}>{statusLabel[client.status] || client.status}</span>
+                        </td>
+                        <td className="mv-data whitespace-nowrap px-4 py-4 text-[var(--text-secondary)]">{new Date(client.date).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" })}</td>
+                        <td className="mv-data whitespace-nowrap px-4 py-4 text-right font-medium text-[var(--text-primary)]">{`$${client.price}`}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <Link
+                              href={`/perfil/${client.clientId}`}
+                              aria-label={`Ver perfil de ${client.clientName}`}
+                              className={buttonClass("ghost", "sm", "w-10 px-0")}
+                            >
+                              <ExternalLink className="h-4 w-4" aria-hidden />
+                            </Link>
+                            <ButtonLink href={manageHref(client)} tone="secondary" size="sm">Gestionar</ButtonLink>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Móvil: cards */}
+              <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:hidden">
+                {allClients.map((client) => (
+                  <li key={client.id} className="mv-panel flex flex-col gap-4 p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <img src={avatarSrc(client)} alt="" width={40} height={40} loading="lazy" decoding="async" className="h-10 w-10 shrink-0 rounded-full border border-[var(--mv-hairline)] object-cover" />
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-[var(--text-primary)]">{client.clientName}</p>
+                          <p className="truncate text-xs text-[var(--text-tertiary)]">{client.clientEmail}</p>
+                        </div>
+                      </div>
+                      <span className={`mv-chip shrink-0 ${statusTone(client.status)}`}>{statusLabel[client.status] || client.status}</span>
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-white">{client.clientName}</h3>
-                      <p className="text-xs text-gray-500">{client.clientEmail}</p>
+                      <p className="text-xs text-[var(--text-secondary)]">{client.type}</p>
+                      <p className="text-[var(--text-primary)]">{client.itemName}</p>
                     </div>
-                  </div>
-
-                  <div className="flex flex-col md:items-end">
-                    <span className="text-[10px] uppercase tracking-widest font-black text-gold mb-1">{client.type}</span>
-                    <h4 className="text-white font-bold text-sm mb-2">{client.itemName}</h4>
-                    <div className="flex items-center gap-2">
-                       <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${
-                        client.status === 'COMPLETED' || client.status === 'CONFIRMED' ? 'bg-green-500/10 text-green-400' : 
-                        client.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-blue-500/10 text-blue-400'
-                      }`}>
-                        {client.status}
-                      </span>
+                    <dl className="grid grid-cols-3 gap-3 border-t border-[var(--mv-hairline)] pt-4 text-sm">
+                      <div>
+                        <dt className="text-xs text-[var(--text-secondary)]">Monto</dt>
+                        <dd className="mv-data font-medium text-[var(--text-primary)]">{`$${client.price}`}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-[var(--text-secondary)]">Fecha</dt>
+                        <dd className="mv-data text-[var(--text-primary)]">{new Date(client.date).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" })}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-[var(--text-secondary)]">ID</dt>
+                        <dd className="mv-data text-[var(--text-primary)]">{client.id.slice(0, 8)}</dd>
+                      </div>
+                    </dl>
+                    <div className="grid grid-cols-2 gap-2">
+                      <ButtonLink href={`/perfil/${client.clientId}`} tone="ghost" size="sm" className="w-full">Ver perfil</ButtonLink>
+                      <ButtonLink href={manageHref(client)} tone="secondary" size="sm" className="w-full">Gestionar</ButtonLink>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-6">
-                    <div className="text-right">
-                      <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black">Monto</p>
-                      <p className="text-white font-mono font-bold text-xl">${client.price}</p>
-                    </div>
-                    <div className="flex gap-2">
-                       <Button variant="outline" size="icon" asChild className="rounded-xl border-border hover:border-gold h-12 w-12">
-                          <Link href={`/perfil/${client.clientId}`}><ExternalLink size={18} /></Link>
-                       </Button>
-                       <Button asChild className="bg-gold text-black hover:bg-gold-light rounded-xl font-bold h-12 px-6 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-gold/10">
-                         <Link href={client.type === 'Servicio' ? `/dashboard/pedidos/${client.id}` : `/dashboard/pedidos?tab=sales`}>
-                            Gestionar
-                         </Link>
-                       </Button>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-6 pt-6 border-t border-white/5 flex flex-wrap gap-6 text-[10px] font-black uppercase tracking-widest text-gray-500">
-                  <div className="flex items-center gap-2">
-                    <Calendar size={14} className="text-gold" />
-                    Fecha: {new Date(client.date).toLocaleDateString()}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Zap size={14} className="text-gold" />
-                    ID Pedido: {client.id.slice(0, 8)}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CreditCard size={14} className="text-gold" />
-                    Pago: Escrow Protegido
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </Container>
+      </Section>
     </div>
   );
 }

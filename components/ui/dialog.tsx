@@ -53,7 +53,7 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-[1.5rem] mv-menu p-5 text-sm text-popover-foreground duration-150 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           className
         )}
         {...props}
@@ -62,10 +62,10 @@ function DialogContent({
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
-            className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors cursor-pointer rounded-xl hover:bg-white/5"
+            className="mv-focus absolute top-3 right-3 grid h-10 w-10 place-items-center rounded-full text-[var(--text-secondary)] transition-colors cursor-pointer hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]"
           >
             <XIcon size={20} />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">Cerrar</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Popup>
@@ -102,8 +102,9 @@ function DialogFooter({
     >
       {children}
       {showCloseButton && (
-        <DialogPrimitive.Close asChild>
-          <Button variant="outline">Close</Button>
+        // Base UI no soporta `asChild`: se compone con `render`
+        <DialogPrimitive.Close render={<Button variant="outline" />}>
+          Cerrar
         </DialogPrimitive.Close>
       )}
     </div>

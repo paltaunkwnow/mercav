@@ -44,7 +44,7 @@ export default async function Dashboard() {
 
   if (!user) redirect('/login');
 
-  const totalApplicants = user.jobPosts.reduce((acc, job) => acc + (job as any)._count?.applications || 0, 0);
+  const totalApplicants = user.jobPosts.reduce((acc, job) => acc + ((job as any)._count?.applications || 0), 0);
   const totalViews = user.jobPosts.reduce((acc, job) => acc + (job.viewCount || 0), 0);
   
   // Earnings from services

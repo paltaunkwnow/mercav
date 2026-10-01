@@ -6,22 +6,26 @@ import TicketDetailClient from "./TicketDetailClient";
 
 export default async function TicketDetailPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) redirect("/auth/login");
+  if (!session?.user?.email) redirect("/login");
 
+  // Solo los campos que usa el cliente: nunca serializar password/twoFactorSecret a props.
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    include: { roles: true }
+    select: { id: true, name: true, avatar: true, roles: { select: { role: true } } }
   });
 
   const roles = user?.roles.map(r => r.role) || [];
   const userWithRoles = { ...user, roles };
 
-  if (!user) redirect("/auth/login");
+  if (!user) redirect("/login");
 
   const ticket = await prisma.ticket.findUnique({
     where: { id: params.id },
     include: {
       order: true,
+      // Datos mínimos de las partes para el panel de administración (sanciones).
+      user: { select: { id: true, username: true, name: true } },
+      involvedUser: { select: { id: true, username: true, name: true } },
       replies: {
         include: {
           user: { select: { name: true, avatar: true } }

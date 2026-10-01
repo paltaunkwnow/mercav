@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { encryptMessage } from "@/lib/crypto";
+import { ConversationContext } from "@prisma/client";
 
 export async function GET(req: Request) {
   try {
@@ -43,18 +44,31 @@ export async function POST(req: Request) {
     const user = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!user) return NextResponse.json({ success: false, error: "Usuario no encontrado" }, { status: 404 });
 
-    const body = await req.json();
-    
-    // Check for existing conversation with the same target user if single-context
+    const body = await req.json().catch(() => null);
+    const targetUserId = typeof body?.targetUserId === "string" ? body.targetUserId : "";
+    if (!targetUserId || targetUserId === user.id) {
+      return NextResponse.json({ success: false, error: "Usuario destino inválido" }, { status: 400 });
+    }
+    const target = await prisma.user.findUnique({ where: { id: targetUserId }, select: { id: true } });
+    if (!target) return NextResponse.json({ success: false, error: "El usuario destino no existe" }, { status: 404 });
+
+    const context: ConversationContext = (Object.values(ConversationContext) as string[]).includes(body?.context)
+      ? body.context
+      : "GENERAL";
+    const contextId = typeof body?.contextId === "string" ? body.contextId.slice(0, 120) : null;
+    if (body?.initialMessage !== undefined && (typeof body.initialMessage !== "string" || body.initialMessage.length > 4000)) {
+      return NextResponse.json({ success: false, error: "Mensaje inválido" }, { status: 400 });
+    }
+
     const conversation = await prisma.conversation.create({
       data: {
-        context: body.context || "GENERAL",
-        contextId: body.contextId,
+        context,
+        contextId,
         isEnabled: true,
         participants: {
           connect: [
             { id: user.id },
-            { id: body.targetUserId }
+            { id: targetUserId }
           ]
         }
       }

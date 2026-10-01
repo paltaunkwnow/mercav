@@ -10,9 +10,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
     }
 
-    const { companyName } = await req.json();
+    const body = await req.json().catch(() => null);
+    const companyName = typeof body?.companyName === "string" ? body.companyName.trim() : "";
 
-    if (!companyName) {
+    if (!companyName || companyName.length > 150) {
       return NextResponse.json({ success: false, error: "Nombre de empresa requerido" }, { status: 400 });
     }
 

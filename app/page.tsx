@@ -1,16 +1,17 @@
 import { prisma } from "@/lib/prisma";
-import { 
-  HomeHero, 
-  HomeModules, 
-  HomeLatestActivity, 
-  HomeStats, 
-  HomeCTA 
+import type { KosherPlaceType, KosherStatus } from "@prisma/client";
+import {
+  HomeHero,
+  HomeProblem,
+  HomePlatform,
+  HomeCapabilities,
+  HomeSecurity,
+  HomeLatestActivity,
+  HomeTrust,
+  HomeCTA,
 } from "@/components/home/HomeClient";
 import { HomeKosher } from "@/components/home/HomeKosher";
-import { TransactionCard } from "@/components/home/TransactionCard";
-import Link from 'next/link';
-import { CheckCircle2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { PWN_FEED_SOURCES } from "@/lib/integrations/pwn/feed-catalog";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 60; // Revalidate every minute
@@ -37,7 +38,9 @@ export default async function Home() {
 
   let kosherPlaces = 0;
   let kosherCities: { city: string }[] = [];
-  let kosherPreview: { slug: string; name: string; city: string; type: string; status: string; verifiedAt: Date | null }[] = [];
+  let counts = { spaces: 0, services: 0, jobs: 0 };
+  let kosherCountries: { countryCode: string }[] = [];
+  let kosherPreview: { slug: string; name: string; city: string; type: KosherPlaceType; status: KosherStatus; verifiedAt: Date | null }[] = [];
 
   try {
     config = await prisma.globalConfig.findUnique({
@@ -78,6 +81,14 @@ export default async function Home() {
         select: { slug: true, name: true, city: true, type: true, status: true, verifiedAt: true }
       })
     ]);
+    const [spaces, services, jobs, countries] = await Promise.all([
+      prisma.space.count({ where: { isActive: true } }),
+      prisma.service.count({ where: { isActive: true } }),
+      prisma.jobPost.count({ where: { isActive: true } }),
+      prisma.kosherPlace.findMany({ where: { published: true }, distinct: ['countryCode'], select: { countryCode: true } }),
+    ]);
+    counts = { spaces, services, jobs };
+    kosherCountries = countries;
   } catch (dbError) {
     console.warn("Database query error on Home page (showing graceful fallback):", dbError);
   }
@@ -133,64 +144,34 @@ export default async function Home() {
     }))
   ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 6);
 
+  // Pwn reads these feeds plus the HIBP, NVD and CISA KEV APIs.
+  const pwnSources = Array.from(
+    new Set(["Have I Been Pwned", "NVD", "CISA KEV", ...PWN_FEED_SOURCES.map((source) => source.forumLabel)])
+  );
+
+  const fmt = (n: number) => new Intl.NumberFormat("es").format(n);
+  const facts = [
+    { value: "7", label: "módulos con una sola cuenta" },
+    { value: fmt(pwnSources.length), label: "fuentes públicas que consulta Pwn" },
+    ...(kosherPlaces > 0 ? [{ value: fmt(kosherPlaces), label: "lugares publicados en el atlas Kosher" }] : []),
+    ...(kosherCountries.length > 0 ? [{ value: fmt(kosherCountries.length), label: "países con lugares en el atlas" }] : []),
+    ...(counts.spaces > 0 ? [{ value: fmt(counts.spaces), label: "espacios publicitarios activos" }] : []),
+    ...(counts.services > 0 ? [{ value: fmt(counts.services), label: "servicios activos" }] : []),
+    ...(counts.jobs > 0 ? [{ value: fmt(counts.jobs), label: "vacantes abiertas" }] : []),
+  ].slice(0, 4);
+
+  const preview = kosherPreview.map(({ verifiedAt, ...p }) => ({ ...p, verified: !!verifiedAt }));
+
   return (
-    <div className="flex flex-col w-full min-h-screen overflow-hidden">
+    <div className="flex w-full flex-col overflow-x-clip">
       <HomeHero />
-      <HomeModules />
-      <HomeKosher places={kosherPlaces} cities={kosherCities.length} preview={kosherPreview.map(({ verifiedAt, ...p }) => ({ ...p, verified: !!verifiedAt }))} />
-      <HomeStats />
-
-      {/* Feature Split Section */}
-      <section className="blend-from-primary w-full py-24 md:py-32 bg-bg-secondary overflow-hidden relative section-transition">
-        {/* Background effects */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-[60%] -translate-y-1/2 w-[500px] h-[500px] bg-gold/[0.02] blur-[180px] rounded-full" />
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-center">
-            <div className="flex-1 space-y-8">
-              <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-gold">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Nuestra promesa
-              </span>
-              <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.1]">
-                Construido diferente. <br/>
-                <span className="gradient-text-gold">Construido para vos.</span>
-              </h2>
-              <p className="text-gray-400 text-base md:text-lg leading-relaxed">
-                Mercav elimina los intermediarios innecesarios y las comisiones abusivas. 
-                Si tenés un espacio, tu primer alquiler es completamente libre de comisiones. 
-                Si buscas talento, lo encuentras con transparencia total.
-              </p>
-              <ul className="space-y-4">
-                {[
-                  "Primer alquiler de espacios sin costo de plataforma",
-                  "Escrow seguro para servicios digitales",
-                  "Perfiles verificados y reseñas reales",
-                  "Sin emojis, diseño 100% profesional"
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center text-gray-300 group">
-                    <div className="h-6 w-6 rounded-lg bg-gold/10 flex items-center justify-center mr-3 flex-shrink-0 group-hover:bg-gold/20 group-hover:scale-110 transition-all duration-300">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-gold" />
-                    </div>
-                    <span className="group-hover:text-white transition-colors duration-300">{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button asChild variant="outline" className="border-gold/30 text-gold hover:bg-gold/10 hover:border-gold/60 rounded-xl px-6 transition-all duration-300">
-                <Link href="/por-que-mercav">Leer el manifiesto</Link>
-              </Button>
-            </div>
-            
-            <TransactionCard />
-          </div>
-        </div>
-      </section>
-
-      {/* Real-time Activity Feed */}
+      <HomeProblem />
+      <HomePlatform pwnSources={pwnSources} kosherPreview={preview} />
+      <HomeCapabilities />
+      <HomeSecurity sources={pwnSources} />
+      <HomeKosher places={kosherPlaces} cities={kosherCities.length} preview={preview} />
       <HomeLatestActivity items={JSON.parse(JSON.stringify(items))} />
-
+      <HomeTrust facts={facts} />
       <HomeCTA />
     </div>
   );

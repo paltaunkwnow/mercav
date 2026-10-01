@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Check, Copy, Link2, LocateFixed, UserCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { kosherFetch, useKosherViewer } from "@/components/kosher/KosherViewer";
-import { fieldClass, primaryButton, secondaryButton } from "@/components/kosher/ui";
+import { fieldClass, labelClass, primaryButton, secondaryButton } from "@/components/kosher/ui";
 import { CHESED_KIND, EVENT_KIND, MEALS, PRAYER } from "@/lib/kosher/labels";
 import { formatKm, haversineKm } from "@/lib/kosher/geo";
 import { cn } from "@/lib/utils";
@@ -89,15 +89,17 @@ function KosherForm({
   const set = (name: string, value: string | string[]) => setValues((v) => ({ ...v, [name]: value }));
 
   return (
-    <form onSubmit={submit} className={cn("grid gap-4 md:grid-cols-2", className)}>
+    <form onSubmit={submit} aria-busy={busy} className={cn("grid gap-5 md:grid-cols-2", className)}>
       {fields.map((f) => {
         const id = `kf-${action.replace(/\W/g, "")}-${f.name}`;
+        const hintId = f.hint ? `${id}-hint` : undefined;
         const value = values[f.name];
+        const autoComplete = f.name === "contactName" ? "name" : f.name === "contactRole" ? "organization-title" : f.type === "tel" ? "tel" : f.type === "url" ? "url" : undefined;
         return (
           <div key={f.name} className={f.half ? "" : "md:col-span-2"}>
             {f.type === "checkboxes" ? (
               <fieldset>
-                <legend className="mb-2 text-sm font-medium text-[var(--text-secondary)]">{f.label}</legend>
+                <legend className={labelClass}>{f.label}</legend>
                 <div className="flex flex-wrap gap-2">
                   {f.options!.map(([v, l]) => {
                     const on = (value as string[]).includes(v);
@@ -109,8 +111,10 @@ function KosherForm({
                         aria-checked={on}
                         onClick={() => set(f.name, on ? (value as string[]).filter((x) => x !== v) : [...(value as string[]), v])}
                         className={cn(
-                          "inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium transition-colors",
-                          on ? "bg-gold/15 text-gold ring-1 ring-inset ring-gold/40" : "border border-border text-[var(--text-secondary)] hover:border-gold/30",
+                          "mv-focus inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-colors duration-200",
+                          on
+                            ? "bg-[var(--mv-gold-wash)] text-gold ring-1 ring-inset ring-[var(--color-border-gold)]"
+                            : "border border-[var(--mv-hairline-strong)] text-[var(--text-secondary)] hover:border-[var(--color-border-gold)] hover:text-[var(--text-primary)]",
                         )}
                       >
                         {on && <Check className="h-3.5 w-3.5" aria-hidden />}
@@ -122,7 +126,7 @@ function KosherForm({
               </fieldset>
             ) : (
               <>
-                <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-[var(--text-secondary)]">
+                <label htmlFor={id} className={labelClass}>
                   {f.label}
                   {!f.required && <span className="font-normal text-[var(--text-tertiary)]"> · opcional</span>}
                 </label>
@@ -131,14 +135,15 @@ function KosherForm({
                     id={id}
                     rows={4}
                     required={f.required}
+                    aria-describedby={hintId}
                     maxLength={f.max}
                     placeholder={f.placeholder}
                     value={value as string}
                     onChange={(e) => set(f.name, e.target.value)}
-                    className={cn(fieldClass, "resize-y py-3")}
+                    className={cn(fieldClass, "h-auto min-h-[7.5rem] resize-y py-3")}
                   />
                 ) : f.type === "select" ? (
-                  <select id={id} required={f.required} value={value as string} onChange={(e) => set(f.name, e.target.value)} className={cn(fieldClass, "h-12")}>
+                  <select id={id} required={f.required} aria-describedby={hintId} value={value as string} onChange={(e) => set(f.name, e.target.value)} className={fieldClass}>
                     {!f.required && <option value="">—</option>}
                     {f.required && !value && <option value="">Elegí una opción</option>}
                     {f.options!.map(([v, l]) => (
@@ -152,25 +157,29 @@ function KosherForm({
                     id={id}
                     type={f.type === "datetime" ? "datetime-local" : f.type}
                     required={f.required}
+                    aria-describedby={hintId}
+                    autoComplete={autoComplete}
+                    inputMode={f.type === "number" ? "numeric" : undefined}
                     maxLength={f.max && f.type !== "number" ? f.max : undefined}
                     min={f.type === "number" ? f.min : undefined}
                     max={f.type === "number" ? f.max : undefined}
                     placeholder={f.placeholder}
                     value={value as string}
                     onChange={(e) => set(f.name, e.target.value)}
-                    className={cn(fieldClass, "h-12")}
+                    className={fieldClass}
                   />
                 )}
-                {f.hint && <p className="mt-1.5 text-xs text-[var(--text-tertiary)]">{f.hint}</p>}
+                {f.hint && <p id={hintId} className="mt-2 text-xs leading-relaxed text-[var(--text-secondary)]">{f.hint}</p>}
               </>
             )}
           </div>
         );
       })}
-      <div className="md:col-span-2">
-        <button type="submit" disabled={busy || viewer.shabbatLocked} className={primaryButton}>
-          {submitLabel}
+      <div className="flex flex-col gap-3 md:col-span-2">
+        <button type="submit" disabled={busy || viewer.shabbatLocked} className={cn(primaryButton, "w-full sm:w-auto sm:self-start")}>
+          {busy ? "Enviando…" : submitLabel}
         </button>
+        {viewer.shabbatLocked && <p className="text-xs text-[var(--text-secondary)]">Modo Shabat activo: vas a poder enviar después de Havdalá.</p>}
       </div>
     </form>
   );
@@ -374,10 +383,10 @@ export function AlertsForm({
   }
 
   return (
-    <section className="mt-4 rounded-[2rem] border border-border bg-bg-secondary p-6 md:p-8">
-      <h2 className="font-display text-xl font-semibold text-[var(--text-primary)]">Alertas por ciudad</h2>
-      <p className="mt-1 text-sm text-[var(--text-secondary)]">Te avisamos en la campana de Mercav. Elegí qué querés recibir en cada ciudad.</p>
-      <ul className="mt-5 divide-y divide-border">
+    <section aria-labelledby="k-alerts" className="mv-panel mt-4 p-6 md:p-8">
+      <h2 id="k-alerts" className="mv-h3">Alertas por ciudad</h2>
+      <p className="mt-2 text-sm text-[var(--text-secondary)]">Te avisamos en la campana de Mercav. Elegí qué querés recibir en cada ciudad.</p>
+      <ul className="mt-5 divide-y divide-[var(--mv-hairline)]">
         {cities.map((c) => {
           const on = subs.get(`${c.city}|${c.countryCode}`) ?? [];
           return (
@@ -396,8 +405,10 @@ export function AlertsForm({
                       disabled={busy === `${c.slug}-${topic}`}
                       onClick={() => toggle(c, topic)}
                       className={cn(
-                        "inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-medium transition-colors disabled:opacity-50",
-                        active ? "bg-techelet-dim text-techelet ring-1 ring-inset ring-techelet/40" : "border border-border text-[var(--text-secondary)] hover:border-techelet/30",
+                        "mv-focus inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-colors duration-200 disabled:opacity-50",
+                        active
+                          ? "bg-techelet-dim text-techelet ring-1 ring-inset ring-techelet/40"
+                          : "border border-[var(--mv-hairline-strong)] text-[var(--text-secondary)] hover:border-techelet/40 hover:text-[var(--text-primary)]",
                       )}
                     >
                       {active && <Check className="h-3.5 w-3.5" aria-hidden />}
@@ -459,7 +470,7 @@ export function RowAction({ url, method = "PATCH", json, label, done, tone = "se
         await act(url, { method, json }, done, router);
         setBusy(false);
       }}
-      className={cn(tone === "primary" ? primaryButton : secondaryButton, "h-9 px-4 text-xs")}
+      className={cn(tone === "primary" ? primaryButton : secondaryButton, "px-4 text-sm")}
     >
       {label}
     </button>
@@ -484,18 +495,18 @@ export function HostRequestToggle({ hostId, name }: { hostId: string; name: stri
       <button
         type="button"
         onClick={() => (viewer.signedIn ? setOpen(true) : router.push("/login?callbackUrl=/kosher/comunidad/shabat"))}
-        className={cn(primaryButton, "h-10")}
+        className={cn(primaryButton, "w-full sm:w-auto")}
       >
         Pedir lugar en su mesa
       </button>
     );
   }
   return (
-    <div className="mt-4 rounded-2xl border border-border bg-bg-tertiary/50 p-4">
+    <div className="mv-fade mt-4 rounded-2xl border border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] p-4 md:p-5">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-sm font-semibold text-[var(--text-primary)]">Pedido a {name}</p>
-        <button type="button" aria-label="Cerrar" onClick={() => setOpen(false)} className="grid h-9 w-9 place-items-center rounded-full text-[var(--text-secondary)] hover:bg-bg-tertiary">
-          <X className="h-4 w-4" />
+        <button type="button" aria-label="Cerrar" onClick={() => setOpen(false)} className="mv-focus -mr-1 grid h-10 w-10 place-items-center rounded-full text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]">
+          <X className="h-4 w-4" aria-hidden />
         </button>
       </div>
       <HostRequestForm hostId={hostId} onDone={() => setOpen(false)} />
@@ -545,7 +556,7 @@ export function InviteButton({ slug }: { slug: string }) {
       <div className="rounded-2xl border border-techelet/30 bg-techelet-dim p-3">
         <p className="text-xs text-[var(--text-secondary)]">Enlace de invitación, válido 30 días y para una sola persona:</p>
         <div className="mt-2 flex gap-2">
-          <input readOnly value={url} aria-label="Enlace de invitación" className={cn(fieldClass, "h-10 font-mono text-xs")} onFocus={(e) => e.currentTarget.select()} />
+          <input readOnly value={url} aria-label="Enlace de invitación" className={cn(fieldClass, "mv-data h-11 text-xs")} onFocus={(e) => e.currentTarget.select()} />
           <button
             type="button"
             aria-label="Copiar enlace"
@@ -553,9 +564,9 @@ export function InviteButton({ slug }: { slug: string }) {
               await navigator.clipboard.writeText(url);
               toast.success("Enlace copiado");
             }}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold text-black"
+            className="mv-focus grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gold text-[var(--mv-on-gold)] transition-transform duration-150 active:scale-[0.97]"
           >
-            <Copy className="h-4 w-4" />
+            <Copy className="h-4 w-4" aria-hidden />
           </button>
         </div>
       </div>
@@ -576,7 +587,7 @@ export function InviteButton({ slug }: { slug: string }) {
           setBusy(false);
         }
       }}
-      className={cn(secondaryButton, "h-10 text-xs")}
+      className={secondaryButton}
     >
       <Link2 className="h-4 w-4" aria-hidden /> Invitar a la institución
     </button>

@@ -1,13 +1,15 @@
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { forbidden, getKosherViewer, kosherError, unauthorized } from "@/lib/kosher/server";
+import { forbidden, getKosherViewer, kosherError, unauthorized, writeGuard } from "@/lib/kosher/server";
 
 const INVITE_DAYS = 30;
 
 export async function POST(_request: Request, { params }: { params: { slug: string } }) {
   const viewer = await getKosherViewer();
-  if (!viewer) return unauthorized();
+  // Modo Shabat: escritura bloqueada también en el servidor.
+  const guard = writeGuard(viewer);
+  if (guard || !viewer) return guard ?? unauthorized();
   if (!viewer.isModerator) return forbidden("Solo moderadores pueden invitar instituciones.");
   const place = await prisma.kosherPlace.findUnique({ where: { slug: params.slug }, select: { id: true, published: true } });
   if (!place?.published) return kosherError(404, "Lugar no encontrado");

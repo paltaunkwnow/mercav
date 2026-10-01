@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/app/api/pwn/_lib/rate-limit";
 import { notifyUser } from "@/lib/kosher/notify";
@@ -33,7 +34,15 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   const duplicate = await prisma.kosherHostRequest.findUnique({ where: { hostId_guestId_date: { hostId: host.id, guestId: viewer.id, date } } });
   if (duplicate) return kosherError(409, "Ya le pediste lugar para ese Shabat.");
 
-  await prisma.kosherHostRequest.create({ data: { hostId: host.id, guestId: viewer.id, date, guests: parsed.data.guests, message: parsed.data.message } });
+  try {
+    await prisma.kosherHostRequest.create({ data: { hostId: host.id, guestId: viewer.id, date, guests: parsed.data.guests, message: parsed.data.message } });
+  } catch (error) {
+    // Carrera contra el unique (hostId, guestId, date): mismo mensaje que el duplicado.
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return kosherError(409, "Ya le pediste lugar para ese Shabat.");
+    }
+    throw error;
+  }
   await notifyUser(host.userId, "Pedido para tu mesa de Shabat", `${publicAuthorName(viewer.name)} quiere sumarse (${parsed.data.guests}).`, "/kosher/comunidad/shabat#pedidos");
   return NextResponse.json({ success: true }, { status: 201 });
 }

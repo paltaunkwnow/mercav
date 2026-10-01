@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getPosContext, posError } from "@/lib/pos/server";
 import { computeSale } from "@/lib/pos/pricing";
@@ -27,7 +28,11 @@ const saleSchema = z.object({
     .max(6),
   clientNit: z.string().max(30).nullish(),
   clientName: z.string().max(120).nullish(),
+  // Idempotency key: a sale queued offline can be sent twice and is stored once.
+  clientRef: z.string().uuid().nullish(),
 });
+
+const saleInclude = { items: { include: { product: true } }, payments: true } as const;
 
 class StockError extends Error {}
 
@@ -39,6 +44,12 @@ export async function POST(req: Request) {
   const parsed = saleSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return posError("Datos de venta inválidos");
   const body = parsed.data;
+  const clientRef = body.clientRef || null;
+
+  if (clientRef) {
+    const existing = await prisma.pOSSale.findFirst({ where: { clientRef, posConfigId: config.id }, include: saleInclude });
+    if (existing) return NextResponse.json({ success: true, data: existing, duplicate: true });
+  }
 
   const activeSession = await prisma.pOSCashSession.findFirst({
     where: { posConfigId: config.id, status: "OPEN" },
@@ -120,6 +131,8 @@ export async function POST(req: Request) {
           changeAmount: change,
           clientNit: body.clientNit?.trim() || null,
           clientName: body.clientName?.trim() || null,
+          clientRef,
+          staffId: activeSession.staffId,
           items: {
             create: pricing.lines.map((line) => {
               const product = byId.get(line.productId)!;
@@ -137,13 +150,18 @@ export async function POST(req: Request) {
           },
           payments: { create: payments },
         },
-        include: { items: { include: { product: true } }, payments: true },
+        include: saleInclude,
       });
     });
 
     return NextResponse.json({ success: true, data: sale });
   } catch (error) {
     if (error instanceof StockError) return posError(error.message, 409);
+    // Two copies of the same queued sale raced: return the one that won.
+    if (clientRef && error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      const existing = await prisma.pOSSale.findFirst({ where: { clientRef, posConfigId: config.id }, include: saleInclude });
+      if (existing) return NextResponse.json({ success: true, data: existing, duplicate: true });
+    }
     console.error("POS_SALE_POST_ERROR", error);
     return posError("Internal Error", 500);
   }

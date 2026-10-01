@@ -44,7 +44,7 @@ export function PullChart({
   const first = points[0]?.value ?? 0;
   const delta = (current?.value ?? 0) - first;
   const pct = first ? (delta / first) * 100 : 0;
-  const format = formatValue ?? ((value: number) => value.toLocaleString("es-BO"));
+  const format = formatValue ?? ((value: number) => value.toLocaleString("es"));
   const threshold = 72;
   const drawn = (700 * pull) / (700 + pull);
 
@@ -57,23 +57,23 @@ export function PullChart({
 
   if (!points.length) {
     return (
-      <div className="rounded-3xl border border-white/5 bg-black/40 p-6">
-        <h3 className="font-bold text-lg">{title}</h3>
-        <p className="mt-8 text-sm text-gray-500">Todavía no hay datos para esta gráfica.</p>
+      <div className="mv-panel p-6">
+        <h3 className="mv-h3 !text-lg">{title}</h3>
+        <p className="mt-8 text-sm text-[var(--text-secondary)]">Todavía no hay datos para esta gráfica.</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-3xl border border-white/5 bg-black/40 p-6 backdrop-blur-xl">
+    <div className="mv-panel p-6">
       <div className="mb-2 flex items-start justify-between gap-4">
         <div>
-          <h3 className="font-bold text-lg">{title}</h3>
-          {caption ? <p className="text-xs text-gray-500">{caption}</p> : null}
+          <h3 className="mv-h3 !text-lg">{title}</h3>
+          {caption ? <p className="text-xs text-[var(--text-secondary)]">{caption}</p> : null}
         </div>
-        <p className="text-[10px] uppercase tracking-[0.16em] text-gray-500">{current?.label}</p>
+        <p className="text-xs font-medium text-[var(--text-secondary)]">{current?.label}</p>
       </div>
-      <p className="font-mono text-3xl font-bold tracking-tighter text-white">{format(current?.value ?? 0)}</p>
+      <p className="mv-data text-3xl font-medium tracking-tight text-[var(--text-primary)]">{format(current?.value ?? 0)}</p>
       <p className={`mt-1 text-xs ${delta >= 0 ? "text-emerald-400" : "text-red-400"}`}>
         {delta >= 0 ? "+" : ""}
         {format(delta)} · {pct >= 0 ? "+" : ""}

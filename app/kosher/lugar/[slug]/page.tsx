@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Map } from "lucide-react";
+import { Map } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { PLACE_TYPES, STATUS, isFoodPlace } from "@/lib/kosher/labels";
 import { PlacePanel } from "@/components/kosher/PlacePanel";
+import { BackLink, secondaryButton } from "@/components/kosher/ui";
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const place = await prisma.kosherPlace.findUnique({ where: { slug: params.slug } });
@@ -21,15 +22,15 @@ export default async function KosherPlacePage({ params }: { params: { slug: stri
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="mb-4 flex items-center justify-between">
-        <Link href="/kosher" className="inline-flex h-10 items-center gap-1.5 rounded-full px-3 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
-          <ArrowLeft className="h-4 w-4" aria-hidden /> Kosher
-        </Link>
-        <Link href={`/kosher/mapa?lugar=${place.slug}`} className="inline-flex h-10 items-center gap-1.5 rounded-full border border-border px-4 text-sm font-semibold text-[var(--text-primary)] hover:border-gold/50">
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <div className="[&>a]:mb-0">
+          <BackLink href="/kosher/mapa">Mapa</BackLink>
+        </div>
+        <Link href={`/kosher/mapa?lugar=${place.slug}`} className={secondaryButton}>
           <Map className="h-4 w-4" aria-hidden /> Ver en el mapa
         </Link>
       </div>
-      <div className="overflow-hidden rounded-[2rem] border border-border bg-bg-secondary">
+      <div className="mv-panel overflow-hidden rounded-[2rem]">
         <PlacePanel slug={place.slug} standalone />
       </div>
     </div>

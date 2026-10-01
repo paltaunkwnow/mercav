@@ -43,7 +43,7 @@ export default async function KosherAgendaPage({ searchParams }: { searchParams:
       </PageIntro>
       <CityPills cities={cities} current={city.slug} basePath="/kosher/comunidad/agenda" />
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_24rem]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <section aria-label="Eventos">
           {events.length === 0 ? (
             <EmptyState>No hay eventos cargados en {city.city} por ahora. ¿Organizás algo? Sumalo a la agenda.</EmptyState>
@@ -51,12 +51,12 @@ export default async function KosherAgendaPage({ searchParams }: { searchParams:
             <ol className="space-y-8">
               {[...days.entries()].map(([day, list]) => (
                 <li key={day}>
-                  <h2 className="mb-3 text-sm font-semibold text-[var(--text-tertiary)]">{formatDay(list[0].startsAt, city.timezone)}</h2>
+                  <h2 className="mb-3 text-sm font-semibold text-[var(--text-secondary)]">{formatDay(list[0].startsAt, city.timezone)}</h2>
                   <ul className="space-y-3">
                     {list.map((e) => (
                       <li key={e.id} className={cardClass}>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-mono text-sm font-semibold tabular-nums text-gold">
+                          <span className="mv-data text-sm font-medium text-gold">
                             {formatTime(e.startsAt, city.timezone)}
                             {e.endsAt && `–${formatTime(e.endsAt, city.timezone)}`}
                           </span>
@@ -67,12 +67,12 @@ export default async function KosherAgendaPage({ searchParams }: { searchParams:
                             </Pill>
                           )}
                         </div>
-                        <h3 className="mt-3 font-display text-xl font-semibold text-[var(--text-primary)]">{e.title}</h3>
+                        <h3 className="mv-h3 mt-3">{e.title}</h3>
                         {e.body && <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-[var(--text-secondary)]">{e.body}</p>}
-                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--text-tertiary)]">
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--text-secondary)]">
                           <span className="flex items-center gap-1.5">
                             {e.place ? (
-                              <Link href={`/kosher/lugar/${e.place.slug}`} className="inline-flex items-center gap-1 font-medium text-techelet hover:underline">
+                              <Link href={`/kosher/lugar/${e.place.slug}`} className="mv-focus inline-flex min-h-10 items-center gap-1 rounded font-semibold text-techelet hover:underline">
                                 <MapPin className="h-3.5 w-3.5" aria-hidden /> {e.place.name}
                               </Link>
                             ) : (
@@ -96,11 +96,11 @@ export default async function KosherAgendaPage({ searchParams }: { searchParams:
         <aside className="space-y-4 lg:sticky lg:top-28 lg:self-start">
           {viewer ? (
             <div className={cardClass}>
-              <h2 className="font-display text-xl font-semibold text-[var(--text-primary)]">Sumar a la agenda</h2>
-              <p className="mb-5 mt-1 text-sm text-[var(--text-secondary)]">Lo revisa un moderador antes de publicarlo, salvo que lo publique la institución.</p>
+              <h2 className="mv-h3">Sumar a la agenda</h2>
+              <p className="mb-6 mt-2 text-sm text-[var(--text-secondary)]">Lo revisa un moderador antes de publicarlo, salvo que lo publique la institución.</p>
               <EventForm cities={cities} places={places} city={city.slug} />
               {mine.length > 0 && (
-                <p className="mt-5 border-t border-border pt-4 text-xs text-[var(--text-tertiary)]">
+                <p className="mt-5 border-t border-[var(--mv-hairline)] pt-4 text-xs text-[var(--text-secondary)]">
                   En revisión: {mine.map((m) => m.title).join(" · ")}
                 </p>
               )}

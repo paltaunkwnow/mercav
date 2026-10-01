@@ -1,33 +1,36 @@
+/** One badge shape for every Pwn status: sentence case, compact, readable in both themes. */
+const BADGE = "h-6 shrink-0 gap-1.5 whitespace-nowrap rounded-full border px-2.5 text-[11px] font-semibold leading-none";
+
 const RISK: Record<string, { label: string; className: string }> = {
-  critical: { label: "Crítica", className: "border-red-400/40 bg-red-500/10 text-red-200" },
-  high: { label: "Alta", className: "border-orange-300/40 bg-orange-500/10 text-orange-100" },
-  medium: { label: "Media", className: "border-gold/40 bg-gold/10 text-gold" },
-  low: { label: "Baja", className: "border-white/15 bg-white/5 text-gray-300" },
-  informational: { label: "Informativa", className: "border-white/15 bg-white/5 text-gray-400" },
-  unknown: { label: "Sin clasificar", className: "border-white/10 bg-transparent text-gray-400" },
+  critical: { label: "Crítica", className: "border-red-400/40 bg-red-500/10 text-red-200 [.light_&]:text-red-800 [.light_&]:border-red-700/30" },
+  high: { label: "Alta", className: "border-orange-300/40 bg-orange-500/10 text-orange-100 [.light_&]:text-orange-800 [.light_&]:border-orange-700/30" },
+  medium: { label: "Media", className: "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold" },
+  low: { label: "Baja", className: "border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] text-[var(--text-secondary)]" },
+  informational: { label: "Informativa", className: "border-[var(--mv-hairline-strong)] bg-transparent text-[var(--text-secondary)]" },
+  unknown: { label: "Sin clasificar", className: "border-[var(--mv-hairline)] bg-transparent text-[var(--text-tertiary)]" },
 };
 
 const VERIFICATION: Record<string, { label: string; className: string; note?: string }> = {
   UNVERIFIED: {
     label: "Sin verificar",
-    className: "border-dashed border-gray-400 bg-transparent text-gray-200",
+    className: "border-dashed border-[var(--text-tertiary)] bg-transparent text-[var(--text-secondary)]",
     note: "Afirmación sin verificar. No es un hecho confirmado.",
   },
   PARTIALLY_CORROBORATED: {
     label: "Parcialmente corroborada",
-    className: "border-white/20 bg-white/5 text-gray-200",
+    className: "border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] text-[var(--text-secondary)]",
   },
   CORROBORATED: {
     label: "Corroborada",
-    className: "border-white/25 bg-white/5 text-white",
+    className: "border-[var(--mv-hairline-strong)] bg-[var(--mv-panel-hover)] text-[var(--text-primary)]",
   },
   CONFIRMED: {
     label: "Confirmada",
-    className: "border-gold/40 bg-gold/10 text-gold",
+    className: "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold",
   },
   DISPUTED: {
     label: "En disputa",
-    className: "border-dashed border-white/30 bg-transparent text-gray-200",
+    className: "border-dashed border-[var(--text-tertiary)] bg-transparent text-[var(--text-secondary)]",
     note: "Registro en disputa: la fuente lo considera posiblemente fabricado. No es un hecho confirmado.",
   },
 };
@@ -47,7 +50,8 @@ export function RiskBadge({ level }: { level?: string | null }) {
   const tone = RISK[key] ?? RISK.unknown;
   const label = key === "unknown" && level ? level : tone.label;
   return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${tone.className}`}>
+    <span className={`inline-flex items-center ${BADGE} ${tone.className}`}>
+      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current opacity-80" />
       <span className="sr-only">Riesgo: </span>
       {label}
     </span>
@@ -60,18 +64,18 @@ export function verificationMeta(status?: string | null) {
 }
 
 const SIGNAL_KIND: Record<string, { label: string; className: string }> = {
-  DATABASE: { label: "Base de datos", className: "border-gold/50 bg-gold/15 text-gold" },
-  STEALER: { label: "Stealer logs", className: "border-fuchsia-300/40 bg-fuchsia-500/10 text-fuchsia-100" },
-  CORPORATE: { label: "Robo corporativo", className: "border-sky-300/40 bg-sky-500/10 text-sky-100" },
-  MIXED: { label: "Mixto", className: "border-amber-300/40 bg-amber-500/10 text-amber-100" },
-  CREDENTIALS: { label: "Cuentas / logs", className: "border-white/20 bg-white/5 text-gray-300" },
-  OTHER: { label: "Filtración", className: "border-white/15 bg-transparent text-gray-400" },
+  DATABASE: { label: "Base de datos", className: "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold" },
+  STEALER: { label: "Stealer logs", className: "border-fuchsia-300/40 bg-fuchsia-500/10 text-fuchsia-100 [.light_&]:text-fuchsia-800 [.light_&]:border-fuchsia-700/30" },
+  CORPORATE: { label: "Robo corporativo", className: "border-sky-300/40 bg-sky-500/10 text-sky-100 [.light_&]:text-sky-800 [.light_&]:border-sky-700/30" },
+  MIXED: { label: "Mixto", className: "border-amber-300/40 bg-amber-500/10 text-amber-100 [.light_&]:text-amber-800 [.light_&]:border-amber-700/30" },
+  CREDENTIALS: { label: "Cuentas / logs", className: "border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] text-[var(--text-secondary)]" },
+  OTHER: { label: "Filtración", className: "border-[var(--mv-hairline-strong)] bg-transparent text-[var(--text-secondary)]" },
 };
 
 export function BoliviaPriorityBadge({ active }: { active?: boolean }) {
   if (!active) return null;
   return (
-    <span className="inline-flex items-center rounded-full border border-gold/50 bg-gold/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-gold">
+    <span className={`inline-flex items-center ${BADGE} border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold`}>
       <span className="sr-only">Prioridad: </span>
       Bolivia
     </span>
@@ -81,7 +85,7 @@ export function BoliviaPriorityBadge({ active }: { active?: boolean }) {
 export function GovernmentPriorityBadge({ active }: { active?: boolean }) {
   if (!active) return null;
   return (
-    <span className="inline-flex items-center rounded-full border border-red-400/50 bg-red-500/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-red-100">
+    <span className={`inline-flex items-center ${BADGE} border-red-400/50 bg-red-500/15 text-red-100 [.light_&]:border-red-700/30 [.light_&]:text-red-800`}>
       <span className="sr-only">Prioridad: </span>
       Gobierno
     </span>
@@ -92,7 +96,7 @@ export function SignalKindBadge({ kind }: { kind?: string | null }) {
   const key = (kind ?? "OTHER").toUpperCase();
   const tone = SIGNAL_KIND[key] ?? SIGNAL_KIND.OTHER;
   return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${tone.className}`}>
+    <span className={`inline-flex items-center ${BADGE} ${tone.className}`}>
       <span className="sr-only">Tipo de señal: </span>
       {tone.label}
     </span>
@@ -102,9 +106,9 @@ export function SignalKindBadge({ kind }: { kind?: string | null }) {
 export function VerificationBadge({ status }: { status?: string | null }) {
   const meta = verificationMeta(status);
   const label = meta?.label ?? (status ? status : "Verificación no indicada");
-  const className = meta?.className ?? "border-dashed border-white/20 bg-transparent text-gray-300";
+  const className = meta?.className ?? "border-dashed border-[var(--mv-hairline-strong)] bg-transparent text-[var(--text-secondary)]";
   return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${className}`}>
+    <span className={`inline-flex items-center ${BADGE} ${className}`}>
       <span className="sr-only">Verificación: </span>
       {label}
     </span>

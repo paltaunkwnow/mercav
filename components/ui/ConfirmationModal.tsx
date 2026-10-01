@@ -52,25 +52,27 @@ export function ConfirmationModal({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="liquid-glass liquid-glass-lens w-full max-w-md rounded-[2.5rem] p-8 pointer-events-auto relative overflow-hidden"
+              className="mv-menu w-full max-w-md rounded-[2rem] p-8 pointer-events-auto relative overflow-hidden"
             >
               {/* Background Glow */}
               <div className={`absolute -top-24 -right-24 w-48 h-48 blur-[80px] opacity-20 rounded-full ${variant === 'danger' ? 'bg-red-500' : 'bg-gold'}`} />
 
-              <button 
+              <button
+                type="button"
                 onClick={onClose}
-                className="absolute top-6 right-6 text-gray-500 hover:text-white transition-colors"
+                aria-label="Cerrar"
+                className="mv-focus absolute top-4 right-4 grid h-10 w-10 place-items-center rounded-full text-[var(--text-secondary)] transition-colors hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]"
               >
-                <X size={20} />
+                <X size={18} aria-hidden />
               </button>
 
               <div className="flex flex-col items-center text-center">
                 <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 border ${colors[variant]}`}>
-                  <AlertTriangle size={32} />
+                  <AlertTriangle size={28} aria-hidden />
                 </div>
 
-                <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
-                <p className="text-gray-500 text-sm leading-relaxed mb-8">{message}</p>
+                <h2 className="mv-h3 mb-2">{title}</h2>
+                <p className="mv-body mb-8">{message}</p>
 
                 <div className="flex w-full flex-col gap-3">
                   <SlideConfirm
@@ -80,10 +82,10 @@ export function ConfirmationModal({
                       window.setTimeout(onClose, 480);
                     }}
                   />
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     onClick={onClose}
-                    className="h-12 rounded-2xl text-gray-400 hover:text-white hover:bg-white/5 border border-white/5"
+                    className="mv-btn mv-btn-ghost h-12 rounded-full"
                   >
                     {cancelText}
                   </Button>

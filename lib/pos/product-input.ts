@@ -30,6 +30,16 @@ export const productInputSchema = z.object({
   isHalal: z.boolean().default(false),
   isVegan: z.boolean().default(false),
   isGlutenFree: z.boolean().default(false),
+  // Low-stock alert threshold. Empty means "no alert".
+  minStock: z
+    .union([z.literal(""), z.null(), z.coerce.number().min(0).max(10_000_000)])
+    .optional()
+    .transform((v) => (v === "" || v === undefined ? null : v)),
+  // Mercav Kosher stock category this product is published under. Empty means "don't publish".
+  kosherCategory: z
+    .union([z.literal(""), z.null(), z.enum(["meat", "wine", "matzah", "cheese", "frozen", "bakery"])])
+    .optional()
+    .transform((v) => (v === "" || v === undefined ? null : v)),
 });
 
 export type ProductInput = z.infer<typeof productInputSchema>;

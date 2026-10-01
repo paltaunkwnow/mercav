@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { disabledResponse, internalError } from "../../_lib/http";
+import { disabledResponse, internalError, isCronAuthorized } from "../../_lib/http";
 import { syncForumFeeds } from "../../_lib/forum-sync";
 
 export const maxDuration = 60;
 
-function authorized(request: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
-  const header = request.headers.get("authorization") ?? "";
-  return header === `Bearer ${secret}`;
-}
+// Comparación en tiempo constante del CRON_SECRET (ver _lib/http).
+const authorized = isCronAuthorized;
 
 /** Keeps the Pwn archive warm so a visit is never an empty first scrape. */
 export async function GET(request: NextRequest) {

@@ -7,6 +7,8 @@ import { GovernmentPriorityBadge, SignalKindBadge } from "@/components/pwn/RiskB
 import { DisabledState, EmptyState, ErrorState, LoadingState, UnauthorizedState } from "@/components/pwn/EmptyState";
 import { FadeIn, usePwnFeedRefresh } from "@/components/pwn/PwnShell";
 import { focusRing, formatRelative } from "@/components/pwn/format";
+import { PwnPageHeader } from "@/components/pwn/ui";
+import { ArrowUpRight } from "lucide-react";
 
 type ActorRow = {
   author: string;
@@ -81,13 +83,12 @@ export default function ForumActorsPage() {
   );
 
   return (
-    <FadeIn className="space-y-6">
-      <header className="max-w-3xl">
-        <h1 className="font-display text-4xl font-black tracking-tight text-white md:text-5xl">Autores</h1>
-        <p className="mt-3 text-sm leading-relaxed text-gray-400">
-          Handles de foros y grupos que publican filtraciones. Un autor puede ser un vendedor de stealer logs o un grupo que reclama el robo a una empresa.
-        </p>
-      </header>
+    <FadeIn className="space-y-8">
+      <PwnPageHeader
+        kicker="Autores"
+        title="Quién publica las filtraciones."
+        lead="Handles de foros y grupos que publican filtraciones. Un autor puede ser un vendedor de stealer logs o un grupo que reclama el robo a una empresa."
+      />
 
       {status.kind === "loading" ? <LoadingState label="Agrupando por autor…" /> : null}
       {status.kind === "disabled" ? <DisabledState title="Autores no disponibles" /> : null}
@@ -98,7 +99,7 @@ export default function ForumActorsPage() {
           title="Todavía no hay autores"
           description="Los autores aparecen cuando el archivo de Pwn guarda señales. Eso ocurre en segundo plano, no al entrar."
           action={
-            <Link href="/pwn/signals" className={`text-sm text-gold underline-offset-4 hover:underline ${focusRing}`}>
+            <Link href="/pwn/signals" className={`mv-link text-sm ${focusRing}`}>
               Ir a ciberpatrullaje
             </Link>
           }
@@ -106,27 +107,39 @@ export default function ForumActorsPage() {
       ) : null}
 
       {status.kind === "ready" && status.items.length > 0 ? (
-        <ul className="space-y-3">
+        <ul className="grid gap-3 md:grid-cols-2">
           {status.items.map((item) => (
-            <li key={item.author} className="rounded-3xl border border-white/10 bg-bg-secondary/70 p-5">
-              <div className="flex flex-wrap items-center gap-2">
-                <Link
-                  href={`/pwn/signals?author=${encodeURIComponent(item.author)}`}
-                  className={`font-display text-2xl text-white underline-offset-4 hover:text-gold hover:underline ${focusRing}`}
-                >
-                  {item.author}
-                </Link>
-                <GovernmentPriorityBadge active={item.isGovernment} />
-                {item.kinds.map((kind) => (
-                  <SignalKindBadge key={kind} kind={kind} />
-                ))}
-                {item.forum ? <span className="text-xs text-gray-500">{item.forum}</span> : null}
-              </div>
-              <p className="mt-2 font-mono text-xs text-gray-500">
-                {item.signalCount === 1 ? "1 señal" : `${item.signalCount} señales`}
-                {item.lastSeenAt ? ` · ${formatRelative(item.lastSeenAt) ?? item.lastSeenAt}` : ""}
-              </p>
-              {item.latestTitle ? <p className="mt-3 text-sm text-gray-300">{item.latestTitle}</p> : null}
+            <li key={item.author}>
+              <Link
+                href={`/pwn/signals?author=${encodeURIComponent(item.author)}`}
+                className="mv-panel mv-panel-interactive mv-focus group flex h-full flex-col rounded-[1.5rem] p-5 md:p-6"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="mv-h3 break-words transition-colors duration-200 group-hover:text-gold">{item.author}</h2>
+                    <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+                      <span className="mv-data text-[var(--text-secondary)]">{item.signalCount === 1 ? "1 señal" : `${item.signalCount} señales`}</span>
+                      {item.lastSeenAt ? ` · ${formatRelative(item.lastSeenAt) ?? item.lastSeenAt}` : ""}
+                      {item.forum ? ` · ${item.forum}` : ""}
+                    </p>
+                  </div>
+                  <ArrowUpRight className="h-5 w-5 shrink-0 text-[var(--text-tertiary)] transition-colors duration-200 group-hover:text-gold" aria-hidden />
+                </div>
+                {item.isGovernment || item.kinds.length ? (
+                  <div className="mt-4 flex flex-wrap items-center gap-1.5">
+                    <GovernmentPriorityBadge active={item.isGovernment} />
+                    {item.kinds.map((kind) => (
+                      <SignalKindBadge key={kind} kind={kind} />
+                    ))}
+                  </div>
+                ) : null}
+                {item.latestTitle ? (
+                  <p className="mt-4 border-t border-[var(--mv-hairline)] pt-4 text-sm leading-relaxed text-[var(--text-secondary)]">
+                    <span className="block text-xs text-[var(--text-tertiary)]">Último titular</span>
+                    {item.latestTitle}
+                  </p>
+                ) : null}
+              </Link>
             </li>
           ))}
         </ul>

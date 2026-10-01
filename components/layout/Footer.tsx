@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Globe } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { ManageCookiesLink } from "@/components/legal/ManageCookiesLink";
@@ -17,6 +16,7 @@ const MODULES: FooterLink[] = [
   { href: "/servicios", label: "Mercav Services" },
   { href: "/empleos", label: "Mercav Jobs" },
   { href: "/herramientas", label: "Mercav Tools" },
+  { href: "/dashboard/pos", label: "Mercav POS" },
   { href: "/pwn", label: "Mercav Pwn" },
   { href: "/kosher", label: "Mercav Kosher" },
 ];
@@ -67,9 +67,9 @@ const ACCOUNT_USER: FooterLink[] = [
 
 function FooterColumn({ title, links }: { title: string; links: FooterLink[] }) {
   return (
-    <div className="flex flex-col gap-3">
-      <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-white">{title}</h2>
-      <ul className="flex flex-col gap-1">
+    <nav aria-label={title} className="flex flex-col gap-3">
+      <h2 className="text-[13px] font-semibold text-[var(--text-primary)]">{title}</h2>
+      <ul className="flex flex-col">
         {links.map((link) => (
           <li key={`${link.href}-${link.label}`}>
             {link.external ? (
@@ -77,19 +77,19 @@ function FooterColumn({ title, links }: { title: string; links: FooterLink[] }) 
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`inline-block py-1.5 text-sm text-gray-400 transition-colors hover:text-white ${focusLink}`}
+                className={`inline-block py-1.5 text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] ${focusLink}`}
               >
                 {link.label}
               </a>
             ) : (
-              <Link href={link.href} className={`inline-block py-1.5 text-sm text-gray-400 transition-colors hover:text-white ${focusLink}`}>
+              <Link href={link.href} className={`inline-block py-1.5 text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] ${focusLink}`}>
                 {link.label}
               </Link>
             )}
           </li>
         ))}
       </ul>
-    </div>
+    </nav>
   );
 }
 
@@ -100,7 +100,7 @@ function SocialIcon({ href, label, children }: { href: string; label: string; ch
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
-      className={`flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-gray-400 transition-colors hover:border-gold/35 hover:bg-gold/5 hover:text-gold ${focusLink}`}
+      className={`grid h-10 w-10 place-items-center rounded-full border border-[var(--mv-hairline-strong)] text-[var(--text-secondary)] transition-colors hover:border-gold/40 hover:text-gold ${focusLink}`}
     >
       {children}
     </a>
@@ -110,27 +110,25 @@ function SocialIcon({ href, label, children }: { href: string; label: string; ch
 export function Footer() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  if (pathname?.includes("/pos") || pathname?.includes("/admin") || pathname === "/kosher/mapa" || pathname === "/1337") return null;
+  if (/^\/(dashboard\/pos|admin)(\/|$)/.test(pathname ?? "") || pathname === "/kosher/mapa" || pathname === "/mensajes" || pathname === "/1337") return null;
   const accountLinks = session ? ACCOUNT_USER : ACCOUNT_GUEST;
 
   return (
-    <footer className="blend-from-primary relative w-full overflow-hidden bg-bg-primary pt-16 pb-nav section-transition md:pt-20">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-bg-primary via-bg-primary/70 to-transparent" />
-        <div className="absolute bottom-0 left-1/2 h-[280px] w-[min(100%,720px)] -translate-x-1/2 rounded-full bg-gold/[0.03] blur-[140px]" />
-      </div>
+    <footer data-site-footer className="blend-from-primary relative w-full overflow-hidden bg-bg-primary pb-nav pt-20 md:pt-28">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 mx-auto h-[280px] w-[min(100%,720px)] rounded-full bg-gold/[0.04] blur-[140px]" />
 
-      <div className="container relative z-10 mx-auto px-4 md:px-6">
-        <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-12 lg:gap-10 xl:gap-12">
-          <div className="flex flex-col gap-5 sm:col-span-2 lg:col-span-4">
+      <div className="mv-container relative z-10">
+        <div className="mv-divider mb-14 md:mb-16" />
+        <div className="grid grid-cols-2 gap-x-6 gap-y-12 md:grid-cols-4 lg:grid-cols-12 lg:gap-10">
+          <div className="col-span-2 flex flex-col gap-6 md:col-span-4 lg:col-span-4">
             <Link href="/" className={`inline-flex w-fit items-center gap-2.5 ${focusLink}`}>
               <img src="/images/logo.png" alt="" className="h-9 w-9 object-contain" aria-hidden />
-              <span className="font-display text-lg font-bold tracking-tight text-white">Mercav</span>
+              <span className="font-display text-xl font-semibold tracking-tight text-[var(--text-primary)]">Mercav</span>
             </Link>
-            <p className="max-w-sm text-sm leading-relaxed text-gray-400">
-              Publicidad offline, servicios digitales, empleo, herramientas y ciberinteligencia. Todo en una sola plataforma.
+            <p className="max-w-xs text-[15px] leading-relaxed text-[var(--text-secondary)]">
+              Publicidad física, talento, empleo, caja, herramientas y ciberinteligencia defensiva. Una cuenta para todo.
             </p>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <SocialIcon href="https://www.instagram.com/mercav.lat" label="Instagram de Mercav">
                 <svg className="h-4 w-4 stroke-current" fill="none" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
@@ -152,38 +150,30 @@ export function Footer() {
           </div>
 
           <div className="lg:col-span-2">
-            <FooterColumn title="Módulos" links={MODULES} />
+            <FooterColumn title="Productos" links={MODULES} />
           </div>
           <div className="lg:col-span-2">
             <FooterColumn title="Mercav Pwn" links={PWN} />
           </div>
           <div className="lg:col-span-2">
-            <FooterColumn title="Plataforma" links={PLATFORM} />
+            <FooterColumn title="Compañía" links={PLATFORM} />
           </div>
-          <div className="lg:col-span-2">
+          <div className="flex flex-col gap-10 lg:col-span-2">
             <FooterColumn title="Legal" links={LEGAL} />
-            <div className="mt-8">
-              <FooterColumn title="Cuenta" links={accountLinks} />
-            </div>
+            <FooterColumn title="Cuenta" links={accountLinks} />
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-8 sm:flex-row">
-          <p className="flex items-center gap-2 text-center text-sm text-gray-500 sm:text-left">
+        <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-[var(--mv-hairline)] pt-8 sm:flex-row">
+          <p className="flex items-center gap-2 text-center text-sm text-[var(--text-tertiary)] sm:text-left">
             © {new Date().getFullYear()} Mercav
             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-gold" aria-hidden>
               <path fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" d="M12 3.2 20.2 17.4H3.8Z" />
               <path fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" d="M12 20.8 3.8 6.6h16.4Z" />
             </svg>
-            Latinoamérica.
+            Hecho en Latinoamérica.
           </p>
-          <div className="flex flex-col items-center gap-2 sm:items-end">
-            <ManageCookiesLink className={`text-xs text-gray-500 transition-colors hover:text-gold ${focusLink}`} />
-            <p className="flex items-center gap-2 text-xs text-gray-500">
-              <Globe className="h-3.5 w-3.5 text-gold/40" aria-hidden />
-              <span>Disponible en 15 países</span>
-            </p>
-          </div>
+          <ManageCookiesLink className={`text-sm text-[var(--text-tertiary)] transition-colors hover:text-gold ${focusLink}`} />
         </div>
       </div>
     </footer>

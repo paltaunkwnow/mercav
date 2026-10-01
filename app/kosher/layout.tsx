@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 import { KosherShell } from "@/components/kosher/KosherShell";
+import { KOSHER_URL } from "@/lib/seo/site";
 import { KosherViewerProvider, type ClientViewer } from "@/components/kosher/KosherViewer";
 import { getKosherViewer } from "@/lib/kosher/server";
 import { remindExpiringCertificates } from "@/lib/kosher/notify";
 
 export const metadata: Metadata = {
-  title: { default: "Mercav Kosher", template: "%s · Mercav Kosher" },
+  metadataBase: new URL(KOSHER_URL),
+  title: { absolute: "Mercav Kosher — dónde hay kosher en cada ciudad de Latinoamérica", template: "%s · Mercav Kosher" },
   description:
-    "El atlas comunitario de lugares kosher, sinagogas y kehilot de Mercav. Mapa, valoraciones, stock por sucursal y conversación de tu comunidad.",
+    "El atlas comunitario de lugares kosher, sinagogas y kehilot de Mercav. Mapa, valoraciones, stock por sucursal, horarios de Shabat y la conversación de tu comunidad. Mercav Kosher no emite hechsher.",
+  keywords: ["kosher", "comida kosher", "restaurantes kosher", "sinagogas", "kehilá", "Shabat", "Buenos Aires", "São Paulo", "La Paz", "Montevideo", "Santiago"],
+  openGraph: { type: "website", locale: "es_419", siteName: "Mercav Kosher", url: KOSHER_URL, title: "Mercav Kosher — dónde hay kosher, en cada ciudad" },
+  twitter: { card: "summary_large_image", title: "Mercav Kosher — dónde hay kosher, en cada ciudad" },
 };
 
 export const dynamic = "force-dynamic";

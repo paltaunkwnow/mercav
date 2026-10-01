@@ -13,7 +13,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "No autorizado" }, { status: 403 })
     }
 
-    const { transactionId, reason } = await req.json()
+    const body = await req.json().catch(() => null)
+    const transactionId = typeof body?.transactionId === "string" ? body.transactionId : ""
+    const reason = typeof body?.reason === "string" ? body.reason.trim().slice(0, 1000) : ""
 
     if (!transactionId || !reason) {
       return NextResponse.json({ success: false, error: "ID de transacción y razón son requeridos" }, { status: 400 })
@@ -32,10 +34,15 @@ export async function POST(req: Request) {
     }
 
     // Process manual database refund
-    const updatedTx = await prisma.transaction.update({
-      where: { id: transactionId },
+    // Update condicional: dos reembolsos simultáneos no pueden pasar ambos el chequeo de PAID
+    const claimed = await prisma.transaction.updateMany({
+      where: { id: transactionId, status: "PAID" },
       data: { status: "REFUNDED" }
     })
+    if (claimed.count === 0) {
+      return NextResponse.json({ success: false, error: "La transacción ya fue reembolsada o cambió de estado" }, { status: 409 })
+    }
+    const updatedTx = await prisma.transaction.findUnique({ where: { id: transactionId } })
 
     // Log the audit event
     await prisma.adminLog.create({
@@ -60,7 +67,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, data: updatedTx })
   } catch (error: any) {
     console.error("Error processing manual refund:", error)
-    return NextResponse.json({ success: false, error: error.message || "Error interno" }, { status: 500 })
+    return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 })
   }
 }
 // creado por pato dev y askforvini

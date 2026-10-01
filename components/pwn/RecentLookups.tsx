@@ -63,26 +63,41 @@ export function RecentLookups() {
   if (!items.length) return null;
 
   return (
-    <section aria-label="Consultas de esta sesión" className="rounded-3xl border border-white/5 bg-bg-secondary/70 p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-xl text-white">Consultas de esta sesión</h2>
+    <section aria-labelledby="pwn-recent-title" className="mv-panel rounded-[1.5rem] p-5 md:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 id="pwn-recent-title" className="mv-h3 text-lg">
+            Consultas de esta sesión
+          </h2>
+          <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+            Solo vive en este navegador. El correo se guarda redactado y se pierde al cerrar la pestaña.
+          </p>
+        </div>
         <button
           type="button"
-          className={`text-sm text-gold underline-offset-4 hover:underline ${focusRing}`}
+          className={`mv-link text-sm ${focusRing}`}
           onClick={() => {
-            sessionStorage.removeItem(KEY);
+            try {
+              sessionStorage.removeItem(KEY);
+            } catch {
+              /* sessionStorage bloqueado */
+            }
             setItems([]);
           }}
         >
           Borrar historial
         </button>
       </div>
-      <p className="mt-2 text-xs text-gray-500">Solo vive en este navegador. El correo se guarda redactado y se pierde al cerrar la pestaña.</p>
-      <ul className="mt-4 divide-y divide-white/5">
+      <ul className="mt-4 flex flex-col gap-2">
         {items.map((item) => (
-          <li key={`${item.type}:${item.hint}:${item.at}`} className="flex items-center justify-between gap-3 py-3">
-            <span className="font-mono text-sm text-gray-200">{item.hint}</span>
-            <span className="shrink-0 text-xs text-gray-500">{item.type === "email" ? "Correo" : "Dominio"} · {formatRelative(item.at) ?? "Ahora"}</span>
+          <li
+            key={`${item.type}:${item.hint}:${item.at}`}
+            className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--mv-hairline)] px-4 py-3"
+          >
+            <span className="mv-data truncate text-sm text-[var(--text-primary)]">{item.hint}</span>
+            <span className="shrink-0 text-xs text-[var(--text-tertiary)]">
+              {item.type === "email" ? "Correo" : "Dominio"} · {formatRelative(item.at) ?? "Ahora"}
+            </span>
           </li>
         ))}
       </ul>

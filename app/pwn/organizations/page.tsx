@@ -8,8 +8,10 @@ import { SourceBadge } from "@/components/pwn/SourceBadge";
 import { RiskBadge } from "@/components/pwn/RiskBadge";
 import { DisabledState, EmptyState, LoadingState, UnauthorizedState } from "@/components/pwn/EmptyState";
 import { FadeIn } from "@/components/pwn/PwnShell";
-import { Button } from "@/components/ui/button";
-import { focusRing, formatWhen, pwnFieldClass, pwnFieldLabelClass, pwnPanelClass } from "@/components/pwn/format";
+import { formatWhen, pwnFieldClass, pwnFieldLabelClass, pwnPanelClass } from "@/components/pwn/format";
+import { PwnNotice, PwnPageHeader, pwnErrorTextClass } from "@/components/pwn/ui";
+import { buttonClass } from "@/components/site/primitives";
+import { Building2 } from "lucide-react";
 
 const RECENT_ALERTS = 50;
 
@@ -114,11 +116,12 @@ export default function OrganizationsPage() {
   }, [load]);
 
   return (
-    <FadeIn className="space-y-6">
-      <header>
-        <h1 className="font-display text-4xl font-black tracking-tight text-white md:text-5xl">Organizaciones</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-400">Objetivos de monitoreo agrupados por la organización a la que están asociados, con sus alertas recientes.</p>
-      </header>
+    <FadeIn className="space-y-8">
+      <PwnPageHeader
+        kicker="Organizaciones"
+        title="Tus objetivos, agrupados por cliente o equipo."
+        lead="Objetivos de monitoreo agrupados por la organización a la que están asociados, con sus alertas recientes."
+      />
 
       <form
         className={`space-y-5 ${pwnPanelClass}`}
@@ -148,23 +151,32 @@ export default function OrganizationsPage() {
         }}
       >
         <div>
-          <h2 className="font-display text-2xl text-white">Nueva organización</h2>
-          <p className="mt-1 text-sm text-gray-500">Agrupa dominios y objetivos de monitoreo bajo un mismo cliente o equipo.</p>
+          <h2 className="mv-h3 text-lg">Nueva organización</h2>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">Agrupá dominios y objetivos de monitoreo bajo un mismo cliente o equipo.</p>
         </div>
-        <div className="grid gap-5 md:grid-cols-2">
-          <label className="block space-y-2">
-            <span className={pwnFieldLabelClass}>Nombre</span>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label htmlFor="pwn-org-name" className={pwnFieldLabelClass}>
+              Nombre
+            </label>
             <input
+              id="pwn-org-name"
+              aria-invalid={formError ? true : undefined}
+              aria-describedby={formError ? "pwn-org-error" : undefined}
               className={pwnFieldClass}
               value={name}
               onChange={(event) => setName(event.target.value)}
               autoComplete="organization"
               placeholder="Acme Corp"
             />
-          </label>
-          <label className="block space-y-2">
-            <span className={pwnFieldLabelClass}>Dominio (opcional)</span>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="pwn-org-domain" className={pwnFieldLabelClass}>
+              Dominio <span className="text-[var(--text-tertiary)]">(opcional)</span>
+            </label>
             <input
+              id="pwn-org-domain"
+              inputMode="url"
               className={pwnFieldClass}
               value={domain}
               onChange={(event) => setDomain(event.target.value)}
@@ -172,13 +184,17 @@ export default function OrganizationsPage() {
               autoComplete="off"
               spellCheck={false}
             />
-          </label>
+          </div>
         </div>
-        {formError ? <p role="alert" className="text-sm text-red-200">{formError}</p> : null}
+        {formError ? (
+          <p id="pwn-org-error" role="alert" className={pwnErrorTextClass}>
+            {formError}
+          </p>
+        ) : null}
         <div className="flex flex-wrap items-center gap-3 pt-1">
-          <Button type="submit" disabled={saving} className={`rounded-xl bg-gold px-5 font-semibold text-black hover:bg-gold-light ${focusRing}`}>
+          <button type="submit" disabled={saving} className={buttonClass("primary", "md", "w-full sm:w-auto")}>
             {saving ? "Guardando…" : "Crear organización"}
-          </Button>
+          </button>
         </div>
       </form>
 
@@ -186,15 +202,15 @@ export default function OrganizationsPage() {
       {!loading && failure && !failure.ok && failure.reason === "unauthorized" ? <UnauthorizedState callbackPath="/pwn/organizations" /> : null}
       {!loading && failure && !failure.ok && failure.reason === "disabled" ? <DisabledState title="Organizaciones no disponibles" /> : null}
       {!loading && !failure && notes.length ? (
-        <div role="status" className="space-y-2">
+        <div role="status" className="space-y-3">
           {notes.map((note) => (
-            <p key={note.text} className="text-sm text-gray-400">
+            <PwnNotice key={note.text} tone="neutral">
               {note.text}
-            </p>
+            </PwnNotice>
           ))}
-          <Button type="button" variant="outline" onClick={() => void load()} className={`rounded-xl border-white/10 text-white ${focusRing}`}>
+          <button type="button" onClick={() => void load()} className={buttonClass("secondary", "sm", "w-full sm:w-auto")}>
             Reintentar
-          </Button>
+          </button>
         </div>
       ) : null}
 
@@ -203,9 +219,9 @@ export default function OrganizationsPage() {
           title="No hay objetivos asociados a una organización"
           description="Los objetivos de monitoreo aparecen aquí cuando se registran con una organización."
           action={
-            <Button asChild className={`rounded-xl bg-gold font-semibold text-black hover:bg-gold-light ${focusRing}`}>
-              <Link href="/pwn/exposure">Ir a exposición</Link>
-            </Button>
+            <Link href="/pwn/exposure" className={buttonClass("primary", "md")}>
+              Ir a Exposición
+            </Link>
           }
         />
       ) : null}
@@ -214,10 +230,15 @@ export default function OrganizationsPage() {
         ? orgs.map((org) => {
             const verified = org.targets.filter((target) => target.verificationStatus === "VERIFIED").length;
             return (
-              <article key={org.id} className="space-y-4 rounded-3xl border border-white/5 bg-bg-secondary/70 p-5 md:p-6">
-                <header>
-                  <h2 className="font-display text-3xl text-white">{org.name}</h2>
-                  <p className="mt-1 text-sm text-gray-400">{org.domain ?? "Sin dominio"}</p>
+              <article key={org.id} className="mv-panel space-y-6 rounded-[1.75rem] p-5 md:p-7">
+                <header className="flex items-start gap-4">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] text-gold">
+                    <Building2 className="h-5 w-5" aria-hidden />
+                  </span>
+                  <div className="min-w-0">
+                    <h2 className="mv-h3 break-words">{org.name}</h2>
+                    <p className="mv-data mt-1 text-sm text-[var(--text-secondary)]">{org.domain ?? "Sin dominio"}</p>
+                  </div>
                 </header>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <StatCard label="Objetivos" value={org.targets.length} />
@@ -225,12 +246,16 @@ export default function OrganizationsPage() {
                   <StatCard label="Pendientes" value={org.targets.length - verified} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-white">Objetivos</h3>
-                  <ul className="mt-2 flex flex-wrap gap-2">
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)]">Objetivos</h3>
+                  <ul className="mt-2 flex flex-wrap gap-1.5">
                     {org.targets.map((target) => (
                       <li
                         key={target.id}
-                        className={`rounded-lg border px-2 py-1 font-mono text-xs ${target.verificationStatus === "VERIFIED" ? "border-white/10 text-gray-300" : "border-dashed border-gold/30 text-gray-400"}`}
+                        className={`mv-data inline-flex items-center rounded-full border px-2.5 py-1 text-xs ${
+                          target.verificationStatus === "VERIFIED"
+                            ? "border-[var(--mv-hairline-strong)] text-[var(--text-primary)]"
+                            : "border-dashed border-[var(--color-border-gold)] text-[var(--text-secondary)]"
+                        }`}
                       >
                         {target.targetDisplay}
                         {target.verificationStatus === "VERIFIED" ? "" : " · pendiente"}
@@ -239,18 +264,18 @@ export default function OrganizationsPage() {
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-white">Alertas recientes</h3>
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)]">Alertas recientes</h3>
                   {org.alerts.length === 0 ? (
-                    <p className="mt-2 text-sm text-gray-400">No hay alertas recientes para esta organización.</p>
+                    <p className="mt-2 text-sm text-[var(--text-secondary)]">No hay alertas recientes para esta organización.</p>
                   ) : (
-                    <ul className="mt-2 space-y-2">
+                    <ul className="mt-2 flex flex-col divide-y divide-[var(--mv-hairline)]">
                       {org.alerts.map((alert) => (
-                        <li key={alert.id} className="flex flex-col gap-2 rounded-2xl border border-white/5 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-                          <div>
-                            <p className="text-sm text-white">{alert.title}</p>
-                            <p className="text-xs text-gray-500">{formatWhen(alert.createdAt) ?? "Fecha no indicada"}</p>
+                        <li key={alert.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-[var(--text-primary)]">{alert.title}</p>
+                            <p className="mv-data text-xs text-[var(--text-tertiary)]">{formatWhen(alert.createdAt) ?? "Fecha no indicada"}</p>
                           </div>
-                          <div className="flex flex-wrap items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-1.5">
                             <RiskBadge level={alert.severity} />
                             <SourceBadge source={alert.source} />
                           </div>

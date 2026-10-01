@@ -24,7 +24,11 @@ export async function PATCH(request: NextRequest) {
   if (!viewer) return unauthorized();
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return kosherError(400, "Revisá tus preferencias.");
-  if (parsed.data.shabbatMode && (parsed.data.lat ?? viewer.profile?.lat) == null) {
+  // Si el request manda lat: null explícito, no hay que caer al valor viejo del perfil.
+  const nextLat = parsed.data.lat !== undefined ? parsed.data.lat : viewer.profile?.lat;
+  const nextLng = parsed.data.lng !== undefined ? parsed.data.lng : viewer.profile?.lng;
+  const nextMode = parsed.data.shabbatMode ?? viewer.profile?.shabbatMode ?? false;
+  if (nextMode && (nextLat == null || nextLng == null)) {
     return kosherError(400, "Elegí tu ciudad para calcular el horario de Shabat.");
   }
 

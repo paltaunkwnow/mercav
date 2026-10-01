@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { isBoliviaRelatedSignal, isGovernmentRelatedSignal } from "@/lib/integrations/pwn/forum-classifier";
 import { scrubPublicTitle } from "@/lib/integrations/pwn/forum-scraper";
@@ -26,7 +27,10 @@ const signalSelect = {
   priorityRank: true,
   source: { select: { name: true } },
   breach: { select: { name: true, verificationStatus: true } },
-} as const;
+} satisfies Prisma.PwnForumSignalSelect;
+
+// Fila tal cual la devuelve el select (antes se tipaba como el modelo completo y no matcheaba).
+type SignalRow = Prisma.PwnForumSignalGetPayload<{ select: typeof signalSelect }>;
 
 const KINDS = ["DATABASE", "STEALER", "CORPORATE", "CREDENTIALS", "MIXED", "OTHER"] as const;
 
@@ -38,21 +42,7 @@ function kindFilterFromParam(kind: string | undefined) {
   return {};
 }
 
-function mapRow(row: {
-  id: string;
-  title: string;
-  link: string;
-  author: string | null;
-  category: string | null;
-  forum: string | null;
-  signalKind: string;
-  priorityRank: number;
-  publishedAt: Date | null;
-  lastSeenAt: Date;
-  verificationStatus: string;
-  source: { name: string } | null;
-  breach: { name: string; verificationStatus: string } | null;
-}) {
+function mapRow(row: SignalRow) {
   return {
     id: row.id,
     title: scrubPublicTitle(row.title),
@@ -114,7 +104,7 @@ export async function GET(request: NextRequest) {
     });
 
     let total: number;
-    let rows: Awaited<ReturnType<typeof prisma.pwnForumSignal.findMany>>;
+    let rows: SignalRow[];
 
     if (govOnly || boliviaOnly) {
       const all = await prisma.pwnForumSignal.findMany({

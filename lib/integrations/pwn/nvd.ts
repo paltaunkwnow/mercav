@@ -1,6 +1,6 @@
 // Environment: HIBP_API_KEY (unused here), NVD_API_KEY (optional), PWN_ENABLED.
 
-import { ConnectorResponse, PwnConnector, PwnProviderError } from "./types";
+import { ConnectorResponse, PwnConnector, PwnProviderError, rateLimitedError } from "./types";
 
 const NVD_API = "https://services.nvd.nist.gov/rest/json/cves/2.0";
 
@@ -133,6 +133,8 @@ export const nvdConnector: PwnConnector<NvdQuery, NvdVulnerability[]> = {
       return { configured: false };
     }
     try {
+      // NVD responde 403 (sin key) o 429 cuando se excede la ventana de 30 s.
+      if (response.status === 429 || response.status === 403) throw rateLimitedError("NVD", response);
       if (!response.ok) throw new PwnProviderError("NVD");
       const payload = record(await response.json());
       if (!Array.isArray(payload?.vulnerabilities)) throw new Error("Invalid payload");

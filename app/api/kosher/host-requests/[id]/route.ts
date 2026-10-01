@@ -19,9 +19,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   if (req.status !== "pending") return kosherError(409, "Ya respondiste este pedido.");
 
   const accepted = parsed.data.status === "accepted";
-  await prisma.$transaction(async (tx) => {
-    await tx.kosherHostRequest.update({ where: { id: req.id }, data: { status: parsed.data.status } });
-    if (!accepted) return;
+  // Update condicionado a "pending": un doble clic ya no crea dos conversaciones ni notifica dos veces.
+  const applied = await prisma.$transaction(async (tx) => {
+    const marked = await tx.kosherHostRequest.updateMany({
+      where: { id: req.id, status: "pending" },
+      data: { status: parsed.data.status },
+    });
+    if (marked.count === 0) return false;
+    if (!accepted) return true;
     await tx.conversation.create({
       data: {
         context: "GENERAL",
@@ -35,7 +40,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         },
       },
     });
+    return true;
   });
+  if (!applied) return kosherError(409, "Ya respondiste este pedido.");
   await notifyUser(
     req.guestId,
     accepted ? "¡Te esperan para Shabat!" : "Tu pedido de Shabat",

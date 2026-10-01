@@ -51,3 +51,6 @@ home_debug.html
 # notas personales de Obsidian; no van al repositorio
 /obsidian/
 
+# contexto local para la siguiente conversación con la IA; no va al repositorio
+/CONTEXTO.md
+

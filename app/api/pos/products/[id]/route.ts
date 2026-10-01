@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getPosContext, posError } from "@/lib/pos/server";
 import { isUniqueCodeError, productInputSchema } from "@/lib/pos/product-input";
+import { requireManager } from "@/lib/pos/staff";
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   const ctx = await getPosContext();
   if (!ctx.ok) return ctx.response;
+  const gate = await requireManager(req, ctx.config.id);
+  if (!gate.ok) return gate.response;
 
   const existing = await prisma.pOSProduct.findFirst({ where: { id: params.id, posConfigId: ctx.config.id } });
   if (!existing) return posError("Product not found or access denied", 404);
@@ -32,6 +35,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const ctx = await getPosContext();
   if (!ctx.ok) return ctx.response;
+  const gate = await requireManager(_req, ctx.config.id);
+  if (!gate.ok) return gate.response;
 
   const existing = await prisma.pOSProduct.findFirst({
     where: { id: params.id, posConfigId: ctx.config.id },

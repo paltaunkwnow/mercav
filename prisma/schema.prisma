@@ -60,6 +60,7 @@ model User {
   involvedTickets     Ticket[] @relation("InvolvedUserTickets")
   ticketReplies       TicketReply[]
   posConfig           POSConfig?
+  toolRuns            ToolRun[]
   badges              Badge[]         @relation("UserBadges")
   
   // Sanction System
@@ -989,6 +990,8 @@ model POSConfig {
   products      POSProduct[]
   sales         POSSale[]
   cashSessions  POSCashSession[]
+  staff         POSStaff[]
+  kosherPlaceId String?       // Mercav Kosher place this shop publishes stock to
 }
 
 model POSCategory {
@@ -1021,6 +1024,8 @@ model POSProduct {
   isHalal      Boolean        @default(false)
   isVegan      Boolean        @default(false)
   isGlutenFree Boolean        @default(false)
+  minStock     Decimal?       // low-stock alert threshold
+  kosherCategory KosherStockCategory? // set to publish this product's stock to Mercav Kosher
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   posConfig    POSConfig      @relation(fields: [posConfigId], references: [id], onDelete: Cascade)
@@ -1047,7 +1052,14 @@ model POSSale {
   transactionId   String         @unique @default(cuid())
   clientNit       String?
   clientName      String?
+  status          String         @default("COMPLETED") // COMPLETED, VOIDED
+  voidedAt        DateTime?
+  voidReason      String?
+  voidedById      String?        // POSStaff id, null when the owner voided it
+  clientRef       String?        @unique // idempotency key for sales queued offline
+  staffId         String?
   createdAt       DateTime       @default(now())
+  staff           POSStaff?      @relation(fields: [staffId], references: [id], onDelete: SetNull)
   posConfig       POSConfig      @relation(fields: [posConfigId], references: [id], onDelete: Cascade)
   cashSession     POSCashSession @relation(fields: [cashSessionId], references: [id])
   items           POSSaleItem[]
@@ -1092,8 +1104,41 @@ model POSCashSession {
   status          String    @default("OPEN") // OPEN, CLOSED
   openedAt        DateTime  @default(now())
   closedAt        DateTime?
+  staffId         String?
   posConfig       POSConfig @relation(fields: [posConfigId], references: [id], onDelete: Cascade)
+  staff           POSStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
   sales           POSSale[]
+}
+
+/// People who use the owner's POS with a PIN. They are not Mercav accounts.
+model POSStaff {
+  id          String           @id @default(uuid())
+  posConfigId String
+  name        String
+  pinHash     String
+  role        String           @default("CASHIER") // CASHIER, MANAGER
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  posConfig   POSConfig        @relation(fields: [posConfigId], references: [id], onDelete: Cascade)
+  sales       POSSale[]
+  sessions    POSCashSession[]
+
+  @@index([posConfigId])
+}
+
+/// Saved results of Mercav Tools (contracts, SEO reports, simulations).
+model ToolRun {
+  id        String   @id @default(uuid())
+  userId    String
+  tool      String
+  title     String
+  input     Json
+  output    Json
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, tool, createdAt])
 }
 model Badge {
   id          String   @id @default(uuid())

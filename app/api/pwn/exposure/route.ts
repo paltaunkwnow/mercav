@@ -184,7 +184,9 @@ export async function POST(request: NextRequest) {
           sourceUrl: breach.sourceUrl,
           verificationStatus,
           confidenceScore: confidence.score,
-          claimedRecordCount: breach.pwnCount,
+          // Prisma Int es int32: recortamos igual que en cycle.ts para no romper el upsert.
+          claimedRecordCount:
+            breach.pwnCount == null ? null : Math.min(Math.max(0, breach.pwnCount), 2_147_483_647),
           dataTypes: breach.dataClasses,
           severity: risk?.level ?? "INFO",
         };

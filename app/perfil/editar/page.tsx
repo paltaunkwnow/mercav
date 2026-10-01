@@ -12,14 +12,14 @@ import {
   Briefcase,
   GraduationCap,
   Sparkles,
-  Languages,
   BadgeCheck,
-  FolderOpen,
   Settings2,
   CheckCircle2,
   ShieldCheck,
+  MapPin,
+  Image as ImageIcon,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Container } from "@/components/site/primitives";
 import { 
   Select, 
   SelectContent, 
@@ -54,6 +54,7 @@ type FormState = {
 
 const SECTIONS = [
   { id: "basic", label: "Información básica", icon: UserCircle2 },
+  { id: "images", label: "Imágenes", icon: ImageIcon },
   { id: "presentation", label: "Presentación", icon: Sparkles },
   { id: "security", label: "Seguridad y 2FA", icon: ShieldCheck },
   { id: "experience", label: "Experiencia", icon: Briefcase },
@@ -91,6 +92,7 @@ export default function EditarPerfilPage() {
     salaryMax: "",
     salaryCurrency: "USD",
     salaryVisible: false,
+    twoFactorEnabled: false,
   });
 
   const completeness = useMemo(() => {
@@ -136,6 +138,7 @@ export default function EditarPerfilPage() {
           });
         }
       })
+      .catch((err) => console.error("Error cargando el perfil:", err))
       .finally(() => setLoading(false));
   }, []);
 
@@ -173,125 +176,141 @@ export default function EditarPerfilPage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-bg-primary pt-20"><Loader2 className="w-8 h-8 animate-spin text-gold" /></div>;
+    return (
+      <div className="flex min-h-[100svh] items-center justify-center bg-bg-primary pt-20" role="status">
+        <Loader2 className="h-7 w-7 animate-spin text-gold" aria-hidden />
+        <span className="sr-only">Cargando tu perfil</span>
+      </div>
+    );
   }
 
   return (
-    <div className="w-full min-h-screen bg-bg-primary pt-24 pb-20">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <Link href="/perfil" className="inline-flex items-center text-gray-400 hover:text-white transition-colors mb-6 text-sm font-medium">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Volver a mi perfil
+    <div className="relative w-full bg-bg-primary pb-16 pt-24 md:pb-24 md:pt-28">
+      <div className="mv-aura" aria-hidden />
+      <Container width="wide" className="relative">
+        <Link href="/perfil" className="mv-focus mb-5 inline-flex items-center gap-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
+          <ArrowLeft className="h-4 w-4" aria-hidden /> Volver a mi perfil
         </Link>
 
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="font-display text-3xl font-bold text-white">Editar Perfil</h1>
-            <p className="mt-2 text-sm text-gray-400">Personaliza tu perfil profesional para destacar en el ecosistema Mercav.</p>
+            <p className="mv-kicker">Tu cuenta</p>
+            <h1 className="mv-h2 mt-3">Editar perfil</h1>
+            <p className="mv-body mt-2 max-w-xl">Lo que completes acá es lo que ven clientes, empresas y postulantes en todos los módulos.</p>
           </div>
-          <div className="rounded-2xl border border-border bg-bg-secondary px-4 py-3 text-sm text-gray-300">
-            Compleción: <span className="font-semibold text-white">{completeness}%</span>
+          <div className="mv-panel flex min-w-[15rem] flex-col gap-2 rounded-2xl px-4 py-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-[var(--text-secondary)]">Perfil completo</span>
+              <span className="mv-data font-medium text-[var(--text-primary)]">{completeness}%</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--mv-panel-hover)]" role="progressbar" aria-valuenow={completeness} aria-valuemin={0} aria-valuemax={100} aria-label="Perfil completo">
+              <div className="h-full rounded-full bg-gold transition-[width] duration-500" style={{ width: `${completeness}%` }} />
+            </div>
           </div>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[260px_1fr_320px]">
+        {/* Section nav — chips on mobile, sticky list on desktop */}
+        <nav aria-label="Secciones del formulario" className="scrollbar-hide -mx-4 mb-6 flex gap-2 overflow-x-auto px-4 xl:hidden">
+          {SECTIONS.map((section) => (
+            <a key={section.id} href={`#${section.id}`} className="mv-chip mv-focus h-9 shrink-0 px-3.5 text-[13px]">
+              <section.icon className="h-3.5 w-3.5 text-gold" aria-hidden />
+              {section.label}
+            </a>
+          ))}
+        </nav>
+
+        <div className="grid gap-6 xl:grid-cols-[220px_minmax(0,1fr)_300px] xl:gap-8">
           <aside className="hidden xl:block">
-            <div className="sticky top-24 rounded-3xl border border-border bg-bg-secondary p-4">
-              <div className="mb-4 text-sm font-semibold text-white">Secciones</div>
-              <nav className="space-y-2 text-sm">
+            <nav aria-label="Secciones del formulario" className="sticky top-28">
+              <ul className="space-y-1">
                 {SECTIONS.map((section) => {
                   const Icon = section.icon;
                   return (
-                    <a key={section.id} href={`#${section.id}`} className="flex items-center gap-3 rounded-2xl border border-border bg-bg-primary px-4 py-3 text-gray-300 hover:text-white hover:border-gold/40 transition-colors">
-                      <Icon className="h-4 w-4 text-gold" />
-                      <span>{section.label}</span>
-                    </a>
+                    <li key={section.id}>
+                      <a href={`#${section.id}`} className="mv-focus flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors duration-200 hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]">
+                        <Icon className="h-4 w-4 text-gold" aria-hidden />
+                        <span>{section.label}</span>
+                      </a>
+                    </li>
                   );
                 })}
-              </nav>
-            </div>
+              </ul>
+            </nav>
           </aside>
 
-          <main className="space-y-6">
+          <div className="min-w-0">
             <form onSubmit={(e) => { e.preventDefault(); void saveProfile(false); }} className="space-y-6">
               {/* Básicos */}
-              <section id="basic" className="scroll-mt-24 rounded-3xl border border-border bg-bg-secondary p-6">
-                <h3 className="mb-5 text-xl font-bold text-white">Información básica</h3>
-                <div className="space-y-6">
-                  <div>
-                    <label className="mb-2 block text-sm text-gray-300">Imagen de portada (URL)</label>
-                    <input value={formData.coverImage} onChange={(e) => updateField("coverImage", e.target.value)} placeholder="https://ejemplo.com/banner.jpg" className="w-full rounded-xl border border-border bg-bg-primary px-4 py-3 text-white outline-none focus:border-gold" />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-sm text-gray-300">Foto de perfil (URL)</label>
-                    <input value={formData.avatar} onChange={(e) => updateField("avatar", e.target.value)} placeholder="https://ejemplo.com/foto.jpg" className="w-full rounded-xl border border-border bg-bg-primary px-4 py-3 text-white outline-none focus:border-gold" />
-                  </div>
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <div>
-                      <label className="mb-2 block text-sm text-gray-300">Tipo de perfil</label>
-                      <Select value={formData.profileType} onValueChange={(v) => updateField("profileType", v)}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="PERSONAL">Profesional Independiente</SelectItem>
-                          <SelectItem value="EMPRESA">Empresa / Agencia</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-sm text-gray-300">Nombre / Razón social</label>
-                      <input value={formData.name} onChange={(e) => updateField("name", e.target.value)} className="w-full rounded-xl border border-border bg-bg-primary px-4 py-3 text-white outline-none focus:border-gold" />
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-sm text-gray-300">Titular / Cargo</label>
-                      <input value={formData.headline} onChange={(e) => updateField("headline", e.target.value)} placeholder="Ej. Senior Frontend Developer" className="w-full rounded-xl border border-border bg-bg-primary px-4 py-3 text-white outline-none focus:border-gold" />
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-sm text-gray-300">Ubicación</label>
-                      <input value={formData.location} onChange={(e) => updateField("location", e.target.value)} placeholder="Ej. La Paz, Bolivia" className="w-full rounded-xl border border-border bg-bg-primary px-4 py-3 text-white outline-none focus:border-gold" />
-                    </div>
-                  </div>
+              <FormSection id="basic" title="Información básica" description="Tu nombre, tu titular y dónde estás.">
+                <div className="grid gap-5 md:grid-cols-2">
+                  <Field id="pf-name" label="Nombre o razón social">
+                    <input id="pf-name" autoComplete="name" value={formData.name} onChange={(e) => updateField("name", e.target.value)} className="mv-input" />
+                  </Field>
+                  <Field id="pf-type" label="Tipo de perfil">
+                    <Select value={formData.profileType} onValueChange={(v) => updateField("profileType", v)}>
+                      <SelectTrigger id="pf-type" className="h-12 rounded-[0.875rem]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PERSONAL">Profesional independiente</SelectItem>
+                        <SelectItem value="EMPRESA">Empresa o agencia</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field id="pf-headline" label="Titular o cargo">
+                    <input id="pf-headline" autoComplete="organization-title" value={formData.headline} onChange={(e) => updateField("headline", e.target.value)} placeholder="Ej. Diseñadora de marca" className="mv-input" />
+                  </Field>
+                  <Field id="pf-location" label="Ubicación">
+                    <input id="pf-location" autoComplete="address-level2" value={formData.location} onChange={(e) => updateField("location", e.target.value)} placeholder="Ej. La Paz, Bolivia" className="mv-input" />
+                  </Field>
                 </div>
-              </section>
+              </FormSection>
+
+              {/* Imágenes */}
+              <FormSection id="images" title="Imágenes" description="Pegá la URL pública de tu foto y de la portada.">
+                <div className="grid gap-5">
+                  <Field id="pf-avatar" label="Foto de perfil (URL)">
+                    <input id="pf-avatar" type="url" inputMode="url" value={formData.avatar} onChange={(e) => updateField("avatar", e.target.value)} placeholder="https://ejemplo.com/foto.jpg" className="mv-input" />
+                  </Field>
+                  <Field id="pf-cover" label="Imagen de portada (URL)">
+                    <input id="pf-cover" type="url" inputMode="url" value={formData.coverImage} onChange={(e) => updateField("coverImage", e.target.value)} placeholder="https://ejemplo.com/portada.jpg" className="mv-input" />
+                  </Field>
+                </div>
+              </FormSection>
 
               {/* Presentación */}
-              <section id="presentation" className="scroll-mt-24 rounded-3xl border border-border bg-bg-secondary p-6">
-                <h3 className="mb-5 text-xl font-bold text-white">Presentación</h3>
-                <textarea value={formData.bio} onChange={(e) => updateField("bio", e.target.value.slice(0, 600))} rows={7} placeholder="Háblanos de ti..." className="w-full rounded-2xl border border-border bg-bg-primary p-4 text-white outline-none focus:border-gold resize-none" />
-                <div className="mt-2 text-right text-xs text-gray-500">{formData.bio.length}/600</div>
-              </section>
+              <FormSection id="presentation" title="Presentación" description="Contá en pocas líneas qué hacés y para quién.">
+                <Field id="pf-bio" label="Biografía" hint={<span className="mv-data">{formData.bio.length}/600</span>}>
+                  <textarea id="pf-bio" value={formData.bio} onChange={(e) => updateField("bio", e.target.value.slice(0, 600))} rows={6} placeholder="Ej. Ayudo a marcas locales a vender online…" className="mv-input h-auto resize-y py-3 leading-relaxed" />
+                </Field>
+              </FormSection>
 
               {/* Seguridad */}
-              <section id="security" className="scroll-mt-24">
+              <section id="security" className="scroll-mt-28">
                 <TwoFactorSetup isEnabledInitial={formData.twoFactorEnabled} />
               </section>
 
-              {/* Experiencia Real */}
-              <section id="experience" className="scroll-mt-24 rounded-3xl border border-border bg-bg-secondary p-6">
-                <h3 className="mb-5 text-xl font-bold text-white">Experiencia</h3>
+              {/* Experiencia */}
+              <FormSection id="experience" title="Experiencia" description="Tus trabajos, del más reciente al más antiguo.">
                 <ExperienceForm items={formData.experiences} onChange={(val) => updateField("experiences", val)} />
-              </section>
+              </FormSection>
 
-              {/* Educación Real */}
-              <section id="education" className="scroll-mt-24 rounded-3xl border border-border bg-bg-secondary p-6">
-                <h3 className="mb-5 text-xl font-bold text-white">Educación</h3>
+              {/* Educación */}
+              <FormSection id="education" title="Educación">
                 <EducationForm items={formData.educations} onChange={(val) => updateField("educations", val)} />
-              </section>
+              </FormSection>
 
-              {/* Habilidades Reales */}
-              <section id="skills" className="scroll-mt-24 rounded-3xl border border-border bg-bg-secondary p-6">
-                <h3 className="mb-5 text-xl font-bold text-white">Habilidades</h3>
+              {/* Habilidades */}
+              <FormSection id="skills" title="Habilidades" description="Escribí una habilidad, elegí el nivel y presioná Enter.">
                 <SkillsForm items={formData.skills} onChange={(val) => updateField("skills", val)} />
-              </section>
+              </FormSection>
 
-              {/* Preferencias Reales */}
-              <section id="preferences" className="scroll-mt-24 rounded-3xl border border-border bg-bg-secondary p-6">
-                <h3 className="mb-5 text-xl font-bold text-white">Preferencias laborales</h3>
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div>
-                    <label className="mb-2 block text-sm text-gray-300">Modalidad preferida</label>
+              {/* Preferencias */}
+              <FormSection id="preferences" title="Preferencias laborales">
+                <div className="grid gap-5 md:grid-cols-2">
+                  <Field id="pf-workmode" label="Modalidad preferida">
                     <Select value={formData.workMode} onValueChange={(v) => updateField("workMode", v)}>
-                      <SelectTrigger>
+                      <SelectTrigger id="pf-workmode" className="h-12 rounded-[0.875rem]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -300,11 +319,10 @@ export default function EditarPerfilPage() {
                         <SelectItem value="HIBRIDO">Híbrido</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-sm text-gray-300">Disponibilidad</label>
+                  </Field>
+                  <Field id="pf-availability" label="Disponibilidad">
                     <Select value={formData.availabilityStatus} onValueChange={(v) => updateField("availabilityStatus", v)}>
-                      <SelectTrigger>
+                      <SelectTrigger id="pf-availability" className="h-12 rounded-[0.875rem]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -313,123 +331,104 @@ export default function EditarPerfilPage() {
                         <SelectItem value="NO_DISPONIBLE">No disponible</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
+                  </Field>
                 </div>
-              </section>
+              </FormSection>
 
               {unsaved && (
-                <section
-                  className="sticky bottom-4 z-20 rounded-3xl border border-gold/30 bg-bg-secondary/95 p-4 backdrop-blur-xl shadow-2xl shadow-gold/5"
-                  style={{ animation: 'slideUp 0.25s ease-out' }}
-                >
-                  <style>{`@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }`}</style>
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-2 text-sm text-yellow-400">
-                      <AlertCircle className="h-4 w-4" />
-                      Tienes cambios sin guardar
-                    </div>
-                    <div className="flex gap-3">
-                      <Button type="button" variant="outline" className="border-border text-gray-300 hover:text-white" onClick={() => router.back()}>Descartar</Button>
-                      <Button type="submit" disabled={saving} className="bg-gold text-black hover:bg-gold-light font-bold px-8">
-                        {saving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                        Guardar Todo
-                      </Button>
+                <div className="mv-sheet mv-menu sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] z-20 rounded-[1.5rem] p-3 pl-5 md:bottom-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]" role="status">
+                      <AlertCircle className="h-4 w-4 text-gold" aria-hidden />
+                      Tenés cambios sin guardar
+                    </p>
+                    <div className="flex gap-2">
+                      <button type="button" className="mv-btn mv-btn-ghost mv-btn-sm flex-1 sm:flex-none" onClick={() => router.back()}>Descartar</button>
+                      <button type="submit" disabled={saving} aria-busy={saving} className="mv-btn mv-btn-primary mv-btn-sm flex-1 sm:flex-none">
+                        {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Save className="h-4 w-4" aria-hidden />}
+                        {saving ? "Guardando…" : "Guardar cambios"}
+                      </button>
                     </div>
                   </div>
-                </section>
+                </div>
               )}
             </form>
-          </main>
+          </div>
 
-          <aside className="hidden xl:block">
-            <div className="sticky top-24 space-y-4">
-              {/* Label */}
-              <div className="flex items-center gap-2 text-xs text-gray-500 uppercase tracking-widest font-semibold px-1">
-                <span className="w-2 h-2 rounded-full bg-gold inline-block"></span>
-                Vista Previa Pública
-              </div>
+          <aside className="hidden xl:block" aria-label="Vista previa pública">
+            <div className="sticky top-28 space-y-3">
+              <p className="mv-kicker">Vista previa pública</p>
 
-              {/* Profile Card */}
-              <div className="rounded-3xl border border-border bg-bg-secondary overflow-hidden shadow-2xl shadow-black/40">
-                {/* Cover + Avatar anchored to bottom */}
-                <div className="h-32 relative bg-gradient-to-br from-gold/10 via-bg-tertiary to-bg-primary">
-                  {formData.coverImage && (
-                    <img src={formData.coverImage} className="h-full w-full object-cover" alt="Cover" />
+              <div className="mv-panel overflow-hidden">
+                <div className="relative h-28 bg-bg-tertiary">
+                  {formData.coverImage ? (
+                    <img src={formData.coverImage} className="h-full w-full object-cover" alt="" />
+                  ) : (
+                    <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(212,175,55,0.22),transparent_60%),linear-gradient(135deg,var(--color-bg-tertiary),var(--color-bg-primary))]" />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-bg-secondary via-transparent to-transparent" />
-                  {/* Avatar pinned to bottom-center of the cover */}
-                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-10">
-                    <div className="h-16 w-16 rounded-2xl border-4 border-bg-secondary bg-bg-tertiary overflow-hidden shadow-xl ring-2 ring-gold/20">
-                      {formData.avatar ? (
-                        <img src={formData.avatar} className="h-full w-full object-cover" alt="Avatar" />
-                      ) : (
-                        <div className="h-full w-full flex items-center justify-center text-xl font-bold text-gray-500">
-                          {formData.name?.charAt(0)?.toUpperCase() || "?"}
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </div>
-
-                {/* Content below cover — pt accounts for the avatar overflow */}
-                <div className="flex flex-col items-center pt-12 pb-5 px-5">
-                  <div className="text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="text-white font-bold text-base">{formData.name || "Tu nombre"}</div>
-                      {/* Special Badges in Preview */}
-                      {formData.name?.toLowerCase().includes("admin") && (
-                        <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
-                      )}
-                    </div>
-                    {formData.headline && (
-                      <div className="text-gray-400 text-xs mt-0.5 line-clamp-1">{formData.headline}</div>
-                    )}
-                    {formData.location && (
-                      <div className="text-gray-500 text-xs mt-1">📍 {formData.location}</div>
+                <div className="px-5 pb-5">
+                  <div className="relative -mt-8 h-16 w-16 overflow-hidden rounded-2xl border-4 border-bg-secondary bg-bg-tertiary shadow-lg">
+                    {formData.avatar ? (
+                      <img src={formData.avatar} className="h-full w-full object-cover" alt="" />
+                    ) : (
+                      <span className="grid h-full w-full place-items-center font-display text-xl font-semibold text-gold/50" aria-hidden>
+                        {formData.name?.charAt(0)?.toUpperCase() || "?"}
+                      </span>
                     )}
                   </div>
-
-                  {formData.bio && (
-                    <p className="mt-4 text-xs text-gray-400 text-center leading-relaxed line-clamp-3 border-t border-border pt-4 w-full">
-                      {formData.bio}
+                  <p className="mt-3 font-display text-lg font-semibold text-[var(--text-primary)]">{formData.name || "Tu nombre"}</p>
+                  {formData.headline && <p className="mt-0.5 line-clamp-1 text-sm text-[var(--text-secondary)]">{formData.headline}</p>}
+                  {formData.location && (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[var(--text-tertiary)]">
+                      <MapPin className="h-3.5 w-3.5" aria-hidden /> {formData.location}
                     </p>
                   )}
-
-                  {formData.skills.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-border w-full">
-                      <div className="text-xs text-gray-500 mb-2">Habilidades</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {formData.skills.slice(0, 5).map((skill: any) => (
-                          <span key={skill.id} className="text-[10px] bg-gold/10 text-gold border border-gold/20 px-2 py-0.5 rounded-full">
-                            {skill.name}
-                          </span>
-                        ))}
-                        {formData.skills.length > 5 && (
-                          <span className="text-[10px] text-gray-500">+{formData.skills.length - 5} más</span>
-                        )}
-                      </div>
-                    </div>
+                  {formData.bio && (
+                    <p className="mt-4 line-clamp-4 border-t border-[var(--mv-hairline)] pt-4 text-sm leading-relaxed text-[var(--text-secondary)]">{formData.bio}</p>
                   )}
-                </div>
-              </div>
-
-              {/* Completeness indicator */}
-              <div className="rounded-2xl border border-border bg-bg-secondary p-4">
-                <div className="flex justify-between text-xs text-gray-400 mb-2">
-                  <span>Compleción del perfil</span>
-                  <span className="text-white font-semibold">{completeness}%</span>
-                </div>
-                <div className="h-1.5 w-full rounded-full bg-bg-tertiary overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-gold to-gold-light transition-all duration-500"
-                    style={{ width: `${completeness}%` }}
-                  />
+                  {formData.skills.length > 0 && (
+                    <ul className="mt-4 flex flex-wrap gap-1.5 border-t border-[var(--mv-hairline)] pt-4">
+                      {formData.skills.slice(0, 5).map((skill: any) => (
+                        <li key={skill.id} className="mv-chip mv-chip-gold">{skill.name}</li>
+                      ))}
+                      {formData.skills.length > 5 && <li className="mv-chip">+{formData.skills.length - 5}</li>}
+                    </ul>
+                  )}
                 </div>
               </div>
             </div>
           </aside>
         </div>
+      </Container>
+
+      {previewToast && (
+        <div role="status" className="mv-pop mv-menu fixed left-1/2 top-[calc(5.5rem+env(safe-area-inset-top,0px))] z-[90] -translate-x-1/2 rounded-full px-4 py-2 text-sm font-medium text-[var(--text-primary)]">
+          <span className="inline-flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" aria-hidden /> {previewToast}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FormSection({ id, title, description, children }: { id: string; title: string; description?: string; children: React.ReactNode }) {
+  return (
+    <section id={id} aria-labelledby={`${id}-title`} className="mv-panel scroll-mt-28 p-5 sm:p-7">
+      <h2 id={`${id}-title`} className="mv-h3">{title}</h2>
+      {description && <p className="mt-1 text-sm text-[var(--text-secondary)]">{description}</p>}
+      <div className="mt-6">{children}</div>
+    </section>
+  );
+}
+
+function Field({ id, label, hint, children }: { id: string; label: string; hint?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <label htmlFor={id} className="text-sm font-medium text-[var(--text-primary)]">{label}</label>
+        {hint ? <span className="text-xs text-[var(--text-tertiary)]">{hint}</span> : null}
       </div>
+      {children}
     </div>
   );
 }

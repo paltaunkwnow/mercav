@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
 export function FollowButton({ userId, username, initialFollowed = false }: { userId: string, username?: string, initialFollowed?: boolean }) {
@@ -30,15 +29,16 @@ export function FollowButton({ userId, username, initialFollowed = false }: { us
   };
 
   return (
-    <Button
-      variant={isFollowing ? "solid" : "outline"}
+    <button
+      type="button"
       onClick={handleFollow}
       disabled={loading}
-      className={`h-11 px-6 rounded-xl ${isFollowing ? 'bg-bg-tertiary text-white border-border hover:bg-bg-secondary' : 'border-border text-white hover:border-gold hover:text-gold bg-bg-tertiary'}`}
+      aria-pressed={isFollowing}
+      className={`mv-btn mv-btn-sm ${isFollowing ? "mv-btn-secondary" : "mv-btn-primary"}`}
     >
-      {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
       {isFollowing ? "Siguiendo" : "Seguir"}
-    </Button>
+    </button>
   );
 }
 // creado por pato dev y askforvini

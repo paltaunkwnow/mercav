@@ -10,8 +10,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const me = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!me) return NextResponse.json({ success: false, error: "Usuario no encontrado" }, { status: 404 });
 
-    const body = await req.json();
-    const type = body.type as string;
+    const body = await req.json().catch(() => null);
+    const type = typeof body?.type === "string" ? body.type : "";
     if (!['INTERESA','UTIL','INSPIRADOR'].includes(type)) return NextResponse.json({ success: false, error: "Tipo de reacción inválido" }, { status: 400 });
 
     const existing = await prisma.postLike.findFirst({ where: { postId: params.id, userId: me.id } });
@@ -24,6 +24,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         return NextResponse.json({ success: true, data: { reacted: true } });
       }
     }
+
+    const post = await prisma.post.findFirst({ where: { id: params.id, isActive: true }, select: { id: true } });
+    if (!post) return NextResponse.json({ success: false, error: "Publicación no encontrada" }, { status: 404 });
 
     await prisma.postLike.create({ data: { postId: params.id, userId: me.id, type: type as any } });
     return NextResponse.json({ success: true, data: { reacted: true } });

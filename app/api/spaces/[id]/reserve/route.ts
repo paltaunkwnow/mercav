@@ -15,25 +15,50 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const space = await prisma.space.findUnique({ where: { id: params.id } });
     if (!space) return NextResponse.json({ success: false, error: "Espacio no encontrado" }, { status: 404 });
     
-    const body = await req.json();
-    const { startDate, endDate, basePrice } = body;
-    
+    if (!space.isActive || space.isUnderReview) {
+      return NextResponse.json({ success: false, error: "Este espacio no está disponible" }, { status: 409 });
+    }
+    if (space.ownerId === user.id) {
+      return NextResponse.json({ success: false, error: "No podés reservar tu propio espacio" }, { status: 400 });
+    }
+
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ success: false, error: "JSON inválido" }, { status: 400 });
+    }
+
+    const start = new Date(body?.startDate);
+    const end = new Date(body?.endDate);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
+      return NextResponse.json({ success: false, error: "Fechas inválidas" }, { status: 400 });
+    }
+    const briefing = typeof body?.briefing === "string" ? body.briefing.slice(0, 5000) : "";
+
+    // SEGURIDAD: el precio sale del espacio en la base, nunca del cliente. Antes `basePrice`
+    // venía en el body y create-intent cobraba ese total (se podía pagar 0,50 USD por cualquier espacio).
+    const basePrice = Number(space.pricePerMonth);
+    if (!Number.isFinite(basePrice) || basePrice <= 0) {
+      return NextResponse.json({ success: false, error: "El espacio no tiene precio mensual configurado" }, { status: 400 });
+    }
+
     const isFirstRentalFree = space.isFirstRentalFree;
-    const pricing = calculateAdsCommission(Number(basePrice), isFirstRentalFree);
+    const pricing = calculateAdsCommission(basePrice, isFirstRentalFree);
 
     const reservation = await prisma.reservation.create({
       data: {
         spaceId: space.id,
         advertiserId: user.id,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
+        startDate: start,
+        endDate: end,
         basePrice: pricing.basePrice,
         advertiserFee: pricing.advertiserFee,
         ownerFee: pricing.ownerFee,
         totalPrice: pricing.totalPrice,
         isFirstRentalFree: isFirstRentalFree,
         status: "PENDING",
-        briefing: body.briefing || ""
+        briefing
       }
     });
 

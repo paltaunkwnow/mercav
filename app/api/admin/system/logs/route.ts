@@ -23,7 +23,7 @@ export async function GET() {
     return NextResponse.json({ success: true, data: logs })
   } catch (error: any) {
     console.error("Error fetching admin logs:", error)
-    return NextResponse.json({ success: false, error: error.message || "Error interno" }, { status: 500 })
+    return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 })
   }
 }
 // creado por pato dev y askforvini

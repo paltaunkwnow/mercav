@@ -26,15 +26,8 @@ export async function POST(req: Request, { params }: { params: { username: strin
 
     if (existingFollow) {
       await prisma.follow.delete({ where: { id: existingFollow.id } });
-      await prisma.notification.create({
-        data: {
-          userId: targetUser.id,
-          type: "FOLLOW",
-          title: "Nuevo seguidor",
-          body: `${user.name} dejó de seguirte`,
-          link: `/perfil/${user.username}`
-        }
-      }).catch(() => {});
+      // Antes se notificaba "Nuevo seguidor" al dejar de seguir (título incorrecto y vector de spam
+      // con seguir/dejar de seguir en bucle). Dejar de seguir no notifica.
       return NextResponse.json({ success: true, data: { followed: false } });
     }
 

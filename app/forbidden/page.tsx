@@ -1,21 +1,35 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ShieldAlert } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
+import { Container, ButtonLink } from "@/components/site/primitives";
 
 export default function Forbidden() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-      <ShieldAlert className="h-16 w-16 text-gold mb-6" />
-      <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Acceso Denegado</h2>
-      <p className="text-gray-400 mb-8 max-w-md">
-        No tenés permisos para acceder a este contenido.
-      </p>
-      <Button asChild className="bg-gold text-black hover:bg-gold-light">
-        <Link href="/">
-          Volver al inicio
-        </Link>
-      </Button>
-    </div>
+    <section aria-labelledby="forbidden-title" className="relative flex min-h-[80svh] w-full items-center overflow-hidden pb-16 pt-28 md:pt-32">
+      <div className="mv-aura" aria-hidden />
+      <div className="relative w-full">
+        <Container width="narrow" className="flex flex-col items-center text-center">
+          <span className="mv-panel grid h-14 w-14 place-items-center rounded-2xl text-gold">
+            <LockKeyhole className="h-6 w-6" aria-hidden />
+          </span>
+          <p className="mv-kicker mt-8">
+            Error <span className="mv-data">403</span>
+          </p>
+          <h1 id="forbidden-title" className="mv-h1 mt-4">
+            No tenés acceso a esta sección.
+          </h1>
+          <p className="mv-lead mx-auto mt-5">
+            Tu cuenta no tiene los permisos que pide este contenido. Si creés que es un error, revisá con qué cuenta entraste o escribinos a soporte.
+          </p>
+          <div className="mt-9 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+            <ButtonLink href="/" className="w-full sm:w-auto">
+              Ir al inicio
+            </ButtonLink>
+            <ButtonLink href="/soporte" tone="ghost" className="w-full sm:w-auto">
+              Contactar soporte
+            </ButtonLink>
+          </div>
+        </Container>
+      </div>
+    </section>
   );
 }
 // creado por pato dev y askforvini

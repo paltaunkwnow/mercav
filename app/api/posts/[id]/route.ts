@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { isAdminUser } from "@/lib/admin";
 
 export async function DELETE(
   req: Request,
@@ -24,7 +25,8 @@ export async function DELETE(
     if (!post) return NextResponse.json({ success: false, error: "Publicación no encontrada" }, { status: 404 });
 
     // Check if user is author OR admin
-    const isAdmin = user.role === "ADMIN";
+    // Los roles se modelan en UserRole (User.roles), no hay campo `role`
+    const isAdmin = await isAdminUser(user.id);
     const isAuthor = post.authorId === user.id;
 
     if (!isAuthor && !isAdmin) {
@@ -56,7 +58,11 @@ export async function PATCH(
 
     if (!user) return NextResponse.json({ success: false, error: "Usuario no encontrado" }, { status: 404 });
 
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+    const content = typeof body?.content === "string" ? body.content : null;
+    if (content === null || content.length > 5000) {
+      return NextResponse.json({ success: false, error: "Contenido inválido" }, { status: 400 });
+    }
     const post = await prisma.post.findUnique({
       where: { id: params.id }
     });
@@ -71,7 +77,7 @@ export async function PATCH(
     const updatedPost = await prisma.post.update({
       where: { id: params.id },
       data: {
-        content: body.content,
+        content,
         // Add more fields as needed
       }
     });

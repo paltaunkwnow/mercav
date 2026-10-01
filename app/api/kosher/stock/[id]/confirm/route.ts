@@ -11,6 +11,11 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   const limited = await checkRateLimit(request, { route: "kosher-confirm", capacity: 20, refillPerMinute: 10, userId: viewer.id });
   if (limited) return limited;
 
+  // No se puede confirmar el propio reporte (inflaría la frescura del stock).
+  const report = await prisma.kosherStockReport.findUnique({ where: { id: params.id }, select: { authorId: true } });
+  if (!report) return kosherError(404, "Reporte no encontrado");
+  if (report.authorId === viewer.id) return kosherError(400, "No podés confirmar tu propio reporte.");
+
   try {
     await prisma.$transaction([
       prisma.kosherStockConfirmation.create({ data: { reportId: params.id, userId: viewer.id } }),

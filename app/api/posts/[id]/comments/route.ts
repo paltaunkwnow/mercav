@@ -29,9 +29,24 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const me = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!me) return NextResponse.json({ success: false, error: "Usuario no encontrado" }, { status: 404 });
 
-    const body = await req.json();
-    const content = body.content;
-    const parentId = body.parentId;
+    const body = await req.json().catch(() => null);
+    const content = typeof body?.content === "string" ? body.content.trim() : "";
+    if (!content || content.length > 2000) {
+      return NextResponse.json({ success: false, error: "El comentario debe tener entre 1 y 2000 caracteres" }, { status: 400 });
+    }
+
+    const post = await prisma.post.findFirst({ where: { id: params.id, isActive: true }, select: { id: true } });
+    if (!post) return NextResponse.json({ success: false, error: "Publicación no encontrada" }, { status: 404 });
+
+    // La respuesta tiene que ser a un comentario de ESTA publicación
+    let parentId: string | null = null;
+    if (body?.parentId) {
+      const parent = typeof body.parentId === "string"
+        ? await prisma.postComment.findFirst({ where: { id: body.parentId, postId: params.id }, select: { id: true } })
+        : null;
+      if (!parent) return NextResponse.json({ success: false, error: "Comentario padre inválido" }, { status: 400 });
+      parentId = parent.id;
+    }
 
     const comment = await prisma.postComment.create({ 
       data: { postId: params.id, authorId: me.id, content, parentId },

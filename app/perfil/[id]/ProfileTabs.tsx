@@ -1,23 +1,50 @@
 "use client";
 
-import { useState } from "react";
-import { 
-  Briefcase, 
-  MonitorPlay, 
-  Megaphone, 
-  LayoutGrid, 
-  GraduationCap, 
-  Star,
+import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import {
+  Briefcase,
+  MonitorPlay,
+  Megaphone,
+  LayoutGrid,
+  GraduationCap,
   MessageSquare,
   ArrowRight,
+  ArrowUpRight,
   MapPin,
-  Clock
+  Clock,
+  Heart,
 } from "lucide-react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+
+const EASE = [0.23, 1, 0.32, 1] as const;
+
+function formatDate(value: string | Date, opts: Intl.DateTimeFormatOptions) {
+  return new Date(value).toLocaleDateString("es-ES", opts);
+}
+
+function EmptyState({ children }: { children: ReactNode }) {
+  return (
+    <div className="rounded-[1.5rem] border border-dashed border-[var(--mv-hairline-strong)] px-6 py-12 text-center text-sm text-[var(--text-secondary)]">
+      {children}
+    </div>
+  );
+}
+
+function SubHeading({ icon: Icon, children }: { icon: typeof Briefcase; children: ReactNode }) {
+  return (
+    <h3 className="mb-5 flex items-center gap-2.5 font-display text-lg font-semibold text-[var(--text-primary)]">
+      <Icon className="h-[18px] w-[18px] text-gold" aria-hidden />
+      {children}
+    </h3>
+  );
+}
 
 export default function ProfileTabs({ user, posts }: { user: any, posts: any[] }) {
   const [activeTab, setActiveTab] = useState("overview");
+  const reduce = useReducedMotion();
+  const baseId = useId();
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const tabs = [
     { id: "overview", label: "Resumen", icon: LayoutGrid },
@@ -25,271 +52,282 @@ export default function ProfileTabs({ user, posts }: { user: any, posts: any[] }
     { id: "spaces", label: "Espacios", icon: Megaphone, count: user.spaces?.length || 0 },
     { id: "jobs", label: "Vacantes", icon: Briefcase, count: user.jobPosts?.length || 0 },
     { id: "experience", label: "Trayectoria", icon: GraduationCap },
-    { id: "posts", label: "Posts", icon: MessageSquare, count: posts.length },
+    { id: "posts", label: "Publicaciones", icon: MessageSquare, count: posts.length },
   ].filter(tab => tab.id === "overview" || tab.id === "experience" || (tab.count !== undefined && tab.count > 0) || tab.id === "posts");
+
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const index = tabs.findIndex((t) => t.id === activeTab);
+    let next = index;
+    if (e.key === "ArrowRight") next = (index + 1) % tabs.length;
+    else if (e.key === "ArrowLeft") next = (index - 1 + tabs.length) % tabs.length;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = tabs.length - 1;
+    else return;
+    e.preventDefault();
+    setActiveTab(tabs[next].id);
+    tabRefs.current[next]?.focus();
+  };
+
+  const panel = (key: string, className: string, children: ReactNode) => (
+    <motion.div
+      key={key}
+      role="tabpanel"
+      id={`${baseId}-panel-${key}`}
+      aria-labelledby={`${baseId}-tab-${key}`}
+      tabIndex={0}
+      initial={reduce ? false : { opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={reduce ? { opacity: 0 } : { opacity: 0, y: -4 }}
+      transition={{ duration: 0.2, ease: EASE }}
+      className={`outline-none ${className}`}
+    >
+      {children}
+    </motion.div>
+  );
 
   return (
     <div className="w-full">
-      {/* Tabs Navigation */}
-      <div className="flex items-center gap-2 p-1 bg-white/5 border border-white/5 rounded-2xl mb-12 overflow-x-auto no-scrollbar">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-              activeTab === tab.id 
-                ? "bg-gold text-black shadow-lg shadow-gold/20" 
-                : "text-gray-500 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <tab.icon size={16} />
-            {tab.label}
-            {tab.count !== undefined && (
-              <span className={`px-2 py-0.5 rounded-full text-[10px] ${activeTab === tab.id ? "bg-black/20" : "bg-white/10"}`}>
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
+      {/* Tabs */}
+      <div
+        role="tablist"
+        aria-label="Secciones del perfil"
+        onKeyDown={onKeyDown}
+        className="scrollbar-hide mb-8 flex gap-1 overflow-x-auto rounded-full border border-[var(--mv-hairline)] bg-[var(--mv-panel)] p-1.5 md:mb-10"
+      >
+        {tabs.map((tab, i) => {
+          const selected = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              ref={(el) => { tabRefs.current[i] = el; }}
+              role="tab"
+              id={`${baseId}-tab-${tab.id}`}
+              aria-selected={selected}
+              aria-controls={`${baseId}-panel-${tab.id}`}
+              tabIndex={selected ? 0 : -1}
+              onClick={() => setActiveTab(tab.id)}
+              className={`mv-focus flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors duration-200 ${
+                selected
+                  ? "bg-gold text-[var(--mv-on-gold)]"
+                  : "text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]"
+              }`}
+            >
+              <tab.icon className="h-4 w-4" aria-hidden />
+              {tab.label}
+              {tab.count !== undefined && (
+                <span className={`mv-data rounded-full px-1.5 text-xs ${selected ? "bg-black/15" : "bg-[var(--mv-panel-hover)]"}`}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Tab Content */}
-      <div className="min-h-[400px]">
-        <AnimatePresence mode="wait">
-          {activeTab === "overview" && (
-            <motion.div
-              key="overview"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-12"
-            >
-              {/* Featured Section */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {(user.services?.length > 0 || user.spaces?.length > 0) && (
-                  <div className="bg-bg-secondary border border-border p-8 rounded-[2.5rem] relative overflow-hidden group">
-                     <div className="absolute top-0 right-0 p-8 opacity-5">
-                        <MonitorPlay size={100} className="text-gold" />
-                     </div>
-                     <h3 className="text-xl font-bold text-white mb-4">Portafolio Profesional</h3>
-                     <p className="text-gray-500 text-sm mb-8 leading-relaxed">Explora los servicios y espacios publicitarios que {user.name} tiene disponibles.</p>
-                     <div className="flex gap-4">
-                       {user.services?.length > 0 && (
-                        <button onClick={() => setActiveTab("services")} className="flex items-center text-xs font-black uppercase tracking-widest text-gold hover:opacity-70 transition-opacity">
-                            Servicios <ArrowRight size={14} className="ml-2" />
-                        </button>
-                       )}
-                       {user.spaces?.length > 0 && (
-                        <button onClick={() => setActiveTab("spaces")} className="flex items-center text-xs font-black uppercase tracking-widest text-emerald-400 hover:opacity-70 transition-opacity">
-                            Espacios <ArrowRight size={14} className="ml-2" />
-                        </button>
-                       )}
-                     </div>
-                  </div>
-                )}
-                
-                {user.jobPosts?.length > 0 && (
-                  <div className="bg-bg-secondary border border-border p-8 rounded-[2.5rem] relative overflow-hidden group">
-                     <div className="absolute top-0 right-0 p-8 opacity-5">
-                        <Briefcase size={100} className="text-blue-400" />
-                     </div>
-                     <h3 className="text-xl font-bold text-white mb-4">Oportunidades Laborales</h3>
-                     <p className="text-gray-500 text-sm mb-8 leading-relaxed">Descubre las vacantes vigentes y únete al equipo de {user.name}.</p>
-                     <button onClick={() => setActiveTab("jobs")} className="flex items-center text-xs font-black uppercase tracking-widest text-blue-400 hover:translate-x-2 transition-transform">
-                        Ver Vacantes <ArrowRight size={14} className="ml-2" />
-                     </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Skills Quick View */}
-              {user.profile?.skills?.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-black text-white uppercase tracking-[0.3em] mb-6">Habilidades Especializadas</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {user.profile.skills.slice(0, 8).map((skill: any) => (
-                      <span key={skill.id} className="bg-white/5 border border-white/5 px-4 py-2 rounded-xl text-xs font-bold text-gray-400">
-                        {skill.name}
+      {/* Tab content */}
+      <div className="min-h-[320px]">
+        <AnimatePresence mode="wait" initial={false}>
+          {activeTab === "overview" && panel("overview", "space-y-10", (
+            <>
+              {(user.services?.length > 0 || user.spaces?.length > 0 || user.jobPosts?.length > 0) ? (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {(user.services?.length > 0 || user.spaces?.length > 0) && (
+                    <div className="mv-panel flex flex-col p-6 md:p-7">
+                      <span className="grid h-11 w-11 place-items-center rounded-2xl border border-[var(--mv-hairline)] text-gold">
+                        <MonitorPlay className="h-5 w-5" aria-hidden />
                       </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {activeTab === "services" && (
-            <motion.div
-              key="services"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
-            >
-              {user.services.map((service: any) => (
-                <Link href={`/servicios/${service.id}`} key={service.id} className="bg-bg-secondary border border-border rounded-[2.5rem] overflow-hidden hover:border-gold/30 transition-all group">
-                  <div className="h-48 bg-bg-tertiary relative overflow-hidden">
-                    <img src={`https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={service.title} />
-                    <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-2xl text-gold font-mono font-black shadow-2xl">
-                      ${service.packages?.[0]?.price || 0}
-                    </div>
-                  </div>
-                  <div className="p-8">
-                    <h4 className="text-lg font-bold text-white mb-2 group-hover:text-gold transition-colors">{service.title}</h4>
-                    <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed mb-6">{service.description}</p>
-                    <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-gray-600">
-                      <span className="flex items-center gap-1"><Clock size={12} /> {service.deliveryDays || 7} días</span>
-                      <span className="flex items-center gap-1"><Star size={12} className="text-gold fill-gold" /> 5.0</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </motion.div>
-          )}
-
-          {activeTab === "spaces" && (
-            <motion.div
-              key="spaces"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
-            >
-              {user.spaces.map((space: any) => (
-                <Link href={`/anuncios/${space.id}`} key={space.id} className="bg-bg-secondary border border-border p-6 rounded-[2.5rem] hover:border-emerald-400/30 transition-all group flex gap-6">
-                  <div className="w-32 h-32 bg-bg-tertiary rounded-3xl overflow-hidden flex-shrink-0 border border-white/5">
-                    <img src={space.images?.[0]?.url || "https://images.unsplash.com/photo-1542204165-65bf26472b9b"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={space.title} />
-                  </div>
-                  <div className="flex-1 flex flex-col justify-center">
-                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">{space.type}</span>
-                    <h4 className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors mb-2 leading-tight">{space.title}</h4>
-                    <div className="flex items-center gap-4 text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                      <span className="flex items-center gap-1"><MapPin size={12} className="text-emerald-400" /> {space.city}</span>
-                      <span className="text-white font-mono">${space.pricePerMonth}/mes</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </motion.div>
-          )}
-
-          {activeTab === "jobs" && (
-            <motion.div
-              key="jobs"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="grid grid-cols-1 gap-6"
-            >
-              {user.jobPosts.map((job: any) => (
-                <Link href={`/empleos/${job.id}`} key={job.id} className="bg-bg-secondary border border-border p-8 rounded-[2.5rem] hover:border-blue-400/30 transition-all group">
-                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                     <div>
-                        <h4 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">{job.title}</h4>
-                        <div className="flex items-center gap-4 mt-2 text-[10px] font-black uppercase tracking-widest text-gray-500">
-                           <span className="flex items-center gap-1"><MapPin size={12} /> {job.city}</span>
-                           <span className="flex items-center gap-1"><Briefcase size={12} /> {job.employmentType.replace('_', ' ')}</span>
-                           {job.salaryVisible && <span className="text-blue-400">${job.salaryMin} — ${job.salaryMax}</span>}
-                        </div>
-                     </div>
-                     <button className="bg-blue-400/10 text-blue-400 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-400/20 group-hover:bg-blue-400 group-hover:text-black transition-all">
-                        Postularse
-                     </button>
-                   </div>
-                </Link>
-              ))}
-            </motion.div>
-          )}
-
-          {activeTab === "experience" && (
-            <motion.div
-              key="experience"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-12"
-            >
-              {/* Experience Timeline */}
-              <section>
-                <h3 className="text-sm font-black text-white uppercase tracking-[0.3em] mb-10 flex items-center gap-3">
-                  <Briefcase size={18} className="text-gold" /> Experiencia Profesional
-                </h3>
-                <div className="space-y-12">
-                  {user.profile?.experiences?.map((exp: any) => (
-                    <div key={exp.id} className="relative pl-12 border-l border-white/5 group">
-                      <div className="absolute w-4 h-4 bg-bg-primary border-2 border-gold rounded-full -left-[8.5px] top-0 shadow-[0_0_15px_rgba(255,215,0,0.3)] group-hover:scale-125 transition-transform" />
-                      <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2rem] hover:bg-white/[0.04] hover:border-white/10 transition-all">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                          <div>
-                            <h4 className="text-xl font-bold text-white">{exp.position}</h4>
-                            <p className="text-gold font-medium">{exp.company}</p>
-                          </div>
-                          <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
-                            {new Date(exp.startDate).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })} — 
-                            {exp.currentJob ? " Actualidad" : ` ${new Date(exp.endDate).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}`}
-                          </div>
-                        </div>
-                        <p className="text-gray-400 text-sm leading-relaxed whitespace-pre-wrap">{exp.description}</p>
+                      <h3 className="mv-h3 mt-5">Portafolio</h3>
+                      <p className="mv-body mt-2 flex-1">Servicios y espacios publicitarios que {user.name} tiene disponibles.</p>
+                      <div className="mt-5 flex flex-wrap gap-2">
+                        {user.services?.length > 0 && (
+                          <button type="button" onClick={() => setActiveTab("services")} className="mv-btn mv-btn-secondary mv-btn-sm">
+                            Servicios <ArrowRight className="h-4 w-4" aria-hidden />
+                          </button>
+                        )}
+                        {user.spaces?.length > 0 && (
+                          <button type="button" onClick={() => setActiveTab("spaces")} className="mv-btn mv-btn-secondary mv-btn-sm">
+                            Espacios <ArrowRight className="h-4 w-4" aria-hidden />
+                          </button>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* Education */}
-              <section>
-                <h3 className="text-sm font-black text-white uppercase tracking-[0.3em] mb-10 flex items-center gap-3">
-                  <GraduationCap size={18} className="text-blue-400" /> Formación Académica
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {user.profile?.educations?.map((edu: any) => (
-                    <div key={edu.id} className="bg-white/[0.02] border border-white/5 p-8 rounded-[2.5rem] hover:bg-white/[0.04] transition-all">
-                       <h4 className="text-lg font-bold text-white mb-1">{edu.degree}</h4>
-                       <p className="text-blue-400 text-sm mb-4 font-medium">{edu.institution}</p>
-                       <div className="text-[10px] font-black uppercase tracking-widest text-gray-500">
-                          {edu.startYear} — {edu.currentlyStudying ? "Presente" : edu.endYear}
-                       </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </motion.div>
-          )}
-
-          {activeTab === "posts" && (
-            <motion.div
-              key="posts"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-6"
-            >
-              {posts.map((post) => (
-                <article key={post.id} className="bg-bg-secondary border border-border p-8 rounded-[2.5rem] hover:border-white/10 transition-all group">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                       <div className="p-2 rounded-xl bg-gold/10 text-gold">
-                          <Clock size={14} />
-                       </div>
-                       <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
-                          {new Date(post.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-                       </span>
-                    </div>
-                    <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-gray-600">
-                      <span>{post._count.likes} Likes</span>
-                      <span>{post._count.comments} Comentarios</span>
-                    </div>
-                  </div>
-                  <p className="text-gray-300 leading-relaxed text-base mb-6 whitespace-pre-wrap">{post.content}</p>
-                  {post.linkUrl && (
-                    <a href={post.linkUrl} target="_blank" rel="noreferrer" className="inline-flex items-center text-xs font-black uppercase tracking-widest text-gold hover:opacity-70 transition-opacity">
-                      Ver recurso vinculado <ArrowRight size={14} className="ml-2" />
-                    </a>
                   )}
-                </article>
-              ))}
-            </motion.div>
-          )}
+
+                  {user.jobPosts?.length > 0 && (
+                    <div className="mv-panel flex flex-col p-6 md:p-7">
+                      <span className="grid h-11 w-11 place-items-center rounded-2xl border border-[var(--mv-hairline)] text-gold">
+                        <Briefcase className="h-5 w-5" aria-hidden />
+                      </span>
+                      <h3 className="mv-h3 mt-5">Vacantes abiertas</h3>
+                      <p className="mv-body mt-2 flex-1">Puestos vigentes para sumarte al equipo de {user.name}.</p>
+                      <div className="mt-5">
+                        <button type="button" onClick={() => setActiveTab("jobs")} className="mv-btn mv-btn-secondary mv-btn-sm">
+                          Ver vacantes <ArrowRight className="h-4 w-4" aria-hidden />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <EmptyState>{user.name} todavía no publicó servicios, espacios ni vacantes.</EmptyState>
+              )}
+
+              {user.profile?.skills?.length > 0 && (
+                <section>
+                  <SubHeading icon={GraduationCap}>Habilidades</SubHeading>
+                  <ul className="flex flex-wrap gap-2">
+                    {user.profile.skills.slice(0, 12).map((skill: any) => (
+                      <li key={skill.id} className="mv-chip h-8 px-3 text-[13px]">
+                        {skill.name}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+            </>
+          ))}
+
+          {activeTab === "services" && panel("services", "grid grid-cols-1 gap-4 md:grid-cols-2", (
+            user.services.map((service: any) => {
+              const pkg = service.packages?.[0];
+              return (
+                <Link href={`/servicios/${service.id}`} key={service.id} className="mv-panel mv-panel-interactive mv-focus group flex flex-col p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <h4 className="font-display text-lg font-semibold leading-snug text-[var(--text-primary)]">{service.title}</h4>
+                    <ArrowUpRight className="h-5 w-5 shrink-0 text-[var(--text-tertiary)] transition-colors group-hover:text-gold" aria-hidden />
+                  </div>
+                  {service.description && <p className="mv-body mt-2 line-clamp-3 flex-1">{service.description}</p>}
+                  <div className="mt-5 flex items-end justify-between gap-4 border-t border-[var(--mv-hairline)] pt-4">
+                    <span className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
+                      <Clock className="h-4 w-4" aria-hidden />
+                      {(pkg?.deliveryDays ?? service.deliveryDays) ? `${pkg?.deliveryDays ?? service.deliveryDays} días` : "Plazo a convenir"}
+                    </span>
+                    {pkg?.price != null && (
+                      <span className="text-right">
+                        <span className="block text-xs text-[var(--text-tertiary)]">Desde</span>
+                        <span className="mv-data text-lg font-medium text-gold">${pkg.price}</span>
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              );
+            })
+          ))}
+
+          {activeTab === "spaces" && panel("spaces", "grid grid-cols-1 gap-4 md:grid-cols-2", (
+            user.spaces.map((space: any) => (
+              <Link href={`/anuncios/${space.id}`} key={space.id} className="mv-panel mv-panel-interactive mv-focus group flex gap-4 p-4 sm:gap-5 sm:p-5">
+                <div className="aspect-square w-24 shrink-0 overflow-hidden rounded-2xl border border-[var(--mv-hairline)] bg-bg-tertiary sm:w-28">
+                  {space.images?.[0]?.url ? (
+                    <img src={space.images[0].url} className="h-full w-full object-cover" alt="" loading="lazy" decoding="async" />
+                  ) : (
+                    <span className="grid h-full w-full place-items-center text-[var(--text-tertiary)]"><Megaphone className="h-6 w-6" aria-hidden /></span>
+                  )}
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col justify-center">
+                  {space.type && <span className="text-xs font-medium text-[var(--text-secondary)]">{space.type}</span>}
+                  <h4 className="mt-0.5 line-clamp-2 font-display text-base font-semibold leading-snug text-[var(--text-primary)] sm:text-lg">{space.title}</h4>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[var(--text-secondary)]">
+                    {space.city && <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" aria-hidden /> {space.city}</span>}
+                    {space.pricePerMonth != null && <span className="mv-data text-gold">${space.pricePerMonth}/mes</span>}
+                  </div>
+                </div>
+              </Link>
+            ))
+          ))}
+
+          {activeTab === "jobs" && panel("jobs", "grid grid-cols-1 gap-3", (
+            user.jobPosts.map((job: any) => (
+              <Link href={`/empleos/${job.id}`} key={job.id} className="mv-panel mv-panel-interactive mv-focus group flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+                <div className="min-w-0">
+                  <h4 className="font-display text-lg font-semibold text-[var(--text-primary)]">{job.title}</h4>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[var(--text-secondary)]">
+                    {job.city && <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" aria-hidden /> {job.city}</span>}
+                    {job.employmentType && <span className="flex items-center gap-1"><Briefcase className="h-3.5 w-3.5" aria-hidden /> {job.employmentType.replace('_', ' ')}</span>}
+                    {job.salaryVisible && <span className="mv-data text-gold">${job.salaryMin} – ${job.salaryMax}</span>}
+                  </div>
+                </div>
+                <span className="mv-btn mv-btn-secondary mv-btn-sm pointer-events-none w-full sm:w-auto">
+                  Ver vacante <ArrowRight className="h-4 w-4" aria-hidden />
+                </span>
+              </Link>
+            ))
+          ))}
+
+          {activeTab === "experience" && panel("experience", "space-y-12", (
+            <>
+              <section>
+                <SubHeading icon={Briefcase}>Experiencia profesional</SubHeading>
+                {user.profile?.experiences?.length > 0 ? (
+                  <ol className="relative space-y-4 border-l border-[var(--mv-hairline-strong)] pl-6 md:pl-8">
+                    {user.profile.experiences.map((exp: any) => (
+                      <li key={exp.id} className="relative">
+                        <span aria-hidden className="absolute -left-[31px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-bg-primary md:-left-[39px]" />
+                        <div className="mv-panel p-5 md:p-6">
+                          <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between md:gap-4">
+                            <div>
+                              <h4 className="font-display text-lg font-semibold text-[var(--text-primary)]">{exp.position}</h4>
+                              <p className="text-sm font-medium text-gold">{exp.company}</p>
+                            </div>
+                            <p className="mv-data shrink-0 text-xs text-[var(--text-secondary)]">
+                              {formatDate(exp.startDate, { month: 'short', year: 'numeric' })} –{' '}
+                              {exp.currentJob ? "Actualidad" : formatDate(exp.endDate, { month: 'short', year: 'numeric' })}
+                            </p>
+                          </div>
+                          {exp.description && <p className="mv-body mt-3 whitespace-pre-wrap">{exp.description}</p>}
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <EmptyState>Todavía no cargó experiencia profesional.</EmptyState>
+                )}
+              </section>
+
+              <section>
+                <SubHeading icon={GraduationCap}>Formación</SubHeading>
+                {user.profile?.educations?.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {user.profile.educations.map((edu: any) => (
+                      <div key={edu.id} className="mv-panel p-5 md:p-6">
+                        <h4 className="font-display text-lg font-semibold text-[var(--text-primary)]">{edu.degree}</h4>
+                        <p className="mt-0.5 text-sm font-medium text-[var(--text-secondary)]">{edu.institution}</p>
+                        <p className="mv-data mt-3 text-xs text-[var(--text-tertiary)]">
+                          {edu.startYear} – {edu.currentlyStudying ? "Presente" : edu.endYear}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState>Todavía no cargó formación académica.</EmptyState>
+                )}
+              </section>
+            </>
+          ))}
+
+          {activeTab === "posts" && panel("posts", "space-y-4", (
+            posts.length > 0 ? posts.map((post) => (
+              <article key={post.id} className="mv-panel p-5 md:p-7">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <time dateTime={new Date(post.createdAt).toISOString()} className="mv-data text-xs text-[var(--text-secondary)]">
+                    {formatDate(post.createdAt, { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </time>
+                  <div className="flex items-center gap-4 text-sm text-[var(--text-secondary)]">
+                    <span className="flex items-center gap-1.5"><Heart className="h-4 w-4" aria-hidden /> <span className="mv-data">{post._count.likes}</span><span className="sr-only">reacciones</span></span>
+                    <span className="flex items-center gap-1.5"><MessageSquare className="h-4 w-4" aria-hidden /> <span className="mv-data">{post._count.comments}</span><span className="sr-only">comentarios</span></span>
+                  </div>
+                </div>
+                <p className="mt-4 whitespace-pre-wrap text-[15px] leading-relaxed text-[var(--text-primary)]">{post.content}</p>
+                {post.linkUrl && (
+                  <a href={post.linkUrl} target="_blank" rel="noreferrer" className="mv-link mt-4 inline-flex items-center gap-1.5 text-sm">
+                    Abrir enlace <ArrowUpRight className="h-4 w-4" aria-hidden />
+                  </a>
+                )}
+              </article>
+            )) : (
+              <EmptyState>{user.name} todavía no publicó en el feed.</EmptyState>
+            )
+          ))}
         </AnimatePresence>
       </div>
     </div>

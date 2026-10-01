@@ -7,7 +7,8 @@ import { RiskBadge, VerificationBadge, verificationMeta } from "@/components/pwn
 import { DisabledState, EmptyState, ErrorState, LoadingState, UnauthorizedState } from "@/components/pwn/EmptyState";
 import { ListControls } from "@/components/pwn/ListControls";
 import { FadeIn } from "@/components/pwn/PwnShell";
-import { focusRing, formatCount, formatScore, formatWhen } from "@/components/pwn/format";
+import { focusRing, formatCount, formatScore, formatWhen, pwnCardClass, pwnTagClass, pwnUnverifiedCardClass } from "@/components/pwn/format";
+import { Meta, MetaGrid, PwnPageHeader } from "@/components/pwn/ui";
 
 const PAGE_SIZE = 20;
 
@@ -72,19 +73,18 @@ export default function BreachesPage() {
   const pages = status.kind === "ready" ? Math.max(1, status.pagination?.pages ?? 1) : 1;
 
   return (
-    <FadeIn className="space-y-6">
-      <header>
-        <h1 className="font-display text-4xl font-black tracking-tight text-white md:text-5xl">Filtraciones</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-400">
-          Cada registro muestra su fuente, su estado de verificación y su confianza. Lo que no está verificado se presenta como no verificado.
-        </p>
-      </header>
+    <FadeIn className="space-y-8">
+      <PwnPageHeader
+        kicker="Filtraciones"
+        title="Lo confirmado, separado de lo que solo se afirma."
+        lead="Cada registro muestra su fuente, su estado de verificación y su confianza. Lo que no está verificado se presenta como no verificado."
+      />
 
       {status.kind === "loading" ? <LoadingState label="Cargando filtraciones…" /> : null}
       {status.kind === "disabled" ? <DisabledState title="Filtraciones no configuradas" /> : null}
       {status.kind === "unauthorized" ? <UnauthorizedState callbackPath="/pwn/breaches" /> : null}
       {status.kind === "error" ? <ErrorState message={status.message} onRetry={() => void load(page)} /> : null}
-      {status.kind === "ready" && total === 0 ? <EmptyState title="No hay filtraciones registradas" description="Cuando una fuente aporte registros, aparecerán aquí con su atribución." /> : null}
+      {status.kind === "ready" && total === 0 ? <EmptyState title="No hay filtraciones registradas" description="Cuando una fuente aporte registros, van a aparecer acá con su atribución." /> : null}
 
       {status.kind === "ready" && total > 0 ? (
         <>
@@ -121,25 +121,29 @@ export default function BreachesPage() {
               const dashed = verification === "UNVERIFIED" || verification === "DISPUTED";
               const note = verificationMeta(item.verificationStatus)?.note;
               return (
-                <li key={item.id} className={`rounded-3xl border bg-bg-secondary/70 p-5 ${dashed ? "border-dashed border-white/30" : "border-white/5"}`}>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-display text-2xl text-white">{item.name}</h2>
-                    <VerificationBadge status={item.verificationStatus} />
-                    {item.severity ? <RiskBadge level={item.severity} /> : null}
+                <li key={item.id} className={`${pwnCardClass} ${dashed ? pwnUnverifiedCardClass : ""}`}>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <h2 className="mv-h3">{item.name}</h2>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <VerificationBadge status={item.verificationStatus} />
+                      {item.severity ? <RiskBadge level={item.severity} /> : null}
+                    </div>
                   </div>
-                  {note ? <p className="mt-3 text-sm text-gray-200">{note}</p> : null}
-                  {item.description ? <p className="mt-3 text-[15px] leading-relaxed text-gray-200">{item.description}</p> : null}
-                  {item.descriptionDetail ? <p className="mt-2 text-sm leading-relaxed text-gray-400">{item.descriptionDetail}</p> : null}
-                  {item.descriptionImplication ? <p className="mt-2 text-sm leading-relaxed text-gray-400">{item.descriptionImplication}</p> : null}
+                  {note ? (
+                    <p className="mt-3 rounded-2xl border border-dashed border-[var(--mv-hairline-strong)] px-4 py-2.5 text-sm text-[var(--text-primary)]">{note}</p>
+                  ) : null}
+                  {item.description ? <p className="mt-3 text-[0.9375rem] leading-relaxed text-[var(--text-primary)]">{item.description}</p> : null}
+                  {item.descriptionDetail ? <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">{item.descriptionDetail}</p> : null}
+                  {item.descriptionImplication ? <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">{item.descriptionImplication}</p> : null}
                   {item.descriptionLinks.length ? (
-                    <ul className="mt-3 flex flex-wrap gap-2">
+                    <ul className="mt-3 flex flex-wrap gap-1.5">
                       {item.descriptionLinks.map((link) => (
                         <li key={link.href}>
                           <a
                             href={link.href}
                             target="_blank"
                             rel="noreferrer"
-                            className={`inline-flex rounded-lg border border-white/10 px-2.5 py-1 text-xs text-gray-300 transition-colors hover:border-gold/40 hover:text-gold ${focusRing}`}
+                            className={`${pwnTagClass} transition-colors duration-200 hover:border-[var(--color-border-gold)] hover:text-gold ${focusRing}`}
                           >
                             {link.label}
                           </a>
@@ -148,36 +152,26 @@ export default function BreachesPage() {
                     </ul>
                   ) : null}
                   {item.dataTypes.length ? (
-                    <ul className="mt-4 flex flex-wrap gap-2">
+                    <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Tipos de dato">
                       {item.dataTypes.map((type) => (
-                        <li key={type} className="rounded-lg border border-white/10 px-2 py-1 text-xs text-gray-300">
+                        <li key={type} className={pwnTagClass}>
                           {type}
                         </li>
                       ))}
                     </ul>
                   ) : null}
-                  <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                    <div>
-                      <dt className="text-gray-500">Confianza</dt>
-                      <dd className="text-white">{formatScore(item.confidenceScore) ?? "No indicada"}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-gray-500">Publicación</dt>
-                      <dd className="text-white">{formatWhen(item.publishedAt ?? item.discoveredAt) ?? "No indicada"}</dd>
-                    </div>
+                  <MetaGrid>
+                    <Meta label="Confianza">{formatScore(item.confidenceScore) ?? "No indicada"}</Meta>
+                    <Meta label="Publicación">{formatWhen(item.publishedAt ?? item.discoveredAt) ?? "No indicada"}</Meta>
                     {item.claimedRecordCount !== null ? (
-                      <div>
-                        <dt className="text-gray-500">Registros declarados</dt>
-                        <dd className="text-white">{formatCount(item.claimedRecordCount)}</dd>
-                      </div>
+                      <Meta label="Registros declarados" mono>
+                        {formatCount(item.claimedRecordCount)}
+                      </Meta>
                     ) : null}
-                    <div>
-                      <dt className="text-gray-500">Fuente</dt>
-                      <dd className="mt-1">
-                        <SourceBadge source={item.source} href={item.sourceUrl} />
-                      </dd>
-                    </div>
-                  </dl>
+                    <Meta label="Fuente">
+                      <SourceBadge source={item.source} href={item.sourceUrl} />
+                    </Meta>
+                  </MetaGrid>
                 </li>
               );
             })}

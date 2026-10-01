@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Plus, Medal, Search, UserPlus, Trash2, Loader2, ShieldCheck, Upload, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Plus, Medal, Search, UserPlus, Trash2, Loader2, Upload, Check } from "lucide-react";
 import { Toast } from "@/components/ui/toast";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { AdminDialog } from "./AdminDialog";
+import { AdminPanel, EmptyState, Field, IconButton, LoadingState, fmt } from "./ui";
 
 export function BadgesTab() {
   const [mounted, setMounted] = useState(false);
@@ -29,7 +30,6 @@ export function BadgesTab() {
   // Assign Form State
   const [targetUsername, setTargetUsername] = useState("");
   const [selectedBadgeId, setSelectedBadgeId] = useState("");
-  const [isBadgeDropdownOpen, setIsBadgeDropdownOpen] = useState(false);
   const [isAssigningSubmitting, setIsAssigningSubmitting] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -37,16 +37,6 @@ export function BadgesTab() {
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [badgeToDelete, setBadgeToDelete] = useState<string | null>(null);
-
-  // Lock scroll when modal is open
-  useEffect(() => {
-    if (isCreating || isAssigning) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => { document.body.style.overflow = 'unset'; };
-  }, [isCreating, isAssigning]);
 
   useEffect(() => {
     setMounted(true);
@@ -64,7 +54,7 @@ export function BadgesTab() {
     const timer = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const res = await fetch(`/api/admin/users/search?q=${targetUsername}`);
+        const res = await fetch(`/api/admin/users/search?q=${encodeURIComponent(targetUsername)}`);
         const data = await res.json();
         if (data.success) {
           setSearchResults(data.data);
@@ -203,324 +193,238 @@ export function BadgesTab() {
   };
 
   return (
-    <div className="space-y-8 pb-20">
-      {/* Header Actions */}
-      <div className="flex flex-wrap gap-4 items-center justify-between bg-white/[0.02] p-6 rounded-[2rem] border border-white/5">
-        <div>
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <Medal className="text-gold" /> Gestión de Insignias Custom
-          </h2>
-          <p className="text-xs text-gray-500 mt-1">Crea y asigna logos corporativos o distinciones especiales.</p>
-        </div>
-        <div className="flex gap-3">
-          <Button 
-            onClick={() => setIsCreating(true)}
-            className="bg-gold text-primary-foreground hover:bg-gold-light rounded-xl font-bold text-xs h-10 px-6"
-          >
-            <Plus size={16} className="mr-2" /> Nueva Insignia
-          </Button>
-          <Button 
-            onClick={() => setIsAssigning(true)}
-            variant="outline"
-            className="border-white/10 hover:bg-white/5 rounded-xl font-bold text-xs h-10 px-6"
-          >
-            <UserPlus size={16} className="mr-2" /> Asignar a Usuario
-          </Button>
-        </div>
-      </div>
-
-      {/* Badges Grid */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+    <div className="flex flex-col gap-6">
+      <AdminPanel
+        id="badges-catalog"
+        title="Catálogo"
+        description={loading ? "Cargando…" : `${fmt.number(badges.length)} ${badges.length === 1 ? "insignia" : "insignias"} creadas`}
+        actions={
+          <>
+            <button type="button" onClick={() => setIsAssigning(true)} className="mv-btn mv-btn-secondary mv-btn-sm w-full sm:w-auto">
+              <UserPlus className="h-4 w-4" aria-hidden /> Asignar a un usuario
+            </button>
+            <button type="button" onClick={() => setIsCreating(true)} className="mv-btn mv-btn-primary mv-btn-sm w-full sm:w-auto">
+              <Plus className="h-4 w-4" aria-hidden /> Nueva insignia
+            </button>
+          </>
+        }
       >
         {loading ? (
-          <div className="col-span-full py-20 flex flex-col items-center justify-center opacity-40">
-            <Loader2 className="animate-spin text-gold mb-4" />
-            <p className="text-[10px] font-black uppercase tracking-widest">Cargando catálogo...</p>
-          </div>
+          <LoadingState label="Cargando catálogo…" />
         ) : badges.length === 0 ? (
-          <div className="col-span-full py-20 text-center border border-dashed border-white/10 rounded-[3rem] bg-white/[0.01]">
-            <p className="text-gray-500 italic">No hay insignias custom creadas todavía.</p>
-          </div>
-        ) : badges.map((badge, i) => (
-          <motion.div 
-            key={badge.id} 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            whileHover={{ y: -5, borderColor: "rgba(212, 175, 55, 0.3)" }}
-            className="bg-white/[0.02] border border-white/5 p-6 rounded-[2.5rem] group transition-all flex flex-col items-center text-center"
-          >
-            <div className="w-20 h-20 bg-bg-tertiary rounded-2xl flex items-center justify-center mb-4 border border-white/10 p-2 overflow-hidden shadow-2xl group-hover:scale-110 transition-transform">
-              <img src={badge.icon} alt={badge.name} className="max-w-full max-h-full object-contain" />
-            </div>
-            <h3 className="font-bold text-white mb-1">{badge.name}</h3>
-            <p className="text-[10px] text-gray-500 line-clamp-2 mb-4 h-8">{badge.description || "Sin descripción"}</p>
-            <div className="flex items-center gap-2 mt-auto pt-4 border-t border-white/5 w-full justify-between">
-              <span className="text-[9px] font-black text-gold uppercase tracking-tighter bg-gold/5 px-2 py-1 rounded">
-                {badge._count?.users || 0} Usuarios
-              </span>
-              <button 
-                onClick={() => confirmDeleteBadge(badge.id)}
-                className="text-gray-600 hover:text-red-500 transition-colors p-1"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Modals Portal */}
-      {mounted && createPortal(
-        <>
-          <AnimatePresence>
-            {isCreating && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/40 backdrop-blur-xl z-[9999] flex items-center justify-center p-4"
-              >
-                <motion.div 
-                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.95, opacity: 0, y: 10 }}
-                  className="bg-bg-secondary border border-white/10 rounded-[3rem] w-full max-w-lg overflow-hidden shadow-2xl"
-                >
-                  <div className="p-8 border-b border-white/5 flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                      <Plus className="text-gold" /> Crear Insignia Custom
-                    </h3>
-                    <button onClick={() => setIsCreating(false)} className="p-2 hover:bg-white/5 rounded-full text-gray-500 hover:text-white transition-all">
-                      <X size={24} />
-                    </button>
-                  </div>
-                  <form onSubmit={handleCreateBadge} className="p-8 space-y-6">
-                    <div>
-                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 block mb-3">Nombre de la Insignia</label>
-                      <input 
-                        required
-                        placeholder="Ej. Colaborador Pil"
-                        value={newBadge.name}
-                        onChange={(e) => setNewBadge({...newBadge, name: e.target.value})}
-                        className="w-full bg-white/[0.03] border border-white/10 rounded-2xl h-14 px-6 text-white outline-none focus:border-gold/50 transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 block mb-3">Descripción (Opcional)</label>
-                      <textarea 
-                        placeholder="Explica qué representa esta insignia..."
-                        value={newBadge.description}
-                        onChange={(e) => setNewBadge({...newBadge, description: e.target.value})}
-                        className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-6 text-white outline-none focus:border-gold/50 transition-all min-h-[100px] resize-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 block mb-3">Logo (PNG, Max 5MB)</label>
-                      <div className="relative group">
-                        <input 
-                          type="file"
-                          accept="image/png"
-                          onChange={handleFileChange}
-                          className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                        />
-                        <div className={`h-32 border-2 border-dashed rounded-3xl flex flex-col items-center justify-center transition-all ${selectedFile ? 'border-gold/50 bg-gold/5' : 'border-white/10 bg-white/[0.02] group-hover:border-white/20'}`}>
-                          {selectedFile ? (
-                            <div className="flex flex-col items-center">
-                              <img src={URL.createObjectURL(selectedFile)} className="h-12 w-12 object-contain mb-2" alt="Preview" />
-                              <span className="text-[10px] text-gold font-bold truncate max-w-[200px]">{selectedFile.name}</span>
-                            </div>
-                          ) : (
-                            <>
-                              <Upload className="text-gray-600 mb-2" size={24} />
-                              <span className="text-xs text-gray-500">Haz clic o arrastra un archivo PNG</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <Button 
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full bg-gold text-primary-foreground hover:bg-gold-light rounded-2xl h-14 font-black uppercase tracking-widest text-xs"
-                    >
-                      {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : "Crear Insignia Oficial"}
-                    </Button>
-                  </form>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {isAssigning && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/40 backdrop-blur-xl z-[9999] flex items-center justify-center p-4"
-              >
-                <motion.div 
-                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.95, opacity: 0, y: 10 }}
-                  className="bg-bg-secondary border border-white/10 rounded-[3rem] w-full max-w-lg overflow-hidden shadow-2xl"
-                >
-                  <div className="p-8 border-b border-white/5 flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                      <UserPlus className="text-gold" /> Asignar Insignia
-                    </h3>
-                    <button onClick={() => setIsAssigning(false)} className="p-2 hover:bg-white/5 rounded-full text-gray-500 hover:text-white transition-all">
-                      <X size={24} />
-                    </button>
-                  </div>
-                  <form onSubmit={handleAssignBadge} className="p-8 space-y-6">
-                    <div>
-                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 block mb-3">Nombre de Usuario (@usuario)</label>
-                      <div className="relative">
-                        <Search className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors ${isSearching ? 'text-gold animate-pulse' : 'text-gray-600'}`} size={18} />
-                        <input 
-                          required
-                          placeholder="Escribe el username..."
-                          value={targetUsername}
-                          onChange={(e) => setTargetUsername(e.target.value)}
-                          onFocus={() => targetUsername.length >= 2 && setShowUserResults(true)}
-                          className="w-full bg-white/[0.03] border border-white/10 rounded-2xl h-14 pl-14 pr-6 text-white outline-none focus:border-gold/50 transition-all"
-                        />
-
-                        {/* User Search Results Dropdown */}
-                        <AnimatePresence>
-                          {showUserResults && searchResults.length > 0 && (
-                            <motion.div 
-                              initial={{ opacity: 0, y: 5 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: 5 }}
-                              className="absolute left-0 right-0 top-[110%] bg-bg-secondary border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-[10002] backdrop-blur-3xl"
-                            >
-                              <div className="p-2 space-y-1">
-                                {searchResults.map((user) => (
-                                  <button
-                                    key={user.id}
-                                    type="button"
-                                    onClick={() => {
-                                      setTargetUsername(user.username);
-                                      setShowUserResults(false);
-                                    }}
-                                    className="w-full flex items-center gap-3 p-3 rounded-2xl transition-all hover:bg-white/5 text-left group"
-                                  >
-                                    <div className="w-10 h-10 rounded-full overflow-hidden bg-white/5 border border-white/10 group-hover:border-gold/30 transition-all">
-                                      <img 
-                                        src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} 
-                                        alt={user.username} 
-                                        className="w-full h-full object-cover"
-                                      />
-                                    </div>
-                                    <div>
-                                      <div className="text-sm font-bold text-white group-hover:text-gold transition-colors">@{user.username}</div>
-                                      <div className="text-[10px] text-gray-500">{user.name || "Sin nombre"}</div>
-                                    </div>
-                                  </button>
-                                ))}
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 block mb-3">Seleccionar Insignia</label>
-                      <div className="relative">
-                        <button 
-                          type="button"
-                          onClick={() => setIsBadgeDropdownOpen(!isBadgeDropdownOpen)}
-                          className="w-full bg-white/[0.03] border border-white/10 rounded-2xl h-14 px-6 text-left text-white outline-none focus:border-gold/50 transition-all flex items-center justify-between group"
-                        >
-                          <span className="flex items-center gap-3">
-                            {selectedBadgeId ? (
-                              <>
-                                <div className="w-6 h-6 bg-white/5 rounded-md p-1 border border-white/10">
-                                  <img src={badges.find(b => b.id === selectedBadgeId)?.icon} alt="" className="w-full h-full object-contain" />
-                                </div>
-                                <span className="text-sm font-bold text-white">{badges.find(b => b.id === selectedBadgeId)?.name}</span>
-                              </>
-                            ) : (
-                              <span className="text-sm text-gray-500">Selecciona una insignia...</span>
-                            )}
-                          </span>
-                          <motion.div
-                            animate={{ rotate: isBadgeDropdownOpen ? 180 : 0 }}
-                            className="text-gray-500 group-hover:text-gold transition-colors"
-                          >
-                            <Plus size={16} className="rotate-45" />
-                          </motion.div>
-                        </button>
-
-                        <AnimatePresence>
-                          {isBadgeDropdownOpen && (
-                            <motion.div 
-                              initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                              animate={{ opacity: 1, y: 0, scale: 1 }}
-                              exit={{ opacity: 0, y: 5, scale: 0.98 }}
-                              className="absolute left-0 right-0 top-[110%] bg-bg-secondary border border-white/10 rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[10001] max-h-[300px] overflow-y-auto backdrop-blur-3xl"
-                            >
-                              <div className="p-2 space-y-1">
-                                {badges.length === 0 ? (
-                                  <div className="p-4 text-center text-[10px] text-gray-500 uppercase tracking-widest">No hay insignias creadas</div>
-                                ) : badges.map((badge) => (
-                                  <button
-                                    key={badge.id}
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedBadgeId(badge.id);
-                                      setIsBadgeDropdownOpen(false);
-                                    }}
-                                    className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all hover:bg-white/5 text-left group ${selectedBadgeId === badge.id ? 'bg-gold/10 border border-gold/20' : 'border border-transparent'}`}
-                                  >
-                                    <div className="w-10 h-10 bg-white/5 rounded-xl p-2 border border-white/10 group-hover:border-gold/30 transition-all">
-                                      <img src={badge.icon} alt={badge.name} className="w-full h-full object-contain" />
-                                    </div>
-                                    <div>
-                                      <div className="text-sm font-bold text-white group-hover:text-gold transition-colors">{badge.name}</div>
-                                      <div className="text-[10px] text-gray-500 line-clamp-1">{badge.description || "Sin descripción"}</div>
-                                    </div>
-                                    {selectedBadgeId === badge.id && (
-                                      <div className="ml-auto w-2 h-2 rounded-full bg-gold shadow-[0_0_10px_rgba(212,175,55,0.5)]" />
-                                    )}
-                                  </button>
-                                ))}
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    </div>
-                    <Button 
-                      type="submit"
-                      disabled={isAssigningSubmitting}
-                      className="w-full bg-gold text-primary-foreground hover:bg-gold-light rounded-2xl h-14 font-black uppercase tracking-widest text-xs"
-                    >
-                      {isAssigningSubmitting ? <Loader2 className="animate-spin" size={20} /> : "Vincular Insignia al Perfil"}
-                    </Button>
-                  </form>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <ConfirmModal
-            isOpen={isDeleteModalOpen}
-            setIsOpen={setIsDeleteModalOpen}
-            title="¿Eliminar insignia?"
-            description="Esta acción es permanente. La insignia se eliminará del catálogo y de todos los perfiles de usuario que la tengan asignada."
-            confirmText="Eliminar permanentemente"
-            cancelText="Cancelar"
-            variant="danger"
-            onConfirm={deleteBadge}
+          <EmptyState
+            icon={Medal}
+            title="Todavía no hay insignias"
+            description="Creá la primera para distinguir colaboradores, empresas aliadas o logros especiales."
           />
-        </>,
+        ) : (
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+            {badges.map((badge) => (
+              <li key={badge.id} className="flex items-center gap-4 rounded-[1.25rem] border border-[var(--mv-hairline-strong)] p-4">
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[0.875rem] border border-[var(--mv-hairline)] bg-[var(--mv-panel-hover)] p-2">
+                  <img src={badge.icon} alt="" className="max-h-full max-w-full object-contain" loading="lazy" decoding="async" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-[var(--text-primary)]">{badge.name}</p>
+                  <p className="line-clamp-2 text-xs text-[var(--text-secondary)]">{badge.description || "Sin descripción"}</p>
+                  <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+                    <span className="mv-data">{badge._count?.users || 0}</span> {(badge._count?.users || 0) === 1 ? "perfil" : "perfiles"}
+                  </p>
+                </div>
+                <IconButton icon={Trash2} tone="danger" label={`Eliminar la insignia ${badge.name}`} onClick={() => confirmDeleteBadge(badge.id)} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </AdminPanel>
+
+      {/* Create */}
+      <AdminDialog
+        open={isCreating}
+        onClose={() => setIsCreating(false)}
+        icon={<Plus className="h-5 w-5" />}
+        title="Nueva insignia"
+        description="Aparece en los perfiles a los que la asignes."
+      >
+        <form id="create-badge" onSubmit={handleCreateBadge} className="flex flex-col gap-5">
+          <Field label="Nombre" htmlFor="badge-name">
+            <input 
+              id="badge-name"
+              required
+              placeholder="Ej.: Colaborador fundador"
+              value={newBadge.name}
+              onChange={(e) => setNewBadge({...newBadge, name: e.target.value})}
+              autoComplete="off"
+              className="mv-input"
+            />
+          </Field>
+          <Field label="Descripción" htmlFor="badge-desc" hint="Opcional.">
+            <textarea 
+              id="badge-desc"
+              placeholder="Qué representa esta insignia"
+              value={newBadge.description}
+              onChange={(e) => setNewBadge({...newBadge, description: e.target.value})}
+              className="mv-input h-24 resize-none py-3 text-sm"
+            />
+          </Field>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="badge-file" className="text-sm font-semibold text-[var(--text-primary)]">Logo</label>
+            <div className="relative">
+              <input 
+                id="badge-file"
+                type="file"
+                accept="image/png"
+                onChange={handleFileChange}
+                aria-describedby="badge-file-hint"
+                className="peer absolute inset-0 z-10 cursor-pointer opacity-0"
+              />
+              <div
+                className={cn(
+                  "flex h-28 flex-col items-center justify-center gap-2 rounded-[1rem] border border-dashed transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-gold",
+                  selectedFile ? "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)]" : "border-[var(--mv-hairline-strong)] peer-hover:border-[var(--color-border-gold)]",
+                )}
+              >
+                {selectedFile ? (
+                  <>
+                    <img src={URL.createObjectURL(selectedFile)} className="h-10 w-10 object-contain" alt="Vista previa del logo" />
+                    <span className="max-w-[16rem] truncate text-xs font-semibold text-[var(--text-primary)]">{selectedFile.name}</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-5 w-5 text-[var(--text-tertiary)]" aria-hidden />
+                    <span className="text-sm text-[var(--text-secondary)]">Hacé clic o arrastrá un PNG</span>
+                  </>
+                )}
+              </div>
+            </div>
+            <p id="badge-file-hint" className="text-xs text-[var(--text-tertiary)]">PNG de hasta 5 MB. Preferí fondo transparente.</p>
+          </div>
+          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+            <button type="button" onClick={() => setIsCreating(false)} className="mv-btn mv-btn-ghost mv-btn-sm">Cancelar</button>
+            <button type="submit" disabled={isSubmitting} className="mv-btn mv-btn-primary mv-btn-sm">
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+              Crear insignia
+            </button>
+          </div>
+        </form>
+      </AdminDialog>
+
+      {/* Assign */}
+      <AdminDialog
+        open={isAssigning}
+        onClose={() => setIsAssigning(false)}
+        icon={<UserPlus className="h-5 w-5" />}
+        title="Asignar insignia"
+        description="Buscá el perfil y elegí la insignia."
+      >
+        <form onSubmit={handleAssignBadge} className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="assign-user" className="text-sm font-semibold text-[var(--text-primary)]">Usuario</label>
+            <div className="relative">
+              <Search aria-hidden className={cn("pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2", isSearching ? "text-gold" : "text-[var(--text-tertiary)]")} />
+              <input 
+                id="assign-user"
+                required
+                placeholder="Escribí al menos 2 letras del usuario"
+                value={targetUsername}
+                onChange={(e) => setTargetUsername(e.target.value)}
+                onFocus={() => targetUsername.length >= 2 && setShowUserResults(true)}
+                autoComplete="off"
+                aria-controls="assign-user-results"
+                className="mv-input pl-10"
+              />
+              {isSearching && <Loader2 aria-hidden className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-gold" />}
+            </div>
+            {/* Results render inline (no nested floating glass inside the dialog) */}
+            {showUserResults && searchResults.length > 0 && (
+              <ul id="assign-user-results" aria-label="Resultados" className="max-h-56 overflow-y-auto rounded-[1rem] border border-[var(--mv-hairline-strong)] p-1">
+                {searchResults.map((user) => (
+                  <li key={user.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTargetUsername(user.username);
+                        setShowUserResults(false);
+                      }}
+                      className="mv-focus flex w-full items-center gap-3 rounded-[0.75rem] p-2.5 text-left transition-colors hover:bg-[var(--mv-panel-hover)]"
+                    >
+                      <span className="h-8 w-8 shrink-0 overflow-hidden rounded-full border border-[var(--mv-hairline-strong)] bg-[var(--mv-panel-hover)]">
+                        <img 
+                          src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} 
+                          alt="" 
+                          className="h-full w-full object-cover"
+                        />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-semibold text-[var(--text-primary)]">@{user.username}</span>
+                        <span className="block truncate text-xs text-[var(--text-tertiary)]">{user.name || "Sin nombre"}</span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <fieldset className="flex flex-col gap-2">
+            <legend className="mb-2 text-sm font-semibold text-[var(--text-primary)]">Insignia</legend>
+            {badges.length === 0 ? (
+              <p className="text-sm text-[var(--text-tertiary)]">Primero creá una insignia.</p>
+            ) : (
+              <div className="grid max-h-64 grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
+                {badges.map((badge) => {
+                  const selected = selectedBadgeId === badge.id;
+                  return (
+                    <label
+                      key={badge.id}
+                      className={cn(
+                        "relative flex cursor-pointer items-center gap-3 rounded-[0.875rem] border p-3 transition-colors duration-150 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold",
+                        selected
+                          ? "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)]"
+                          : "border-[var(--mv-hairline-strong)] hover:bg-[var(--mv-panel-hover)]",
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="assign-badge"
+                        value={badge.id}
+                        checked={selected}
+                        onChange={() => setSelectedBadgeId(badge.id)}
+                        className="sr-only"
+                      />
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.625rem] border border-[var(--mv-hairline)] p-1.5">
+                        <img src={badge.icon} alt="" className="h-full w-full object-contain" />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--text-primary)]">{badge.name}</span>
+                      {selected ? <Check className="h-4 w-4 shrink-0 text-gold" aria-hidden /> : null}
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </fieldset>
+
+          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+            <button type="button" onClick={() => setIsAssigning(false)} className="mv-btn mv-btn-ghost mv-btn-sm">Cancelar</button>
+            <button type="submit" disabled={isAssigningSubmitting} className="mv-btn mv-btn-primary mv-btn-sm">
+              {isAssigningSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+              Asignar insignia
+            </button>
+          </div>
+        </form>
+      </AdminDialog>
+
+      {mounted && createPortal(
+        <ConfirmModal
+          isOpen={isDeleteModalOpen}
+          setIsOpen={setIsDeleteModalOpen}
+          title="¿Eliminar insignia?"
+          description="Es permanente: se quita del catálogo y de todos los perfiles que la tienen asignada."
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          variant="danger"
+          onConfirm={deleteBadge}
+        />,
         document.body
       )}
 

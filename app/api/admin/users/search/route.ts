@@ -6,12 +6,16 @@ import { authOptions } from "@/lib/auth";
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== "ADMIN") {
+    if (!session?.user) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    // Solo ADMIN: los roles viven en session.user.roles (UserRole[] en la base)
+    if (!session.user.roles?.includes("ADMIN")) {
+      return NextResponse.json({ error: "Prohibido" }, { status: 403 });
     }
 
     const { searchParams } = new URL(req.url);
-    const query = searchParams.get("q");
+    const query = searchParams.get("q")?.trim().slice(0, 100);
 
     if (!query || query.length < 2) {
       return NextResponse.json({ success: true, data: [] });
@@ -28,12 +32,16 @@ export async function GET(req: Request) {
         id: true,
         username: true,
         name: true,
-        image: true,
+        avatar: true,
       },
       take: 5,
     });
 
-    return NextResponse.json({ success: true, data: users });
+    // El frontend (BadgesTab) espera `image`; en User el campo es `avatar`.
+    return NextResponse.json({
+      success: true,
+      data: users.map(({ avatar, ...u }) => ({ ...u, image: avatar })),
+    });
   } catch (error) {
     console.error("Search Users Error:", error);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });

@@ -16,9 +16,9 @@ export async function POST(
       return NextResponse.json({ success: false, error: "No autorizado" }, { status: 403 })
     }
 
-    const { plan, durationDays, reason } = await req.json()
+    const { plan, durationDays, reason } = (await req.json().catch(() => ({}))) as { plan?: unknown; durationDays?: unknown; reason?: unknown }
 
-    if (!plan || !reason) {
+    if (!plan || !reason || typeof reason !== "string") {
       return NextResponse.json({ success: false, error: "El plan y la razón son campos obligatorios" }, { status: 400 })
     }
 
@@ -68,10 +68,12 @@ export async function POST(
       }
     })
 
-    return NextResponse.json({ success: true, data: updatedUser })
+    // No devolver hash de contraseña ni secreto 2FA
+    const { password: _password, twoFactorSecret: _secret, ...safeUser } = updatedUser
+    return NextResponse.json({ success: true, data: safeUser })
   } catch (error: any) {
     console.error("Error changing user plan:", error)
-    return NextResponse.json({ success: false, error: error.message || "Error interno" }, { status: 500 })
+    return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 })
   }
 }
 // creado por pato dev y askforvini

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, PlusSquare, MessageSquare, User, Rss, Shield, Map, MessagesSquare, Users, Star } from "lucide-react";
+import { Home, PlusSquare, MessageSquare, User, Rss, Shield, Map, MessagesSquare, Users } from "lucide-react";
+import { StarOfDavid } from "@/components/site/StarOfDavid";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +17,7 @@ const MERCAV_ITEMS = [
 ];
 
 const KOSHER_ITEMS = [
-  { icon: Star, label: "Kosher", href: "/kosher" },
+  { icon: StarOfDavid, label: "Kosher", href: "/kosher" },
   { icon: Map, label: "Mapa", href: "/kosher/mapa" },
   { icon: MessagesSquare, label: "Chat", href: "/kosher/chat" },
   { icon: Users, label: "Kehilot", href: "/kosher/comunidades" },
@@ -25,7 +26,7 @@ const KOSHER_ITEMS = [
 
 export function BottomNav() {
   const pathname = usePathname();
-  if (pathname?.includes("/pos") || pathname?.includes("/admin") || pathname === "/1337") return null;
+  if (/^\/(dashboard\/pos|admin)(\/|$)/.test(pathname ?? "") || pathname === "/1337") return null;
 
   const kosher = pathname === "/kosher" || pathname?.startsWith("/kosher/");
   const navItems = kosher ? KOSHER_ITEMS : MERCAV_ITEMS;

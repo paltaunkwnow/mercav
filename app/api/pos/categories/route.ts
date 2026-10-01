@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireManager } from "@/lib/pos/staff";
 
 export async function GET() {
   try {
@@ -37,6 +38,8 @@ export async function POST(req: Request) {
     });
 
     if (!user?.posConfig) return NextResponse.json({ success: false, error: "POS not configured" }, { status: 400 });
+    const gate = await requireManager(req, user.posConfig.id);
+    if (!gate.ok) return gate.response;
 
     const body = await req.json();
     const { name } = body;

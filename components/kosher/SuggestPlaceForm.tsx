@@ -9,11 +9,13 @@ import type { KosherFood, KosherPlaceType } from "@prisma/client";
 import { FOOD, PLACE_TYPES } from "@/lib/kosher/labels";
 import { kosherFetch, useKosherViewer } from "@/components/kosher/KosherViewer";
 import { SlideConfirm } from "@/components/motion/SlideConfirm";
+import { SignInCard, fieldClass, labelClass } from "@/components/kosher/ui";
+import { buttonClass } from "@/components/site/primitives";
 import { cn } from "@/lib/utils";
 
-const field =
-  "h-12 w-full rounded-xl border border-border bg-bg-tertiary px-4 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] hover:border-gold/30 focus:border-gold/50 focus:ring-2 focus:ring-gold/15";
-const label = "mb-1.5 block text-sm font-medium text-[var(--text-secondary)]";
+const field = fieldClass;
+const label = labelClass;
+const legend = "mv-h3 mb-5";
 
 export function SuggestPlaceForm() {
   const viewer = useKosherViewer();
@@ -37,13 +39,9 @@ export function SuggestPlaceForm() {
 
   if (!viewer.signedIn) {
     return (
-      <div className="rounded-[2rem] border border-border bg-bg-secondary p-8 text-center">
-        <p className="font-display text-xl font-semibold text-[var(--text-primary)]">Entrá con tu cuenta Mercav</p>
-        <p className="mt-2 text-sm text-[var(--text-secondary)]">Así sabemos quién sugiere cada lugar y podemos contactarte si falta un dato.</p>
-        <Link href="/login?callbackUrl=/kosher/sugerir" className="mt-6 inline-flex h-12 items-center rounded-full bg-gold px-7 text-sm font-semibold text-black">
-          Iniciar sesión
-        </Link>
-      </div>
+      <SignInCard callbackUrl="/kosher/sugerir">
+        Así sabemos quién sugiere cada lugar y podemos contactarte si falta un dato.
+      </SignInCard>
     );
   }
 
@@ -64,6 +62,15 @@ export function SuggestPlaceForm() {
     /^[a-zA-Z]{2}$/.test(form.countryCode) &&
     form.lat !== "" && form.lng !== "" &&
     Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+
+  const missing = [
+    form.name.trim().length < 2 && "nombre",
+    form.address.trim().length < 2 && "dirección",
+    form.city.trim().length < 2 && "ciudad",
+    form.country.trim().length < 2 && "país",
+    !/^[a-zA-Z]{2}$/.test(form.countryCode) && "código de país",
+    !(form.lat !== "" && form.lng !== "" && Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) && "ubicación",
+  ].filter(Boolean) as string[];
 
   async function submit() {
     try {
@@ -97,83 +104,128 @@ export function SuggestPlaceForm() {
   }
 
   return (
-    <form onSubmit={(e) => e.preventDefault()} className="space-y-5 rounded-[2rem] border border-border bg-bg-secondary p-6 md:p-8">
-      <div className="grid gap-5 md:grid-cols-2">
-        <div className="md:col-span-2">
-          <label className={label} htmlFor="k-name">Nombre</label>
-          <input id="k-name" className={field} value={form.name} onChange={set("name")} maxLength={120} placeholder="Ej.: Panadería Shalom" />
-        </div>
-        <div>
-          <label className={label} htmlFor="k-type">Tipo</label>
-          <select id="k-type" className={field} value={form.type} onChange={set("type")}>
-            {Object.entries(PLACE_TYPES).map(([v, l]) => (
-              <option key={v} value={v}>{l}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={label} htmlFor="k-food">Categoría</label>
-          <select id="k-food" className={field} value={form.foodCategory} onChange={set("foodCategory")}>
-            <option value="">No aplica</option>
-            {Object.entries(FOOD).map(([v, l]) => (
-              <option key={v} value={v}>{l}</option>
-            ))}
-          </select>
-        </div>
-        <div className="md:col-span-2">
-          <label className={label} htmlFor="k-address">Dirección</label>
-          <input id="k-address" className={field} value={form.address} onChange={set("address")} maxLength={200} placeholder="Calle y número o referencia" />
-        </div>
-        <div>
-          <label className={label} htmlFor="k-city">Ciudad</label>
-          <input id="k-city" className={field} value={form.city} onChange={set("city")} maxLength={80} />
-        </div>
-        <div className="grid grid-cols-[1fr_88px] gap-3">
-          <div>
-            <label className={label} htmlFor="k-country">País</label>
-            <input id="k-country" className={field} value={form.country} onChange={set("country")} maxLength={80} />
+    <form onSubmit={(e) => e.preventDefault()} className="mv-panel space-y-10 p-6 md:p-8" noValidate>
+      <fieldset>
+        <legend className={legend}>El lugar</legend>
+        <div className="grid gap-5 md:grid-cols-2">
+          <div className="md:col-span-2">
+            <label className={label} htmlFor="k-name">Nombre</label>
+            <input id="k-name" required autoComplete="organization" className={field} value={form.name} onChange={set("name")} maxLength={120} placeholder="Ej.: Panadería Shalom" />
           </div>
           <div>
-            <label className={label} htmlFor="k-cc">Código</label>
-            <input id="k-cc" className={cn(field, "uppercase")} value={form.countryCode} onChange={set("countryCode")} maxLength={2} placeholder="BO" />
+            <label className={label} htmlFor="k-type">Tipo</label>
+            <select id="k-type" className={field} value={form.type} onChange={set("type")}>
+              {Object.entries(PLACE_TYPES).map(([v, l]) => (
+                <option key={v} value={v}>{l}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={label} htmlFor="k-food">
+              Categoría <span className="font-normal text-[var(--text-tertiary)]">· opcional</span>
+            </label>
+            <select id="k-food" className={field} value={form.foodCategory} onChange={set("foodCategory")}>
+              <option value="">No aplica</option>
+              {Object.entries(FOOD).map(([v, l]) => (
+                <option key={v} value={v}>{l}</option>
+              ))}
+            </select>
           </div>
         </div>
-        <div className="md:col-span-2">
-          <div className="mb-1.5 flex items-center justify-between">
-            <span className={cn(label, "mb-0")}>Ubicación</span>
-            <button type="button" onClick={here} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold text-[var(--text-primary)] hover:border-gold/40">
-              <LocateFixed className="h-3.5 w-3.5" aria-hidden /> Estoy acá
-            </button>
+      </fieldset>
+
+      <fieldset>
+        <legend className={legend}>Dónde está</legend>
+        <div className="grid gap-5 md:grid-cols-2">
+          <div className="md:col-span-2">
+            <label className={label} htmlFor="k-address">Dirección</label>
+            <input id="k-address" required autoComplete="street-address" className={field} value={form.address} onChange={set("address")} maxLength={200} placeholder="Calle y número o referencia" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <input aria-label="Latitud" inputMode="decimal" className={field} value={form.lat} onChange={set("lat")} placeholder="Latitud, ej. -17.7833" />
-            <input aria-label="Longitud" inputMode="decimal" className={field} value={form.lng} onChange={set("lng")} placeholder="Longitud, ej. -63.1821" />
+          <div>
+            <label className={label} htmlFor="k-city">Ciudad</label>
+            <input id="k-city" required autoComplete="address-level2" className={field} value={form.city} onChange={set("city")} maxLength={80} />
+          </div>
+          <div className="grid grid-cols-[1fr_6rem] gap-3">
+            <div>
+              <label className={label} htmlFor="k-country">País</label>
+              <input id="k-country" required autoComplete="country-name" className={field} value={form.country} onChange={set("country")} maxLength={80} />
+            </div>
+            <div>
+              <label className={label} htmlFor="k-cc">Código</label>
+              <input
+                id="k-cc"
+                required
+                autoComplete="country"
+                autoCapitalize="characters"
+                aria-describedby="k-cc-hint"
+                className={cn(field, "mv-data uppercase")}
+                value={form.countryCode}
+                onChange={set("countryCode")}
+                maxLength={2}
+                placeholder="BO"
+              />
+            </div>
+          </div>
+          <p id="k-cc-hint" className="-mt-2 text-xs text-[var(--text-secondary)] md:col-span-2">
+            El código de país son dos letras: AR, BO, BR, CL, UY…
+          </p>
+          <div className="md:col-span-2">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <span id="k-loc-label" className={cn(label, "mb-0")}>Ubicación</span>
+              <button type="button" onClick={here} className={buttonClass("secondary", "sm", "h-10 px-4 text-sm")}>
+                <LocateFixed className="h-4 w-4" aria-hidden /> Estoy acá
+              </button>
+            </div>
+            <div role="group" aria-labelledby="k-loc-label" aria-describedby="k-loc-hint" className="grid grid-cols-2 gap-3">
+              <input aria-label="Latitud" inputMode="decimal" autoComplete="off" className={cn(field, "mv-data")} value={form.lat} onChange={set("lat")} placeholder="-17.7833" />
+              <input aria-label="Longitud" inputMode="decimal" autoComplete="off" className={cn(field, "mv-data")} value={form.lng} onChange={set("lng")} placeholder="-63.1821" />
+            </div>
+            <p id="k-loc-hint" className="mt-2 text-xs text-[var(--text-secondary)]">
+              Latitud y longitud. Usá «Estoy acá» si estás en el lugar, o copialas desde Google Maps.
+            </p>
           </div>
         </div>
-        <div className="md:col-span-2">
-          <label className={label} htmlFor="k-agency">Agencia certificadora (si la tiene)</label>
-          <input id="k-agency" className={field} value={form.agencyName} onChange={set("agencyName")} maxLength={80} placeholder="Ej.: OU, Jabad, Rabinato local" />
+      </fieldset>
+
+      <fieldset>
+        <legend className={legend}>Kashrut y notas</legend>
+        <div className="grid gap-5">
+          <div>
+            <label className={label} htmlFor="k-agency">
+              Agencia certificadora <span className="font-normal text-[var(--text-tertiary)]">· si la tiene</span>
+            </label>
+            <input id="k-agency" className={field} value={form.agencyName} onChange={set("agencyName")} maxLength={80} placeholder="Ej.: OU, Jabad, Rabinato local" />
+          </div>
+          <div>
+            <label className={label} htmlFor="k-notes">
+              Notas <span className="font-normal text-[var(--text-tertiary)]">· opcional</span>
+            </label>
+            <textarea id="k-notes" className={cn(field, "h-28 resize-none py-3")} value={form.notes} onChange={set("notes")} maxLength={600} placeholder="Horarios, qué se consigue, cómo se maneja la kashrut…" />
+          </div>
         </div>
-        <div className="md:col-span-2">
-          <label className={label} htmlFor="k-notes">Notas</label>
-          <textarea id="k-notes" className={cn(field, "h-24 resize-none py-3")} value={form.notes} onChange={set("notes")} maxLength={600} placeholder="Horarios, qué se consigue, cómo se maneja la kashrut…" />
+      </fieldset>
+
+      <div className="space-y-4 border-t border-[var(--mv-hairline)] pt-8">
+        <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
+          Al enviar confirmás que la información es de buena fe según los{" "}
+          <Link href="/kosher/terminos" className="mv-link">Términos de Mercav Kosher</Link>. Mercav Kosher no emite hechsher: si el lugar tiene
+          certificación, la revisamos con la agencia.
+        </p>
+        <div className={cn("transition-opacity duration-200", !valid && "opacity-50")}>
+          <SlideConfirm
+            key={attempt}
+            variant="gold"
+            disabled={!valid}
+            label={valid ? "Deslizá para enviar" : "Completá los datos"}
+            className="w-full rounded-[2rem]"
+            onConfirm={() => {
+              submit().catch(() => window.setTimeout(() => setAttempt((n) => n + 1), 900));
+            }}
+          />
         </div>
-      </div>
-      <p className="text-xs text-[var(--text-tertiary)]">
-        Al enviar confirmás que la información es de buena fe según los{" "}
-        <Link href="/kosher/terminos" className="underline underline-offset-4 hover:text-gold">Términos de Mercav Kosher</Link>.
-      </p>
-      <div className={cn("transition-opacity", !valid && "opacity-40")}>
-        <SlideConfirm
-          key={attempt}
-          variant="gold"
-          disabled={!valid}
-          label={valid ? "Deslizá para enviar" : "Completá los datos"}
-          className="w-full rounded-[2rem]"
-          onConfirm={() => {
-            submit().catch(() => window.setTimeout(() => setAttempt((n) => n + 1), 900));
-          }}
-        />
+        <p aria-live="polite" className="min-h-5 text-xs text-[var(--text-secondary)]">
+          {!valid && missing.length > 0 ? `Falta: ${missing.join(", ")}.` : ""}
+        </p>
       </div>
     </form>
   );

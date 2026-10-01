@@ -19,8 +19,10 @@ import {
   Trash2,
   Hammer
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { ButtonLink, Container, buttonClass } from "@/components/site/primitives";
+
+const EASE = [0.23, 1, 0.32, 1] as const;
 
 interface TicketDetailClientProps {
   ticket: any;
@@ -39,6 +41,7 @@ export default function TicketDetailClient({ ticket, user }: TicketDetailClientP
   const [finalResolution, setFinalResolution] = useState("");
   const [sanctionReason, setSanctionReason] = useState("");
   const [sanctionDays, setSanctionDays] = useState("7");
+  const reduce = useReducedMotion();
 
   const categoryLabels: Record<string, string> = {
     PAYMENT_ERROR: "Error en el Pago",
@@ -63,8 +66,15 @@ export default function TicketDetailClient({ ticket, user }: TicketDetailClientP
         body = { userId: targetId };
       } else if (action === 'SANCTION') {
         endpoint = `/api/admin/users/${targetId}/sanction`;
+        const days = parseInt(extraData.days, 10);
+        if (!Number.isFinite(days) || days < 1 || days > 3650) {
+          setModalMessage("La duración tiene que ser un número de días entre 1 y 3650.");
+          setIsErrorModalOpen(true);
+          setIsSubmitting(false);
+          return;
+        }
         const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + parseInt(extraData.days || "7"));
+        expiresAt.setDate(expiresAt.getDate() + days);
         body = { isSanctioned: true, reason: extraData.reason, expiresAt };
       } else if (action === 'RESOLVE' || action === 'CLOSE') {
         const newStatus = action === 'RESOLVE' ? 'RESOLVED' : 'CLOSED';
@@ -142,470 +152,475 @@ export default function TicketDetailClient({ ticket, user }: TicketDetailClientP
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'OPEN': return 'bg-blue-500/10 text-blue-400 border-blue-400/20';
-      case 'IN_PROGRESS': return 'bg-gold/10 text-gold border-gold/20';
-      case 'RESOLVED': return 'bg-green-500/10 text-green-400 border-green-400/20';
-      case 'CLOSED': return 'bg-gray-500/10 text-gray-400 border-gray-400/20';
-      default: return 'bg-gray-500/10 text-gray-400 border-gray-400/20';
+      case 'OPEN': return 'mv-chip-gold';
+      case 'IN_PROGRESS': return 'border-yellow-500/25 bg-yellow-500/10 text-yellow-400';
+      case 'RESOLVED': return 'border-green-500/25 bg-green-500/10 text-green-400';
+      case 'CLOSED': return '';
+      default: return '';
     }
   };
 
-  return (
-    <div className="w-full min-h-screen bg-[#050505] text-white pt-24 pb-32">
-      <div className="container mx-auto px-4 max-w-6xl">
-        {/* Header & Back */}
-        <div className="mb-12">
-          <Link href="/dashboard/pedidos" className="inline-flex items-center text-gray-500 hover:text-gold transition-colors mb-6 text-[10px] font-black uppercase tracking-[0.2em] group">
-            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" /> Volver a Pedidos y Reportes
-          </Link>
-          
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusColor(ticket.status)}`}>
-                  Caso {ticket.status}
-                </span>
-                <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">
-                  ID: {ticket.id.split('-')[0].toUpperCase()}
-                </span>
-              </div>
-              <h1 className="text-4xl font-display font-black tracking-tighter mb-2">{ticket.subject}</h1>
-              <p className="text-gray-500 flex items-center gap-2">
-                <Clock size={14} /> Iniciado el {new Date(ticket.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-4 bg-white/[0.03] border border-white/5 p-6 rounded-[2rem]">
-               <div className="w-12 h-12 bg-gold/10 rounded-2xl flex items-center justify-center text-gold">
-                  <Headphones size={24} />
-               </div>
-               <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Agente Asignado</p>
-                  <p className="font-bold text-white">Soporte Mercav Pro</p>
-               </div>
-            </div>
-          </div>
-        </div>
+  const statusLabels: Record<string, string> = {
+    OPEN: "Abierto",
+    IN_PROGRESS: "En curso",
+    RESOLVED: "Resuelto",
+    CLOSED: "Cerrado",
+  };
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Main Conversation */}
-          <div className="lg:col-span-8 space-y-8">
-            {/* Original Message */}
-            <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-10 relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-8 opacity-5">
-                  <AlertCircle size={80} className="text-gold" />
-               </div>
-               <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden">
-                    {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : <UserIcon className="text-gray-600" />}
+  const fieldLabel = "mb-2 block text-sm font-medium text-[var(--text-secondary)]";
+
+  return (
+    <div className="relative w-full min-h-screen overflow-hidden bg-bg-primary pb-20 pt-28 md:pb-28 md:pt-36">
+      <div className="mv-aura" aria-hidden />
+      <Container className="relative">
+        <header className="mb-10 flex flex-col gap-4">
+          <p className="mv-kicker">
+            <Link href="/dashboard/pedidos?tab=tickets" className="-my-2 inline-flex items-center gap-1.5 rounded py-2 hover:underline mv-focus">
+              <ArrowLeft className="h-3.5 w-3.5" aria-hidden /> Reportes
+            </Link>
+            <span aria-hidden>/</span>
+            <span className="mv-data">{ticket.id.split('-')[0].toUpperCase()}</span>
+          </p>
+          <h1 className="mv-h1 max-w-4xl break-words">{ticket.subject}</h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className={`mv-chip ${getStatusColor(ticket.status)}`}>{statusLabels[ticket.status] || ticket.status}</span>
+            <span className="inline-flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
+              <Clock className="h-3.5 w-3.5" aria-hidden /> Abierto el{" "}
+              <time dateTime={ticket.createdAt} className="mv-data">
+                {new Date(ticket.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </time>
+            </span>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-10">
+          {/* Conversación */}
+          <div className="flex flex-col gap-6 lg:col-span-8">
+            <article aria-labelledby="ticket-original" className="mv-panel p-6 md:p-8">
+              <div className="mb-5 flex items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[var(--mv-hairline)] bg-[var(--mv-panel-hover)]">
+                  {user.avatar ? <img src={user.avatar} alt="" width={40} height={40} className="h-full w-full object-cover" /> : <UserIcon className="h-5 w-5 text-[var(--text-tertiary)]" aria-hidden />}
+                </span>
+                <div>
+                  <p className="font-semibold text-[var(--text-primary)]">{user.name}</p>
+                  <h2 id="ticket-original" className="text-xs text-[var(--text-secondary)]">Reporte original</h2>
+                </div>
+              </div>
+              <p className="whitespace-pre-wrap break-words text-base leading-relaxed text-[var(--text-primary)]">
+                {ticket.message}
+              </p>
+            </article>
+
+            {replies.length > 0 && (
+              <section aria-label="Respuestas">
+                <ol className="relative flex flex-col gap-4 border-l border-[var(--mv-hairline-strong)] pl-5 md:pl-7">
+                  {replies.map((reply: any, i: number) => (
+                    <motion.li
+                      key={reply.id}
+                      initial={reduce ? false : { opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: Math.min(i * 0.05, 0.3), ease: EASE }}
+                      className="relative"
+                    >
+                      <span
+                        aria-hidden
+                        className={`absolute -left-[1.6rem] top-6 h-2.5 w-2.5 rounded-full ring-4 ring-[var(--color-bg-primary)] md:-left-[2.1rem] ${reply.isAdmin ? 'bg-gold' : 'bg-[var(--text-tertiary)]'}`}
+                      />
+                      <div className={`rounded-[1.25rem] border p-5 md:p-6 ${reply.isAdmin ? 'border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)]' : 'border-[var(--mv-hairline)] bg-[var(--mv-panel)]'}`}>
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <p className={`flex items-center gap-1.5 text-sm font-semibold ${reply.isAdmin ? 'text-gold' : 'text-[var(--text-primary)]'}`}>
+                            {reply.isAdmin ? "Soporte Mercav" : reply.user.name}
+                            {reply.isAdmin && <ShieldCheck className="h-3.5 w-3.5" aria-hidden />}
+                          </p>
+                          <time dateTime={reply.createdAt} className="mv-data text-xs text-[var(--text-tertiary)]">
+                            {new Date(reply.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </time>
+                        </div>
+                        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--text-secondary)]">{reply.message}</p>
+                      </div>
+                    </motion.li>
+                  ))}
+                </ol>
+              </section>
+            )}
+
+            {/* Responder */}
+            {ticket.status === 'RESOLVED' || ticket.status === 'CLOSED' ? (
+              <div className="mv-panel flex flex-col items-start gap-3 p-6 md:p-8">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--mv-hairline)] text-[var(--text-secondary)]">
+                  <Lock className="h-5 w-5" aria-hidden />
+                </span>
+                <h2 className="mv-h3">Este caso está cerrado</h2>
+                <p className="mv-body max-w-md">
+                  Ya no se pueden enviar mensajes en este reporte. Si tenés un problema nuevo, abrí otro desde la compra o la transacción.
+                </p>
+                <ButtonLink href="/dashboard/pedidos" tone="secondary" className="mt-2 w-full sm:w-auto">Ir a mis pedidos</ButtonLink>
+              </div>
+            ) : (
+              <section aria-labelledby="ticket-reply" className="mv-panel p-5 md:p-8">
+                <h2 id="ticket-reply" className="mv-h3 mb-4">Responder</h2>
+                <form onSubmit={handleSubmitReply} className="flex flex-col gap-4">
+                  <div>
+                    <label htmlFor="ticket-reply-message" className="sr-only">Tu mensaje</label>
+                    <textarea
+                      id="ticket-reply-message"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Escribí tu mensaje o una actualización del caso"
+                      aria-describedby="ticket-reply-hint"
+                      className="mv-input h-auto min-h-[140px] resize-y py-3 leading-relaxed"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <p id="ticket-reply-hint" className="text-sm text-[var(--text-secondary)] sm:max-w-xs">
+                      Tu respuesta llega al equipo que media el caso.
+                    </p>
+                    <button
+                      type="submit"
+                      disabled={!newMessage.trim() || isSubmitting}
+                      aria-busy={isSubmitting}
+                      className={buttonClass("primary", "md", "w-full sm:w-auto")}
+                    >
+                      {isSubmitting ? "Enviando…" : <><Send className="h-4 w-4" aria-hidden /> Enviar mensaje</>}
+                    </button>
+                  </div>
+                </form>
+              </section>
+            )}
+          </div>
+
+          {/* Lateral */}
+          <aside className="lg:col-span-4" aria-label="Información del caso">
+            <div className="flex flex-col gap-6 lg:sticky lg:top-28">
+              <section aria-labelledby="ticket-info" className="mv-panel p-6 md:p-8">
+                <h2 id="ticket-info" className="mv-h3 mb-5">Información del caso</h2>
+                <dl className="flex flex-col gap-4 text-sm">
+                  <div>
+                    <dt className="text-[var(--text-secondary)]">Categoría</dt>
+                    <dd className="mt-0.5 font-medium text-[var(--text-primary)]">{categoryLabels[ticket.category] || ticket.category}</dd>
                   </div>
                   <div>
-                    <p className="font-bold text-white">{user.name}</p>
-                    <p className="text-[10px] text-gray-600 font-black uppercase tracking-widest">Autor del Reporte</p>
+                    <dt className="text-[var(--text-secondary)]">Estado</dt>
+                    <dd className="mt-0.5 font-medium text-[var(--text-primary)]">{statusLabels[ticket.status] || ticket.status}</dd>
                   </div>
-               </div>
-               <div className="text-gray-300 leading-relaxed text-lg whitespace-pre-wrap">
-                  {ticket.message}
-               </div>
-            </div>
-
-            {/* Replies Timeline */}
-            <div className="space-y-8 relative">
-               <div className="absolute left-6 top-0 bottom-0 w-[1px] bg-gradient-to-b from-white/5 via-white/10 to-transparent" />
-               
-               {replies.map((reply: any, i: number) => (
-                 <motion.div 
-                   key={reply.id}
-                   initial={{ opacity: 0, x: -20 }}
-                   animate={{ opacity: 1, x: 0 }}
-                   transition={{ delay: i * 0.1 }}
-                   className={`relative pl-16 ${reply.isAdmin ? 'ml-auto max-w-[90%]' : ''}`}
-                 >
-                    <div className={`absolute left-4 top-0 w-4 h-4 rounded-full border-2 border-[#050505] z-10 ${reply.isAdmin ? 'bg-gold shadow-[0_0_10px_rgba(212,175,55,0.5)]' : 'bg-gray-600'}`} />
-                    
-                    <div className={`p-8 rounded-[2rem] border ${reply.isAdmin ? 'bg-gold/5 border-gold/20' : 'bg-white/[0.02] border-white/5'}`}>
-                       <div className="flex justify-between items-center mb-4">
-                          <div className="flex items-center gap-3">
-                             <p className={`font-bold ${reply.isAdmin ? 'text-gold' : 'text-white'}`}>
-                                {reply.isAdmin ? "Soporte Oficial" : reply.user.name}
-                             </p>
-                             {reply.isAdmin && <ShieldCheck size={14} className="text-gold" />}
-                          </div>
-                          <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">
-                             {new Date(reply.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                       </div>
-                       <p className="text-gray-400 leading-relaxed">{reply.message}</p>
+                  {ticket.transactionId && (
+                    <div>
+                      <dt className="text-[var(--text-secondary)]">Transacción vinculada</dt>
+                      <dd className="mv-data mt-0.5 break-all text-xs text-[var(--text-primary)]">{ticket.transactionId}</dd>
                     </div>
-                 </motion.div>
-               ))}
-            </div>
+                  )}
+                </dl>
+              </section>
 
-            {/* Reply Form */}
-            <div className="mt-12">
-               {ticket.status === 'RESOLVED' || ticket.status === 'CLOSED' ? (
-                  <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-10 text-center">
-                     <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-500">
-                        <Lock size={32} />
-                     </div>
-                     <h3 className="text-xl font-bold text-white mb-2">Este caso ha finalizado</h3>
-                     <p className="text-gray-500 text-sm max-w-sm mx-auto">
-                        No es posible enviar más mensajes en este ticket. Si tienes un problema nuevo, por favor abre un reporte diferente.
-                     </p>
-                  </div>
-               ) : (
-                  <div className="bg-bg-secondary border border-white/10 rounded-[2.5rem] p-10 focus-within:border-gold/30 transition-all">
-                     <h3 className="text-sm font-black text-white uppercase tracking-[0.3em] mb-6">Responder al Caso</h3>
-                     <form onSubmit={handleSubmitReply}>
-                       <textarea 
-                         value={newMessage}
-                         onChange={(e) => setNewMessage(e.target.value)}
-                         placeholder="Escribe tu mensaje o actualización aquí..."
-                         className="w-full bg-transparent border-none text-white text-lg min-h-[150px] focus:ring-0 resize-none mb-6 placeholder:text-gray-700"
-                       />
-                       <div className="flex justify-between items-center">
-                          <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest max-w-[200px]">
-                             Tu respuesta llegará directamente a nuestro equipo de mediación.
-                          </p>
-                          <Button 
-                            type="submit"
-                            disabled={!newMessage.trim() || isSubmitting}
-                            className="bg-gold text-black hover:bg-gold-light rounded-2xl h-14 px-10 font-black uppercase tracking-widest transition-all hover:scale-105 shadow-xl shadow-gold/20 disabled:opacity-50 disabled:scale-100"
-                          >
-                             {isSubmitting ? "Enviando..." : <><Send className="w-5 h-5 mr-3" /> Enviar Mensaje</>}
-                          </Button>
-                       </div>
-                     </form>
-                  </div>
-               )}
-            </div>
-          </div>
+              {/* Panel de administración */}
+              {isAdmin && (
+                <section aria-labelledby="ticket-admin" className="liquid-glass rounded-[1.75rem] p-6 md:p-8">
+                  <h2 id="ticket-admin" className="mv-h3 mb-1 flex items-center gap-2">
+                    <Hammer className="h-4 w-4 text-gold" aria-hidden /> Administración
+                  </h2>
+                  <p className="mb-5 text-sm text-[var(--text-secondary)]">Solo visible para administradores.</p>
 
-          {/* Sidebar Info */}
-          <div className="lg:col-span-4">
-             <div className="sticky top-24 space-y-6">
-                <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-10">
-                   <h3 className="text-xs font-black text-white uppercase tracking-[0.3em] mb-8">Información del Caso</h3>
-                   
-                   <div className="space-y-6">
-                      <div>
-                         <p className="text-[10px] text-gray-600 font-black uppercase tracking-widest mb-1">Categoría</p>
-                         <p className="text-white font-bold">{categoryLabels[ticket.category] || ticket.category}</p>
-                      </div>
-                      <div>
-                         <p className="text-[10px] text-gray-600 font-black uppercase tracking-widest mb-1">Prioridad</p>
-                         <p className="text-gold font-bold flex items-center gap-2">
-                            <Zap size={14} className="fill-gold" /> Alta (Mercav Protection)
-                         </p>
-                      </div>
-                      {ticket.transactionId && (
-                        <div>
-                           <p className="text-[10px] text-gray-600 font-black uppercase tracking-widest mb-1">Transacción Vinculada</p>
-                           <p className="text-white font-mono text-xs">{ticket.transactionId}</p>
-                        </div>
+                  <div className="flex flex-col gap-5">
+                    <div>
+                      <h3 className="mb-2 text-sm font-medium text-[var(--text-secondary)]">Mediación</h3>
+                      {ticket.order && !ticket.involvedUserId ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const targetId = ticket.userId === ticket.order.clientId ? ticket.order.providerId : ticket.order.clientId;
+                            handleAdminAction('INVITE_PARTY', targetId);
+                          }}
+                          disabled={isSubmitting}
+                          className={buttonClass("secondary", "sm", "w-full")}
+                        >
+                          Invitar a la contraparte
+                        </button>
+                      ) : ticket.involvedUserId ? (
+                        <span className="mv-chip border-green-500/25 bg-green-500/10 text-green-400">
+                          <UsersIcon className="h-3.5 w-3.5" aria-hidden /> Contraparte en el caso
+                        </span>
+                      ) : (
+                        <p className="text-sm text-[var(--text-tertiary)]">Sin acciones de mediación.</p>
                       )}
-                      <div className="pt-6 border-t border-white/5">
-                         <div className="flex items-center gap-3 bg-green-500/5 border border-green-500/10 p-4 rounded-2xl">
-                            <ShieldCheck className="text-green-500 w-5 h-5 flex-shrink-0" />
-                            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold leading-tight">
-                               Tus datos y archivos están encriptados y protegidos.
-                            </p>
-                         </div>
+                    </div>
+
+                    <div className="border-t border-[var(--mv-hairline)] pt-5">
+                      <h3 className="mb-2 text-sm font-medium text-[var(--text-secondary)]">Cerrar el caso</h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setResolveModal({ open: true, status: 'RESOLVE' })}
+                          className={buttonClass("secondary", "sm", "w-full text-green-400")}
+                        >
+                          Resolver
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setResolveModal({ open: true, status: 'CLOSE' })}
+                          className={buttonClass("secondary", "sm", "w-full text-red-400")}
+                        >
+                          Cerrar
+                        </button>
                       </div>
-                   </div>
-                </div>
+                    </div>
 
-                {/* Admin Control Panel */}
-                {isAdmin && (
-                  <div className="bg-bg-secondary border border-gold/20 rounded-[2.5rem] p-8 shadow-[0_0_50px_rgba(212,175,55,0.1)]">
-                     <h3 className="text-gold font-black uppercase tracking-tighter mb-6 flex items-center gap-2">
-                        <Hammer size={18} /> Centro de Justicia
-                     </h3>
-                     
-                     <div className="space-y-4">
-                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                           <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">Mediación</p>
-                           {ticket.order && !ticket.involvedUserId ? (
-                              <Button 
-                                onClick={() => {
-                                  const targetId = ticket.userId === ticket.order.clientId ? ticket.order.providerId : ticket.order.clientId;
-                                  handleAdminAction('INVITE_PARTY', targetId);
-                                }}
-                                className="w-full bg-gold/10 text-gold border border-gold/20 hover:bg-gold hover:text-black rounded-xl h-12 text-xs font-bold transition-all"
-                              >
-                                 Invitar Contraparte
-                              </Button>
-                           ) : ticket.involvedUserId ? (
-                              <div className="flex items-center gap-2 text-green-400 bg-green-400/5 p-3 rounded-xl border border-green-400/10">
-                                 <UsersIcon size={12} />
-                                 <span className="text-[10px] font-bold">Contraparte en el Caso</span>
-                              </div>
-                           ) : (
-                              <p className="text-[10px] text-gray-400 italic">Sin acciones de mediación.</p>
-                           )}
-                        </div>
-
-                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                           <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">Acciones Rápidas</p>
-                           <div className="flex gap-2">
-                              <Button 
-                                onClick={() => setResolveModal({ open: true, status: 'RESOLVE' })}
-                                className="flex-1 bg-green-500/10 text-green-500 border border-green-500/20 hover:bg-green-500 hover:text-white rounded-xl h-10 text-[10px] font-bold transition-all"
-                              >
-                                 Resolver
-                              </Button>
-                              <Button 
-                                onClick={() => setResolveModal({ open: true, status: 'CLOSE' })}
-                                className="flex-1 bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white rounded-xl h-10 text-[10px] font-bold transition-all"
-                              >
-                                 Cerrar
-                              </Button>
-                           </div>
-                        </div>
-
-                        <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10">
-                           <p className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-3 text-center">Sanciones</p>
-                           <div className="space-y-3">
-                              <div className="flex items-center justify-between gap-4 p-2 rounded-lg hover:bg-white/5 transition-all">
-                                 <span className="text-[10px] font-bold text-gray-400 truncate w-24">Reportante</span>
-                                 <Button 
-                                   onClick={() => setSanctionModal({ open: true, targetId: ticket.userId, username: ticket.user.username })}
-                                   variant="ghost" className="h-7 px-3 text-[9px] text-red-400 hover:text-red-500 border border-red-500/20"
-                                 >
-                                    Sancionar
-                                 </Button>
-                              </div>
-                              {ticket.involvedUserId && (
-                                 <div className="flex items-center justify-between gap-4 p-2 rounded-lg hover:bg-white/5 transition-all">
-                                    <span className="text-[10px] font-bold text-gray-400 truncate w-24">Invitado</span>
-                                    <Button 
-                                      onClick={() => setSanctionModal({ open: true, targetId: ticket.involvedUserId, username: "Invitado" })}
-                                      variant="ghost" className="h-7 px-3 text-[9px] text-red-400 hover:text-red-500 border border-red-500/20"
-                                    >
-                                       Sancionar
-                                    </Button>
-                                 </div>
-                              )}
-                           </div>
-                        </div>
-                     </div>
+                    <div className="border-t border-[var(--mv-hairline)] pt-5">
+                      <h3 className="mb-2 text-sm font-medium text-red-400">Sanciones</h3>
+                      <ul className="flex flex-col gap-2">
+                        <li className="flex items-center justify-between gap-4">
+                          <span className="min-w-0 text-sm text-[var(--text-secondary)]">
+                            Reportante{ticket.user?.username && <> · <span className="text-[var(--text-primary)]">@{ticket.user.username}</span></>}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => { setSanctionReason(""); setSanctionDays("7"); setSanctionModal({ open: true, targetId: ticket.userId, username: ticket.user?.username || ticket.user?.name || "usuario" }); }}
+                            className={buttonClass("ghost", "sm", "text-red-400")}
+                          >
+                            Sancionar
+                          </button>
+                        </li>
+                        {ticket.involvedUserId && (
+                          <li className="flex items-center justify-between gap-4">
+                            <span className="min-w-0 text-sm text-[var(--text-secondary)]">
+                              Contraparte{ticket.involvedUser?.username && <> · <span className="text-[var(--text-primary)]">@{ticket.involvedUser.username}</span></>}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => { setSanctionReason(""); setSanctionDays("7"); setSanctionModal({ open: true, targetId: ticket.involvedUserId, username: ticket.involvedUser?.username || ticket.involvedUser?.name || "invitado" }); }}
+                              className={buttonClass("ghost", "sm", "text-red-400")}
+                            >
+                              Sancionar
+                            </button>
+                          </li>
+                        )}
+                      </ul>
+                    </div>
                   </div>
-                )}
+                </section>
+              )}
 
-                <div className="bg-gradient-to-br from-gold/10 to-transparent border border-gold/10 rounded-[2.5rem] p-10">
-                   <h4 className="text-xl font-bold text-white mb-4">Preguntas Frecuentes</h4>
-                   <p className="text-gray-500 text-sm leading-relaxed mb-6">
-                      ¿Sabías que la mayoría de los problemas de pago se resuelven en menos de 24 horas?
-                   </p>
-                   <Button variant="link" className="text-gold p-0 h-auto font-black uppercase tracking-widest text-[10px] hover:no-underline group">
-                      Ver Centro de Ayuda <ChevronRight className="ml-1 w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                   </Button>
-                </div>
-             </div>
-          </div>
+              <section aria-labelledby="ticket-help" className="mv-panel p-6 md:p-8">
+                <h2 id="ticket-help" className="mv-h3 mb-2">¿Necesitás más ayuda?</h2>
+                <p className="mv-body mb-5">Si el caso es urgente o tenés dudas generales, escribinos desde el centro de soporte.</p>
+                <ButtonLink href="/soporte" tone="secondary" className="w-full">
+                  Ir a soporte <ChevronRight className="h-4 w-4" aria-hidden />
+                </ButtonLink>
+              </section>
+            </div>
+          </aside>
         </div>
+      </Container>
 
-        {/* Success Modal */}
-        <AnimatePresence>
-          {isSuccessModalOpen && (
-            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsSuccessModalOpen(false)}
-                className="absolute inset-0 bg-black/90 backdrop-blur-md"
-              />
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative w-full max-w-sm bg-bg-secondary border border-gold/20 rounded-[2.5rem] p-12 text-center shadow-[0_0_50px_rgba(212,175,55,0.1)]"
-              >
-                <div className="flex justify-center mb-8">
-                  <div className="w-20 h-20 bg-gold/10 rounded-full flex items-center justify-center border border-gold/20">
-                    <CheckCircle2 className="text-gold w-10 h-10" />
-                  </div>
+      {/* Confirmación */}
+      <AnimatePresence>
+        {isSuccessModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setIsSuccessModalOpen(false)}
+              className="absolute inset-0 bg-black/50"
+              aria-hidden
+            />
+            <motion.div
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="ticket-ok-title"
+              aria-describedby="ticket-ok-body"
+              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 12 }}
+              transition={{ duration: 0.22, ease: EASE }}
+              className="mv-menu relative w-full max-w-sm rounded-[1.75rem] p-8 text-center"
+            >
+              <span className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full border border-green-500/25 bg-green-500/10">
+                <CheckCircle2 className="h-6 w-6 text-green-400" aria-hidden />
+              </span>
+              <h2 id="ticket-ok-title" className="mv-h3">Listo</h2>
+              <p id="ticket-ok-body" className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">
+                {modalMessage}
+              </p>
+              <button type="button" onClick={() => setIsSuccessModalOpen(false)} className={buttonClass("primary", "md", "mt-8 w-full")}>
+                Continuar
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Error */}
+      <AnimatePresence>
+        {isErrorModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setIsErrorModalOpen(false)}
+              className="absolute inset-0 bg-black/50"
+              aria-hidden
+            />
+            <motion.div
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="ticket-err-title"
+              aria-describedby="ticket-err-body"
+              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 12 }}
+              transition={{ duration: 0.22, ease: EASE }}
+              className="mv-menu relative w-full max-w-sm rounded-[1.75rem] p-8 text-center"
+            >
+              <span className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full border border-red-500/25 bg-red-500/10">
+                <AlertCircle className="h-6 w-6 text-red-400" aria-hidden />
+              </span>
+              <h2 id="ticket-err-title" className="mv-h3">No se pudo completar</h2>
+              <p id="ticket-err-body" role="alert" className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">
+                {modalMessage}
+              </p>
+              <button type="button" onClick={() => setIsErrorModalOpen(false)} className={buttonClass("secondary", "md", "mt-8 w-full")}>
+                Cerrar
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Sanción */}
+      <AnimatePresence>
+        {sanctionModal && (
+          <div className="fixed inset-0 z-[300] flex items-end justify-center p-3 sm:items-center sm:p-4">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setSanctionModal(null)}
+              aria-hidden
+            />
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="sanction-title"
+              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 12 }}
+              transition={{ duration: 0.22, ease: EASE }}
+              className="mv-menu relative max-h-[calc(100dvh-1.5rem)] w-full max-w-md overflow-y-auto rounded-[1.75rem] p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:p-8"
+            >
+              <div className="mb-6 flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-red-500/25 bg-red-500/10">
+                  <ShieldAlert className="h-5 w-5 text-red-400" aria-hidden />
+                </span>
+                <div>
+                  <h2 id="sanction-title" className="mv-h3">Sancionar a @{sanctionModal.username}</h2>
+                  <p className="text-sm text-[var(--text-secondary)]">Esta acción restringe el acceso del usuario.</p>
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-4">¡Enviado!</h2>
-                <p className="text-gray-400 text-sm leading-relaxed mb-10">
-                  {modalMessage}
-                </p>
-                <Button 
-                  onClick={() => setIsSuccessModalOpen(false)}
-                  className="w-full bg-gold text-black hover:bg-gold-light rounded-2xl h-14 font-black uppercase tracking-widest transition-all"
-                >
-                  Continuar
-                </Button>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+              </div>
 
-        {/* Error Modal */}
-        <AnimatePresence>
-          {isErrorModalOpen && (
-            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsErrorModalOpen(false)}
-                className="absolute inset-0 bg-black/90 backdrop-blur-md"
-              />
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative w-full max-w-sm bg-bg-secondary border border-red-500/20 rounded-[2.5rem] p-12 text-center shadow-[0_0_50px_rgba(239,68,68,0.1)]"
-              >
-                <div className="flex justify-center mb-8">
-                  <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center border border-red-500/20">
-                    <AlertCircle className="text-red-500 w-10 h-10" />
-                  </div>
+              <div className="flex flex-col gap-5">
+                <div>
+                  <label htmlFor="sanction-reason" className={fieldLabel}>Motivo de la sanción</label>
+                  <textarea
+                    id="sanction-reason"
+                    value={sanctionReason}
+                    onChange={(e) => setSanctionReason(e.target.value)}
+                    className="mv-input h-32 resize-none py-3"
+                    placeholder="Explicá el motivo de la suspensión"
+                  />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-4">Error</h2>
-                <p className="text-gray-400 text-sm leading-relaxed mb-10">
-                  {modalMessage}
-                </p>
-                <Button 
-                  onClick={() => setIsErrorModalOpen(false)}
-                  className="w-full bg-red-500 text-white hover:bg-red-600 rounded-2xl h-14 font-black uppercase tracking-widest transition-all"
+                <div>
+                  <label htmlFor="sanction-days" className={fieldLabel}>Duración (días)</label>
+                  <input
+                    id="sanction-days"
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={3650}
+                    value={sanctionDays}
+                    onChange={(e) => setSanctionDays(e.target.value)}
+                    className="mv-input mv-data"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row">
+                <button type="button" onClick={() => setSanctionModal(null)} className={buttonClass("ghost", "md", "w-full sm:flex-1")}>
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAdminAction('SANCTION', sanctionModal.targetId, { reason: sanctionReason, days: sanctionDays })}
+                  disabled={!sanctionReason.trim() || isSubmitting}
+                  className={buttonClass("secondary", "md", "w-full border-red-500/40 text-red-400 sm:flex-1")}
                 >
-                  Cerrar
-                </Button>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-
-        {/* Custom Sanction Modal */}
-        <AnimatePresence>
-           {sanctionModal && (
-              <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-                 <motion.div 
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-black/90 backdrop-blur-xl"
-                    onClick={() => setSanctionModal(null)}
-                 />
-                 <motion.div 
-                    initial={{ opacity: 0, scale: 0.95, y: 30 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 30 }}
-                    className="relative w-full max-w-md bg-bg-secondary border border-white/10 rounded-[2.5rem] p-10 shadow-2xl"
-                 >
-                    <div className="flex items-center gap-4 mb-8">
-                       <div className="w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-500">
-                          <ShieldAlert size={24} />
-                       </div>
-                       <div>
-                          <h3 className="text-xl font-bold text-white">Sancionar a @{sanctionModal.username}</h3>
-                          <p className="text-xs text-gray-500">Esta acción restringirá el acceso al usuario.</p>
-                       </div>
-                    </div>
-
-                    <div className="space-y-6">
-                       <div>
-                          <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Motivo de la Sanción</label>
-                          <textarea 
-                             value={sanctionReason}
-                             onChange={(e) => setSanctionReason(e.target.value)}
-                             className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-4 text-white text-sm focus:outline-none focus:border-gold/30 h-32 resize-none"
-                             placeholder="Explica el motivo de la suspensión..."
-                          />
-                       </div>
-                       <div>
-                          <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Duración (Días)</label>
-                          <input 
-                             type="number"
-                             value={sanctionDays}
-                             onChange={(e) => setSanctionDays(e.target.value)}
-                             className="w-full bg-white/[0.03] border border-white/10 rounded-2xl h-12 px-4 text-white text-sm focus:outline-none focus:border-gold/30"
-                          />
-                       </div>
-                    </div>
-
-                    <div className="flex gap-4 mt-10">
-                       <Button 
-                          onClick={() => setSanctionModal(null)}
-                          variant="ghost" 
-                          className="flex-1 h-14 rounded-2xl border border-white/5 text-gray-500 font-bold hover:bg-white/5"
-                       >
-                          Cancelar
-                       </Button>
-                       <Button 
-                          onClick={() => handleAdminAction('SANCTION', sanctionModal.targetId, { reason: sanctionReason, days: sanctionDays })}
-                          disabled={!sanctionReason || isSubmitting}
-                          className="flex-1 h-14 rounded-2xl bg-red-500 text-white font-bold hover:bg-red-600 shadow-xl shadow-red-500/20 disabled:opacity-50"
-                       >
-                          {isSubmitting ? "Ejecutando..." : "Confirmar"}
-                       </Button>
-                    </div>
-                 </motion.div>
+                  {isSubmitting ? "Ejecutando…" : "Confirmar sanción"}
+                </button>
               </div>
-           )}
-        </AnimatePresence>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
-        {/* Custom Resolution Modal */}
-        <AnimatePresence>
-           {resolveModal && (
-              <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-                 <motion.div 
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-black/90 backdrop-blur-xl"
-                    onClick={() => setResolveModal(null)}
-                 />
-                 <motion.div 
-                    initial={{ opacity: 0, scale: 0.95, y: 30 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 30 }}
-                    className="relative w-full max-w-md bg-bg-secondary border border-white/10 rounded-[2.5rem] p-10 shadow-2xl"
-                 >
-                    <div className="flex items-center gap-4 mb-8">
-                       <div className={`w-12 h-12 ${resolveModal.status === 'RESOLVE' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'} rounded-2xl flex items-center justify-center`}>
-                          <ShieldCheck size={24} />
-                       </div>
-                       <div>
-                          <h3 className="text-xl font-bold text-white">
-                             {resolveModal.status === 'RESOLVE' ? 'Resolver el Caso' : 'Cerrar el Caso'}
-                          </h3>
-                          <p className="text-xs text-gray-500">Añade una respuesta final para las partes.</p>
-                       </div>
-                    </div>
-
-                    <div className="space-y-6">
-                       <div>
-                          <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Resolución Final (Público)</label>
-                          <textarea 
-                             value={finalResolution}
-                             onChange={(e) => setFinalResolution(e.target.value)}
-                             className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-4 text-white text-sm focus:outline-none focus:border-gold/30 h-40 resize-none"
-                             placeholder="Ej: Se ha procedido al reembolso tras verificar el error técnico..."
-                          />
-                       </div>
-                    </div>
-
-                    <div className="flex gap-4 mt-10">
-                       <Button 
-                          onClick={() => setResolveModal(null)}
-                          variant="ghost" 
-                          className="flex-1 h-14 rounded-2xl border border-white/5 text-gray-500 font-bold hover:bg-white/5"
-                       >
-                          Cancelar
-                       </Button>
-                       <Button 
-                          onClick={() => handleAdminAction(resolveModal.status, undefined, { message: finalResolution })}
-                          disabled={!finalResolution || isSubmitting}
-                          className={`flex-1 h-14 rounded-2xl ${resolveModal.status === 'RESOLVE' ? 'bg-green-600 shadow-green-600/20' : 'bg-red-600 shadow-red-600/20'} text-white font-bold hover:opacity-90 shadow-xl disabled:opacity-50`}
-                       >
-                          {isSubmitting ? "Procesando..." : "Finalizar Caso"}
-                       </Button>
-                    </div>
-                 </motion.div>
+      {/* Resolución */}
+      <AnimatePresence>
+        {resolveModal && (
+          <div className="fixed inset-0 z-[300] flex items-end justify-center p-3 sm:items-center sm:p-4">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setResolveModal(null)}
+              aria-hidden
+            />
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="resolve-title"
+              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 12 }}
+              transition={{ duration: 0.22, ease: EASE }}
+              className="mv-menu relative max-h-[calc(100dvh-1.5rem)] w-full max-w-md overflow-y-auto rounded-[1.75rem] p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:p-8"
+            >
+              <div className="mb-6 flex items-center gap-3">
+                <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${resolveModal.status === 'RESOLVE' ? 'border-green-500/25 bg-green-500/10 text-green-400' : 'border-red-500/25 bg-red-500/10 text-red-400'}`}>
+                  <ShieldCheck className="h-5 w-5" aria-hidden />
+                </span>
+                <div>
+                  <h2 id="resolve-title" className="mv-h3">
+                    {resolveModal.status === 'RESOLVE' ? 'Resolver el caso' : 'Cerrar el caso'}
+                  </h2>
+                  <p className="text-sm text-[var(--text-secondary)]">Agregá una respuesta final para las partes.</p>
+                </div>
               </div>
-           )}
-        </AnimatePresence>
-      </div>
+
+              <div>
+                <label htmlFor="resolve-message" className={fieldLabel}>Resolución final (visible para las partes)</label>
+                <textarea
+                  id="resolve-message"
+                  value={finalResolution}
+                  onChange={(e) => setFinalResolution(e.target.value)}
+                  className="mv-input h-40 resize-none py-3"
+                  placeholder="Ej.: se procesó el reembolso tras verificar el error técnico."
+                />
+              </div>
+
+              <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row">
+                <button type="button" onClick={() => setResolveModal(null)} className={buttonClass("ghost", "md", "w-full sm:flex-1")}>
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAdminAction(resolveModal.status, undefined, { message: finalResolution })}
+                  disabled={!finalResolution || isSubmitting}
+                  className={resolveModal.status === 'RESOLVE' ? buttonClass("primary", "md", "w-full sm:flex-1") : buttonClass("secondary", "md", "w-full border-red-500/40 text-red-400 sm:flex-1")}
+                >
+                  {isSubmitting ? "Procesando…" : "Finalizar caso"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

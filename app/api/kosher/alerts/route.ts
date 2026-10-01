@@ -3,16 +3,18 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { cityBySlug } from "@/lib/kosher/cities";
 import { ALERT_TOPICS, type AlertTopic } from "@/lib/kosher/notify";
-import { getKosherViewer, kosherError, unauthorized } from "@/lib/kosher/server";
+import { getKosherViewer, kosherError, unauthorized, writeGuard } from "@/lib/kosher/server";
 
 const schema = z.object({
-  citySlug: z.string().min(1),
+  citySlug: z.string().min(1).max(120),
   topics: z.array(z.enum(Object.keys(ALERT_TOPICS) as [AlertTopic, ...AlertTopic[]])).max(4),
 });
 
 export async function PUT(request: NextRequest) {
   const viewer = await getKosherViewer();
-  if (!viewer) return unauthorized();
+  // Modo Shabat: escritura bloqueada también en el servidor.
+  const guard = writeGuard(viewer);
+  if (guard || !viewer) return guard ?? unauthorized();
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return kosherError(400, "Alertas no válidas");
   const city = await cityBySlug(parsed.data.citySlug);

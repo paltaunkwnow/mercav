@@ -1,12 +1,22 @@
 "use client";
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { CheckCircle2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Check, Minus } from 'lucide-react';
 import { AuthHeroButton } from '@/components/ui/AuthHeroButton';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { TOOL_REQUIREMENTS } from '@/lib/toolPlanCatalog';
+import { CTABand, Container, PageHero, Section, SectionHeading, buttonClass } from '@/components/site/primitives';
+
+/** Display names for the tools gated in lib/toolPlanCatalog.ts (same labels as /herramientas). */
+const TOOL_LABELS: Record<string, string> = {
+  "pos-system": "Punto de venta (POS)",
+  "roi-calculator": "Calculadora de ROI",
+  "palette-generator": "Generador de paletas",
+  "seo-analyzer": "Analizador SEO",
+  "price-simulator": "Simulador de precios",
+  "contract-generator": "Generador de contratos",
+  "prompt-generator": "Generador de prompts",
+};
 
 export default function Precios() {
   const [isAnnual, setIsAnnual] = useState(false);
@@ -71,110 +81,186 @@ export default function Precios() {
     }
   ];
 
-  return (
-    <div className="w-full min-h-screen pt-24 pb-32 overflow-hidden">
-      <div className="container mx-auto px-4">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center max-w-3xl mx-auto mb-16"
-        >
-          <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">
-            Planes claros. Sin sorpresas.
-          </h1>
-          <p className="text-gray-400 text-lg mb-8 text-balance">
-            Empezá gratis y mejora tu plan solo cuando lo necesites.
-            Ahorrá 20% pagando anualmente.
-          </p>
-          
-          <div className="inline-flex items-center p-1 bg-bg-tertiary rounded-xl border border-border">
-            <button 
-              onClick={() => setIsAnnual(false)}
-              className={cn("px-6 py-2 rounded-lg text-sm font-medium transition-colors", !isAnnual ? "bg-bg-secondary text-white shadow" : "text-gray-400 hover:text-white")}
-            >
-              Mensual
-            </button>
-            <button 
-              onClick={() => setIsAnnual(true)}
-              className={cn("px-6 py-2 rounded-lg text-sm font-medium transition-colors", isAnnual ? "bg-bg-secondary text-white shadow" : "text-gray-400 hover:text-white")}
-            >
-              Anual <span className="ml-1 text-gold text-xs font-bold">-20%</span>
-            </button>
-          </div>
-        </motion.div>
+  const toolRows = Object.entries(TOOL_REQUIREMENTS).map(([id, allowed]) => ({ id, label: TOOL_LABELS[id] ?? id, allowed }));
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-24 max-w-7xl mx-auto">
-          {plans.map((plan, i) => {
-            const displayPrice = isAnnual ? (plan.price * 0.8).toFixed(2) : plan.price;
+  return (
+    <div className="w-full bg-bg-primary">
+      <PageHero
+        kicker="Precios"
+        title="Planes claros. Sin sorpresas."
+        lead="Empezá gratis y subí de plan solo cuando lo necesites. Pagando anualmente ahorrás un 20%."
+      >
+        <div role="group" aria-label="Ciclo de facturación" className="mv-panel inline-flex rounded-full p-1">
+          {[
+            { annual: false, label: "Mensual" },
+            { annual: true, label: "Anual" },
+          ].map((opt) => {
+            const active = isAnnual === opt.annual;
             return (
-              <motion.div 
-                key={i} 
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className={cn("flex flex-col p-8 rounded-2xl border bg-bg-secondary relative transition-all duration-300", plan.popular ? "border-gold shadow-2xl shadow-gold/10 lg:-translate-y-4" : "border-border hover:border-gray-600")}
-              >
-                {plan.popular && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gold text-black text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                    Más popular
-                  </div>
+              <button
+                key={opt.label}
+                type="button"
+                aria-pressed={active}
+                onClick={() => setIsAnnual(opt.annual)}
+                className={cn(
+                  "mv-focus inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold transition-colors duration-200",
+                  active ? "bg-[var(--text-primary)] text-bg-primary" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
                 )}
-                <h3 className="text-xl font-bold text-white mb-2">{plan.displayName}</h3>
-                <p className="text-sm text-gray-400 mb-6 min-h-[40px]">{plan.desc}</p>
-                
-                <div className="mb-8">
-                  <div className="flex items-end gap-1">
-                    <span className="text-gray-400 font-medium pb-1">$</span>
-                    <span className="text-4xl font-bold text-white font-mono">{displayPrice}</span>
-                    <span className="text-gray-400 text-sm pb-1">/mes</span>
-                  </div>
-                  {isAnnual && plan.price > 0 && (
-                    <div className="text-sm text-gray-500 line-through mt-1">${plan.price}/mes</div>
-                  )}
-                  {plan.price === 0 && <div className="text-sm text-transparent mt-1">-</div>}
-                </div>
-                
-                <ul className="space-y-4 mb-8 flex-1">
-                  {plan.features.map((feat, fi) => (
-                    <li key={fi} className="flex items-start text-sm text-gray-300">
-                      <CheckCircle2 className="h-4 w-4 text-gold mr-3 mt-0.5 flex-shrink-0" />
-                      {feat}
-                    </li>
-                  ))}
-                </ul>
-                
-                <Button
-                  onClick={() => {
-                    if (plan.price === 0) {
-                      window.location.href = '/dashboard';
-                      return;
-                    }
-                    const url = `/checkout?amount=${displayPrice}&plan=${plan.name}${isAnnual ? '&interval=annual' : '&interval=monthly'}`;
-                    window.location.href = url;
-                  }}
-                  className={cn("w-full h-12 rounded-xl font-medium transition-transform hover:scale-[1.02]", plan.popular ? "bg-gold text-black hover:bg-gold-light" : "bg-bg-tertiary text-white border border-border hover:border-gold hover:text-gold")}
-                >
-                  {plan.price === 0 ? "Comenzar Gratis" : "Elegir " + plan.displayName}
-                </Button>
-              </motion.div>
+              >
+                {opt.label}
+                {opt.annual ? <span className={cn("mv-data text-xs", active ? "opacity-80" : "text-gold")}>−20%</span> : null}
+              </button>
             );
           })}
         </div>
+      </PageHero>
 
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="max-w-3xl mx-auto text-center pt-16 border-t border-border"
-        >
-          <h2 className="font-display text-3xl font-bold text-white mb-6">Comenzá hoy mismo</h2>
-          <p className="text-gray-400 mb-8">Empezar es gratis, sin tarjeta de crédito. Descubrí por qué miles de profesionales confían en Mercav.</p>
-          <AuthHeroButton label="Empezar gratis, sin tarjeta" className="w-full sm:w-auto px-8" />
-        </motion.div>
-      </div>
+      <Section tight className="!pt-2 md:!pt-4" labelledBy="planes">
+        <Container>
+          <h2 id="planes" className="sr-only">
+            Planes
+          </h2>
+          <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {plans.map((plan, i) => {
+              const displayPrice = isAnnual ? (plan.price * 0.8).toFixed(2) : plan.price;
+              const featured = Boolean(plan.popular);
+              return (
+                <li
+                  key={i}
+                  className={cn(
+                    "relative flex flex-col p-6 md:p-7",
+                    featured ? "liquid-glass liquid-glass-lens rounded-[1.75rem] ring-1 ring-[var(--color-border-gold)]" : "mv-panel",
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="mv-h3">{plan.displayName}</h3>
+                    {featured ? <span className="mv-chip mv-chip-gold">Recomendado</span> : null}
+                  </div>
+                  <p className="mv-body mt-1.5">{plan.desc}</p>
+
+                  <div className="mt-7">
+                    <p className="flex items-baseline gap-1 text-[var(--text-primary)]">
+                      <span className="text-lg text-[var(--text-secondary)]">$</span>
+                      <span className="font-display text-[2.75rem] font-semibold leading-none tracking-tight tabular-nums">{displayPrice}</span>
+                      <span className="ml-1 text-sm text-[var(--text-secondary)]">/mes</span>
+                    </p>
+                    <p className="mt-2 h-5 text-sm text-[var(--text-tertiary)]">
+                      {plan.price === 0 ? (
+                        "Sin costo"
+                      ) : isAnnual ? (
+                        <>
+                          <span className="line-through">${plan.price}</span> · facturación anual
+                        </>
+                      ) : (
+                        "Facturación mensual"
+                      )}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (plan.price === 0) {
+                        window.location.href = '/dashboard';
+                        return;
+                      }
+                      const url = `/checkout?amount=${displayPrice}&plan=${plan.name}${isAnnual ? '&interval=annual' : '&interval=monthly'}`;
+                      window.location.href = url;
+                    }}
+                    className={buttonClass(featured ? "primary" : "secondary", "md", "mt-6 w-full")}
+                  >
+                    {plan.price === 0 ? "Comenzar gratis" : "Elegir " + plan.displayName}
+                  </button>
+
+                  <div className="mv-divider my-6" aria-hidden />
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">Incluye</p>
+                  <ul className="mt-3 flex-1 space-y-3">
+                    {plan.features.map((feat, fi) => (
+                      <li key={fi} className="flex items-start gap-3 text-[0.9375rem] leading-snug text-[var(--text-secondary)]">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden />
+                        {feat}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              );
+            })}
+          </ul>
+        </Container>
+      </Section>
+
+      <Section tone="raised" labelledBy="comparar-tools">
+        <Container>
+          <SectionHeading
+            id="comparar-tools"
+            kicker="Mercav Tools"
+            title="Qué herramientas abre cada plan."
+            lead="El acceso a cada herramienta depende del plan de tu cuenta. Esta tabla sale de la misma configuración que usa la plataforma."
+          />
+
+          {/* Desktop: comparison table */}
+          <div className="mv-panel mt-12 hidden overflow-hidden md:block">
+            <table className="w-full border-collapse text-left">
+              <caption className="sr-only">Herramientas incluidas por plan</caption>
+              <thead>
+                <tr className="border-b border-[var(--mv-hairline)]">
+                  <th scope="col" className="px-6 py-4 text-sm font-semibold text-[var(--text-secondary)]">
+                    Herramienta
+                  </th>
+                  {plans.map((p) => (
+                    <th key={p.name} scope="col" className={cn("px-4 py-4 text-center text-sm font-semibold", p.popular ? "text-gold" : "text-[var(--text-primary)]")}>
+                      {p.displayName}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {toolRows.map((row) => (
+                  <tr key={row.id} className="border-b border-[var(--mv-hairline)] last:border-b-0">
+                    <th scope="row" className="px-6 py-4 text-[0.9375rem] font-medium text-[var(--text-primary)]">
+                      {row.label}
+                    </th>
+                    {plans.map((p) => {
+                      const ok = row.allowed.includes(p.name);
+                      return (
+                        <td key={p.name} className={cn("px-4 py-4 text-center", p.popular && "bg-[var(--mv-gold-wash)]")}>
+                          {ok ? <Check className="mx-auto h-4 w-4 text-gold" aria-label="Incluida" /> : <Minus className="mx-auto h-4 w-4 text-[var(--text-tertiary)]" aria-label="No incluida" />}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile: stacked cards, one per tool */}
+          <ul className="mt-10 space-y-3 md:hidden">
+            {toolRows.map((row) => (
+              <li key={row.id} className="mv-panel rounded-[1.25rem] p-5">
+                <p className="font-semibold text-[var(--text-primary)]">{row.label}</p>
+                <ul className="mt-3 flex flex-wrap gap-1.5" aria-label={`Planes que incluyen ${row.label}`}>
+                  {plans.map((p) => {
+                    const ok = row.allowed.includes(p.name);
+                    return (
+                      <li key={p.name} className={cn("mv-chip", ok ? "mv-chip-gold" : "opacity-50 line-through")}>
+                        <span className="sr-only">{ok ? "Incluida en" : "No incluida en"} </span>
+                        {p.displayName}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </Container>
+      </Section>
+
+      <CTABand
+        title="Empezá hoy, sin tarjeta."
+        lead="Creá tu cuenta gratis y subí de plan cuando tu negocio lo pida."
+        action={<AuthHeroButton label="Empezar gratis, sin tarjeta" className="w-full sm:w-auto px-8" />}
+      />
     </div>
   );
 }

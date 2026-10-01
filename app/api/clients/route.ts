@@ -25,6 +25,8 @@ export async function GET(req: Request) {
       },
       orderBy: { name: "asc" },
       take: 5,
+      // Sin email/teléfono: la tabla es compartida entre todos los usuarios
+      select: { id: true, nit: true, name: true },
     });
 
     return NextResponse.json({ success: true, data: clients });
@@ -40,19 +42,23 @@ export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-    const body = await req.json();
-    const { nit, name, email, phone } = body;
+    const body = await req.json().catch(() => null);
+    const { nit, name, email, phone } = body ?? {};
 
-    if (!nit || !name) {
+    if (!nit || !name || (typeof nit !== "string" && typeof nit !== "number") || typeof name !== "string") {
       return NextResponse.json({ success: false, error: "NIT/CI and Name are required" }, { status: 400 });
     }
 
-    const cleanNit = nit.toString().trim();
-    const cleanName = name.toString().trim();
+    const cleanNit = nit.toString().trim().slice(0, 30);
+    const cleanName = name.trim().slice(0, 200);
+    if (!cleanNit || !cleanName) {
+      return NextResponse.json({ success: false, error: "NIT/CI and Name are required" }, { status: 400 });
+    }
 
-    // Check if already exists
+    // Check if already exists (sin devolver email/teléfono ajenos)
     const existing = await prisma.billingClient.findUnique({
-      where: { nit: cleanNit }
+      where: { nit: cleanNit },
+      select: { id: true, nit: true, name: true }
     });
 
     if (existing) {
@@ -63,9 +69,10 @@ export async function POST(req: Request) {
       data: {
         nit: cleanNit,
         name: cleanName,
-        email: email || null,
-        phone: phone || null
-      }
+        email: typeof email === "string" && email.trim() ? email.trim().slice(0, 254) : null,
+        phone: typeof phone === "string" && phone.trim() ? phone.trim().slice(0, 40) : null
+      },
+      select: { id: true, nit: true, name: true }
     });
 
     return NextResponse.json({ success: true, data: newClient, isNew: true });

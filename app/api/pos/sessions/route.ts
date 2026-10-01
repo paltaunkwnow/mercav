@@ -2,11 +2,16 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getPosContext, posError, summarizeSales } from "@/lib/pos/server";
 import { currencyDecimals, roundMoney } from "@/lib/pos/money";
+import { checkPin, publicStaffSelect } from "@/lib/pos/staff";
 
+// Voided sales never count toward the till: not in totals, not in expected cash.
 async function findOpenSession(posConfigId: string) {
   return prisma.pOSCashSession.findFirst({
     where: { posConfigId, status: "OPEN" },
-    include: { sales: { include: { payments: true } } },
+    include: {
+      sales: { where: { status: { not: "VOIDED" } }, include: { payments: true } },
+      staff: { select: publicStaffSelect },
+    },
   });
 }
 
@@ -44,8 +49,16 @@ export async function POST(req: Request) {
   if (action === "OPEN") {
     const existing = await findOpenSession(config.id);
     if (existing) return posError("Ya hay una caja abierta");
+    // Owner opens without a PIN; staff members confirm theirs.
+    let staffId: string | null = null;
+    if (typeof body?.staffId === "string" && body.staffId) {
+      const check = await checkPin(config.id, body?.pin, { staffId: body.staffId });
+      if (!check.ok) return check.response;
+      staffId = check.staff.id;
+    }
     const openSession = await prisma.pOSCashSession.create({
-      data: { posConfigId: config.id, openingAmount: amount, status: "OPEN" },
+      data: { posConfigId: config.id, openingAmount: amount, status: "OPEN", staffId },
+      include: { staff: { select: publicStaffSelect } },
     });
     return NextResponse.json({ success: true, data: openSession });
   }

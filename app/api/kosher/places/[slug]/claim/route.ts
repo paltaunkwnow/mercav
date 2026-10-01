@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/app/api/pwn/_lib/rate-limit";
 import { isFoodPlace } from "@/lib/kosher/labels";
+import { isHttpUrl } from "@/lib/kosher/edits";
 import { forbidden, getKosherViewer, kosherError, managesPlace, unauthorized, writeGuard } from "@/lib/kosher/server";
 
 const base = {
@@ -18,7 +19,8 @@ const schema = z.discriminatedUnion("kind", [
     kind: z.literal("certificate"),
     ...base,
     agencyName: z.string().trim().min(2).max(80),
-    certificateUrl: z.string().trim().url().max(300),
+    // Solo http(s): se muestra como enlace a moderadores y en la ficha pública.
+    certificateUrl: z.string().trim().url().max(300).refine(isHttpUrl, "El enlace del certificado tiene que ser https://"),
     certExpiresAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   }),
 ]);

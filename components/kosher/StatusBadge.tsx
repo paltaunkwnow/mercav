@@ -12,10 +12,10 @@ const ICONS = {
 } as const;
 
 const TONE_CLASS = {
-  seal: "bg-gold/12 text-gold ring-gold/30",
+  seal: "bg-[var(--mv-gold-wash)] text-gold ring-gold/30",
   reported: "bg-techelet-dim text-techelet ring-techelet/30",
-  danger: "bg-red-500/10 text-red-500 ring-red-500/25",
-  muted: "bg-bg-tertiary text-[var(--text-secondary)] ring-border",
+  danger: "bg-red-500/10 text-red-500 ring-red-500/25 [.light_&]:text-red-700",
+  muted: "bg-[var(--mv-panel)] text-[var(--text-secondary)] ring-[var(--mv-hairline-strong)]",
 } as const;
 
 /** Status always pairs an icon with a word, never color alone. */
@@ -36,7 +36,7 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex h-6 items-center gap-1 rounded-full px-2.5 text-[11px] font-semibold ring-1 ring-inset",
+        "inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-full px-2.5 text-xs font-semibold ring-1 ring-inset",
         TONE_CLASS[institution && !verified ? "muted" : placeTone(type, status)],
         className,
       )}

@@ -10,6 +10,7 @@ import { PWN_FEED_SOURCE_NAMES } from "./feed-catalog";
 import { scrapeRssFeeds } from "./rss-scraper";
 import { scrapeRansomwareLive } from "./ransom-intel";
 import { normalizeAuthor } from "./author";
+import { fetchAllowlistedText } from "./safe-fetch";
 
 export type ForumThreadSignal = {
   title: string;
@@ -51,23 +52,18 @@ function assertAllowlistedUrl(raw: string, allowedHosts: string[]): string {
   return parsed.toString();
 }
 
-async function fetchText(url: string, init?: RequestInit): Promise<string | null> {
-  try {
-    const response = await fetch(url, {
-      ...init,
-      cache: "no-store",
-      signal: AbortSignal.timeout(20_000),
-      headers: {
-        "user-agent": SCRAPE_UA,
-        accept: "text/html,application/json",
-        ...(init?.headers ?? {}),
-      },
-    });
-    if (!response.ok) return null;
-    return await response.text();
-  } catch {
-    return null;
-  }
+// Hosts que este módulo scrapea directamente; los redirects fuera de esta lista se cortan.
+const SCRAPE_HOSTS = ["darknetarmy.st", "hackread.com", "www.hackread.com"];
+
+async function fetchText(url: string, init?: { headers?: Record<string, string> }): Promise<string | null> {
+  return fetchAllowlistedText(url, SCRAPE_HOSTS, {
+    timeoutMs: 20_000,
+    headers: {
+      "user-agent": SCRAPE_UA,
+      accept: "text/html,application/json",
+      ...(init?.headers ?? {}),
+    },
+  });
 }
 
 function decodeHtmlEntities(value: string): string {

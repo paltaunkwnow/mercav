@@ -16,7 +16,8 @@ export async function openAlert(input: OpenAlertInput) {
       userId: input.userId,
       targetId: input.targetId,
       title: built.title,
-      status: "OPEN",
+      // Sin filtrar por estado: antes, al marcar la alerta como leída (READ),
+      // el ciclo horario volvía a crear la misma alerta cada hora.
     },
     select: { id: true },
   });

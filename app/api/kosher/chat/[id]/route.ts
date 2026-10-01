@@ -2,14 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/app/api/pwn/_lib/rate-limit";
-import { getKosherViewer, kosherError, unauthorized } from "@/lib/kosher/server";
+import { getKosherViewer, kosherError, unauthorized, writeGuard } from "@/lib/kosher/server";
 
 /** Three reports from different members hide a message until a moderator reviews it. */
 const HIDE_AFTER_FLAGS = 3;
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   const viewer = await getKosherViewer();
-  if (!viewer) return unauthorized();
+  // Modo Shabat: escritura bloqueada también en el servidor.
+  const guard = writeGuard(viewer);
+  if (guard || !viewer) return guard ?? unauthorized();
   const limited = await checkRateLimit(request, { route: "kosher-flag", capacity: 10, refillPerMinute: 5, userId: viewer.id });
   if (limited) return limited;
 
@@ -34,7 +36,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
 export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
   const viewer = await getKosherViewer();
-  if (!viewer) return unauthorized();
+  // Modo Shabat: escritura bloqueada también en el servidor.
+  const guard = writeGuard(viewer);
+  if (guard || !viewer) return guard ?? unauthorized();
   const message = await prisma.kosherMessage.findUnique({ where: { id: params.id }, select: { userId: true } });
   if (!message) return kosherError(404, "Mensaje no encontrado");
   if (message.userId !== viewer.id && !viewer.isModerator) return kosherError(403, "Acceso denegado");

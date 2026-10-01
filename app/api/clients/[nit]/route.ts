@@ -10,8 +10,11 @@ export async function GET(req: Request, { params }: { params: { nit: string } })
 
     const nit = params.nit.trim();
 
+    // BillingClient es global (sin dueño): no exponer email/teléfono de clientes de otros negocios.
+    // El checkout y el POS solo usan el nombre para autocompletar.
     const client = await prisma.billingClient.findUnique({
-      where: { nit }
+      where: { nit },
+      select: { id: true, nit: true, name: true }
     });
 
     if (!client) {

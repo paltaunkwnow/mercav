@@ -2,14 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
   Briefcase,
   Check,
   ChevronDown,
   ChevronUp,
-  Clock3,
   ExternalLink,
   Image as ImageIcon,
   Link2,
@@ -29,6 +27,9 @@ import {
   Pencil,
   Crown,
   ShieldAlert,
+  Video,
+  X,
+  RefreshCw,
 } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { CustomSelect } from "@/components/ui/CustomSelect";
@@ -71,21 +72,37 @@ function useDebouncedValue<T>(value: T, delay = 500) {
 
 function BadgePill({ badge, size = "sm" }: { badge: any; size?: "sm" | "md" }) {
   return (
-    <div className="group/badge relative flex items-center justify-center cursor-help transition-transform hover:scale-110">
-      <div className={`${size === "md" ? "h-6 w-6" : "h-5 w-5"} flex items-center justify-center`}>
-        <img src={badge.icon} alt="" className="w-full h-full object-contain" />
-      </div>
-      
-      {/* Tooltip on Hover */}
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#0a0a0a] border border-white/10 text-[9px] font-black text-white uppercase tracking-widest rounded-lg opacity-0 group-hover/badge:opacity-100 transition-all pointer-events-none whitespace-nowrap z-[10003] scale-90 group-hover/badge:scale-100 shadow-2xl backdrop-blur-xl">
+    <span className="group/badge relative inline-flex items-center justify-center" tabIndex={0} aria-label={badge.name}>
+      <span className={`${size === "md" ? "h-6 w-6" : "h-5 w-5"} flex items-center justify-center`}>
+        <img src={badge.icon} alt="" className="h-full w-full object-contain" loading="lazy" decoding="async" />
+      </span>
+      <span role="tooltip" className="mv-menu pointer-events-none absolute bottom-full left-1/2 z-[60] mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg px-2 py-1 text-[11px] font-semibold text-[var(--text-primary)] opacity-0 transition-opacity duration-150 group-focus-within/badge:opacity-100 group-hover/badge:opacity-100">
         {badge.name}
-        <div className="absolute top-full left-1/2 -translate-x-1/2 border-[4px] border-transparent border-t-white/10" />
-      </div>
-    </div>
+      </span>
+    </span>
   );
 }
 
+function Avatar({ src, name, className }: { src?: string | null; name?: string; className: string }) {
+  return (
+    <span className={`grid shrink-0 place-items-center overflow-hidden border border-[var(--mv-hairline)] bg-bg-tertiary ${className}`}>
+      {src ? (
+        <img src={src} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+      ) : (
+        <span className="font-display text-sm font-semibold text-gold/60" aria-hidden>{(name || "?").charAt(0).toUpperCase()}</span>
+      )}
+    </span>
+  );
+}
 
+const FILTERS: [ModuleFilter, string][] = [
+  ["ALL", "Todo"],
+  ["JOBS", "Empleos"],
+  ["SERVICES", "Servicios"],
+  ["ADS", "Publicidad"],
+];
+
+const MODULE_LABEL: Record<string, string> = { ADS: "Publicidad", SERVICES: "Servicios", JOBS: "Empleos" };
 
 export function FeedClient({ currentUser }: { currentUser: any }) {
   const [posts, setPosts] = useState<FeedPost[]>([]);
@@ -111,7 +128,11 @@ export function FeedClient({ currentUser }: { currentUser: any }) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const debouncedLink = useDebouncedValue(linkUrl, 500);
 
+  // Cada carga nueva (cambio de filtro o recarga) invalida las respuestas en vuelo,
+  // así un pedido viejo no pisa ni agrega posts del filtro anterior.
+  const feedRequestRef = useRef(0);
   const loadFeed = async (cursor?: string | null, append = false) => {
+    const requestId = append ? feedRequestRef.current : ++feedRequestRef.current;
     if (!append) setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -119,6 +140,7 @@ export function FeedClient({ currentUser }: { currentUser: any }) {
       if (moduleFilter !== "ALL") params.set("module", moduleFilter);
       const res = await fetch(`/api/feed?${params.toString()}`);
       const data = await res.json();
+      if (requestId !== feedRequestRef.current) return;
       if (data.success) {
         setPosts((prev) => (append ? [...prev, ...data.data.posts] : data.data.posts));
         setNextCursor(data.data.nextCursor);
@@ -126,9 +148,13 @@ export function FeedClient({ currentUser }: { currentUser: any }) {
         setRecommendedJobs(data.data.recommendedJobs || []);
         setFeaturedSpaces(data.data.featuredSpaces || []);
       }
+    } catch (err) {
+      console.error(err);
     } finally {
-      if (!append) setLoading(false);
-      setLoadingMore(false);
+      if (requestId === feedRequestRef.current) {
+        if (!append) setLoading(false);
+        setLoadingMore(false);
+      }
     }
   };
 
@@ -273,90 +299,93 @@ export function FeedClient({ currentUser }: { currentUser: any }) {
     setVideoUrl(encoded);
   };
 
+  const canPublish = !!(content.trim() || images.length || videoUrl || linkUrl);
+
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-      <aside className="hidden xl:block xl:col-span-3 space-y-4 sticky top-24 self-start">
-        <div className="rounded-3xl border border-white/5 bg-bg-secondary p-6 shadow-xl shadow-black/20">
-          <div className="flex items-center gap-4">
-            <div className="h-14 w-14 overflow-hidden rounded-2xl bg-bg-tertiary border border-white/5">
-              {currentUser.avatar ? <img src={currentUser.avatar} className="h-full w-full object-cover" /> : null}
-            </div>
-            <div>
-              <div className="font-bold text-white text-lg flex items-center gap-2">
-                {currentUser.name}
-                {currentUser.isVerified && <ShieldCheck className="h-4 w-4 text-blue-400" />}
-              </div>
-              <div className="text-xs text-gold font-mono mb-2">@{currentUser.username}</div>
-              {currentUser.badges && currentUser.badges.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {currentUser.badges.map((b: any) => <BadgePill key={b.id} badge={b} />)}
-                </div>
-              )}
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] xl:grid-cols-[16rem_minmax(0,1fr)_18rem] xl:gap-8">
+      <aside className="hidden space-y-4 self-start xl:sticky xl:top-28 xl:block" aria-label="Tu perfil">
+        <div className="mv-panel p-5">
+          <div className="flex items-center gap-3">
+            <Avatar src={currentUser.avatar} name={currentUser.name} className="h-12 w-12 rounded-2xl" />
+            <div className="min-w-0">
+              <p className="flex items-center gap-1.5 truncate font-semibold text-[var(--text-primary)]">
+                <span className="truncate">{currentUser.name}</span>
+                {currentUser.isVerified && <ShieldCheck className="h-4 w-4 shrink-0 text-blue-400" aria-label="Verificado" />}
+              </p>
+              <p className="mv-data truncate text-xs text-[var(--text-secondary)]">@{currentUser.username}</p>
             </div>
           </div>
-          <div className="mt-6">
-            <div className="flex justify-between text-[10px] uppercase tracking-widest text-gray-500 font-black mb-2">
-              <span>Perfil</span>
-              <span>{currentUser.profileCompleteness || 0}%</span>
+          {currentUser.badges && currentUser.badges.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {currentUser.badges.map((b: any) => <BadgePill key={b.id} badge={b} />)}
             </div>
-            <div className="h-1.5 rounded-full bg-bg-tertiary overflow-hidden">
-              <motion.div 
-                initial={{ width: 0 }}
-                animate={{ width: `${currentUser.profileCompleteness || 0}%` }}
-                transition={{ duration: 1, ease: "easeOut" }}
-                className="h-full bg-gold" 
-              />
+          )}
+          <div className="mt-5">
+            <div className="mb-2 flex justify-between text-xs text-[var(--text-secondary)]">
+              <span>Perfil completo</span>
+              <span className="mv-data">{currentUser.profileCompleteness || 0}%</span>
+            </div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-[var(--mv-panel-hover)]" role="progressbar" aria-valuenow={currentUser.profileCompleteness || 0} aria-valuemin={0} aria-valuemax={100} aria-label="Perfil completo">
+              <div className="h-full rounded-full bg-gold transition-[width] duration-700" style={{ width: `${currentUser.profileCompleteness || 0}%` }} />
             </div>
           </div>
         </div>
 
-        <div className="rounded-3xl border border-white/5 bg-bg-secondary p-4 shadow-xl shadow-black/20">
-          <p className="px-3 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Comunidad</p>
+        <nav className="mv-panel p-2" aria-label="Accesos de la comunidad">
+          <p className="px-3 pb-1 pt-2 text-xs font-semibold text-[var(--text-secondary)]">Accesos</p>
           <CommunityShortcuts />
-        </div>
+        </nav>
       </aside>
 
-      <main className="xl:col-span-6 space-y-6">
-        <div className="flex flex-wrap gap-2 mb-4 p-1 rounded-2xl bg-bg-secondary/50 border border-white/5 w-fit">
-          {[
-            ["ALL", "Todos"],
-            ["JOBS", "Solo Empleos"],
-            ["SERVICES", "Solo Servicios"],
-            ["ADS", "Solo Publicidad"],
-          ].map(([value, label]) => (
-            <button
-              key={value}
-              onClick={() => setModuleFilter(value as ModuleFilter)}
-              className={`rounded-xl px-5 py-2 text-xs font-bold uppercase tracking-wider transition-all ${moduleFilter === value ? "bg-gold text-black shadow-lg shadow-gold/20" : "text-gray-500 hover:text-white"}`}
-            >
-              {label}
-            </button>
-          ))}
+      <div className="min-w-0 space-y-5">
+        <div role="group" aria-label="Filtrar publicaciones" className="scrollbar-hide -mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          {FILTERS.map(([value, label]) => {
+            const active = moduleFilter === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={active}
+                onClick={() => setModuleFilter(value)}
+                className={`mv-focus h-10 shrink-0 rounded-full border px-4 text-sm font-semibold transition-colors duration-200 active:scale-[0.97] ${
+                  active
+                    ? "border-transparent bg-gold text-[var(--mv-on-gold)]"
+                    : "border-[var(--mv-hairline-strong)] text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
 
-        <section className="rounded-[2.5rem] border border-white/5 bg-bg-secondary p-6 shadow-2xl shadow-black/40">
+        <section aria-label="Crear publicación" className="mv-panel p-4 sm:p-5">
           {!composerOpen ? (
-            <button onClick={() => setComposerOpen(true)} className="flex w-full items-center gap-4 text-left group">
-              <div className="h-12 w-12 overflow-hidden rounded-2xl bg-bg-tertiary border border-white/5 group-hover:scale-105 transition-transform">
-                {currentUser.avatar ? <img src={currentUser.avatar} className="h-full w-full object-cover" /> : null}
-              </div>
-              <span className="flex-1 rounded-2xl border border-white/5 bg-bg-primary px-5 py-3.5 text-gray-500 text-sm group-hover:border-gold/30 transition-all">
+            <button type="button" onClick={() => setComposerOpen(true)} className="mv-focus group flex w-full items-center gap-3 rounded-2xl text-left">
+              <Avatar src={currentUser.avatar} name={currentUser.name} className="h-11 w-11 rounded-2xl" />
+              <span className="flex h-11 flex-1 items-center rounded-full border border-[var(--mv-hairline-strong)] px-4 text-[15px] text-[var(--text-tertiary)] transition-colors duration-200 group-hover:border-[var(--color-border-gold)]">
                 ¿Qué querés compartir hoy?
               </span>
-              <div className="h-10 w-10 rounded-xl bg-gold/10 flex items-center justify-center text-gold group-hover:bg-gold group-hover:text-black transition-all">
+              <span className="mv-btn mv-btn-primary h-11 w-11 shrink-0 px-0" aria-hidden>
                 <Plus className="h-5 w-5" />
-              </div>
+              </span>
             </button>
           ) : (
-            <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
-              <textarea 
-                value={content} 
-                onChange={(e) => setContent(e.target.value.slice(0, 2000))} 
-                placeholder="Escribí tu publicación..." 
-                className="min-h-32 w-full rounded-2xl border border-white/5 bg-bg-primary p-5 text-sm text-white outline-none placeholder:text-gray-600 focus:border-gold/30 transition-all" 
-                maxLength={2000} 
-              />
-              
+            <div className="mv-fade space-y-5">
+              <div>
+                <label htmlFor="composer-content" className="sr-only">Contenido de la publicación</label>
+                <textarea
+                  id="composer-content"
+                  autoFocus
+                  value={content}
+                  onChange={(e) => setContent(e.target.value.slice(0, 2000))}
+                  placeholder="Escribí tu publicación…"
+                  className="mv-input h-auto min-h-[8rem] resize-y py-3 text-[15px] leading-relaxed"
+                  maxLength={2000}
+                />
+                <p className="mv-data mt-1.5 text-right text-xs text-[var(--text-tertiary)]">{content.length}/2000</p>
+              </div>
+
               <div className="grid gap-4 md:grid-cols-2">
                 <CustomSelect
                   label="Módulo"
@@ -408,71 +437,77 @@ export function FeedClient({ currentUser }: { currentUser: any }) {
                 )}
               </div>
 
-              <div className="grid gap-3 md:grid-cols-3">
-                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-white/10 bg-bg-primary py-4 text-xs font-bold uppercase tracking-widest text-gray-500 hover:border-gold/30 hover:text-white transition-all">
-                  <ImageIcon className="h-4 w-4 text-gold" /> Fotos
-                  <input hidden type="file" accept="image/*" multiple onChange={(e) => handleImageUpload(e.target.files)} />
+              <div className="flex flex-wrap gap-2">
+                <label className="mv-btn mv-btn-secondary mv-btn-sm cursor-pointer focus-within:shadow-[0_0_0_2px_var(--color-bg-primary),0_0_0_4px_var(--color-gold)]">
+                  <ImageIcon className="h-4 w-4 text-gold" aria-hidden /> Fotos
+                  <input className="sr-only" type="file" accept="image/*" multiple onChange={(e) => handleImageUpload(e.target.files)} />
                 </label>
-                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-white/10 bg-bg-primary py-4 text-xs font-bold uppercase tracking-widest text-gray-500 hover:border-gold/30 hover:text-white transition-all">
-                  <Clock3 className="h-4 w-4 text-gold" /> Video
-                  <input hidden type="file" accept="video/*" onChange={(e) => handleVideoUpload(e.target.files)} />
+                <label className="mv-btn mv-btn-secondary mv-btn-sm cursor-pointer focus-within:shadow-[0_0_0_2px_var(--color-bg-primary),0_0_0_4px_var(--color-gold)]">
+                  <Video className="h-4 w-4 text-gold" aria-hidden /> Video
+                  <input className="sr-only" type="file" accept="video/*" onChange={(e) => handleVideoUpload(e.target.files)} />
                 </label>
-                <div className="flex items-center justify-center gap-2 rounded-2xl border border-white/5 bg-bg-primary py-4 text-[10px] font-black uppercase tracking-widest text-gray-600">
-                  <Link2 className="h-4 w-4 text-gold/30" /> Pegar link abajo
-                </div>
               </div>
 
               {images.length > 0 && (
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {images.map((src, i) => (
-                    <div key={i} className="relative group aspect-square rounded-xl overflow-hidden border border-white/10">
-                      <img src={src} className="h-full w-full object-cover" />
-                      <button onClick={() => setImages(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 bg-black/60 rounded-lg p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Plus className="h-4 w-4 rotate-45 text-white" />
+                    <li key={i} className="relative aspect-square overflow-hidden rounded-xl border border-[var(--mv-hairline)]">
+                      <img src={src} alt={`Imagen ${i + 1} adjunta`} className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setImages(prev => prev.filter((_, idx) => idx !== i))}
+                        aria-label={`Quitar imagen ${i + 1}`}
+                        className="mv-focus absolute right-1.5 top-1.5 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-[#fff] transition-transform active:scale-95"
+                      >
+                        <X className="h-4 w-4" aria-hidden />
                       </button>
-                    </div>
+                    </li>
                   ))}
+                </ul>
+              )}
+              {videoUrl && (
+                <div className="flex items-center gap-3 rounded-2xl border border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] p-3 text-sm text-[var(--text-primary)]" role="status">
+                  <Video className="h-4 w-4 text-gold" aria-hidden />
+                  Video listo para publicar
                 </div>
               )}
-              {videoUrl && <div className="rounded-2xl border border-gold/20 bg-gold/5 p-4 text-xs text-gold flex items-center gap-3">
-                <div className="h-8 w-8 bg-gold/10 rounded-lg flex items-center justify-center"><Clock3 className="h-4 w-4" /></div>
-                Video cargado y listo para publicar
-              </div>}
 
               <div className="space-y-3">
-                <input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="Pegá un enlace para generar preview" className="w-full rounded-2xl border border-white/5 bg-bg-primary px-5 py-4 text-sm text-white outline-none placeholder:text-gray-600 focus:border-gold/30 transition-all" />
-                {previewLoading && <div className="flex items-center gap-2 text-xs text-gold animate-pulse"><Loader2 className="h-3 w-3 animate-spin" /> Generando preview...</div>}
+                <label htmlFor="composer-link" className="block text-sm font-medium text-[var(--text-primary)]">Enlace <span className="font-normal text-[var(--text-tertiary)]">(opcional)</span></label>
+                <div className="relative">
+                  <Link2 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-tertiary)]" aria-hidden />
+                  <input id="composer-link" type="url" inputMode="url" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://" className="mv-input pl-10" />
+                </div>
+                {previewLoading && <p className="flex items-center gap-2 text-xs text-[var(--text-secondary)]" role="status"><Loader2 className="h-3.5 w-3.5 animate-spin text-gold" aria-hidden /> Generando vista previa…</p>}
                 {linkPreview && (
-                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="overflow-hidden rounded-[2rem] border border-white/5 bg-bg-primary shadow-2xl">
-                    {linkPreview.image && <img src={linkPreview.image} className="h-48 w-full object-cover" />}
-                    <div className="p-5">
-                      <div className="font-bold text-white text-lg mb-1">{linkPreview.title}</div>
-                      <div className="text-sm text-gray-500 line-clamp-2">{linkPreview.description}</div>
+                  <div className="mv-fade overflow-hidden rounded-[1.25rem] border border-[var(--mv-hairline)]">
+                    {linkPreview.image && <img src={linkPreview.image} alt="" className="aspect-[1.91/1] w-full object-cover" />}
+                    <div className="p-4">
+                      <p className="line-clamp-1 font-semibold text-[var(--text-primary)]">{linkPreview.title}</p>
+                      <p className="mt-0.5 line-clamp-2 text-sm text-[var(--text-secondary)]">{linkPreview.description}</p>
                     </div>
-                  </motion.div>
+                  </div>
                 )}
               </div>
 
-              <div className="flex items-center justify-between gap-4 pt-4 border-t border-white/5">
-                <button onClick={() => setComposerOpen(false)} className="text-gray-500 hover:text-white text-sm font-bold uppercase tracking-widest transition-colors">Cancelar</button>
-                <Button onClick={publishPost} disabled={publishing || (!content.trim() && !images.length && !videoUrl && !linkUrl)} className="bg-gold text-black hover:bg-gold-light rounded-xl h-12 px-8 font-black uppercase tracking-widest shadow-lg shadow-gold/10">
-                  {publishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />} Publicar
-                </Button>
+              <div className="flex items-center justify-end gap-2 border-t border-[var(--mv-hairline)] pt-4">
+                <button type="button" onClick={() => setComposerOpen(false)} className="mv-btn mv-btn-ghost mv-btn-sm">Cancelar</button>
+                <button type="button" onClick={publishPost} disabled={publishing || !canPublish} aria-busy={publishing} className="mv-btn mv-btn-primary mv-btn-sm">
+                  {publishing ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
+                  {publishing ? "Publicando…" : "Publicar"}
+                </button>
               </div>
             </div>
           )}
         </section>
 
-        <div className="space-y-6">
-          <AnimatePresence mode="popLayout">
-            {posts.map((post, i) => (
+        <div className="space-y-4">
+          <AnimatePresence initial={false}>
+            {posts.map((post) => (
               <motion.div
                 key={post.id}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.4, delay: i * 0.05 }}
+                layout="position"
+                exit={{ opacity: 0, transition: { duration: 0.18 } }}
               >
                 <PostCard 
                   post={post} 
@@ -503,39 +538,54 @@ export function FeedClient({ currentUser }: { currentUser: any }) {
           />
 
           {loading && (
-            <div className="rounded-[2.5rem] border border-white/5 bg-bg-secondary p-16 text-center text-gray-500">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gold/30" />
-              Cargando feed...
-            </div>
+            <ul className="space-y-4" aria-label="Cargando publicaciones" role="status">
+              {[0, 1].map((i) => (
+                <li key={i} className="mv-panel animate-pulse p-5 sm:p-6">
+                  <div className="flex items-center gap-3">
+                    <span className="h-11 w-11 rounded-2xl bg-[var(--mv-panel-hover)]" />
+                    <span className="flex-1 space-y-2">
+                      <span className="block h-3 w-1/3 rounded-full bg-[var(--mv-panel-hover)]" />
+                      <span className="block h-3 w-1/5 rounded-full bg-[var(--mv-panel-hover)]" />
+                    </span>
+                  </div>
+                  <span className="mt-5 block h-3 w-full rounded-full bg-[var(--mv-panel-hover)]" />
+                  <span className="mt-2 block h-3 w-4/5 rounded-full bg-[var(--mv-panel-hover)]" />
+                </li>
+              ))}
+            </ul>
           )}
 
           {posts.length === 0 && !loading && (
-            <div className="rounded-[2.5rem] border border-white/5 bg-bg-secondary p-16 text-center">
-              <div className="h-20 w-20 rounded-full bg-gold/5 flex items-center justify-center mx-auto mb-6">
-                <Megaphone className="h-10 w-10 text-gold/30" />
+            <div className="mv-panel flex flex-col items-center px-6 py-14 text-center">
+              <span className="grid h-12 w-12 place-items-center rounded-2xl border border-[var(--mv-hairline)] text-gold">
+                <Megaphone className="h-5 w-5" aria-hidden />
+              </span>
+              <h2 className="mv-h3 mt-5">Todavía no hay publicaciones</h2>
+              <p className="mv-body mt-2 max-w-xs">Compartí algo con la comunidad o probá con otro filtro.</p>
+              <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+                <button type="button" onClick={() => setComposerOpen(true)} className="mv-btn mv-btn-primary mv-btn-sm">
+                  <Plus className="h-4 w-4" aria-hidden /> Crear publicación
+                </button>
+                <button type="button" onClick={() => loadFeed(null, false)} className="mv-btn mv-btn-secondary mv-btn-sm">
+                  <RefreshCw className="h-4 w-4" aria-hidden /> Actualizar
+                </button>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">No hay publicaciones</h3>
-              <p className="text-gray-500 max-w-xs mx-auto mb-6">Sé el primero en compartir algo con la comunidad Mercav.</p>
-
-              <Button onClick={() => loadFeed(null, false)} variant="outline" className="border-gold/30 text-gold hover:bg-gold/10">
-                <Loader2 className="h-4 w-4 mr-2" /> Actualizar feed
-              </Button>
             </div>
           )}
 
           <div ref={sentinelRef} className="h-10" />
-          {loadingMore && <div className="text-center p-4"><Loader2 className="h-5 w-5 animate-spin mx-auto text-gold" /></div>}
+          {loadingMore && <div className="flex justify-center p-4" role="status"><Loader2 className="h-5 w-5 animate-spin text-gold" aria-hidden /><span className="sr-only">Cargando más</span></div>}
         </div>
-      </main>
+      </div>
 
-      <aside className="hidden xl:block xl:col-span-3 space-y-6 sticky top-24 self-start">
-        <SidebarCard title="Usuarios sugeridos">
+      <aside className="hidden space-y-4 self-start lg:sticky lg:top-28 lg:block" aria-label="Sugerencias">
+        <SidebarCard title="Personas para seguir">
           <SuggestionList kind="user" items={suggestedUsers} />
         </SidebarCard>
         <SidebarCard title="Vacantes recomendadas">
           <SuggestionList kind="job" items={recommendedJobs} />
         </SidebarCard>
-        <SidebarCard title="Spaces destacados">
+        <SidebarCard title="Espacios destacados">
           <SuggestionList kind="space" items={featuredSpaces} />
         </SidebarCard>
       </aside>
@@ -545,10 +595,10 @@ export function FeedClient({ currentUser }: { currentUser: any }) {
 
 function SidebarCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-3xl border border-white/5 bg-bg-secondary p-6 shadow-xl shadow-black/20">
-      <div className="mb-5 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">{title}</div>
+    <section className="mv-panel p-5">
+      <h2 className="mb-4 text-sm font-semibold text-[var(--text-primary)]">{title}</h2>
       {children}
-    </div>
+    </section>
   );
 }
 
@@ -564,10 +614,12 @@ function CommunityShortcuts() {
   const [items, setItems] = useState(COMMUNITY_LINKS);
 
   useEffect(() => {
-    const saved = localStorage.getItem("mercav-community-order");
-    if (!saved) return;
     try {
-      const ids = JSON.parse(saved) as string[];
+      // getItem puede tirar con el almacenamiento bloqueado (Safari privado, iframes).
+      const saved = localStorage.getItem("mercav-community-order");
+      if (!saved) return;
+      const ids = JSON.parse(saved);
+      if (!Array.isArray(ids)) return;
       const rank = (id: string) => {
         const index = ids.indexOf(id);
         return index === -1 ? ids.length : index;
@@ -583,15 +635,19 @@ function CommunityShortcuts() {
       items={items}
       onReorder={(next) => {
         setItems(next);
-        localStorage.setItem("mercav-community-order", JSON.stringify(next.map((item) => item.id)));
+        try {
+          localStorage.setItem("mercav-community-order", JSON.stringify(next.map((item) => item.id)));
+        } catch {
+          /* sin almacenamiento el orden vale solo para esta visita */
+        }
       }}
       renderItem={(item) => (
-        <Link href={item.href} className="group flex items-center justify-between rounded-2xl p-3 text-gray-400 transition-all hover:bg-white/5 hover:text-white">
-          <div className="flex items-center gap-3">
-            <item.icon className="h-4 w-4 text-gold/60 group-hover:text-gold" />
+        <Link href={item.href} className="mv-focus group flex items-center justify-between rounded-xl px-3 py-2.5 text-[var(--text-secondary)] transition-colors duration-200 hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]">
+          <span className="flex items-center gap-3">
+            <item.icon className="h-4 w-4 text-gold" aria-hidden />
             <span className="text-sm font-medium">{item.label}</span>
-          </div>
-          <ArrowRight className="h-4 w-4 opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100" />
+          </span>
+          <ArrowRight className="h-4 w-4 opacity-0 transition-[opacity,transform] duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" aria-hidden />
         </Link>
       )}
     />
@@ -606,42 +662,38 @@ function SuggestionList({ kind, items }: { kind: string; items: any[] }) {
     setOrder(items);
   }, [signature]);
 
-  if (!items.length) return <div className="text-xs text-gray-600 italic">Sin sugerencias por ahora.</div>;
+  if (!items.length) return <p className="text-sm text-[var(--text-tertiary)]">Sin sugerencias por ahora.</p>;
   return (
     <LiquidArrange
       items={order}
       onReorder={setOrder}
       renderItem={(item) => (
-        <div className="group transition-all">
+        <div>
           {kind === "user" && (
-            <Link href={`/perfil/${item.username}`} className="flex items-center gap-3">
-              <div className="h-11 w-11 overflow-hidden rounded-xl bg-bg-tertiary border border-white/5 group-hover:border-gold/30 transition-all">{item.avatar ? <img src={item.avatar} className="h-full w-full object-cover" /> : null}</div>
-              <div className="flex-1 min-w-0">
-                <div className="font-bold text-white text-sm group-hover:text-gold transition-colors truncate flex items-center gap-1.5">
-                  {item.name}
-                  {item.isVerified && <ShieldCheck className="h-3 w-3 text-blue-400" />}
-                </div>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {item.badges?.map((b: any) => (
-                    <div key={b.id} className="h-3.5 w-3.5 bg-gold/5 rounded-md p-0.5 border border-gold/10">
-                      <img src={b.icon} className="w-full h-full object-contain" />
-                    </div>
-                  ))}
-                </div>
-                <div className="text-[10px] text-gray-500 truncate uppercase tracking-tighter mt-1">{item.profile?.headline || item.location || "Usuario Mercav"}</div>
-              </div>
+            <Link href={`/perfil/${item.username}`} className="mv-focus group flex items-center gap-3 rounded-xl">
+              <Avatar src={item.avatar} name={item.name} className="h-10 w-10 rounded-xl" />
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-1.5 truncate text-sm font-semibold text-[var(--text-primary)] transition-colors group-hover:text-gold">
+                  <span className="truncate">{item.name}</span>
+                  {item.isVerified && <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-blue-400" aria-label="Verificado" />}
+                </span>
+                <span className="block truncate text-xs text-[var(--text-secondary)]">{item.profile?.headline || item.location || "Usuario de Mercav"}</span>
+              </span>
             </Link>
           )}
           {kind === "job" && (
-            <Link href={`/empleos/${item.id}`} className="block group">
-              <div className="font-bold text-white text-sm group-hover:text-gold transition-colors">{item.title}</div>
-              <div className="text-[10px] text-gray-500 uppercase tracking-tight">{item.company?.name} · {item.city}</div>
+            <Link href={`/empleos/${item.id}`} className="mv-focus group block rounded-lg">
+              <span className="block text-sm font-semibold text-[var(--text-primary)] transition-colors group-hover:text-gold">{item.title}</span>
+              <span className="block truncate text-xs text-[var(--text-secondary)]">{[item.company?.name, item.city].filter(Boolean).join(" · ")}</span>
             </Link>
           )}
           {kind === "space" && (
-            <Link href={`/anuncios/${item.id}`} className="block group">
-              <div className="font-bold text-white text-sm group-hover:text-gold transition-colors">{item.title}</div>
-              <div className="text-[10px] text-gray-500 uppercase tracking-tight">{item.city} · <span className="text-gold">{item.currency} {item.pricePerDay || ""}</span></div>
+            <Link href={`/anuncios/${item.id}`} className="mv-focus group block rounded-lg">
+              <span className="block text-sm font-semibold text-[var(--text-primary)] transition-colors group-hover:text-gold">{item.title}</span>
+              <span className="block truncate text-xs text-[var(--text-secondary)]">
+                {item.city}
+                {item.pricePerDay ? <> · <span className="mv-data text-gold">{item.currency} {item.pricePerDay}</span></> : null}
+              </span>
             </Link>
           )}
         </div>
@@ -666,8 +718,6 @@ function PostCard({ post, currentUser, onDelete, showToast }: { post: FeedPost; 
   const [savingEdit, setSavingEdit] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
 
-  if (!post.author) return null;
-  
   const saveEdit = async () => {
     if (!editText.trim() || editText === post.content) {
       setIsEditing(false);
@@ -796,95 +846,94 @@ function PostCard({ post, currentUser, onDelete, showToast }: { post: FeedPost; 
     }
   };
 
+  if (!post.author) return null;
+
   const contentTooLong = post.content && post.content.length > 220;
   const visibleText = expandedText || !contentTooLong ? post.content : `${post.content.slice(0, 220)}...`;
 
+  const isAdminAuthor = post.author.roles?.some((r: any) => r.role === "ADMIN") || post.author.username === "ice";
+  const isCeoAuthor = post.author.profile?.headline?.toUpperCase().includes("CEO") || post.author.username === "ice";
+  const listing = post.job || post.space || post.service;
+  const listingHref = post.job ? `/empleos/${post.job.id}` : post.space ? `/anuncios/${post.space.id}` : post.service ? `/servicios/${post.service.id}` : "#";
+  const actionClass = (active: boolean) =>
+    `mv-focus inline-flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-[background-color,border-color,color,transform] duration-200 active:scale-[0.96] ${
+      active
+        ? "border-transparent bg-gold text-[var(--mv-on-gold)]"
+        : "border-[var(--mv-hairline-strong)] text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]"
+    }`;
+
   return (
-    <article className="rounded-[2.5rem] border border-white/5 bg-bg-secondary p-6 shadow-2xl shadow-black/20 hover:border-white/10 transition-colors">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link href={`/perfil/${post.author.username}`} className="h-14 w-14 overflow-hidden rounded-2xl bg-bg-tertiary border border-white/5">
-            {post.author.avatar ? <img src={post.author.avatar} className="h-full w-full object-cover" /> : null}
+    <article className="mv-panel p-4 sm:p-6" aria-labelledby={`post-${post.id}-author`}>
+      <header className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link href={`/perfil/${post.author.username}`} className="mv-focus shrink-0 rounded-2xl" tabIndex={-1} aria-hidden>
+            <Avatar src={post.author.avatar} name={post.author.name} className="h-11 w-11 rounded-2xl" />
           </Link>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <Link href={`/perfil/${post.author.username}`} className="font-bold text-white hover:text-gold transition-colors">{post.author.name}</Link>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <Link id={`post-${post.id}-author`} href={`/perfil/${post.author.username}`} className="mv-focus truncate rounded font-semibold text-[var(--text-primary)] transition-colors hover:text-gold">{post.author.name}</Link>
               {post.author.isVerified && (
-                (post.author.roles?.some((r: any) => r.role === "ADMIN") || post.author.username === "ice") ? (
-                  <div className="group/admin relative flex items-center justify-center">
-                    <div className="h-4 w-4 flex items-center justify-center cursor-help transition-transform hover:scale-110">
-                      <ShieldCheck className="w-full h-full text-gold filter drop-shadow-[0_0_4px_rgba(212,175,55,0.4)]" />
-                    </div>
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#0a0a0a] border border-gold/30 text-gold text-[8px] font-black uppercase tracking-[0.2em] rounded-md opacity-0 group-hover/admin:opacity-100 transition-all pointer-events-none whitespace-nowrap z-[10004] scale-90 group-hover/admin:scale-100 backdrop-blur-xl">
-                      Administrador
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[4px] border-transparent border-t-gold/30" />
-                    </div>
-                  </div>
-                ) : (
-                  <ShieldCheck className="h-4 w-4 text-blue-400" />
-                )
+                <span title={isAdminAuthor ? "Administrador" : "Verificado"} className="inline-flex">
+                  <ShieldCheck className={`h-4 w-4 ${isAdminAuthor ? "text-gold" : "text-blue-400"}`} aria-label={isAdminAuthor ? "Administrador" : "Verificado"} />
+                </span>
               )}
-              {(post.author.profile?.headline?.toUpperCase().includes("CEO") || post.author.username === "ice") && (
-                <div className="group/ceo relative flex items-center justify-center">
-                  <div className="h-4 w-4 flex items-center justify-center cursor-help transition-transform hover:scale-110">
-                    <Crown className="w-full h-full text-gold filter drop-shadow-[0_0_4px_rgba(212,175,55,0.4)]" />
-                  </div>
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#0a0a0a] border border-gold/30 text-gold text-[8px] font-black uppercase tracking-[0.2em] rounded-md opacity-0 group-hover/ceo:opacity-100 transition-all pointer-events-none whitespace-nowrap z-[10004] scale-90 group-hover/ceo:scale-100 backdrop-blur-xl">
-                    CEO
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-[4px] border-transparent border-t-gold/30" />
-                  </div>
-                </div>
+              {isCeoAuthor && (
+                <span title="CEO" className="inline-flex">
+                  <Crown className="h-4 w-4 text-gold" aria-label="CEO" />
+                </span>
               )}
               {post.author.badges?.map((badge: any) => (
                 <BadgePill key={badge.id} badge={badge} />
               ))}
-              {post.author.profile?.headline && <span className="hidden md:block text-[10px] text-gray-500 uppercase tracking-widest font-black">· {post.author.profile.headline}</span>}
             </div>
-            <div className="text-[10px] text-gray-500 uppercase tracking-[0.1em] font-mono">@{post.author.username} · {timeAgo(post.createdAt)}</div>
+            <p className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--text-secondary)]">
+              <span className="mv-data truncate">@{post.author.username}</span>
+              <span aria-hidden>·</span>
+              <time dateTime={new Date(post.createdAt).toISOString()} className="mv-data shrink-0">{timeAgo(post.createdAt)}</time>
+              {post.author.profile?.headline && <span className="hidden truncate md:inline">· {post.author.profile.headline}</span>}
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {post.module !== "GENERAL" && (
-            <span className="rounded-xl bg-gold/5 border border-gold/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.2em] text-gold">
-              {post.module === "ADS" ? "Publicidad" : post.module === "SERVICES" ? "Servicios" : "Empleos"}
-            </span>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {post.module !== "GENERAL" && MODULE_LABEL[post.module] && (
+            <span className="mv-chip mv-chip-gold hidden sm:inline-flex">{MODULE_LABEL[post.module]}</span>
           )}
 
           {currentUser && (
             <DropdownMenu.Root>
               <DropdownMenu.Trigger asChild>
-                <button className="h-8 w-8 rounded-xl bg-white/5 flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10 transition-all outline-none">
-                  <MoreHorizontal className="h-4 w-4" />
+                <button type="button" aria-label="Opciones de la publicación" className="mv-focus grid h-10 w-10 place-items-center rounded-full text-[var(--text-secondary)] transition-colors hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]">
+                  <MoreHorizontal className="h-5 w-5" aria-hidden />
                 </button>
               </DropdownMenu.Trigger>
               <DropdownMenu.Portal>
-                <DropdownMenu.Content align="end" className="liquid-glass liquid-glass-lens z-[100] min-w-[160px] overflow-hidden rounded-2xl p-1.5 animate-in fade-in zoom-in duration-200">
+                <DropdownMenu.Content align="end" sideOffset={6} className="mv-pop mv-menu z-[100] min-w-[12rem] overflow-hidden rounded-2xl p-1.5">
                   {currentUser?.id === post.authorId && (
                     <DropdownMenu.Item 
                       onClick={() => setIsEditing(true)}
-                      className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-gray-300 outline-none hover:bg-gold/10 hover:text-gold transition-colors"
+                      className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--text-primary)] outline-none transition-colors data-[highlighted]:bg-[var(--mv-panel-hover)]"
                     >
-                      <Pencil className="h-3.5 w-3.5" />
-                      Editar publicación
+                      <Pencil className="h-4 w-4 text-[var(--text-secondary)]" aria-hidden />
+                      Editar
                     </DropdownMenu.Item>
                   )}
                   {(currentUser?.id === post.authorId || currentUser?.roles?.some((r: any) => r.role === "ADMIN")) && (
                     <DropdownMenu.Item 
                       onClick={onDelete}
-                      className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-red-400 outline-none hover:bg-red-500/10 transition-colors"
+                      className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-400 outline-none transition-colors data-[highlighted]:bg-red-500/10"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Eliminar publicación
+                      <Trash2 className="h-4 w-4" aria-hidden />
+                      Eliminar
                     </DropdownMenu.Item>
                   )}
                   {currentUser?.id !== post.authorId && (
                     <DropdownMenu.Item 
                       onClick={() => setReportModalOpen(true)}
-                      className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-yellow-500 outline-none hover:bg-yellow-500/10 transition-colors"
+                      className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--text-primary)] outline-none transition-colors data-[highlighted]:bg-[var(--mv-panel-hover)]"
                     >
-                      <ShieldAlert className="h-3.5 w-3.5" />
-                      Reportar publicación
+                      <ShieldAlert className="h-4 w-4 text-[var(--text-secondary)]" aria-hidden />
+                      Reportar
                     </DropdownMenu.Item>
                   )}
                 </DropdownMenu.Content>
@@ -892,30 +941,33 @@ function PostCard({ post, currentUser, onDelete, showToast }: { post: FeedPost; 
             </DropdownMenu.Root>
           )}
         </div>
-      </div>
+      </header>
 
-      <div className="mt-6 space-y-6">
+      <div className="mt-4 space-y-4">
         {isEditing ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
+            <label htmlFor={`edit-${post.id}`} className="sr-only">Editar publicación</label>
             <textarea
+              id={`edit-${post.id}`}
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-bg-primary p-4 text-sm text-white outline-none focus:border-gold/30 resize-none min-h-[120px]"
+              className="mv-input h-auto min-h-[7.5rem] resize-y py-3 text-[15px] leading-relaxed"
               autoFocus
             />
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setIsEditing(false)} className="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Cancelar</button>
-              <Button onClick={saveEdit} disabled={savingEdit} className="bg-gold text-black hover:bg-gold-light rounded-xl h-9 px-6 text-[10px] font-black uppercase tracking-widest">
-                {savingEdit ? <Loader2 className="h-3 w-3 animate-spin" /> : "Guardar cambios"}
-              </Button>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setIsEditing(false)} className="mv-btn mv-btn-ghost mv-btn-sm">Cancelar</button>
+              <button type="button" onClick={saveEdit} disabled={savingEdit} aria-busy={savingEdit} className="mv-btn mv-btn-primary mv-btn-sm">
+                {savingEdit ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+                {savingEdit ? "Guardando…" : "Guardar cambios"}
+              </button>
             </div>
           </div>
         ) : (
           post.content && (
-            <div className="text-[15px] leading-relaxed text-gray-200 whitespace-pre-wrap">
+            <div className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-[var(--text-primary)]">
               {visibleText}
               {contentTooLong && (
-                <button className="ml-2 text-gold font-bold hover:underline" onClick={() => setExpandedText((v) => !v)}>
+                <button type="button" className="mv-link ml-1.5 text-sm" aria-expanded={expandedText} onClick={() => setExpandedText((v) => !v)}>
                   {expandedText ? "Ver menos" : "Ver más"}
                 </button>
               )}
@@ -924,157 +976,170 @@ function PostCard({ post, currentUser, onDelete, showToast }: { post: FeedPost; 
         )}
 
         {post.images?.length > 0 && (
-          <div className={`grid gap-3 rounded-[2rem] overflow-hidden ${post.images.length === 1 ? "grid-cols-1" : post.images.length === 2 ? "grid-cols-2" : post.images.length === 3 ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2 md:grid-cols-4"}`}>
-            {post.images.map((src: string) => <img key={src} src={src} className="h-64 w-full object-cover hover:scale-105 transition-transform duration-700" />)}
+          <div className={`grid gap-1.5 overflow-hidden rounded-[1.25rem] ${post.images.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+            {post.images.map((src: string, idx: number) => (
+              <img
+                key={src}
+                src={src}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className={`w-full bg-bg-tertiary object-cover ${post.images.length === 1 ? "aspect-[16/10] max-h-[32rem]" : post.images.length === 3 && idx === 0 ? "col-span-2 aspect-[2/1]" : "aspect-square"}`}
+              />
+            ))}
           </div>
         )}
 
-        {post.videoUrl && <div className="rounded-[2rem] overflow-hidden border border-white/5 bg-black"><video controls src={post.videoUrl} className="max-h-[480px] w-full" /></div>}
+        {post.videoUrl && (
+          <div className="overflow-hidden rounded-[1.25rem] border border-[var(--mv-hairline)] bg-black">
+            <video controls preload="metadata" src={post.videoUrl} className="aspect-video max-h-[30rem] w-full" />
+          </div>
+        )}
 
         {post.linkUrl && (
-          <a href={post.linkUrl} target="_blank" rel="noreferrer" className="block group overflow-hidden rounded-[2rem] border border-white/5 bg-bg-primary hover:border-gold/30 transition-all">
-            <div className="flex flex-col md:flex-row items-center gap-6 p-6">
-              <div className="h-28 w-full md:w-44 overflow-hidden rounded-2xl bg-bg-tertiary">
-                {post.linkImage ? <img src={post.linkImage} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" /> : <div className="flex h-full w-full items-center justify-center text-gray-700"><Link2 className="h-8 w-8" /></div>}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="font-bold text-white text-lg line-clamp-1 mb-1">{post.linkTitle || post.linkUrl}</div>
-                <div className="text-sm text-gray-500 line-clamp-2 leading-relaxed">{post.linkDescription}</div>
-              </div>
-              <ExternalLink className="hidden md:block h-5 w-5 text-gold/30 group-hover:text-gold transition-colors" />
-            </div>
+          <a href={post.linkUrl} target="_blank" rel="noreferrer" className="mv-focus group flex overflow-hidden rounded-[1.25rem] border border-[var(--mv-hairline)] transition-colors duration-200 hover:border-[var(--color-border-gold)]">
+            <span className="hidden w-36 shrink-0 bg-bg-tertiary sm:block">
+              {post.linkImage ? (
+                <img src={post.linkImage} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+              ) : (
+                <span className="grid h-full w-full place-items-center text-[var(--text-tertiary)]"><Link2 className="h-6 w-6" aria-hidden /></span>
+              )}
+            </span>
+            <span className="min-w-0 flex-1 p-4">
+              <span className="line-clamp-1 font-semibold text-[var(--text-primary)]">{post.linkTitle || post.linkUrl}</span>
+              {post.linkDescription && <span className="mt-0.5 line-clamp-2 text-sm text-[var(--text-secondary)]">{post.linkDescription}</span>}
+              <span className="mv-data mt-2 flex items-center gap-1.5 truncate text-xs text-[var(--text-tertiary)]">
+                <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                <span className="truncate">{post.linkUrl.replace(/^https?:\/\//, "")}</span>
+              </span>
+            </span>
           </a>
         )}
 
-        {(post.job || post.space || post.service) && (
-          <div className="rounded-[2rem] border border-gold/10 bg-gold/[0.02] p-6 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-              <Zap className="h-20 w-20 text-gold" />
+        {listing && (
+          <div className="flex flex-col gap-4 rounded-[1.25rem] border border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[var(--mv-panel)] text-gold">
+                {post.job && <Briefcase className="h-5 w-5" aria-hidden />}
+                {post.space && <MapPin className="h-5 w-5" aria-hidden />}
+                {post.service && <Zap className="h-5 w-5" aria-hidden />}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-[var(--text-primary)]">{post.job?.title || post.space?.title || post.service?.title}</p>
+                <p className="truncate text-sm text-[var(--text-secondary)]">
+                  {post.job ? [post.job.company?.name, post.job.city].filter(Boolean).join(" · ") : 
+                   post.space ? [post.space.city, post.space.country].filter(Boolean).join(", ") : 
+                   post.service?.provider?.name}
+                </p>
+              </div>
             </div>
-            
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
-              <div className="flex gap-5 items-center">
-                <div className="h-16 w-16 bg-gold/10 rounded-2xl flex items-center justify-center text-gold">
-                  {post.job && <Briefcase className="h-8 w-8" />}
-                  {post.space && <MapPin className="h-8 w-8" />}
-                  {post.service && <Zap className="h-8 w-8" />}
-                </div>
-                <div>
-                  <h4 className="text-white font-bold text-lg mb-1">
-                    {post.job?.title || post.space?.title || post.service?.title}
-                  </h4>
-                  <p className="text-xs text-gray-500 uppercase tracking-widest font-black">
-                    {post.job ? `${post.job.company?.name} · ${post.job.city}` : 
-                     post.space ? `${post.space.city}, ${post.space.country}` : 
-                     post.service?.provider?.name}
-                  </p>
-                </div>
+            <div className="flex items-center justify-between gap-4 sm:justify-end">
+              <div className="text-left sm:text-right">
+                <p className="text-xs text-[var(--text-secondary)]">{post.job ? "Salario" : post.space ? "Por día" : "Desde"}</p>
+                <p className="mv-data font-medium text-gold">
+                  {post.job ? (post.job.salaryMin ? formatMoney(post.job.salaryMin) : "Confidencial") : 
+                   post.space ? formatMoney(post.space.pricePerDay) : 
+                   (post.service?.packages?.[0]?.price ? formatMoney(post.service.packages[0].price) : "Consultar")}
+                </p>
               </div>
-              <div className="flex items-center gap-6 w-full md:w-auto border-t md:border-t-0 border-white/5 pt-4 md:pt-0">
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-gray-600 uppercase font-bold tracking-tighter">Precio / Salario</span>
-                  <span className="text-gold font-mono font-bold">
-                    {post.job ? (post.job.salaryMin ? formatMoney(post.job.salaryMin) : "Confidencial") : 
-                     post.space ? formatMoney(post.space.pricePerDay) : 
-                     (post.service?.packages?.[0]?.price ? formatMoney(post.service.packages[0].price) : "Consultar")}
-                  </span>
-                </div>
-                <Button asChild className="bg-gold text-black hover:bg-gold-light rounded-xl font-black uppercase text-[10px] tracking-widest px-6 h-11 flex-1 md:flex-none">
-                  <Link href={post.job ? `/empleos/${post.job.id}` : post.space ? `/anuncios/${post.space.id}` : `/servicios/${post.service.id}`}>
-                    {post.job ? "Postularme" : post.space ? "Ver espacio" : "Contratar"}
-                  </Link>
-                </Button>
-              </div>
+              <Link href={listingHref} className="mv-btn mv-btn-primary mv-btn-sm shrink-0">
+                {post.job ? "Postularme" : post.space ? "Ver espacio" : "Contratar"}
+              </Link>
             </div>
           </div>
         )}
 
-        <div className="flex flex-wrap items-center gap-3 border-t border-white/5 pt-6">
-          <div className="flex items-center gap-2">
-            <button onClick={() => react("INTERESA")} className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all ${liked ? "bg-gold text-black border-gold shadow-lg shadow-gold/20" : "border-white/5 bg-white/5 text-gray-500 hover:text-white"}`}>
-              <Star className={`h-4 w-4 ${liked ? "fill-black" : ""}`} /> {(reactions["INTERESA"] || 0) > 0 ? reactions["INTERESA"] : "Me interesa"}
-            </button>
-            <button onClick={() => react("UTIL")} className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all ${useful ? "bg-gold text-black border-gold shadow-lg shadow-gold/20" : "border-white/5 bg-white/5 text-gray-500 hover:text-white"}`}>
-              <Check className={`h-4 w-4 ${useful ? "font-bold" : ""}`} /> {(reactions["UTIL"] || 0) > 0 ? reactions["UTIL"] : "Útil"}
-            </button>
-            {currentUser && currentUser.id !== post.authorId && (
-              <button 
-                onClick={() => setReportModalOpen(true)} 
-                className="flex items-center gap-2 rounded-xl border border-white/5 bg-white/5 text-red-500/80 hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/20 px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all duration-300"
-              >
-                <ShieldAlert className="h-4 w-4" /> Reportar
-              </button>
-            )}
-          </div>
+        <div className="flex flex-wrap items-center gap-2 border-t border-[var(--mv-hairline)] pt-4">
+          <button type="button" onClick={() => react("INTERESA")} aria-pressed={liked} className={actionClass(liked)}>
+            <Star className={`h-4 w-4 ${liked ? "fill-current" : ""}`} aria-hidden />
+            <span>Me interesa</span>
+            {(reactions["INTERESA"] || 0) > 0 && <span className="mv-data">{reactions["INTERESA"]}</span>}
+          </button>
+          <button type="button" onClick={() => react("UTIL")} aria-pressed={useful} className={actionClass(useful)}>
+            <Check className="h-4 w-4" aria-hidden />
+            <span>Útil</span>
+            {(reactions["UTIL"] || 0) > 0 && <span className="mv-data">{reactions["UTIL"]}</span>}
+          </button>
 
-          <button onClick={toggleComments} className="ml-auto flex items-center gap-3 text-gray-500 hover:text-gold transition-colors">
+          <button type="button" onClick={toggleComments} aria-expanded={commentsOpen} className={`${actionClass(false)} ml-auto`}>
             {commentCount >= 2 && (
-              <div className="flex -space-x-2">
-                 {comments.slice(0, 2).map((c, i) => (
-                   <div key={c.id || i} className="h-6 w-6 rounded-full border-2 border-bg-secondary bg-bg-tertiary overflow-hidden flex items-center justify-center">
-                     {c.author?.avatar ? (
-                       <img src={c.author.avatar} className="h-full w-full object-cover" />
-                     ) : (
-                       <span className="text-[8px] font-black text-gold">{c.author?.name?.charAt(0) || "?"}</span>
-                     )}
-                   </div>
-                 ))}
-                 {commentCount > 2 && (
-                   <div className="h-6 w-6 rounded-full border-2 border-bg-secondary bg-gold text-primary-foreground flex items-center justify-center text-[8px] font-black tracking-tighter shadow-sm">
-                     +{commentCount - 2}
-                   </div>
-                 )}
-              </div>
+              <span className="flex -space-x-2" aria-hidden>
+                {comments.slice(0, 2).map((c, i) => (
+                  <Avatar key={c.id || i} src={c.author?.avatar} name={c.author?.name} className="h-6 w-6 rounded-full border-2 border-bg-secondary" />
+                ))}
+              </span>
             )}
-            <span className="text-[10px] font-black uppercase tracking-widest">{commentCount} comentarios</span>
-            {commentsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            <MessageSquare className="h-4 w-4" aria-hidden />
+            <span className="mv-data">{commentCount}</span>
+            <span className="hidden sm:inline">{commentCount === 1 ? "comentario" : "comentarios"}</span>
+            <span className="sr-only sm:hidden">comentarios</span>
+            {commentsOpen ? <ChevronUp className="h-4 w-4" aria-hidden /> : <ChevronDown className="h-4 w-4" aria-hidden />}
           </button>
         </div>
 
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           {commentsOpen && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-6 pt-4 overflow-hidden">
-              <div className="flex gap-3">
-                <input 
-                  value={commentText} 
-                  onChange={(e) => setCommentText(e.target.value)} 
-                  placeholder="Escribí un comentario..." 
-                  className="flex-1 rounded-xl border border-white/5 bg-bg-primary px-5 py-3 text-sm text-white outline-none placeholder:text-gray-700 focus:border-gold/30 transition-all" 
-                />
-                <Button onClick={sendComment} className="bg-gold text-black hover:bg-gold-light rounded-xl w-12"><Send className="h-4 w-4" /></Button>
-              </div>
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="space-y-5 pt-1">
+                <form
+                  onSubmit={(e) => { e.preventDefault(); sendComment(); }}
+                  className="flex items-center gap-2"
+                >
+                  <Avatar src={currentUser?.avatar} name={currentUser?.name} className="hidden h-10 w-10 rounded-xl sm:grid" />
+                  <label htmlFor={`comment-${post.id}`} className="sr-only">Escribí un comentario</label>
+                  <input 
+                    id={`comment-${post.id}`}
+                    value={commentText} 
+                    onChange={(e) => setCommentText(e.target.value)} 
+                    placeholder="Escribí un comentario…" 
+                    className="mv-input h-11 flex-1 rounded-full text-[15px]"
+                  />
+                  <button type="submit" aria-label="Enviar comentario" disabled={!commentText.trim()} className="mv-btn mv-btn-primary h-11 w-11 shrink-0 px-0">
+                    <Send className="h-4 w-4" aria-hidden />
+                  </button>
+                </form>
 
-              {loadingComments ? (
-                <div className="flex items-center justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-gold/20" /></div>
-              ) : (
-                <div className="space-y-4">
-                  {comments.map((comment) => {
-                    if (!comment.author) return null;
-                    return (
-                      <div key={comment.id} className="group">
-                        <div className="flex items-start gap-4">
-                          <div className="h-10 w-10 overflow-hidden rounded-xl bg-bg-tertiary border border-white/5">{comment.author.avatar ? <img src={comment.author.avatar} className="h-full w-full object-cover" /> : null}</div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Link href={`/perfil/${comment.author.username}`} className="font-bold text-white text-sm hover:text-gold transition-colors">{comment.author.name}</Link> 
-                              <span className="text-[10px] text-gray-600 font-mono">{timeAgo(comment.createdAt)}</span>
+                {loadingComments ? (
+                  <div className="flex justify-center p-6" role="status"><Loader2 className="h-5 w-5 animate-spin text-gold" aria-hidden /><span className="sr-only">Cargando comentarios</span></div>
+                ) : (
+                  <ul className="space-y-4">
+                    {comments.map((comment) => {
+                      if (!comment.author) return null;
+                      return (
+                        <li key={comment.id}>
+                          <div className="flex items-start gap-3">
+                            <Avatar src={comment.author.avatar} name={comment.author.name} className="h-9 w-9 rounded-xl" />
+                            <div className="min-w-0 flex-1">
+                              <div className="rounded-2xl rounded-tl-md bg-[var(--mv-panel-hover)] px-3.5 py-2.5">
+                                <div className="flex items-baseline gap-2">
+                                  <Link href={`/perfil/${comment.author.username}`} className="mv-focus rounded text-sm font-semibold text-[var(--text-primary)] transition-colors hover:text-gold">{comment.author.name}</Link>
+                                  <span className="mv-data text-[11px] text-[var(--text-tertiary)]">{timeAgo(comment.createdAt)}</span>
+                                </div>
+                                <p className="mt-0.5 whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--text-secondary)]">{comment.content}</p>
+                              </div>
+                              <button type="button" onClick={() => setReplyTo(comment.id)} className="mv-focus ml-2 mt-1 rounded text-xs font-semibold text-[var(--text-secondary)] transition-colors hover:text-gold">Responder</button>
                             </div>
-                            <div className="text-sm text-gray-400 leading-relaxed">{comment.content}</div>
-                            <button onClick={() => setReplyTo(comment.id)} className="mt-2 text-[10px] font-black uppercase tracking-widest text-gold/60 hover:text-gold transition-colors">Responder</button>
                           </div>
-                        </div>
-                        {replyTo === comment.id && (
-                          <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="mt-3 flex gap-2 pl-14">
-                            <input value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Responder..." className="flex-1 rounded-xl border border-white/5 bg-bg-primary px-4 py-2 text-sm text-white outline-none" />
-                            <Button onClick={sendComment} size="sm" className="bg-gold text-black hover:bg-gold-light rounded-xl">Enviar</Button>
-                          </motion.div>
-                        )}
-                      </div>
-                    );
-                  })}
-                  {comments.length > 3 && <button onClick={() => loadComments(50)} className="text-xs font-bold text-gold hover:underline w-full text-center py-2">Cargar todos los comentarios</button>}
-                </div>
-              )}
+                          {replyTo === comment.id && (
+                            <form onSubmit={(e) => { e.preventDefault(); sendComment(); }} className="mv-fade mt-2 flex gap-2 pl-12">
+                              <label htmlFor={`reply-${comment.id}`} className="sr-only">Responder a {comment.author.name}</label>
+                              <input id={`reply-${comment.id}`} autoFocus value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Responder…" className="mv-input h-10 flex-1 rounded-full text-sm" />
+                              <button type="submit" className="mv-btn mv-btn-primary mv-btn-sm">Enviar</button>
+                            </form>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                {comments.length > 3 && <button type="button" onClick={() => loadComments(50)} className="mv-link w-full py-1 text-center text-sm">Ver todos los comentarios</button>}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

@@ -15,11 +15,13 @@ import { SourceBadge } from "@/components/pwn/SourceBadge";
 import { RiskBadge, VerificationBadge, verificationMeta } from "@/components/pwn/RiskBadge";
 import { DisabledState, EmptyState, ErrorState, LoadingState } from "@/components/pwn/EmptyState";
 import { FadeIn } from "@/components/pwn/PwnShell";
-import { Button } from "@/components/ui/button";
 import { NextSteps } from "@/components/pwn/NextSteps";
 import { RecentLookups, rememberLookup } from "@/components/pwn/RecentLookups";
 import { WatchTargets } from "@/components/pwn/WatchTargets";
-import { focusRing, formatScore, formatWhen, pwnPanelClass } from "@/components/pwn/format";
+import { formatScore, formatWhen, pwnCardClass, pwnPanelClass, pwnTagClass, pwnUnverifiedCardClass } from "@/components/pwn/format";
+import { Meta, MetaGrid, PwnNotice, PwnPageHeader } from "@/components/pwn/ui";
+import { buttonClass } from "@/components/site/primitives";
+import { KeyRound } from "lucide-react";
 
 type QueryType = "email" | "domain";
 
@@ -67,11 +69,11 @@ export default function ExposurePage() {
   async function runSearch(nextType: QueryType, raw: string) {
     const value = nextType === "email" ? raw.trim().toLowerCase() : normalizeDomain(raw);
     if (nextType === "email" && !validEmail(value)) {
-      setFormError("Escribe un correo válido.");
+      setFormError("Escribí un correo válido.");
       return;
     }
     if (nextType === "domain" && !validDomain(value)) {
-      setFormError("Escribe un dominio válido, por ejemplo empresa.com.");
+      setFormError("Escribí un dominio válido, por ejemplo empresa.com.");
       return;
     }
     setFormError(null);
@@ -84,7 +86,7 @@ export default function ExposurePage() {
       if (response.reason === "aborted") return;
       if (response.reason === "disabled") setExposure({ kind: "disabled" });
       else if (response.reason === "unauthorized") {
-        setExposure({ kind: "error", message: "Inicia sesión para hacer esta consulta." });
+        setExposure({ kind: "error", message: "Iniciá sesión para hacer esta consulta." });
       } else setExposure({ kind: "error", message: response.message });
       return;
     }
@@ -108,8 +110,8 @@ export default function ExposurePage() {
 
   useEffect(() => {
     if (started.current) return;
-    let nextType = params.get("type");
-    let nextQuery = params.get("query");
+    let nextType = params?.get("type") ?? null;
+    let nextQuery = params?.get("query") ?? null;
     if (!nextQuery) {
       try {
         const stored = sessionStorage.getItem("mercav-pwn-exposure");
@@ -138,7 +140,7 @@ export default function ExposurePage() {
     setPassword("");
     setPasswordState({ kind: "idle" });
     if (!secret) {
-      setPasswordState({ kind: "error", message: "Escribe una contraseña para comprobarla." });
+      setPasswordState({ kind: "error", message: "Escribí una contraseña para comprobarla." });
       return;
     }
     if (secret.length > 1024) {
@@ -183,7 +185,7 @@ export default function ExposurePage() {
     });
     setFollowBusy(false);
     if (!response.ok) {
-      setFollowMessage(response.reason === "unauthorized" ? "Inicia sesión para seguir este objetivo." : response.message);
+      setFollowMessage(response.reason === "unauthorized" ? "Iniciá sesión para seguir este objetivo." : response.message);
       return;
     }
     setFollowMessage("Añadido a seguimiento.");
@@ -191,32 +193,38 @@ export default function ExposurePage() {
   }
 
   return (
-    <FadeIn className="space-y-8">
-      <header className="max-w-2xl">
-        <h1 className="font-display text-4xl font-black tracking-tight text-white md:text-5xl">Exposición</h1>
-        <p className="mt-3 text-sm leading-relaxed text-gray-400">
-          Consulta un correo o un dominio y, si quieres alertas, síguelo en esta misma página. No hace falta demostrar que te pertenece para ver los casos. Solo un correo distinto al de tu cuenta pide autorización para el patrullaje.
-        </p>
-      </header>
+    <FadeIn className="space-y-10 md:space-y-12">
+      <PwnPageHeader
+        kicker="Exposición"
+        title="¿Dónde aparece este correo o dominio?"
+        lead="Consultá un correo o un dominio y, si querés alertas, seguilo en esta misma página. No hace falta demostrar que te pertenece para ver los casos. Solo un correo distinto al de tu cuenta pide autorización para el patrullaje."
+      />
 
-      <section className={pwnPanelClass}>
+      <section aria-label="Consultar exposición" className="liquid-glass rounded-[1.75rem] p-4 sm:p-5 md:p-7">
         <fieldset className="mb-5">
-          <legend className="mb-3 text-xs font-medium uppercase tracking-wide text-gray-400">Tipo de consulta</legend>
-          <div className="flex flex-wrap gap-3">
+          <legend className="mb-3 text-sm font-medium text-[var(--text-secondary)]">Tipo de consulta</legend>
+          <div className="inline-flex w-full rounded-full border border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] p-1 sm:w-auto">
             {(
               [
                 ["email", "Correo"],
                 ["domain", "Dominio"],
               ] as const
             ).map(([value, label]) => (
-              <label key={value} className={`inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border px-3 text-sm ${type === value ? "border-gold/40 text-gold" : "border-white/10 text-gray-300"}`}>
+              <label
+                key={value}
+                className={`relative inline-flex h-10 flex-1 cursor-pointer items-center justify-center rounded-full px-5 text-sm font-medium transition-[background-color,color] duration-200 has-[:focus-visible]:shadow-[0_0_0_2px_var(--color-gold)] sm:flex-none ${
+                  type === value
+                    ? "bg-[var(--mv-gold-wash)] text-gold shadow-[inset_0_0_0_1px_var(--color-border-gold)]"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                }`}
+              >
                 <input
                   type="radio"
                   name="exposure-type"
                   value={value}
                   checked={type === value}
                   onChange={() => setType(value)}
-                  className={`accent-[var(--color-gold)] ${focusRing}`}
+                  className="sr-only"
                 />
                 {label}
               </label>
@@ -252,13 +260,20 @@ export default function ExposurePage() {
       <WatchTargets refresh={watchTick} seed={watchSeed} />
 
       <section className={pwnPanelClass} aria-labelledby="password-check-title">
-        <h2 id="password-check-title" className="font-display text-2xl text-white">
-          Comprobación de contraseña
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-400">
-          El hash se calcula en este navegador. Solo se envían los primeros cinco caracteres hexadecimales y el sufijo se compara aquí. El campo se vacía al enviar.
-        </p>
-        <div className="mt-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] text-gold">
+            <KeyRound className="h-5 w-5" aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <h2 id="password-check-title" className="mv-h3">
+              Comprobación de contraseña
+            </h2>
+            <p className="mv-body mt-1 max-w-2xl">
+              El hash se calcula en este navegador. Solo se envían los primeros cinco caracteres hexadecimales y el sufijo se compara acá. El campo se vacía al enviar.
+            </p>
+          </div>
+        </div>
+        <div className="mt-6">
           <SearchForm
             id="password-check"
             name="pwn-password-check"
@@ -310,7 +325,7 @@ function ExposureResults({
   }
   return (
     <div className="space-y-4">
-      <p role="status" className="text-sm text-gray-300">
+      <p role="status" className="text-sm text-[var(--text-secondary)]">
         {state.exposed ? "Hay exposición confirmada por la fuente." : "La fuente solo devolvió registros en disputa."}
         {state.persisted ? " Los resultados se guardaron en tu seguimiento." : ""}
       </p>
@@ -320,49 +335,43 @@ function ExposureResults({
           const status = (finding.verificationStatus ?? "").toUpperCase();
           const dashed = status === "UNVERIFIED" || status === "DISPUTED";
           return (
-            <li key={finding.key} className={`rounded-3xl border bg-bg-secondary/70 p-5 ${dashed ? "border-dashed border-white/25" : "border-white/5"}`}>
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-display text-xl text-white">{finding.title}</h2>
-                <VerificationBadge status={finding.verificationStatus} />
-                {finding.isSensitive ? <span className="rounded-full border border-white/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-300">Sensible</span> : null}
-                {finding.isRetired ? <span className="rounded-full border border-white/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">Retirada</span> : null}
+            <li key={finding.key} className={`${pwnCardClass} ${dashed ? pwnUnverifiedCardClass : ""}`}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <h2 className="mv-h3">{finding.title}</h2>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <VerificationBadge status={finding.verificationStatus} />
+                  {finding.isSensitive ? <span className={pwnTagClass}>Sensible</span> : null}
+                  {finding.isRetired ? <span className={pwnTagClass}>Retirada</span> : null}
+                </div>
               </div>
-              {finding.description ? <p className="mt-3 text-sm leading-relaxed text-gray-300">{finding.description}</p> : null}
-              {finding.descriptionDetail ? <p className="mt-2 text-sm leading-relaxed text-gray-400">{finding.descriptionDetail}</p> : null}
-              {finding.descriptionImplication ? <p className="mt-2 text-sm leading-relaxed text-gray-400">{finding.descriptionImplication}</p> : null}
-              {finding.subjectHint ? <p className="mt-4 font-mono text-sm text-gray-300">{finding.subjectHint}</p> : null}
+              {verification?.note ? <p className="mt-3 text-sm text-[var(--text-primary)]">{verification.note}</p> : null}
+              {finding.description ? <p className="mv-body mt-3">{finding.description}</p> : null}
+              {finding.descriptionDetail ? <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">{finding.descriptionDetail}</p> : null}
+              {finding.descriptionImplication ? <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">{finding.descriptionImplication}</p> : null}
+              {finding.subjectHint ? <p className="mv-data mt-4 text-sm text-[var(--text-primary)]">{finding.subjectHint}</p> : null}
               {finding.dataTypes.length ? (
-                <ul className="mt-4 flex flex-wrap gap-2">
+                <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Tipos de dato expuestos">
                   {finding.dataTypes.map((item) => (
-                    <li key={item} className="rounded-lg border border-white/10 px-2 py-1 text-xs text-gray-300">
+                    <li key={item} className={pwnTagClass}>
                       {item}
                     </li>
                   ))}
                 </ul>
               ) : null}
-              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
-                <div>
-                  <dt className="text-gray-500">Fecha de la filtración</dt>
-                  <dd className="text-white">{formatWhen(finding.firstSeenAt) ?? "No indicada"}</dd>
-                </div>
-                <div>
-                  <dt className="text-gray-500">Confianza</dt>
-                  <dd className="text-white">{formatScore(finding.confidenceScore) ?? "No indicada"}</dd>
-                </div>
-                <div>
-                  <dt className="text-gray-500">Riesgo</dt>
-                  <dd className="text-white">{formatScore(finding.riskScore) ?? (status === "DISPUTED" ? "No calculado" : "No indicado")}</dd>
-                </div>
-              </dl>
-              <div className="mt-4">
-                <SourceBadge source={finding.source} href={finding.sourceUrl} />
-              </div>
+              <MetaGrid>
+                <Meta label="Fecha de la filtración">{formatWhen(finding.firstSeenAt) ?? "No indicada"}</Meta>
+                <Meta label="Confianza">{formatScore(finding.confidenceScore) ?? "No indicada"}</Meta>
+                <Meta label="Riesgo">{formatScore(finding.riskScore) ?? (status === "DISPUTED" ? "No calculado" : "No indicado")}</Meta>
+                <Meta label="Fuente">
+                  <SourceBadge source={finding.source} href={finding.sourceUrl} />
+                </Meta>
+              </MetaGrid>
             </li>
           );
         })}
       </ul>
       {state.findings.length === 0 && state.exposed ? (
-        <p className="text-sm text-gray-300">La fuente indica exposición, pero no devolvió fichas detalladas en esta consulta.</p>
+        <p className="text-sm text-[var(--text-secondary)]">La fuente indica exposición, pero no devolvió fichas detalladas en esta consulta.</p>
       ) : null}
       <FollowButton busy={followBusy} message={followMessage} onFollow={onFollow} />
       {state.exposed ? <NextSteps kind={queryType} /> : null}
@@ -380,15 +389,11 @@ function FollowButton({
   onFollow: () => void;
 }) {
   return (
-    <div className="space-y-2">
-      <Button type="button" variant="outline" disabled={busy} onClick={onFollow} className={`rounded-xl border-white/10 text-white ${focusRing}`}>
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <button type="button" disabled={busy} onClick={onFollow} className={buttonClass("secondary", "md", "w-full sm:w-auto")}>
         {busy ? "Añadiendo…" : "Seguir este objetivo"}
-      </Button>
-      {message ? (
-        <p role="status" className="text-sm text-gold">
-          {message}
-        </p>
-      ) : null}
+      </button>
+      {message ? <PwnNotice>{message}</PwnNotice> : null}
     </div>
   );
 }
@@ -399,17 +404,17 @@ function PasswordResult({ state }: { state: PasswordState }) {
   if (state.kind === "disabled") return <DisabledState title="Comprobación no configurada" />;
   if (state.kind === "error") return <ErrorState message={state.message} />;
   return (
-    <div className="rounded-2xl border border-white/10 p-4">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="rounded-[1.25rem] border border-[var(--mv-hairline-strong)] p-4 md:p-5">
+      <div className="flex flex-wrap items-center gap-1.5">
         <RiskBadge level={state.count > 0 ? "high" : "informational"} />
         <SourceBadge source="HIBP Pwned Passwords" />
       </div>
-      <p className="mt-3 text-sm text-white">
+      <p className="mt-3 text-sm font-medium text-[var(--text-primary)]">
         {state.count > 0
           ? `La fuente reporta ${state.count} ${state.count === 1 ? "aparición" : "apariciones"} para este hash.`
           : "No hay coincidencias en el rango devuelto por la fuente."}
       </p>
-      <p className="mt-2 text-xs text-gray-500">La comparación se hizo en este navegador. La contraseña no se envió.</p>
+      <p className="mt-2 text-xs text-[var(--text-tertiary)]">La comparación se hizo en este navegador. La contraseña no se envió.</p>
       {state.count > 0 ? (
         <div className="mt-4">
           <NextSteps kind="password" />

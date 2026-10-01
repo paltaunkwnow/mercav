@@ -38,24 +38,24 @@ export default async function KosherChesedPage({ searchParams }: { searchParams:
       </PageIntro>
       <CityPills cities={cities} current={city.slug} basePath="/kosher/comunidad/jesed" />
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_24rem]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <section aria-label="Pedidos activos">
           {posts.length === 0 ? (
             <EmptyState>No hay pedidos activos en {city.city}. Si sabés de alguien que necesita una mano, sumalo al tablón.</EmptyState>
           ) : (
-            <ul className="grid gap-3 md:grid-cols-2">
+            <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {posts.map((p) => {
                 const days = Math.max(0, Math.ceil((p.expiresAt.getTime() - now.getTime()) / 86_400_000));
                 return (
                   <li key={p.id} className={`${cardClass} flex flex-col`}>
                     <div className="flex items-center justify-between gap-2">
                       <Pill tone={TONE[p.kind]}>{CHESED_KIND[p.kind]}</Pill>
-                      <span className="text-[11px] text-[var(--text-tertiary)]">{days === 1 ? "vence mañana" : `${days} días más`}</span>
+                      <span className="text-xs text-[var(--text-secondary)]">{days === 1 ? "vence mañana" : `${days} días más`}</span>
                     </div>
-                    <h2 className="mt-3 font-display text-lg font-semibold text-[var(--text-primary)]">{p.title}</h2>
+                    <h2 className="mv-h3 mt-3">{p.title}</h2>
                     <p className="mt-2 flex-1 whitespace-pre-line text-sm leading-relaxed text-[var(--text-secondary)]">{p.body}</p>
-                    {p.contact && <p className="mt-3 rounded-xl bg-bg-tertiary/70 px-3 py-2 text-sm text-[var(--text-primary)]">{p.contact}</p>}
-                    <div className="mt-4 flex items-center justify-between gap-2 text-xs text-[var(--text-tertiary)]">
+                    {p.contact && <p className="mt-3 rounded-xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] px-3 py-2 text-sm text-[var(--text-primary)]">{p.contact}</p>}
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--text-secondary)]">
                       <span>Publicado por {publicAuthorName(p.createdBy.name)}</span>
                       {viewer && (viewer.id === p.createdById || viewer.isModerator) && (
                         <RowAction url={`/api/kosher/chesed/${p.id}`} label="Ya se resolvió" done="Marcado como resuelto." />
@@ -71,13 +71,13 @@ export default async function KosherChesedPage({ searchParams }: { searchParams:
         <aside className="lg:sticky lg:top-28 lg:self-start">
           {viewer ? (
             <div className={cardClass}>
-              <h2 className="font-display text-xl font-semibold text-[var(--text-primary)]">Publicar un pedido</h2>
-              <p className="mb-5 mt-1 text-sm text-[var(--text-secondary)]">
+              <h2 className="mv-h3">Publicar un pedido</h2>
+              <p className="mb-6 mt-2 text-sm text-[var(--text-secondary)]">
                 Pedí permiso antes de publicar por otra persona, y dejá que la institución o la familia coordine los detalles privados.
               </p>
               <ChesedForm cities={cities} city={city.slug} />
               {mine.length > 0 && (
-                <p className="mt-5 border-t border-border pt-4 text-xs text-[var(--text-tertiary)]">En revisión: {mine.map((m) => m.title).join(" · ")}</p>
+                <p className="mt-5 border-t border-[var(--mv-hairline)] pt-4 text-xs text-[var(--text-secondary)]">En revisión: {mine.map((m) => m.title).join(" · ")}</p>
               )}
             </div>
           ) : (

@@ -13,16 +13,25 @@ export async function POST(
       return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { isSanctioned, reason, expiresAt } = body;
+    const body = await req.json().catch(() => null);
+    const { isSanctioned, reason, expiresAt } = body ?? {};
+    if (typeof isSanctioned !== "boolean") {
+      return NextResponse.json({ success: false, error: "isSanctioned debe ser booleano" }, { status: 400 });
+    }
+    const expires = expiresAt ? new Date(expiresAt) : null;
+    if (expires && Number.isNaN(expires.getTime())) {
+      return NextResponse.json({ success: false, error: "Fecha de expiración inválida" }, { status: 400 });
+    }
 
     const user = await prisma.user.update({
       where: { id: params.id },
       data: {
         isSanctioned,
-        sanctionReason: reason,
-        sanctionExpiresAt: expiresAt ? new Date(expiresAt) : null
-      }
+        sanctionReason: typeof reason === "string" ? reason.slice(0, 1000) : null,
+        sanctionExpiresAt: expires
+      },
+      // No devolver hash de contraseña ni secreto 2FA
+      select: { id: true, username: true, isSanctioned: true, sanctionReason: true, sanctionExpiresAt: true }
     });
 
     return NextResponse.json({ success: true, data: user });

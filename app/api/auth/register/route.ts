@@ -5,10 +5,17 @@ import { z } from "zod";
 import { verifyRecaptchaToken } from "@/lib/auth";
 
 const registerSchema = z.object({
-  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  email: z.string().email("Email inválido"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
-  username: z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres")
+  name: z.string().trim().min(2, "El nombre debe tener al menos 2 caracteres").max(100, "El nombre es demasiado largo"),
+  // Normalizar el email: el login (lib/auth.ts) busca por email en minúsculas.
+  email: z.string().trim().toLowerCase().email("Email inválido").max(254),
+  // bcrypt solo usa los primeros 72 bytes
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres").max(72, "La contraseña es demasiado larga"),
+  username: z
+    .string()
+    .trim()
+    .min(3, "El nombre de usuario debe tener al menos 3 caracteres")
+    .max(30, "El nombre de usuario es demasiado largo")
+    .regex(/^[a-zA-Z0-9_.-]+$/, "El nombre de usuario solo puede tener letras, números, punto, guion y guion bajo")
 });
 
 export async function POST(req: Request) {
@@ -19,7 +26,7 @@ export async function POST(req: Request) {
     if (!result.success) {
       return NextResponse.json({
         success: false,
-        error: result.error.errors[0].message
+        error: result.error.issues[0]?.message ?? "Datos inválidos"
       }, { status: 400 });
     }
     

@@ -16,7 +16,8 @@ export async function POST(
       return NextResponse.json({ success: false, error: "No autorizado" }, { status: 403 })
     }
 
-    const { action } = await req.json()
+    const body = await req.json().catch(() => null)
+    const action = typeof body?.action === "string" ? body.action : ""
     if (!action || !["RELEASE", "REFUND"].includes(action)) {
       return NextResponse.json({ success: false, error: "Acción no válida o no especificada" }, { status: 400 })
     }
@@ -24,13 +25,12 @@ export async function POST(
     const orderId = params.id
     const order = await prisma.serviceOrder.findUnique({
       where: { id: orderId },
-      include: {
-        client: true,
-        service: {
-          include: {
-            provider: true
-          }
-        }
+      select: {
+        id: true,
+        status: true,
+        clientId: true,
+        totalPrice: true,
+        service: { select: { providerId: true } }
       }
     })
 
@@ -38,15 +38,23 @@ export async function POST(
       return NextResponse.json({ success: false, error: "Orden de servicio no encontrada" }, { status: 404 })
     }
 
+    // Solo se resuelven pedidos en disputa, y una sola vez (update condicional más abajo)
+    if (order.status !== "DISPUTED") {
+      return NextResponse.json({ success: false, error: "El pedido no está en disputa" }, { status: 409 })
+    }
+
     if (action === "RELEASE") {
       // Release funds to Freelancer / Provider
-      await prisma.serviceOrder.update({
-        where: { id: orderId },
+      const resolved = await prisma.serviceOrder.updateMany({
+        where: { id: orderId, status: "DISPUTED" },
         data: {
           status: "COMPLETED",
           completedAt: new Date()
         }
       })
+      if (resolved.count === 0) {
+        return NextResponse.json({ success: false, error: "La disputa ya fue resuelta" }, { status: 409 })
+      }
 
       // Notify both parties
       await createNotification(
@@ -77,21 +85,21 @@ export async function POST(
       return NextResponse.json({ success: true, message: "Fondos liberados exitosamente al freelancer" })
     } else {
       // Refund client, cancel order
-      await prisma.serviceOrder.update({
-        where: { id: orderId },
-        data: { status: "CANCELLED" }
-      })
-
-      // Try to find the Stripe transaction to refund
-      const transaction = await prisma.transaction.findFirst({
-        where: { orderId: orderId, status: "PAID" }
-      })
-
-      if (transaction) {
-        await prisma.transaction.update({
-          where: { id: transaction.id },
+      // Cancelar + marcar reembolso en una sola transacción y de forma condicional
+      const resolved = await prisma.$transaction(async (tx) => {
+        const cancelled = await tx.serviceOrder.updateMany({
+          where: { id: orderId, status: "DISPUTED" },
+          data: { status: "CANCELLED" }
+        })
+        if (cancelled.count === 0) return false
+        await tx.transaction.updateMany({
+          where: { orderId: orderId, status: "PAID" },
           data: { status: "REFUNDED" }
         })
+        return true
+      })
+      if (!resolved) {
+        return NextResponse.json({ success: false, error: "La disputa ya fue resuelta" }, { status: 409 })
       }
 
       // Notify both parties
@@ -124,7 +132,7 @@ export async function POST(
     }
   } catch (error: any) {
     console.error("Error resolving dispute:", error)
-    return NextResponse.json({ success: false, error: error.message || "Error interno" }, { status: 500 })
+    return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 })
   }
 }
 // creado por pato dev y askforvini

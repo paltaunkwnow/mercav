@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getPosContext, posError } from "@/lib/pos/server";
 import { isUniqueCodeError, productInputSchema } from "@/lib/pos/product-input";
+import { requireManager } from "@/lib/pos/staff";
 
 export async function GET() {
   const ctx = await getPosContext();
@@ -18,6 +19,8 @@ export async function GET() {
 export async function POST(req: Request) {
   const ctx = await getPosContext();
   if (!ctx.ok) return ctx.response;
+  const gate = await requireManager(req, ctx.config.id);
+  if (!gate.ok) return gate.response;
 
   const parsed = productInputSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return posError("Revisá los datos del producto");

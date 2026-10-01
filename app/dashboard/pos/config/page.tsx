@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import POSHeader from '@/components/pos/POSHeader';
 import CurrencySelector from '@/components/pos/CurrencySelector';
 import LocationSelector from '@/components/pos/LocationSelector';
-import { Save, Loader2, Store, Image as ImageIcon, Settings, UtensilsCrossed, Shirt, ShoppingBasket, Pill, Hammer, Scissors, Check } from 'lucide-react';
+import { Save, Loader2, Store, Image as ImageIcon, UtensilsCrossed, Shirt, ShoppingBasket, Pill, Hammer, Scissors, Check } from 'lucide-react';
 import { Toast } from '@/components/ui/toast';
 import { BUSINESS_TYPES, PAYMENT_METHODS, type BusinessTypeId } from '@/lib/pos/business';
 import { countryFiscal } from '@/lib/pos/fiscal';
+import StaffManager from '@/components/pos/StaffManager';
+import { useManagerPin } from '@/components/pos/useManagerPin';
 
 const BUSINESS_ICONS: Record<BusinessTypeId, typeof Store> = {
   GENERAL: Store,
@@ -19,14 +21,17 @@ const BUSINESS_ICONS: Record<BusinessTypeId, typeof Store> = {
   SERVICES: Scissors,
 };
 
-function SectionTitle({ n, children }: { n: number; children: React.ReactNode }) {
+function SectionTitle({ n, id, children }: { n: number; id: string; children: React.ReactNode }) {
   return (
-    <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
-      <span className="w-8 h-8 rounded-lg bg-gold text-black flex items-center justify-center text-sm">{n}</span>
+    <h2 id={id} className="mv-h3 flex items-center gap-3">
+      <span className="mv-data grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[var(--mv-gold-wash)] text-sm font-semibold text-gold ring-1 ring-inset ring-[color:var(--color-border-gold)]" aria-hidden>{n}</span>
       {children}
     </h2>
   );
 }
+
+const fieldLabel = 'block text-sm font-semibold text-[var(--text-secondary)]';
+const sectionClass = 'mv-panel p-5 sm:p-8';
 
 export default function POSConfigPage() {
   const [loading, setLoading] = useState(true);
@@ -44,8 +49,12 @@ export default function POSConfigPage() {
     taxName: 'IVA',
     taxRate: '0' as string | number,
     pricesIncludeTax: true,
-    paymentMethods: ['CASH', 'CARD', 'TRANSFER', 'QR'] as string[]
+    paymentMethods: ['CASH', 'CARD', 'TRANSFER', 'QR'] as string[],
+    kosherPlaceId: null as string | null
   });
+  const { pinFetch, pinDialog } = useManagerPin();
+  const [kosherPlaces, setKosherPlaces] = useState<{ id: string; name: string; city: string }[] | null>(null);
+  const hasConfig = Boolean((config as { id?: string }).id);
   const fiscal = countryFiscal(config.country);
   const suggestionApplies = fiscal.taxRate !== null && (Number(config.taxRate) !== fiscal.taxRate || config.taxName !== fiscal.taxName);
 
@@ -104,16 +113,22 @@ export default function POSConfigPage() {
           setConfig((prev) => ({ ...prev, ...data.data, paymentMethods: data.data.paymentMethods?.length ? data.data.paymentMethods : prev.paymentMethods }));
         }
         setLoading(false);
+        if (data.success && data.data) {
+          fetch('/api/pos/kosher')
+            .then((r) => r.json())
+            .then((k) => setKosherPlaces(k?.success ? k.data.places : []))
+            .catch(() => setKosherPlaces([]));
+        }
       });
   }, []);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch('/api/pos/config', {
+      const res = await pinFetch('/api/pos/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config)
+        body: JSON.stringify({ ...config, kosherPlaceId: config.kosherPlaceId || null })
       });
       const data = await res.json();
       if (data.success) {
@@ -130,31 +145,36 @@ export default function POSConfigPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center">
-        <Loader2 className="w-10 h-10 text-gold animate-spin mb-4" />
-        <p className="text-gray-500 font-black uppercase tracking-[0.3em] text-[10px]">Cargando configuración...</p>
+      <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center gap-3" role="status">
+        <Loader2 className="w-8 h-8 text-gold animate-spin" aria-hidden />
+        <p className="text-sm font-medium text-[var(--text-secondary)]">Cargando la configuración…</p>
       </div>
     );
   }
 
+  const segBtn = (active: boolean) =>
+    `mv-focus inline-flex items-center justify-center gap-2 rounded-[0.875rem] border text-sm font-semibold transition-colors duration-150 ${
+      active
+        ? 'border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold'
+        : 'border-[var(--mv-hairline-strong)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+    }`;
+
   return (
-    <div className="min-h-screen bg-bg-primary text-white">
+    <div className="min-h-screen bg-bg-primary text-[var(--text-primary)]">
       <POSHeader />
       
-      <main className="container mx-auto px-4 py-12 max-w-4xl">
-        <header className="mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-widest mb-4">
-            <Settings className="w-3 h-3" /> Herramientas POS
-          </div>
-          <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">Configuración del Local</h1>
-          <p className="text-gray-400">Personaliza la identidad visual y ubicación de tu punto de venta.</p>
+      <main className="mx-auto max-w-3xl px-4 pt-8 pb-[calc(8rem+env(safe-area-inset-bottom,0px))] sm:px-6 md:pt-12">
+        <header className="mb-8 space-y-3">
+          <p className="mv-kicker">Configuración de la caja</p>
+          <h1 className="mv-h2">Tu negocio en el POS</h1>
+          <p className="mv-body max-w-xl">Rubro, identidad, ubicación, impuestos y medios de pago. Todo esto aparece en la caja y en el ticket.</p>
         </header>
 
-        <div className="space-y-8">
-          <section className="bg-bg-secondary border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
-            <SectionTitle n={1}>Tipo de negocio</SectionTitle>
-            <p className="text-sm text-gray-400 -mt-4 mb-8">Define los tipos de pedido, las categorías sugeridas y si vendés por peso o servicios.</p>
-            <div role="radiogroup" aria-label="Tipo de negocio" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="space-y-4">
+          <section aria-labelledby="cfg-business" className={sectionClass}>
+            <SectionTitle n={1} id="cfg-business">Tipo de negocio</SectionTitle>
+            <p className="mt-2 mb-5 text-sm text-[var(--text-secondary)]">Define los tipos de venta, las categorías sugeridas y si vendés por peso o servicios.</p>
+            <div role="radiogroup" aria-labelledby="cfg-business" className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {BUSINESS_TYPES.map((b) => {
                 const Icon = BUSINESS_ICONS[b.id];
                 const active = config.businessType === b.id;
@@ -165,61 +185,57 @@ export default function POSConfigPage() {
                     role="radio"
                     aria-checked={active}
                     onClick={() => setConfig({ ...config, businessType: b.id })}
-                    className={`relative text-left p-5 rounded-2xl border transition-all ${active ? 'bg-gold/10 border-gold/60' : 'bg-bg-primary border-white/5 hover:border-white/20'}`}
+                    className={`mv-focus relative rounded-2xl border p-4 text-left transition-colors duration-150 ${active ? 'border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)]' : 'border-[var(--mv-hairline-strong)] hover:border-[var(--color-border-gold)]'}`}
                   >
-                    <Icon size={20} className={active ? 'text-gold' : 'text-gray-500'} />
-                    <p className={`mt-3 font-bold ${active ? 'text-gold' : 'text-white'}`}>{b.name}</p>
-                    <p className="mt-1 text-xs text-gray-500 leading-relaxed">{b.description}</p>
-                    {active && <Check size={16} className="absolute top-4 right-4 text-gold" />}
+                    <Icon size={20} className={active ? 'text-gold' : 'text-[var(--text-secondary)]'} aria-hidden />
+                    <p className={`mt-2.5 text-sm font-semibold ${active ? 'text-gold' : 'text-[var(--text-primary)]'}`}>{b.name}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-[var(--text-secondary)]">{b.description}</p>
+                    {active && <Check size={16} className="absolute right-4 top-4 text-gold" aria-hidden />}
                   </button>
                 );
               })}
             </div>
           </section>
 
-          {/* General Info */}
-          <section className="bg-bg-secondary border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative">
-            <div className="absolute inset-0 rounded-[2.5rem] overflow-hidden pointer-events-none">
-              <div className="absolute top-0 right-0 p-12 opacity-5">
-                <Store size={150} className="text-gold" />
-              </div>
-            </div>
-            
-            <SectionTitle n={2}>Identidad del Negocio</SectionTitle>
+          <section aria-labelledby="cfg-identity" className={sectionClass}>
+            <SectionTitle n={2} id="cfg-identity">Identidad del negocio</SectionTitle>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Nombre del Local</label>
+            <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="shopName" className={fieldLabel}>Nombre del negocio</label>
                 <input
+                  id="shopName"
                   type="text"
                   value={config.shopName}
                   onChange={(e) => setConfig({ ...config, shopName: e.target.value })}
-                  placeholder="Ej: Mercav Coffee Shop"
-                  className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all font-bold"
+                  placeholder="Como querés que salga en el ticket"
+                  autoComplete="organization"
+                  className="mv-input font-semibold"
                 />
               </div>
 
-              <div className="space-y-4">
-                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Logo del Local (JPG/PNG, máx 5MB)</label>
-                <div className="flex gap-4">
-                  <div className="flex-1 relative group">
+              <div className="space-y-2">
+                <label htmlFor="logoUrl" className={fieldLabel}>Logo <span className="font-normal text-[var(--text-tertiary)]">JPG o PNG, hasta 5 MB</span></label>
+                <div className="flex gap-2">
+                  <div className="relative min-w-0 flex-1">
+                    <ImageIcon className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" size={18} aria-hidden />
                     <input
-                      type="text"
+                      id="logoUrl"
+                      type="url"
+                      inputMode="url"
                       value={config.logoUrl}
                       onChange={(e) => setConfig({ ...config, logoUrl: e.target.value })}
-                      placeholder="URL o sube un archivo"
-                      className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl pl-12 pr-5 text-white outline-none focus:border-gold/30 transition-all text-xs"
+                      placeholder="Pegá una URL o subí un archivo"
+                      className="mv-input pl-11 pr-24 text-sm"
                     />
-                    <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
-                    
-                    <label className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-4 bg-white/5 hover:bg-white/10 text-white rounded-xl flex items-center justify-center cursor-pointer transition-all border border-white/5 text-[8px] font-black uppercase tracking-widest">
-                      {uploading ? <Loader2 size={14} className="animate-spin" /> : 'Subir'}
-                      <input type="file" className="hidden" accept="image/jpeg,image/png" onChange={handleFileUpload} disabled={uploading} />
+                    <label className="absolute right-1.5 top-1/2 inline-flex h-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-[0.625rem] border border-[var(--mv-hairline-strong)] px-3 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:border-[var(--color-border-gold)] focus-within:ring-2 focus-within:ring-[color:var(--color-gold)]">
+                      {uploading ? <Loader2 size={14} className="animate-spin" aria-label="Subiendo logo" /> : 'Subir'}
+                      <input type="file" className="sr-only" accept="image/jpeg,image/png" onChange={handleFileUpload} disabled={uploading} aria-label="Subir logo desde un archivo" />
                     </label>
                   </div>
                   {config.logoUrl && (
-                    <div className="w-14 h-14 rounded-2xl bg-white border border-white/10 overflow-hidden flex-shrink-0 shadow-lg">
-                      <img src={config.logoUrl} alt="Logo Preview" className="w-full h-full object-contain" />
+                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-[0.875rem] border border-[var(--mv-hairline-strong)] bg-[#fff]">
+                      <img src={config.logoUrl} alt="Vista previa del logo" className="h-full w-full object-contain" />
                     </div>
                   )}
                 </div>
@@ -227,7 +243,7 @@ export default function POSConfigPage() {
 
               <div className="md:col-span-2">
                 <CurrencySelector 
-                  label="Moneda Principal de Trabajo"
+                  label="Moneda con la que cobrás"
                   value={config.currency}
                   onChange={(val) => setConfig({ ...config, currency: val })}
                 />
@@ -235,9 +251,9 @@ export default function POSConfigPage() {
             </div>
           </section>
 
-          {/* Location */}
-          <section className="bg-bg-secondary border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
-            <SectionTitle n={3}>Ubicación Geográfica</SectionTitle>
+          <section aria-labelledby="cfg-location" className={sectionClass}>
+            <SectionTitle n={3} id="cfg-location">Ubicación</SectionTitle>
+            <p className="mt-2 mb-5 text-sm text-[var(--text-secondary)]">Sale en el ticket y define la sugerencia de impuestos de tu país.</p>
             <LocationSelector 
               country={config.country}
               department={config.department}
@@ -247,75 +263,76 @@ export default function POSConfigPage() {
             />
           </section>
 
-          <section className="bg-bg-secondary border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
-            <SectionTitle n={4}>Impuestos y cobros</SectionTitle>
+          <section aria-labelledby="cfg-tax" className={sectionClass}>
+            <SectionTitle n={4} id="cfg-tax">Impuestos y cobros</SectionTitle>
 
             {suggestionApplies && (
-              <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl border border-gold/20 bg-gold/5">
-                <p className="text-sm text-gray-300">
-                  La tasa general en {config.country} es {fiscal.taxName} {fiscal.taxRate}%. Revisala con tu contador si tenés un régimen especial.
+              <div className="mt-5 flex flex-col justify-between gap-3 rounded-2xl border border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] p-4 sm:flex-row sm:items-center">
+                <p className="text-sm text-[var(--text-primary)]">
+                  La tasa general en {config.country} es {fiscal.taxName} <span className="mv-data">{fiscal.taxRate}%</span>. Revisala con tu contador si tenés un régimen especial.
                 </p>
                 <button
                   type="button"
                   onClick={() => setConfig({ ...config, taxName: fiscal.taxName, taxRate: fiscal.taxRate ?? 0 })}
-                  className="h-10 px-4 rounded-xl bg-gold text-black text-[10px] font-black uppercase tracking-widest whitespace-nowrap"
+                  className="mv-btn mv-btn-secondary mv-btn-sm shrink-0"
                 >
-                  Usar {fiscal.taxRate}%
+                  Usar <span className="mv-data">{fiscal.taxRate}%</span>
                 </button>
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-4">
-                <label htmlFor="taxName" className="block text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Nombre del impuesto</label>
+            <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+              <div className="space-y-2">
+                <label htmlFor="taxName" className={fieldLabel}>Nombre del impuesto</label>
                 <input
                   id="taxName"
                   type="text"
                   value={config.taxName}
                   onChange={(e) => setConfig({ ...config, taxName: e.target.value })}
                   placeholder="IVA"
-                  className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all font-bold"
+                  className="mv-input font-semibold"
                 />
               </div>
-              <div className="space-y-4">
-                <label htmlFor="taxRate" className="block text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Tasa general (%)</label>
+              <div className="space-y-2">
+                <label htmlFor="taxRate" className={fieldLabel}>Tasa general (%)</label>
                 <input
                   id="taxRate"
                   type="number"
+                  inputMode="decimal"
                   min={0}
                   max={100}
                   step="0.01"
                   value={config.taxRate}
                   onChange={(e) => setConfig({ ...config, taxRate: e.target.value })}
-                  className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all font-mono"
+                  className="mv-input mv-data"
                 />
               </div>
-              <div className="space-y-4">
-                <span className="block text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Precios de venta</span>
-                <div className="grid grid-cols-2 gap-2 h-14">
-                  {[{ v: true, l: 'Incluyen impuesto' }, { v: false, l: 'Más impuesto' }].map((o) => (
+              <fieldset className="space-y-2">
+                <legend className={`${fieldLabel} mb-2`}>Precios de venta</legend>
+                <div className="grid h-12 grid-cols-2 gap-2">
+                  {[{ v: true, l: 'Con impuesto' }, { v: false, l: 'Más impuesto' }].map((o) => (
                     <button
                       key={o.l}
                       type="button"
                       aria-pressed={config.pricesIncludeTax === o.v}
                       onClick={() => setConfig({ ...config, pricesIncludeTax: o.v })}
-                      className={`rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${config.pricesIncludeTax === o.v ? 'bg-gold/10 border-gold/60 text-gold' : 'bg-bg-primary border-white/5 text-gray-500 hover:border-white/20'}`}
+                      className={segBtn(config.pricesIncludeTax === o.v)}
                     >
                       {o.l}
                     </button>
                   ))}
                 </div>
-              </div>
+              </fieldset>
             </div>
-            <p className="mt-4 text-xs text-gray-500">
+            <p className="mt-3 text-sm text-[var(--text-secondary)]">
               {config.pricesIncludeTax
                 ? 'El precio que cargás es el precio final. El ticket muestra cuánto impuesto contiene.'
                 : 'El impuesto se suma al precio en el cobro. Es lo habitual en ventas entre empresas.'}
               {' '}Cada producto puede tener su propia tasa en el inventario.
             </p>
 
-            <div className="mt-10 space-y-4">
-              <span className="block text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Medios de pago aceptados</span>
+            <fieldset className="mt-8 space-y-3">
+              <legend className={`${fieldLabel} mb-3`}>Medios de pago aceptados</legend>
               <div className="flex flex-wrap gap-2">
                 {PAYMENT_METHODS.map((m) => {
                   const active = config.paymentMethods.includes(m.id);
@@ -325,31 +342,76 @@ export default function POSConfigPage() {
                       type="button"
                       aria-pressed={active}
                       onClick={() => togglePaymentMethod(m.id)}
-                      className={`h-12 px-5 rounded-2xl border flex items-center gap-2 text-xs font-bold transition-all ${active ? 'bg-gold/10 border-gold/60 text-gold' : 'bg-bg-primary border-white/5 text-gray-500 hover:border-white/20'}`}
+                      className={`${segBtn(active)} h-11 rounded-full px-4`}
                     >
-                      {active && <Check size={14} />}
+                      {active && <Check size={14} aria-hidden />}
                       {m.name}
                     </button>
                   );
                 })}
               </div>
-              <p className="text-xs text-gray-500">Se pueden combinar en una misma venta. Solo el efectivo entrega cambio y entra en el arqueo.</p>
-            </div>
+              <p className="text-sm text-[var(--text-secondary)]">Se pueden combinar en una misma venta. Solo el efectivo entrega cambio y entra en el arqueo. Tiene que quedar al menos uno activo.</p>
+            </fieldset>
           </section>
 
-          {/* Action */}
-          <div className="flex justify-end pt-4">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="h-16 px-12 bg-gold hover:bg-gold-light text-black font-black uppercase tracking-[0.3em] text-xs rounded-2xl shadow-2xl shadow-gold/20 flex items-center gap-3 transition-all group disabled:opacity-50"
-            >
-              {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5 group-hover:scale-110 transition-transform" />}
-              Guardar Cambios
-            </button>
-          </div>
+          <section aria-labelledby="cfg-staff" className={sectionClass}>
+            <SectionTitle n={5} id="cfg-staff">Personal y PIN</SectionTitle>
+            <p className="mt-2 mb-5 text-sm text-[var(--text-secondary)]">Cada persona abre la caja con su PIN y queda registrada en las ventas de su turno.</p>
+            {hasConfig ? (
+              <StaffManager pinFetch={pinFetch} onMessage={(message, type) => setToast({ visible: true, message, type })} />
+            ) : (
+              <p className="text-sm text-[var(--text-secondary)]">Guardá la configuración una vez para poder agregar personal.</p>
+            )}
+          </section>
+
+          <section aria-labelledby="cfg-kosher" className={sectionClass}>
+            <SectionTitle n={6} id="cfg-kosher">Mercav Kosher</SectionTitle>
+            <p className="mt-2 mb-5 text-sm text-[var(--text-secondary)]">
+              Vinculá tu local para publicar desde el inventario qué productos tenés disponibles. Es un aviso de disponibilidad: Mercav no emite hechsher ni certifica productos.
+            </p>
+            {kosherPlaces === null ? (
+              <p className="text-sm text-[var(--text-secondary)]">{hasConfig ? 'Buscando tus lugares…' : 'Guardá la configuración una vez para vincular un lugar.'}</p>
+            ) : kosherPlaces.length === 0 ? (
+              <p className="text-sm text-[var(--text-secondary)]">
+                No administrás ningún lugar en Mercav Kosher. Si tu local figura ahí, pedí administrarlo desde su ficha en{' '}
+                <a href="/kosher" className="mv-link">Mercav Kosher</a>.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                <label htmlFor="kosherPlaceId" className={fieldLabel}>Lugar vinculado</label>
+                <select
+                  id="kosherPlaceId"
+                  value={config.kosherPlaceId ?? ''}
+                  onChange={(e) => setConfig({ ...config, kosherPlaceId: e.target.value || null })}
+                  className="mv-input"
+                >
+                  <option value="">Sin vincular</option>
+                  {kosherPlaces.map((pl) => <option key={pl.id} value={pl.id}>{pl.name}{pl.city ? ` · ${pl.city}` : ''}</option>)}
+                </select>
+                <p className="text-xs text-[var(--text-secondary)]">Solo aparecen los lugares que administrás. El cambio se aplica al guardar.</p>
+              </div>
+            )}
+          </section>
         </div>
       </main>
+
+      {pinDialog}
+
+      {/* Save bar */}
+      <div className="liquid-glass fixed inset-x-0 bottom-0 z-40 rounded-none border-x-0 border-b-0">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:px-6">
+          <p className="hidden text-sm text-[var(--text-secondary)] sm:block">Los cambios se aplican en la caja al guardar.</p>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="mv-btn mv-btn-primary w-full sm:w-auto"
+          >
+            {saving ? <Loader2 className="w-5 h-5 animate-spin" aria-hidden /> : <Save className="w-5 h-5" aria-hidden />}
+            {saving ? 'Guardando…' : 'Guardar cambios'}
+          </button>
+        </div>
+      </div>
 
       <Toast 
         isVisible={toast.visible}

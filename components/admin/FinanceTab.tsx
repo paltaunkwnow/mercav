@@ -2,10 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { 
-  DollarSign, Zap, Briefcase, MapPin, Loader2, Search, ArrowDownCircle,
-  FileText, Calendar, CreditCard, ChevronRight, CheckCircle, XCircle, AlertTriangle
+  DollarSign, Zap, Briefcase, MapPin, Loader2, Search, Lock,
+  FileSpreadsheet, FileText, CreditCard, AlertTriangle, Scale, Receipt, RotateCw
 } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { cn } from "@/lib/utils"
+import { AdminDialog } from "./AdminDialog"
+import {
+  AdminPanel, EmptyState, Field, InlineAlert, KeyValue, LoadingState, Metric, MobileCard, RowButton, StatusBadge, fmt, table,
+} from "./ui"
 import * as XLSX from "xlsx"
 import { jsPDF } from "jspdf"
 
@@ -227,344 +231,318 @@ export function FinanceTab() {
   }) || []
 
   if (loading) {
-    return <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-gold" /></div>
+    return <LoadingState label="Cargando finanzas…" />
   }
 
+  if (!data) {
+    return (
+      <EmptyState
+        icon={AlertTriangle}
+        title="No pudimos cargar las finanzas"
+        description="Revisá la conexión y volvé a intentar."
+        action={
+          <button type="button" onClick={fetchFinanceData} className="mv-btn mv-btn-secondary mv-btn-sm">
+            <RotateCw className="h-4 w-4" aria-hidden /> Reintentar
+          </button>
+        }
+      />
+    )
+  }
+
+  const rangeInvalid = !!startDate && !!endDate && new Date(startDate) > new Date(endDate)
+
   return (
-    <div className="space-y-8">
-      {/* Commission Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard 
-          label="Total Comisiones Plataforma" 
-          value={`$${Number(data.commissions.total || 0).toLocaleString()}`} 
-          trend="+15.3%" 
-          icon={DollarSign}
-          color="from-gold/20 to-transparent"
-          iconColor="text-gold"
-        />
-        <KPICard 
-          label="Comisiones de Ads" 
-          value={`$${Number(data.commissions.ads || 0).toLocaleString()}`} 
-          trend="+12.4%" 
-          icon={MapPin}
-          color="from-blue-500/20 to-transparent"
-          iconColor="text-blue-400"
-        />
-        <KPICard 
-          label="Comisiones de Servicios" 
-          value={`$${Number(data.commissions.services || 0).toLocaleString()}`} 
-          trend="+8.1%" 
-          icon={Zap}
-          color="from-purple-500/20 to-transparent"
-          iconColor="text-purple-400"
-        />
-        <KPICard 
-          label="Comisiones de Jobs" 
-          value={`$${Number(data.commissions.jobs || 0).toLocaleString()}`} 
-          trend="+22.1%" 
-          icon={Briefcase}
-          color="from-green-500/20 to-transparent"
-          iconColor="text-green-400"
-        />
-      </div>
+    <div className="flex flex-col gap-8">
+      {/* Commissions */}
+      <section aria-labelledby="commissions-title" className="flex flex-col gap-3">
+        <h2 id="commissions-title" className="text-sm font-semibold text-[var(--text-secondary)]">Comisiones de plataforma</h2>
+        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Metric label="Total" value={fmt.money(data.commissions.total)} icon={DollarSign} tone="gold" />
+          <Metric label="Ads" value={fmt.money(data.commissions.ads)} icon={MapPin} />
+          <Metric label="Servicios" value={fmt.money(data.commissions.services)} icon={Zap} />
+          <Metric label="Empleos" value={fmt.money(data.commissions.jobs)} icon={Briefcase} />
+        </dl>
+      </section>
 
-      {/* Floating alert states */}
-      <AnimatePresence>
-        {successMessage && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 rounded-2xl text-xs font-bold flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 shrink-0" />
-            <span>{successMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div aria-live="polite">{successMessage && <InlineAlert tone="success">{successMessage}</InlineAlert>}</div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left column: Disputes & Escrows */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Service orders in Dispute section */}
-          <div className="p-6 bg-white/[0.01] border border-white/5 rounded-3xl backdrop-blur-xl">
-            <h3 className="font-bold text-base mb-4 flex items-center gap-2">
-              <AlertTriangle className="text-red-500 w-5 h-5 animate-pulse" />
-              Órdenes de Servicio en Disputa
-            </h3>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+        <div className="flex min-w-0 flex-col gap-6 xl:col-span-7">
+          {/* Disputes */}
+          <AdminPanel
+            id="disputes"
+            title="Órdenes en disputa"
+            description="Decidí si los fondos van al proveedor o vuelven al cliente."
+            bodyClassName="p-0"
+            actions={data.disputedOrders.length > 0 ? <StatusBadge tone="danger">{data.disputedOrders.length} abiertas</StatusBadge> : undefined}
+          >
             {data.disputedOrders.length === 0 ? (
-              <p className="text-gray-500 text-xs italic py-6 text-center border border-dashed border-white/5 rounded-2xl bg-white/[0.005]">No hay órdenes disputadas actualmente.</p>
+              <div className="p-5"><EmptyState icon={Scale} title="No hay disputas abiertas" /></div>
             ) : (
-              <div className="space-y-4">
+              <ul>
                 {data.disputedOrders.map((order: any) => (
-                  <div key={order.id} className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-bold text-white leading-normal">Orden: {order.service.title}</p>
-                      <p className="text-[10px] text-gray-500 mt-1 font-mono">
-                        Cliente: @{order.client.username} | Proveedor: @{order.service.provider.username}
+                  <li key={order.id} className="flex flex-col gap-4 border-b border-[var(--mv-hairline)] px-5 py-4 last:border-b-0 md:px-6 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{order.service.title}</p>
+                      <p className="mt-0.5 text-xs text-[var(--text-tertiary)]">
+                        Cliente @{order.client.username} · Proveedor @{order.service.provider.username}
                       </p>
-                      <p className="text-[10px] text-gold font-mono mt-1">Total: ${Number(order.totalPrice)} USD (Tarifa plataforma: ${Number(order.platformFee)})</p>
+                      <p className="mv-data mt-1 text-xs text-[var(--text-secondary)]">
+                        {fmt.money(order.totalPrice)} <span className="text-[var(--text-tertiary)]">· tarifa {fmt.money(order.platformFee)}</span>
+                      </p>
                     </div>
-                    <div className="flex gap-2 w-full md:w-auto">
-                      <button
+                    <div className="grid shrink-0 grid-cols-2 gap-2 sm:flex">
+                      <RowButton
+                        tone="success"
                         onClick={() => {
                           setDisputeModalOrder(order)
                           setDisputeAction("RELEASE")
                           setErrorMessage(null)
                         }}
-                        className="flex-1 md:flex-none px-4 py-2 bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
                       >
-                        Liberar Fondos
-                      </button>
-                      <button
+                        Liberar al proveedor
+                      </RowButton>
+                      <RowButton
+                        tone="danger"
                         onClick={() => {
                           setDisputeModalOrder(order)
                           setDisputeAction("REFUND")
                           setErrorMessage(null)
                         }}
-                        className="flex-1 md:flex-none px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
                       >
                         Reembolsar
-                      </button>
+                      </RowButton>
                     </div>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
-          </div>
+          </AdminPanel>
 
-          {/* Escrow transactions pending release section */}
-          <div className="p-6 bg-white/[0.01] border border-white/5 rounded-3xl backdrop-blur-xl">
-            <h3 className="font-bold text-base mb-4 flex items-center gap-2">
-              <ArrowDownCircle className="text-gold w-5 h-5" />
-              Fondos Escrow en Custodia (Pendientes de Liberar)
-            </h3>
+          {/* Escrow */}
+          <AdminPanel
+            id="escrow"
+            title="Fondos en custodia"
+            description="Pagos retenidos que todavía no se liberaron al proveedor."
+            bodyClassName="p-0"
+          >
             {data.escrowOrders.length === 0 ? (
-              <p className="text-gray-500 text-xs italic py-6 text-center border border-dashed border-white/5 rounded-2xl bg-white/[0.005]">No hay fondos retenidos en Escrow pendientes.</p>
+              <div className="p-5"><EmptyState icon={Lock} title="No hay fondos retenidos" /></div>
             ) : (
-              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                {data.escrowOrders.map((order: any) => (
-                  <div key={order.id} className="p-3 bg-white/[0.01] border border-white/5 rounded-xl flex items-center justify-between gap-4 text-xs">
-                    <div>
-                      <p className="font-bold text-white truncate max-w-[200px]">{order.service.title}</p>
-                      <p className="text-[9px] text-gray-500 mt-0.5">Cliente: @{order.client.username} | Proveedor: @{order.service.provider.username}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-mono font-bold text-gold">${Number(order.totalPrice)}</p>
-                      <span className="text-[8px] uppercase tracking-wider font-mono text-gray-600 border border-white/5 px-1.5 py-0.5 rounded bg-black/20">{order.status}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <>
+                <div className={cn("hidden sm:block", table.wrap, "max-h-[24rem]")}>
+                  <table className={table.table}>
+                    <thead>
+                      <tr>
+                        <th scope="col" className={table.th}>Orden</th>
+                        <th scope="col" className={table.th}>Partes</th>
+                        <th scope="col" className={table.th}>Estado</th>
+                        <th scope="col" className={cn(table.th, "text-right")}>Monto</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.escrowOrders.map((order: any) => (
+                        <tr key={order.id} className={table.tr}>
+                          <td className={cn(table.td, "max-w-[16rem]")}><p className="truncate text-[var(--text-primary)]">{order.service.title}</p></td>
+                          <td className={cn(table.td, "text-xs")}>@{order.client.username} → @{order.service.provider.username}</td>
+                          <td className={table.td}><StatusBadge className="mv-data">{order.status}</StatusBadge></td>
+                          <td className={cn(table.td, "mv-data whitespace-nowrap text-right text-[var(--text-primary)]")}>{fmt.money(order.totalPrice)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <ul className="sm:hidden">
+                  {data.escrowOrders.map((order: any) => (
+                    <MobileCard key={order.id}>
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="min-w-0 truncate text-sm font-semibold text-[var(--text-primary)]">{order.service.title}</p>
+                        <span className="mv-data shrink-0 text-sm text-[var(--text-primary)]">{fmt.money(order.totalPrice)}</span>
+                      </div>
+                      <dl className="flex flex-col gap-1.5">
+                        <KeyValue label="Cliente">@{order.client.username}</KeyValue>
+                        <KeyValue label="Proveedor">@{order.service.provider.username}</KeyValue>
+                        <KeyValue label="Estado" mono>{order.status}</KeyValue>
+                      </dl>
+                    </MobileCard>
+                  ))}
+                </ul>
+              </>
             )}
-          </div>
+          </AdminPanel>
         </div>
 
-        {/* Right column: Refunds, Date Range Export */}
-        <div className="lg:col-span-5 space-y-6">
-          {/* Date range selection and export buttons */}
-          <div className="p-6 bg-white/[0.01] border border-white/5 rounded-3xl backdrop-blur-xl">
-            <h3 className="font-bold text-base mb-4 flex items-center gap-2">
-              <FileText className="text-gold w-5 h-5" />
-              Exportar Reportes Financieros
-            </h3>
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div>
-                <label className="block text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 mb-1 ml-1">Fecha Inicio</label>
-                <input 
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-gold/50 font-mono"
-                />
-              </div>
-              <div>
-                <label className="block text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 mb-1 ml-1">Fecha Fin</label>
-                <input 
+        <div className="flex min-w-0 flex-col gap-6 xl:col-span-5">
+          {/* Export */}
+          <AdminPanel id="export" title="Exportar transacciones" description="Sin fechas se exporta todo el historial cargado.">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="Desde" htmlFor="export-start">
+                <input id="export-start" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="mv-input mv-data h-11 text-sm" />
+              </Field>
+              <Field label="Hasta" htmlFor="export-end">
+                <input
+                  id="export-end"
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-gold/50 font-mono"
+                  aria-invalid={rangeInvalid}
+                  aria-describedby={rangeInvalid ? "export-range-error" : undefined}
+                  className="mv-input mv-data h-11 text-sm"
+                />
+              </Field>
+            </div>
+            {rangeInvalid ? (
+              <p id="export-range-error" role="alert" className="mt-2 text-xs text-red-400">La fecha final es anterior a la inicial.</p>
+            ) : startDate && !endDate || !startDate && endDate ? (
+              <p className="mt-2 text-xs text-[var(--text-tertiary)]">Completá ambas fechas para filtrar por período.</p>
+            ) : null}
+            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <button type="button" onClick={handleExportExcel} className="mv-btn mv-btn-secondary mv-btn-sm">
+                <FileSpreadsheet className="h-4 w-4" aria-hidden /> Excel (.xlsx)
+              </button>
+              <button type="button" onClick={handleExportPDF} className="mv-btn mv-btn-secondary mv-btn-sm">
+                <FileText className="h-4 w-4" aria-hidden /> PDF
+              </button>
+            </div>
+          </AdminPanel>
+
+          {/* Manual refunds */}
+          <AdminPanel id="refunds" title="Reembolsos manuales" description="Transacciones cobradas que podés devolver." bodyClassName="p-0">
+            <div className="border-b border-[var(--mv-hairline)] px-5 py-3 md:px-6">
+              <label htmlFor="refund-search" className="sr-only">Buscar por ID, Stripe ID, usuario o email</label>
+              <div className="relative">
+                <Search aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-tertiary)]" />
+                <input 
+                  id="refund-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="ID, Stripe ID, usuario o email"
+                  autoComplete="off"
+                  className="mv-input h-10 pl-10 text-sm"
                 />
               </div>
             </div>
-            <div className="flex gap-3">
-              <button 
-                onClick={handleExportExcel}
-                className="flex-1 h-12 rounded-xl bg-green-500/10 border border-green-500/20 hover:bg-green-500 hover:text-black font-black uppercase tracking-widest text-[10px] text-green-400 transition-all flex items-center justify-center gap-2"
-              >
-                Descargar Excel
-              </button>
-              <button 
-                onClick={handleExportPDF}
-                className="flex-1 h-12 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:text-white font-black uppercase tracking-widest text-[10px] text-red-400 transition-all flex items-center justify-center gap-2"
-              >
-                Descargar PDF
-              </button>
-            </div>
-          </div>
-
-          {/* PAID transactions for manual refunds list with search bar */}
-          <div className="p-6 bg-white/[0.01] border border-white/5 rounded-3xl backdrop-blur-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-base">Reembolsos Manuales</h3>
-            </div>
-            
-            <div className="relative mb-4">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-500" />
-              <input 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar por Stripe ID o Email..."
-                className="w-full bg-black/40 border border-white/5 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:border-gold/50 font-medium text-white placeholder:text-gray-700"
-              />
-            </div>
-
-            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-              {filteredTransactions.length === 0 ? (
-                <p className="text-gray-500 text-xs italic py-6 text-center border border-dashed border-white/5 rounded-2xl bg-white/[0.005]">No se encontraron transacciones.</p>
-              ) : (
-                filteredTransactions.map((tx: any) => (
-                  <div key={tx.id} className="p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center justify-between gap-4 text-xs hover:border-white/10 transition-colors">
-                    <div>
-                      <p className="font-bold text-white">{tx.metadata?.description || "Pago de Sistema"}</p>
-                      <p className="text-[9px] text-gray-500 mt-0.5">Stripe ID: {tx.stripeId.slice(0, 16)}...</p>
-                      <p className="text-[8px] text-gray-600 font-mono mt-0.5">{new Date(tx.createdAt).toLocaleDateString()} @{tx.user?.username || "N/A"}</p>
+            {filteredTransactions.length === 0 ? (
+              <div className="p-5"><EmptyState icon={Receipt} title="No se encontraron transacciones" /></div>
+            ) : (
+              <ul className="max-h-[28rem] overflow-y-auto overscroll-contain">
+                {filteredTransactions.map((tx: any) => (
+                  <li key={tx.id} className="flex items-center justify-between gap-4 border-b border-[var(--mv-hairline)] px-5 py-3 last:border-b-0 md:px-6">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{tx.metadata?.description || "Pago de sistema"}</p>
+                      <p className="mv-data truncate text-xs text-[var(--text-tertiary)]" title={tx.stripeId}>{tx.stripeId.slice(0, 16)}…</p>
+                      <p className="truncate text-xs text-[var(--text-tertiary)]">
+                        <span className="mv-data">{fmt.date(tx.createdAt)}</span> · @{tx.user?.username || "N/A"}
+                      </p>
                     </div>
-                    <div className="text-right flex flex-col items-end gap-1.5 shrink-0">
-                      <p className="font-mono font-bold text-green-400">+${Number(tx.amount)}</p>
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      <p className="mv-data text-sm text-[var(--text-primary)]">{fmt.money(tx.amount, tx.currency || "USD")}</p>
                       {tx.status === "REFUNDED" ? (
-                        <span className="text-[8px] font-black uppercase tracking-wider text-red-500 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded">Reembolsado</span>
+                        <StatusBadge tone="neutral">Reembolsado</StatusBadge>
                       ) : (
                         <button
+                          type="button"
                           onClick={() => {
                             setRefundModalTx(tx)
                             setRefundReason("")
                             setErrorMessage(null)
                           }}
-                          className="px-2 py-1 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded-lg text-[9px] font-bold transition-all"
+                          className="mv-focus inline-flex h-8 items-center rounded-full border border-red-500/25 px-3 text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/10"
                         >
                           Reembolsar
                         </button>
                       )}
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </AdminPanel>
         </div>
       </div>
 
-      {/* Resolve Dispute Confirmation Modal */}
-      <AnimatePresence>
+      {/* Resolve dispute */}
+      <AdminDialog
+        open={!!disputeModalOrder}
+        onClose={() => setDisputeModalOrder(null)}
+        tone={disputeAction === "REFUND" ? "danger" : "default"}
+        icon={<Scale className="h-5 w-5" />}
+        title={disputeAction === "RELEASE" ? "Liberar fondos al proveedor" : "Reembolsar al cliente"}
+        description={
+          disputeAction === "RELEASE"
+            ? "Los fondos en custodia se transfieren al proveedor de forma definitiva."
+            : "La orden se cancela y se inicia la devolución al cliente."
+        }
+        footer={
+          <>
+            <button type="button" onClick={() => setDisputeModalOrder(null)} className="mv-btn mv-btn-ghost mv-btn-sm">Cancelar</button>
+            <button
+              type="button"
+              onClick={handleResolveDispute}
+              disabled={disputeLoading}
+              className={cn("mv-btn mv-btn-sm", disputeAction === "RELEASE" ? "mv-btn-primary" : "bg-red-600 text-[#fff] hover:bg-red-700")}
+            >
+              {disputeLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+              {disputeAction === "RELEASE" ? "Liberar fondos" : "Confirmar reembolso"}
+            </button>
+          </>
+        }
+      >
         {disputeModalOrder && (
-          <div className="fixed top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDisputeModalOrder(null)} className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              animate={{ opacity: 1, scale: 1 }} 
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative bg-[#0d0d0d] border border-white/10 rounded-[3rem] p-10 w-full max-w-md shadow-2xl z-10"
-            >
-              <h3 className="text-2xl font-black uppercase text-white mb-2 flex items-center gap-3">
-                <AlertTriangle className={disputeAction === "RELEASE" ? "text-green-500" : "text-red-500"} />
-                {disputeAction === "RELEASE" ? "Liberar Fondos" : "Aprobar Reembolso"}
-              </h3>
-              <p className="text-xs text-gold uppercase font-mono tracking-widest mb-6">Auditoría del Escrow en Disputa</p>
-
-              <div className="space-y-6 text-xs text-gray-400">
-                <p className="leading-relaxed">
-                  ¿Estás seguro de que deseas resolver la disputa de la orden <strong>"{disputeModalOrder.service.title}"</strong>?
-                  {disputeAction === "RELEASE" 
-                    ? " Esta acción transferirá los fondos de custodia de forma permanente al freelancer/proveedor." 
-                    : " Esta acción cancelará la orden e iniciará el proceso de devolución de fondos al cliente."}
-                </p>
-
-                <div className="p-3 bg-white/5 border border-white/10 rounded-xl font-mono text-[10px] space-y-1 text-gray-300">
-                  <p>Monto: ${Number(disputeModalOrder.totalPrice)} USD</p>
-                  <p>Cliente: @{disputeModalOrder.client.username}</p>
-                  <p>Proveedor: @{disputeModalOrder.service.provider.username}</p>
-                </div>
-
-                {errorMessage && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl">
-                    {errorMessage}
-                  </div>
-                )}
-
-                <div className="flex gap-3">
-                  <button onClick={() => setDisputeModalOrder(null)} className="flex-1 h-12 border border-white/10 rounded-xl text-xs font-bold text-gray-500 hover:text-white hover:bg-white/5 transition-all">Cancelar</button>
-                  <button onClick={handleResolveDispute} disabled={disputeLoading} className={`flex-1 h-12 rounded-xl text-xs font-black uppercase tracking-widest text-black transition-all flex items-center justify-center ${disputeAction === "RELEASE" ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 text-white hover:bg-red-600'}`}>
-                    {disputeLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirmar"}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
+          <div className="flex flex-col gap-4">
+            <p className="text-sm font-semibold text-[var(--text-primary)]">{disputeModalOrder.service.title}</p>
+            <dl className="flex flex-col gap-2 rounded-[1rem] border border-[var(--mv-hairline-strong)] p-4">
+              <KeyValue label="Monto" mono>{fmt.money(disputeModalOrder.totalPrice)}</KeyValue>
+              <KeyValue label="Cliente">@{disputeModalOrder.client.username}</KeyValue>
+              <KeyValue label="Proveedor">@{disputeModalOrder.service.provider.username}</KeyValue>
+            </dl>
+            {errorMessage && <InlineAlert>{errorMessage}</InlineAlert>}
           </div>
         )}
-      </AnimatePresence>
+      </AdminDialog>
 
-      {/* Manual Refund Confirmation Modal */}
-      <AnimatePresence>
-        {refundModalTx && (
-          <div className="fixed top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setRefundModalTx(null)} className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              animate={{ opacity: 1, scale: 1 }} 
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative bg-[#0d0d0d] border border-white/10 rounded-[3rem] p-10 w-full max-w-md shadow-2xl z-10"
+      {/* Manual refund */}
+      <AdminDialog
+        open={!!refundModalTx}
+        onClose={() => setRefundModalTx(null)}
+        tone="danger"
+        icon={<CreditCard className="h-5 w-5" />}
+        title="Reembolso manual"
+        description={
+          refundModalTx
+            ? `Vas a devolver ${fmt.money(refundModalTx.amount, refundModalTx.currency || "USD")}. La transacción pasa a reembolsada y se notifica al usuario.`
+            : undefined
+        }
+        footer={
+          <>
+            <button type="button" onClick={() => setRefundModalTx(null)} className="mv-btn mv-btn-ghost mv-btn-sm">Cancelar</button>
+            <button
+              type="button"
+              onClick={handleProcessRefund}
+              disabled={refundLoading || !refundReason.trim()}
+              className="mv-btn mv-btn-sm bg-red-600 text-[#fff] hover:bg-red-700"
             >
-              <h3 className="text-2xl font-black uppercase text-white mb-2 flex items-center gap-3 text-red-500">
-                <CreditCard className="text-red-500" /> Reembolso Manual
-              </h3>
-              <p className="text-xs text-red-500 uppercase font-mono tracking-widest mb-6">Procedimiento de Reversión de Fondos</p>
-
-              <div className="space-y-6">
-                <p className="text-xs text-gray-400 leading-relaxed">
-                  ¿Confirmas el reembolso manual de la transacción de <strong>${Number(refundModalTx.amount)} USD</strong>? El estado de la transacción cambiará a reembolsado en el sistema y se le notificará al usuario.
-                </p>
-
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 mb-2 ml-1">Razón del Reembolso *</label>
-                  <textarea 
-                    value={refundReason}
-                    onChange={(e) => setRefundReason(e.target.value)}
-                    className="w-full bg-white/[0.02] border border-white/10 rounded-xl p-4 text-white text-xs outline-none focus:border-red-500/40 h-24 resize-none placeholder:text-gray-800"
-                    placeholder="Escribe la justificación administrativa..."
-                  />
-                </div>
-
-                {errorMessage && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-xs">
-                    {errorMessage}
-                  </div>
-                )}
-
-                <div className="flex gap-3">
-                  <button onClick={() => setRefundModalTx(null)} className="flex-1 h-12 border border-white/10 rounded-xl text-xs font-bold text-gray-500 hover:text-white hover:bg-white/5 transition-all">Cancelar</button>
-                  <button onClick={handleProcessRefund} disabled={refundLoading || !refundReason.trim()} className="flex-1 h-12 bg-red-500 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-600 transition-all flex items-center justify-center">
-                    {refundLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ejecutar Reembolso"}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-function KPICard({ label, value, trend, icon: Icon, color, iconColor }: any) {
-  return (
-    <div className={`rounded-3xl border border-white/5 bg-bg-secondary bg-gradient-to-br ${color} p-6 relative overflow-hidden group`}>
-      <div className="relative z-10">
-        <div className="flex items-center justify-between mb-4">
-          <div className={`h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center ${iconColor}`}>
-            <Icon className="h-5 w-5" />
-          </div>
-          <span className="text-[10px] font-black bg-white/5 px-2 py-1 rounded-md text-green-400">{trend}</span>
+              {refundLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+              Reembolsar
+            </button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <Field label="Motivo del reembolso" htmlFor="refund-reason" hint="Obligatorio. Queda registrado en la transacción.">
+            <textarea 
+              id="refund-reason"
+              value={refundReason}
+              onChange={(e) => setRefundReason(e.target.value)}
+              aria-describedby="refund-reason-hint"
+              className="mv-input h-24 resize-none py-3 text-sm"
+              placeholder="Justificación administrativa"
+            />
+          </Field>
+          {errorMessage && <InlineAlert>{errorMessage}</InlineAlert>}
         </div>
-        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">{label}</p>
-        <p className="text-3xl font-bold font-mono tracking-tighter text-white">{value}</p>
-      </div>
+      </AdminDialog>
     </div>
   )
 }

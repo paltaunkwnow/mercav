@@ -7,8 +7,10 @@ import { RiskBadge } from "@/components/pwn/RiskBadge";
 import { DisabledState, EmptyState, ErrorState, LoadingState, UnauthorizedState } from "@/components/pwn/EmptyState";
 import { ListControls } from "@/components/pwn/ListControls";
 import { FadeIn } from "@/components/pwn/PwnShell";
-import { Button } from "@/components/ui/button";
-import { focusRing, formatStatus, formatWhen } from "@/components/pwn/format";
+import { formatStatus, formatWhen, pwnCardClass } from "@/components/pwn/format";
+import { Meta, MetaGrid, PwnNotice, PwnPageHeader } from "@/components/pwn/ui";
+import { buttonClass } from "@/components/site/primitives";
+import { BellRing, CheckCheck } from "lucide-react";
 
 const PAGE_SIZE = 20;
 
@@ -100,29 +102,32 @@ export default function AlertsPage() {
   const hasUnread = status.kind === "ready" && status.items.some((item) => !item.read);
 
   return (
-    <FadeIn className="space-y-6">
-      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="font-display text-4xl font-black tracking-tight text-white md:text-5xl">Alertas</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-400">Avisos generados a partir de tus objetivos autorizados y de las fuentes consultadas.</p>
-        </div>
-        {hasUnread ? (
-          <Button type="button" variant="outline" disabled={pendingId === "all"} onClick={() => void markRead({ all: true })} className={`rounded-xl border-white/10 text-white ${focusRing}`}>
-            Marcar todas como leídas
-          </Button>
-        ) : null}
-      </header>
-      {notice ? (
-        <p role="status" className="text-sm text-gray-300">
-          {notice}
-        </p>
-      ) : null}
+    <FadeIn className="space-y-8">
+      <PwnPageHeader
+        kicker="Alertas"
+        title="Lo que cambió en tus objetivos."
+        lead="Avisos generados a partir de tus objetivos autorizados y de las fuentes consultadas."
+        actions={
+          hasUnread ? (
+            <button
+              type="button"
+              disabled={pendingId === "all"}
+              onClick={() => void markRead({ all: true })}
+              className={buttonClass("secondary", "md", "w-full sm:w-auto")}
+            >
+              <CheckCheck className="h-4 w-4" aria-hidden />
+              Marcar todas como leídas
+            </button>
+          ) : null
+        }
+      />
+      {notice ? <PwnNotice tone="neutral">{notice}</PwnNotice> : null}
 
       {status.kind === "loading" ? <LoadingState label="Cargando alertas…" /> : null}
       {status.kind === "disabled" ? <DisabledState title="Alertas no configuradas" /> : null}
       {status.kind === "unauthorized" ? <UnauthorizedState callbackPath="/pwn/alerts" /> : null}
       {status.kind === "error" ? <ErrorState message={status.message} onRetry={() => void load(page, unreadOnly)} /> : null}
-      {status.kind === "ready" && total === 0 && !unreadOnly ? <EmptyState title="No hay alertas" description="Cuando un objetivo produzca un aviso, aparecerá aquí." /> : null}
+      {status.kind === "ready" && total === 0 && !unreadOnly ? <EmptyState icon={<BellRing className="h-5 w-5" aria-hidden />} title="No hay alertas" description="Cuando un objetivo produzca un aviso, va a aparecer acá." /> : null}
 
       {status.kind === "ready" && (total > 0 || unreadOnly) ? (
         <>
@@ -156,37 +161,40 @@ export default function AlertsPage() {
           {visible.length === 0 ? <EmptyState title="Ninguna alerta con estos filtros" /> : null}
           <ul className="space-y-4">
             {visible.map((item) => (
-              <li key={item.id} className="rounded-3xl border border-white/5 bg-bg-secondary/70 p-5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-display text-2xl text-white">{item.title}</h2>
-                  <RiskBadge level={item.severity} />
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-400">{item.read ? "Leída" : "No leída"}</span>
-                </div>
-                {item.body ? <p className="mt-3 text-sm leading-relaxed text-gray-400">{item.body}</p> : null}
-                <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                  {item.targetDisplay ? (
-                    <div>
-                      <dt className="text-gray-500">Objetivo{item.targetType && TARGET_LABEL[item.targetType] ? ` (${TARGET_LABEL[item.targetType]})` : ""}</dt>
-                      <dd className="font-mono text-white">{item.targetDisplay}</dd>
-                    </div>
-                  ) : null}
-                  <div>
-                    <dt className="text-gray-500">Creada</dt>
-                    <dd className="text-white">{formatWhen(item.createdAt) ?? "No indicada"}</dd>
+              <li key={item.id} className={`${pwnCardClass} ${item.read ? "" : "!border-[var(--color-border-gold)]"}`}>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <h2 className="mv-h3 flex items-start gap-2.5">
+                    {!item.read ? <span aria-hidden className="mt-2.5 h-2 w-2 shrink-0 rounded-full bg-gold" /> : null}
+                    <span>{item.title}</span>
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <RiskBadge level={item.severity} />
+                    <span className="inline-flex h-6 items-center rounded-full border border-[var(--mv-hairline-strong)] px-2.5 text-[11px] font-semibold text-[var(--text-secondary)]">
+                      {item.read ? "Leída" : "No leída"}
+                    </span>
                   </div>
-                  {formatStatus(item.status) ? (
-                    <div>
-                      <dt className="text-gray-500">Estado</dt>
-                      <dd className="text-white">{formatStatus(item.status)}</dd>
-                    </div>
+                </div>
+                {item.body ? <p className="mv-body mt-3">{item.body}</p> : null}
+                <MetaGrid className="lg:grid-cols-3">
+                  {item.targetDisplay ? (
+                    <Meta label={`Objetivo${item.targetType && TARGET_LABEL[item.targetType] ? ` (${TARGET_LABEL[item.targetType]})` : ""}`} mono>
+                      {item.targetDisplay}
+                    </Meta>
                   ) : null}
-                </dl>
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                  <Meta label="Creada">{formatWhen(item.createdAt) ?? "No indicada"}</Meta>
+                  {formatStatus(item.status) ? <Meta label="Estado">{formatStatus(item.status)}</Meta> : null}
+                </MetaGrid>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <SourceBadge source={item.source} />
                   {!item.read ? (
-                    <Button type="button" variant="outline" disabled={pendingId === item.id} onClick={() => void markRead({ id: item.id })} className={`rounded-xl border-white/10 text-white ${focusRing}`}>
+                    <button
+                      type="button"
+                      disabled={pendingId === item.id}
+                      onClick={() => void markRead({ id: item.id })}
+                      className={buttonClass("secondary", "sm", "w-full sm:w-auto")}
+                    >
                       Marcar como leída
-                    </Button>
+                    </button>
                   ) : null}
                 </div>
               </li>

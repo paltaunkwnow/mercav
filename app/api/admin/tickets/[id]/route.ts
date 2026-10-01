@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { TicketStatus } from "@prisma/client";
 
 export async function PATCH(
   req: Request,
@@ -13,8 +14,11 @@ export async function PATCH(
       return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { status } = body;
+    const body = await req.json().catch(() => null);
+    const status = body?.status;
+    if (!(Object.values(TicketStatus) as string[]).includes(status)) {
+      return NextResponse.json({ success: false, error: "Estado inválido" }, { status: 400 });
+    }
 
     const ticket = await prisma.ticket.update({
       where: { id: params.id },

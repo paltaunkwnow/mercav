@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { disabledResponse, internalError } from "../../_lib/http";
+import { disabledResponse, internalError, isCronAuthorized } from "../../_lib/http";
 import { ensureSource } from "../../_lib/persistence";
 import { runDomainCycle, syncHibpCatalog, syncKevCatalog } from "../../_lib/cycle";
 import { syncForumFeeds } from "../../_lib/forum-sync";
 
 export const maxDuration = 60;
 
-function authorized(request: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
-  const header = request.headers.get("authorization") ?? "";
-  return header === `Bearer ${secret}`;
-}
+// Comparación en tiempo constante del CRON_SECRET (ver _lib/http).
+const authorized = isCronAuthorized;
 
 async function runCycle() {
   const source = await ensureSource({
@@ -27,7 +23,8 @@ async function runCycle() {
   try {
     const catalog = await syncHibpCatalog().catch(() => ({ configured: false, upserted: 0 }));
     const domains = await runDomainCycle();
-    const kev = await syncKevCatalog();
+    // KEV caído o con JSON roto no debe marcar todo el ciclo como FAILED.
+    const kev = await syncKevCatalog().catch(() => ({ configured: false, upserted: 0 }));
     const forums = await syncForumFeeds().catch(() => ({
       configured: false,
       fetched: 0,

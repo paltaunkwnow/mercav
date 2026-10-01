@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation';
 import { stripe } from '@/lib/stripe';
-import { prisma } from '@/lib/prisma';
+import { fulfillPaidTransaction } from '@/lib/billing/fulfill';
 import { CheckCircle2, XCircle, Clock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { buttonClass } from '@/components/site/primitives';
 
 export const metadata = {
   title: 'Confirmación de Pago | Mercav',
@@ -19,172 +20,106 @@ export default async function ConfirmationPage({
     redirect('/');
   }
 
-  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+  let paymentIntent;
+  try {
+    paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+  } catch {
+    // ID inválido o ajeno a nuestra cuenta de Stripe
+    redirect('/');
+  }
   const status = paymentIntent.status;
 
   if (status === 'succeeded') {
-    // Check if we already processed this
-    const transaction = await prisma.transaction.findUnique({
-      where: { stripeId: paymentIntentId }
-    });
-
-    if (transaction && transaction.status === 'PENDING') {
-      const metadata = paymentIntent.metadata as any;
-      const userId = transaction.userId;
-
-      if (metadata.type === 'servicio' || metadata.type === 'service') {
-        // Fetch service to get provider
-        const service = await prisma.service.findUnique({
-          where: { id: metadata.id },
-          include: { packages: true }
-        });
-
-        if (service) {
-          // Create Service Order
-          await prisma.serviceOrder.create({
-            data: {
-              serviceId: service.id,
-              packageId: service.packages[0]?.id || "", // Default to first package
-              clientId: userId!,
-              providerId: service.providerId,
-              status: "IN_PROGRESS",
-              totalPrice: transaction.amount,
-              platformFee: 0, // Simplified for now
-              providerPayout: transaction.amount,
-              briefing: "Pedido realizado vía Checkout"
-            }
-          });
-        }
-      } else if (metadata.type === 'anuncio' || metadata.type === 'space') {
-         // Fetch space to get owner
-         const space = await prisma.space.findUnique({
-           where: { id: metadata.id }
-         });
-         
-         if (space) {
-           await prisma.reservation.create({
-             data: {
-               spaceId: space.id,
-               advertiserId: userId!,
-               startDate: new Date(),
-               endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-               basePrice: transaction.amount,
-               advertiserFee: 0,
-               ownerFee: 0,
-               totalPrice: transaction.amount,
-               status: "CONFIRMED",
-               briefing: "Reserva realizada vía Checkout"
-             }
-           });
-         }
-      } else if (metadata.plan) {
-        // Handle Plan Upgrades
-        await prisma.user.update({
-          where: { id: userId! },
-          data: { 
-            plan: metadata.plan as any,
-            planExpiresAt: metadata.interval === 'annual' 
-              ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) 
-              : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-          }
-        });
-        
-        // Also create a subscription record for history
-        await prisma.subscription.create({
-          data: {
-            userId: userId!,
-            plan: metadata.plan as any,
-            status: "ACTIVE",
-            startDate: new Date(),
-            endDate: metadata.interval === 'annual' 
-              ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) 
-              : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            paymentId: paymentIntentId
-          }
-        });
-      }
-
-      // Mark transaction as PAID
-      await prisma.transaction.update({
-        where: { id: transaction.id },
-        data: { status: 'PAID' }
-      });
+    // Mismo cumplimiento idempotente que el webhook (lib/billing/fulfill.ts). Antes esta página
+    // duplicaba la lógica usando la metadata del PaymentIntent: creaba un pedido nuevo en vez de
+    // confirmar el existente y podía activar un plan con el pago de una reserva.
+    try {
+      await fulfillPaidTransaction(paymentIntent.id);
+    } catch (error) {
+      // El webhook lo reintentará; no rompemos la página de confirmación
+      console.error('[CHECKOUT_CONFIRMATION] Error al cumplir el pago:', error);
     }
   }
 
+  const piMeta = (paymentIntent.metadata || {}) as Record<string, string>;
+  const retryHref = piMeta.type && piMeta.id ? `/checkout/${piMeta.type}/${piMeta.id}` : '/precios';
+
   const statusConfig = {
     succeeded: {
-      icon: <CheckCircle2 className="w-20 h-20 text-gold" />,
-      title: '¡Pago Exitoso!',
-      description: 'Tu transacción ha sido procesada correctamente. Ya puedes disfrutar de los beneficios de Mercav.',
-      color: 'text-gold',
+      icon: <CheckCircle2 className="h-7 w-7" aria-hidden />,
+      tone: 'bg-[var(--mv-gold-wash)] text-gold border-[var(--color-border-gold)]',
+      kicker: 'Pago confirmado',
+      title: 'Listo, recibimos tu pago',
+      description: 'Tu pago se procesó correctamente. Ya podés ver el pedido y su estado en tu panel.',
+      next: { href: '/dashboard/pedidos', label: 'Ver mis pedidos' },
     },
     processing: {
-      icon: <Clock className="w-20 h-20 text-blue-400" />,
-      title: 'Pago en Procesamiento',
-      description: 'Estamos verificando tu pago. Te notificaremos en cuanto se complete.',
-      color: 'text-blue-400',
+      icon: <Clock className="h-7 w-7" aria-hidden />,
+      tone: 'bg-blue-500/10 text-blue-400 border-blue-500/25',
+      kicker: 'En proceso',
+      title: 'Estamos confirmando tu pago',
+      description: 'Stripe todavía está procesando el pago. Te avisamos apenas se complete; no hace falta que pagues de nuevo.',
+      next: { href: '/dashboard/pedidos', label: 'Ver mis pedidos' },
     },
     requires_payment_method: {
-      icon: <XCircle className="w-20 h-20 text-red-500" />,
-      title: 'Pago Fallido',
-      description: 'Hubo un problema al procesar tu tarjeta. Por favor, intenta de nuevo.',
-      color: 'text-red-500',
+      icon: <XCircle className="h-7 w-7" aria-hidden />,
+      tone: 'bg-red-500/10 text-red-400 border-red-500/25',
+      kicker: 'Pago rechazado',
+      title: 'No se pudo completar el pago',
+      description: 'Hubo un problema con el medio de pago y no se realizó ningún cobro. Probá de nuevo con otra tarjeta.',
+      next: { href: retryHref, label: 'Volver a intentar' },
     },
     default: {
-      icon: <XCircle className="w-20 h-20 text-gray-400" />,
-      title: 'Estado Desconocido',
-      description: 'No pudimos determinar el estado de tu pago.',
-      color: 'text-gray-400',
+      icon: <XCircle className="h-7 w-7" aria-hidden />,
+      tone: 'bg-[var(--mv-panel-hover)] text-[var(--text-secondary)] border-[var(--mv-hairline-strong)]',
+      kicker: 'Estado desconocido',
+      title: 'No pudimos confirmar el estado del pago',
+      description: 'Revisá tus pedidos en unos minutos. Si el problema sigue, escribinos a soporte.',
+      next: { href: '/dashboard/pedidos', label: 'Ver mis pedidos' },
     },
   };
 
   const currentStatus = (statusConfig as any)[status] || statusConfig.default;
+  const amountLabel =
+    typeof paymentIntent.amount === 'number'
+      ? new Intl.NumberFormat('es-ES', { style: 'currency', currency: (paymentIntent.currency || 'usd').toUpperCase() }).format(paymentIntent.amount / 100)
+      : null;
 
   return (
-    <main className="min-h-screen bg-black flex items-center justify-center p-4">
-      <div className="max-w-md w-full glassmorphism rounded-[2rem] border border-white/5 p-12 text-center relative overflow-hidden">
-        {/* Cinematic Scanline effect from existing patterns */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gold/5 to-transparent h-1/2 w-full animate-scanline opacity-20" />
-        </div>
+    <div className="relative flex min-h-[85svh] w-full items-center justify-center overflow-hidden bg-bg-primary px-4 pb-16 pt-28">
+      <div className="mv-aura" aria-hidden />
+      <section aria-labelledby="confirm-title" className="mv-panel relative w-full max-w-lg p-6 text-center sm:p-10">
+        <span className={`mx-auto grid h-14 w-14 place-items-center rounded-2xl border ${currentStatus.tone}`}>
+          {currentStatus.icon}
+        </span>
+        <p className="mv-kicker mt-6 justify-center">{currentStatus.kicker}</p>
+        <h1 id="confirm-title" className="mv-h2 mt-3 text-[2rem] sm:text-[2.25rem]">{currentStatus.title}</h1>
+        <p className="mv-body mx-auto mt-3 max-w-sm">{currentStatus.description}</p>
 
-        <div className="flex justify-center mb-8 relative z-10">
-          <div className="p-4 rounded-full bg-gold/10 border border-gold/20 shadow-[0_0_50px_rgba(212,175,55,0.15)]">
-            {currentStatus.icon}
+        <dl className="mt-8 space-y-2.5 rounded-[1.25rem] border border-[var(--mv-hairline)] p-4 text-left text-sm">
+          {amountLabel && (
+            <div className="flex justify-between gap-4">
+              <dt className="text-[var(--text-secondary)]">Monto</dt>
+              <dd className="mv-data font-medium text-[var(--text-primary)]">{amountLabel}</dd>
+            </div>
+          )}
+          <div className="flex justify-between gap-4">
+            <dt className="shrink-0 text-[var(--text-secondary)]">Referencia</dt>
+            <dd className="mv-data truncate text-[var(--text-primary)]">{paymentIntentId}</dd>
           </div>
-        </div>
+        </dl>
 
-        <h1 className={`text-3xl font-display font-bold mb-4 relative z-10 ${currentStatus.color}`}>
-          {currentStatus.title}
-        </h1>
-        
-        <p className="text-gray-400 mb-10 relative z-10">
-          {currentStatus.description}
-        </p>
-
-        <div className="space-y-4 relative z-10">
-          <Link 
-            href="/dashboard/pedidos"
-            className="flex items-center justify-center gap-2 w-full h-14 bg-gold hover:bg-gold-light text-black font-bold rounded-xl transition-all duration-300"
-          >
-            Ver mis Pedidos
-            <ArrowRight className="w-5 h-5" />
+        <div className="mt-8 flex flex-col gap-2">
+          <Link href={currentStatus.next.href} className={buttonClass('primary', 'lg', 'w-full')}>
+            {currentStatus.next.label}
+            <ArrowRight className="h-5 w-5" aria-hidden />
           </Link>
-          
-          <Link 
-            href="/"
-            className="block text-gray-500 hover:text-white transition-colors text-sm font-medium"
-          >
-            Volver al Inicio
+          <Link href="/" className={buttonClass('ghost', 'md', 'w-full')}>
+            Volver al inicio
           </Link>
         </div>
-
-        <div className="mt-12 pt-8 border-t border-white/5 text-[10px] uppercase tracking-[0.2em] text-gray-600 font-bold">
-          Mercav Transaction Protocol v1.0
-        </div>
-      </div>
-    </main>
+      </section>
+    </div>
   );
 }
 // creado por pato dev y askforvini

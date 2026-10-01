@@ -1,30 +1,31 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { 
-  Loader2, 
-  Megaphone, 
-  MonitorPlay, 
-  Briefcase, 
-  CheckCircle2, 
+import Link from "next/link";
+import {
+  Loader2,
+  Megaphone,
+  MonitorPlay,
+  Briefcase,
+  CheckCircle2,
   ArrowRight,
   ArrowLeft,
-  Zap,
-  Info,
   DollarSign,
-  Maximize,
-  Compass,
-  Hammer
+  AlertCircle,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { CustomSelect } from "@/components/ui/CustomSelect";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { Container, buttonClass } from "@/components/site/primitives";
+
+const EASE = [0.23, 1, 0.32, 1] as const;
 
 function CrearPublicacionUnified() {
   const [step, setStep] = useState(1); // 1: Select Type, 2: Fill Details
   const [type, setType] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const reduce = useReducedMotion();
   
   const [formData, setFormData] = useState<any>({
     title: "", description: "", price: "", city: "",
@@ -37,14 +38,16 @@ function CrearPublicacionUnified() {
   });
 
   const types = [
-    { id: 'ads', label: 'Espacio Publicitario', icon: Megaphone, desc: 'Vallas, pantallas LED y letreros físicos.', color: 'text-emerald-400', bg: 'bg-emerald-400/5' },
-    { id: 'service', label: 'Servicio Freelance', icon: MonitorPlay, desc: 'Ofrece tu talento profesional al mercado.', color: 'text-blue-400', bg: 'bg-blue-400/5' },
-    { id: 'job', label: 'Vacante de Empleo', icon: Briefcase, desc: 'Encuentra al mejor candidato para tu empresa.', color: 'text-gold', bg: 'bg-gold/5' },
+    { id: 'ads', label: 'Espacio publicitario', icon: Megaphone, desc: 'Vallas, pantallas LED y letreros físicos para alquilar en Ads.' },
+    { id: 'service', label: 'Servicio freelance', icon: MonitorPlay, desc: 'Ofrecé tu trabajo profesional en Services.' },
+    { id: 'job', label: 'Vacante de empleo', icon: Briefcase, desc: 'Publicá una búsqueda y recibí postulantes en Empleos.' },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
+    setError(null);
     
     let endpoint = "";
     let payload = {};
@@ -95,9 +98,26 @@ function CrearPublicacionUnified() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      if (res.ok) setSuccess(true);
-    } catch (error) {
-      console.error(error);
+      if (res.ok) {
+        setSuccess(true);
+        return;
+      }
+      // Los endpoints responden { success: false, error } con mensajes ya pensados para el usuario
+      // (límite del plan, sesión vencida, etc.). Si no hay cuerpo legible, usamos uno por estado.
+      let serverMessage: string | null = null;
+      try {
+        const data = await res.json();
+        if (data && typeof data.error === "string" && data.error.trim()) serverMessage = data.error;
+      } catch {}
+      const fallback =
+        res.status === 401 ? "Tu sesión venció. Iniciá sesión de nuevo para publicar; tus datos siguen en el formulario."
+        : res.status === 403 ? "Tu plan actual no permite esta publicación. Revisá tu plan o eliminá alguna publicación activa."
+        : res.status === 400 ? "Revisá los datos del formulario: hay campos con valores no válidos."
+        : "No pudimos publicar en este momento. Probá de nuevo en unos minutos.";
+      setError(serverMessage && res.status !== 500 && res.status !== 401 ? serverMessage : fallback);
+    } catch (err) {
+      console.error(err);
+      setError("No pudimos conectar con el servidor. Revisá tu conexión y probá de nuevo; tus datos siguen en el formulario.");
     } finally {
       setLoading(false);
     }
@@ -105,203 +125,241 @@ function CrearPublicacionUnified() {
 
   if (success) {
     return (
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full flex flex-col items-center justify-center p-20 bg-white/[0.02] backdrop-blur-3xl rounded-[4rem] border border-white/5 mt-12 shadow-2xl"
+      <motion.div
+        initial={reduce ? false : { opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: EASE }}
+        role="status"
+        className="liquid-glass mx-auto flex w-full max-w-2xl flex-col items-center rounded-[2rem] px-6 py-14 text-center sm:px-10 md:py-20"
       >
-        <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center mb-8 border border-emerald-500/20">
-          <CheckCircle2 className="w-12 h-12 text-emerald-500" />
-        </div>
-        <h2 className="text-4xl font-display font-black text-white mb-4 text-center">¡Publicación Exitosa!</h2>
-        <p className="text-gray-400 text-center mb-10 max-w-md text-lg">Tu anuncio ha sido procesado y ya está visible en el ecosistema Mercav.</p>
-        <Button className="bg-white text-black hover:bg-gray-200 rounded-2xl h-16 px-12 font-black uppercase tracking-widest transition-all hover:scale-[1.02]" onClick={() => window.location.href = '/dashboard'}>
-          Volver al Panel
-        </Button>
+        <span className="mb-6 flex h-14 w-14 items-center justify-center rounded-full border border-green-500/25 bg-green-500/10">
+          <CheckCircle2 className="h-7 w-7 text-green-400" aria-hidden />
+        </span>
+        <h2 className="mv-h2">Publicación lista</h2>
+        <p className="mv-lead mx-auto mt-4">Recibimos tu publicación y ya está visible en Mercav. Podés editarla cuando quieras desde tu panel.</p>
+        <button type="button" className={buttonClass("primary", "lg", "mt-8 w-full sm:w-auto")} onClick={() => window.location.href = '/dashboard'}>
+          Volver al panel
+        </button>
       </motion.div>
     );
   }
 
-  return (
-    <div className="max-w-4xl mx-auto py-12">
-      <AnimatePresence mode="wait">
-        {step === 1 ? (
-          <motion.div 
-            key="step1"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="space-y-12"
-          >
-            <div className="text-center">
-              <h1 className="text-5xl font-display font-black text-white mb-4">¿Qué quieres <span className="text-gold">publicar</span> hoy?</h1>
-              <p className="text-gray-500 text-lg">Selecciona el tipo de publicación para comenzar el proceso.</p>
-            </div>
+  const fieldLabel = "mb-2 block text-sm font-medium text-[var(--text-secondary)]";
+  const selectedType = types.find(t => t.id === type);
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  return (
+    <div className="w-full">
+      <AnimatePresence mode="wait" initial={false}>
+        {step === 1 ? (
+          <motion.div
+            key="step1"
+            initial={reduce ? false : { opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, x: 12 }}
+            transition={{ duration: 0.22, ease: EASE }}
+          >
+            <header className="flex flex-col gap-5">
+              <p className="mv-kicker">
+                <Link href="/dashboard" className="-my-2 rounded py-2 hover:underline mv-focus">Panel</Link>
+                <span aria-hidden>/</span>
+                <span>Nueva publicación</span>
+              </p>
+              <h1 className="mv-h1 max-w-3xl">¿Qué querés publicar?</h1>
+              <p className="mv-lead">Elegí el tipo de publicación. En el siguiente paso completás los detalles.</p>
+            </header>
+
+            <ul className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3">
               {types.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => { setType(t.id); setStep(2); }}
-                  className={`p-8 rounded-[3rem] border transition-all text-left flex flex-col items-start group relative overflow-hidden ${
-                    type === t.id ? 'bg-white/10 border-gold shadow-2xl shadow-gold/10' : 'bg-white/[0.03] border-white/5 hover:border-white/10 hover:bg-white/[0.05]'
-                  }`}
-                >
-                  <div className={`p-4 rounded-2xl mb-6 transition-transform group-hover:scale-110 ${t.bg} ${t.color}`}>
-                    <t.icon size={32} />
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-2">{t.label}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed mb-8">{t.desc}</p>
-                  <div className="mt-auto flex items-center text-xs font-black uppercase tracking-widest text-gold opacity-0 group-hover:opacity-100 transition-all translate-x-[-10px] group-hover:translate-x-0">
-                    Comenzar <ArrowRight size={14} className="ml-2" />
-                  </div>
-                </button>
+                <li key={t.id}>
+                  <button
+                    type="button"
+                    onClick={() => { setType(t.id); setStep(2); setError(null); }}
+                    aria-pressed={type === t.id}
+                    className={`mv-panel mv-panel-interactive mv-focus group flex h-full w-full flex-col items-start gap-4 p-6 text-left outline-none md:p-7 ${
+                      type === t.id ? 'border-[var(--color-border-gold)]' : ''
+                    }`}
+                  >
+                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--mv-gold-wash)] text-gold">
+                      <t.icon className="h-5 w-5" aria-hidden />
+                    </span>
+                    <span className="flex flex-col gap-1.5">
+                      <span className="mv-h3">{t.label}</span>
+                      <span className="mv-body">{t.desc}</span>
+                    </span>
+                    <span className="mt-auto inline-flex items-center gap-2 pt-2 text-sm font-semibold text-gold">
+                      Empezar <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden />
+                    </span>
+                  </button>
+                </li>
               ))}
-            </div>
+            </ul>
           </motion.div>
         ) : (
-          <motion.div 
+          <motion.div
             key="step2"
-            initial={{ opacity: 0, x: 20 }}
+            initial={reduce ? false : { opacity: 0, x: 12 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="space-y-8"
+            exit={reduce ? { opacity: 0 } : { opacity: 0, x: -12 }}
+            transition={{ duration: 0.22, ease: EASE }}
           >
-            <div className="flex items-center gap-4 mb-12">
-              <button onClick={() => setStep(1)} className="p-4 rounded-2xl bg-white/5 border border-white/5 text-gray-400 hover:text-white transition-all">
-                <ArrowLeft size={20} />
-              </button>
-              <div>
-                <h2 className="text-3xl font-display font-black text-white">Detalles de la {types.find(t => t.id === type)?.label}</h2>
-                <p className="text-gray-500">Completa la información técnica para finalizar la publicación.</p>
-              </div>
-            </div>
+            <header className="flex flex-col gap-5">
+              <p className="mv-kicker">
+                <button type="button" onClick={() => setStep(1)} className="-my-2 inline-flex items-center gap-1.5 rounded py-2 hover:underline mv-focus">
+                  <ArrowLeft className="h-3.5 w-3.5" aria-hidden /> Cambiar tipo
+                </button>
+                <span aria-hidden>/</span>
+                <span>{selectedType?.label}</span>
+              </p>
+              <h1 className="mv-h1 max-w-3xl">Completá los detalles</h1>
+              <p className="mv-lead">Con esta información la publicación queda lista para que otros la encuentren.</p>
+            </header>
 
-            <form onSubmit={handleSubmit} className="space-y-8 bg-white/[0.02] backdrop-blur-3xl border border-white/5 p-10 rounded-[3.5rem] shadow-2xl">
-              <div className="space-y-6">
+            <form onSubmit={handleSubmit} className="mv-panel mt-10 flex flex-col gap-8 p-5 sm:p-8 md:p-10">
+              <div className="flex flex-col gap-6">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-3">Título Principal</label>
-                  <input 
-                    required 
+                  <label htmlFor="crear-title" className={fieldLabel}>Título</label>
+                  <input
+                    id="crear-title"
+                    name="title"
+                    required
+                    autoComplete="off"
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    placeholder="Escribe un título atractivo..."
-                    className="w-full bg-white/[0.03] border border-white/5 rounded-2xl h-16 px-6 text-white text-lg focus:outline-none focus:border-gold/30 transition-all"
+                    placeholder="Un título claro y específico"
+                    className="mv-input"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-3">Descripción Detallada</label>
-                  <textarea 
-                    required 
+                  <label htmlFor="crear-description" className={fieldLabel}>Descripción</label>
+                  <textarea
+                    id="crear-description"
+                    name="description"
+                    required
                     rows={6}
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    placeholder="Cuéntales más sobre lo que ofreces..."
-                    className="w-full bg-white/[0.03] border border-white/5 rounded-[2rem] p-6 text-white focus:outline-none focus:border-gold/30 transition-all resize-none leading-relaxed"
+                    placeholder="Contá qué ofrecés, para quién es y qué incluye."
+                    className="mv-input h-auto resize-y py-3 leading-relaxed"
                   />
                 </div>
 
                 {type === "ads" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-white/5 mt-8">
-                    <CustomSelect
-                      label="Tipo de Espacio"
-                      value={formData.spaceType}
-                      onChange={(val) => setFormData({...formData, spaceType: val})}
-                      options={[
-                        { value: "VALLA", label: "Valla Publicitaria" },
-                        { value: "PANTALLA", label: "Pantalla LED" },
-                        { value: "LETRERO", label: "Letrero Luminoso" },
-                        { value: "MURO", label: "Muro Publicitario" },
-                      ]}
-                    />
+                  <fieldset className="grid grid-cols-1 gap-6 border-t border-[var(--mv-hairline)] pt-8 md:grid-cols-2">
+                    <legend className="sr-only">Datos del espacio</legend>
                     <div>
-                      <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-3">Precio Mensual (USD)</label>
+                      <p className={fieldLabel}>Tipo de espacio</p>
+                      <CustomSelect
+                        value={formData.spaceType}
+                        onChange={(val) => setFormData({...formData, spaceType: val})}
+                        options={[
+                          { value: "VALLA", label: "Valla Publicitaria" },
+                          { value: "PANTALLA", label: "Pantalla LED" },
+                          { value: "LETRERO", label: "Letrero Luminoso" },
+                          { value: "MURO", label: "Muro Publicitario" },
+                        ]}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="crear-price-ads" className={fieldLabel}>Precio mensual (USD)</label>
                       <div className="relative">
-                        <DollarSign className="absolute left-6 top-1/2 -translate-y-1/2 text-gold h-5 w-5" />
-                        <input type="number" required value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} className="w-full bg-white/[0.03] border border-white/5 rounded-2xl h-16 pl-14 pr-6 text-white font-mono font-bold" />
+                        <DollarSign className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gold" aria-hidden />
+                        <input id="crear-price-ads" name="price" type="number" inputMode="decimal" required value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} className="mv-input mv-data pl-10" />
                       </div>
                     </div>
-                    <div className="md:col-span-2 grid grid-cols-3 gap-4">
-                       <div>
-                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2">Ancho (m)</label>
-                        <input type="number" required value={formData.width} onChange={(e) => setFormData({...formData, width: e.target.value})} className="w-full bg-white/[0.03] border border-white/5 rounded-xl h-12 px-4 text-white font-mono" />
+                    <div className="grid grid-cols-2 gap-4 md:col-span-2 md:grid-cols-3">
+                      <div>
+                        <label htmlFor="crear-width" className={fieldLabel}>Ancho (m)</label>
+                        <input id="crear-width" name="width" type="number" inputMode="decimal" required value={formData.width} onChange={(e) => setFormData({...formData, width: e.target.value})} className="mv-input mv-data" />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2">Alto (m)</label>
-                        <input type="number" required value={formData.height} onChange={(e) => setFormData({...formData, height: e.target.value})} className="w-full bg-white/[0.03] border border-white/5 rounded-xl h-12 px-4 text-white font-mono" />
+                        <label htmlFor="crear-height" className={fieldLabel}>Alto (m)</label>
+                        <input id="crear-height" name="height" type="number" inputMode="decimal" required value={formData.height} onChange={(e) => setFormData({...formData, height: e.target.value})} className="mv-input mv-data" />
                       </div>
-                      <div>
-                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2">Ubicación</label>
-                        <input type="text" required value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} placeholder="Ej: Santa Cruz" className="w-full bg-white/[0.03] border border-white/5 rounded-xl h-12 px-4 text-white font-bold" />
+                      <div className="col-span-2 md:col-span-1">
+                        <label htmlFor="crear-city-ads" className={fieldLabel}>Ciudad</label>
+                        <input id="crear-city-ads" name="city" type="text" autoComplete="address-level2" required value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} placeholder="Ej.: Santa Cruz" className="mv-input" />
                       </div>
                     </div>
-                  </div>
+                  </fieldset>
                 )}
 
                 {type === "service" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-white/5 mt-8">
-                    <CustomSelect
-                      label="Categoría del Servicio"
-                      value={formData.category}
-                      onChange={(val) => setFormData({...formData, category: val})}
-                      options={[
-                        { value: "DESARROLLO_WEB", label: "Desarrollo Web" },
-                        { value: "DISENO", label: "Diseño Gráfico" },
-                        { value: "MARKETING", label: "Marketing Digital" },
-                        { value: "VIDEO", label: "Edición de Video" },
-                      ]}
-                    />
+                  <fieldset className="grid grid-cols-1 gap-6 border-t border-[var(--mv-hairline)] pt-8 md:grid-cols-2">
+                    <legend className="sr-only">Datos del servicio</legend>
                     <div>
-                      <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-3">Precio Base (USD)</label>
+                      <p className={fieldLabel}>Categoría</p>
+                      <CustomSelect
+                        value={formData.category}
+                        onChange={(val) => setFormData({...formData, category: val})}
+                        options={[
+                          { value: "DESARROLLO_WEB", label: "Desarrollo Web" },
+                          { value: "DISENO", label: "Diseño Gráfico" },
+                          { value: "MARKETING", label: "Marketing Digital" },
+                          { value: "VIDEO", label: "Edición de Video" },
+                        ]}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="crear-price-service" className={fieldLabel}>Precio base (USD)</label>
                       <div className="relative">
-                        <DollarSign className="absolute left-6 top-1/2 -translate-y-1/2 text-gold h-5 w-5" />
-                        <input type="number" required value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} className="w-full bg-white/[0.03] border border-white/5 rounded-2xl h-16 pl-14 pr-6 text-white font-mono font-bold" />
+                        <DollarSign className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gold" aria-hidden />
+                        <input id="crear-price-service" name="price" type="number" inputMode="decimal" required value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} className="mv-input mv-data pl-10" />
                       </div>
                     </div>
-                  </div>
+                  </fieldset>
                 )}
 
                 {type === "job" && (
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-white/5 mt-8">
-                    <CustomSelect
-                      label="Modalidad"
-                      value={formData.employmentType}
-                      onChange={(val) => setFormData({...formData, employmentType: val})}
-                      options={[
-                        { value: "TIEMPO_COMPLETO", label: "Tiempo Completo" },
-                        { value: "PART_TIME", label: "Medio Tiempo" },
-                        { value: "FREELANCE", label: "Freelance / Proyecto" },
-                      ]}
-                    />
+                  <fieldset className="grid grid-cols-1 gap-6 border-t border-[var(--mv-hairline)] pt-8 md:grid-cols-2">
+                    <legend className="sr-only">Datos de la vacante</legend>
                     <div>
-                      <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-3">Ubicación</label>
-                      <input type="text" required value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} placeholder="Ej: Santa Cruz o Remoto" className="w-full bg-white/[0.03] border border-white/5 rounded-2xl h-16 px-6 text-white font-bold" />
+                      <p className={fieldLabel}>Modalidad</p>
+                      <CustomSelect
+                        value={formData.employmentType}
+                        onChange={(val) => setFormData({...formData, employmentType: val})}
+                        options={[
+                          { value: "TIEMPO_COMPLETO", label: "Tiempo Completo" },
+                          { value: "PART_TIME", label: "Medio Tiempo" },
+                          { value: "FREELANCE", label: "Freelance / Proyecto" },
+                        ]}
+                      />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-3">Salario Mínimo (USD)</label>
-                      <input type="number" value={formData.salaryMin} onChange={(e) => setFormData({...formData, salaryMin: e.target.value})} placeholder="0" className="w-full bg-white/[0.03] border border-white/5 rounded-2xl h-16 px-6 text-white font-mono" />
+                      <label htmlFor="crear-city-job" className={fieldLabel}>Ubicación</label>
+                      <input id="crear-city-job" name="city" type="text" autoComplete="address-level2" required value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} placeholder="Ej.: Santa Cruz o Remoto" className="mv-input" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-3">Salario Máximo (USD)</label>
-                      <input type="number" value={formData.salaryMax} onChange={(e) => setFormData({...formData, salaryMax: e.target.value})} placeholder="0" className="w-full bg-white/[0.03] border border-white/5 rounded-2xl h-16 px-6 text-white font-mono" />
+                      <label htmlFor="crear-salary-min" className={fieldLabel}>Salario mínimo (USD)</label>
+                      <input id="crear-salary-min" name="salaryMin" type="number" inputMode="numeric" value={formData.salaryMin} onChange={(e) => setFormData({...formData, salaryMin: e.target.value})} placeholder="0" className="mv-input mv-data" />
                     </div>
-                  </div>
+                    <div>
+                      <label htmlFor="crear-salary-max" className={fieldLabel}>Salario máximo (USD)</label>
+                      <input id="crear-salary-max" name="salaryMax" type="number" inputMode="numeric" value={formData.salaryMax} onChange={(e) => setFormData({...formData, salaryMax: e.target.value})} placeholder="0" className="mv-input mv-data" />
+                    </div>
+                  </fieldset>
                 )}
               </div>
 
-              <div className="pt-8 flex justify-end gap-4">
-                <Button type="button" variant="ghost" className="text-gray-500 hover:text-white font-bold" onClick={() => setStep(1)}>
-                  Atrás
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={loading} 
-                  className="bg-gold text-black hover:bg-gold-light rounded-[1.5rem] h-16 px-12 font-black uppercase tracking-widest shadow-xl shadow-gold/10 transition-all hover:scale-[1.02]"
+              {error && (
+                <div
+                  id="crear-error"
+                  role="alert"
+                  className="flex items-start gap-3 rounded-2xl border border-red-500/25 bg-red-500/10 p-4 text-sm leading-relaxed text-red-400"
                 >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Zap className="w-5 h-5 mr-2 fill-current" />}
-                  Publicar Ahora
-                </Button>
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                  <p>{error}</p>
+                </div>
+              )}
+
+              <div className="flex flex-col-reverse gap-3 border-t border-[var(--mv-hairline)] pt-6 sm:flex-row sm:justify-end">
+                <button type="button" className={buttonClass("ghost", "lg", "w-full sm:w-auto")} onClick={() => setStep(1)}>
+                  Atrás
+                </button>
+                <button type="submit" disabled={loading} aria-busy={loading} aria-describedby={error ? "crear-error" : undefined} className={buttonClass("primary", "lg", "w-full sm:w-auto")}>
+                  {loading ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> : null}
+                  {loading ? "Publicando…" : "Publicar"}
+                </button>
               </div>
             </form>
           </motion.div>
@@ -313,20 +371,18 @@ function CrearPublicacionUnified() {
 
 export default function CrearPage() {
   return (
-    <div className="w-full min-h-screen bg-[#050505] pb-20 pt-20 px-4 md:px-8 relative overflow-hidden">
-       {/* Background Glows */}
-      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-gold/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]" />
-      </div>
-
-      <Suspense fallback={
-        <div className="min-h-[50vh] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-gold animate-spin" />
-        </div>
-      }>
-        <CrearPublicacionUnified />
-      </Suspense>
+    <div className="relative w-full min-h-screen overflow-hidden bg-bg-primary pb-20 pt-28 md:pb-28 md:pt-36">
+      <div className="mv-aura" aria-hidden />
+      <Container className="relative">
+        <Suspense fallback={
+          <div className="flex min-h-[50vh] items-center justify-center" role="status">
+            <Loader2 className="h-8 w-8 animate-spin text-gold" aria-hidden />
+            <span className="sr-only">Cargando…</span>
+          </div>
+        }>
+          <CrearPublicacionUnified />
+        </Suspense>
+      </Container>
     </div>
   );
 }

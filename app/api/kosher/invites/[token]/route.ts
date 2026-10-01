@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { getKosherViewer, kosherError, unauthorized } from "@/lib/kosher/server";
+import { getKosherViewer, kosherError, unauthorized, writeGuard } from "@/lib/kosher/server";
 
 const schema = z.object({
   contactName: z.string().trim().min(2).max(80),
@@ -12,21 +12,31 @@ const schema = z.object({
 /** A moderator already vetted the institution when issuing the link, so redeeming grants access directly. */
 export async function POST(request: NextRequest, { params }: { params: { token: string } }) {
   const viewer = await getKosherViewer();
-  if (!viewer) return unauthorized();
+  // Modo Shabat: escritura bloqueada también en el servidor.
+  const guard = writeGuard(viewer);
+  if (guard || !viewer) return guard ?? unauthorized();
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return kosherError(400, "Completá tu nombre y tu rol.");
 
+  const gone = () => kosherError(410, "Esta invitación venció o ya se usó. Pedí una nueva al equipo de Mercav Kosher.");
+  if (params.token.length > 100) return gone();
   const invite = await prisma.kosherInvite.findUnique({ where: { token: params.token } });
-  if (!invite || invite.usedAt || invite.expiresAt < new Date()) return kosherError(410, "Esta invitación venció o ya se usó. Pedí una nueva al equipo de Mercav Kosher.");
+  if (!invite || invite.usedAt || invite.expiresAt < new Date()) return gone();
 
-  await prisma.$transaction([
-    prisma.kosherInvite.update({ where: { id: invite.id }, data: { usedById: viewer.id, usedAt: new Date() } }),
-    prisma.kosherPlaceManager.upsert({
+  // Consumo atómico: el update solo matchea si nadie la usó todavía. Antes, dos canjes
+  // simultáneos del mismo token pasaban el chequeo y ambos quedaban como administradores.
+  const consumed = await prisma.$transaction(async (tx) => {
+    const marked = await tx.kosherInvite.updateMany({
+      where: { id: invite.id, usedAt: null, expiresAt: { gt: new Date() } },
+      data: { usedById: viewer.id, usedAt: new Date() },
+    });
+    if (marked.count === 0) return false;
+    await tx.kosherPlaceManager.upsert({
       where: { placeId_userId: { placeId: invite.placeId, userId: viewer.id } },
       create: { placeId: invite.placeId, userId: viewer.id },
       update: {},
-    }),
-    prisma.kosherClaim.create({
+    });
+    await tx.kosherClaim.create({
       data: {
         kind: "ownership",
         placeId: invite.placeId,
@@ -38,7 +48,9 @@ export async function POST(request: NextRequest, { params }: { params: { token: 
         reviewedById: invite.createdById,
         reviewedAt: new Date(),
       },
-    }),
-  ]);
+    });
+    return true;
+  });
+  if (!consumed) return gone();
   return NextResponse.json({ success: true });
 }

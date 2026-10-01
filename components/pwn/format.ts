@@ -73,25 +73,25 @@ export function isClosedStatus(status: string | null | undefined): boolean {
 export const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary";
 
-/** Shared Pwn inputs — soft dark fill, readable in light theme on pwn pages. */
-export const pwnFieldClass = [
-  "h-11 w-full rounded-xl border px-3.5 text-sm",
-  "border-white/10 bg-[#141416] text-white",
-  "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]",
-  "placeholder:text-gray-500",
-  "light:border-black/10 light:bg-[#e8e6e0] light:text-[#1a1714] light:shadow-none light:placeholder:text-gray-500",
-  "transition-[border-color,box-shadow] hover:border-white/15 light:hover:border-black/15",
-  "focus:border-gold/40 focus:outline-none focus:ring-2 focus:ring-gold/15",
-  focusRing,
-].join(" ");
+/** Shared Pwn inputs — built on the system `mv-input`, so dark and light themes come from the tokens. */
+export const pwnFieldClass = "mv-input h-11 text-[0.9375rem] disabled:cursor-not-allowed disabled:opacity-50";
 
-export const pwnFieldClassLg = pwnFieldClass.replace("h-11", "h-12").replace("px-3.5", "px-4");
+export const pwnFieldClassLg = "mv-input h-12 disabled:cursor-not-allowed disabled:opacity-50";
 
-export const pwnFieldLabelClass = "block text-xs font-medium uppercase tracking-wide text-gray-400";
+export const pwnFieldLabelClass = "block text-sm font-medium text-[var(--text-secondary)]";
 
-export const pwnFormLabelClass = "block text-xs font-medium uppercase tracking-wide text-gray-400";
+export const pwnFormLabelClass = "block text-sm font-medium text-[var(--text-primary)]";
 
 /** Primary form / search panels on Pwn pages. */
-export const pwnPanelClass =
-  "rounded-3xl border border-dashed border-white/15 bg-bg-secondary/50 p-6 md:p-7 backdrop-blur-sm";
+export const pwnPanelClass = "mv-panel rounded-[1.75rem] p-5 md:p-7";
+
+/** Result cards (one finding, alert, target…). Dashed outline is reserved for unverified claims. */
+export const pwnCardClass = "mv-panel rounded-[1.5rem] p-5 md:p-6";
+
+export const pwnUnverifiedCardClass = "border-dashed !border-[var(--mv-hairline-strong)]";
+
+/** Small factual tag (data types, forum names). */
+export const pwnTagClass =
+  "inline-flex items-center rounded-full border border-[var(--mv-hairline-strong)] px-2.5 py-1 text-xs text-[var(--text-secondary)]";
+
 // creado por pato dev y askforvini

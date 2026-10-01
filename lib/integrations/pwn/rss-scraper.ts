@@ -7,6 +7,7 @@ import { pwnRssFeedDefinitions } from "./feed-catalog";
 import type { ForumThreadSignal } from "./forum-scraper";
 import { normalizeAuthor } from "./author";
 import { titleKeyFromTitle } from "./forum-signal-utils";
+import { fetchAllowlistedText } from "./safe-fetch";
 
 const SCRAPE_UA = "Mercav-Pwn/1.0 (+https://pwn.mercav.lat; defensive threat monitoring)";
 const RSS_ITEMS_PER_FEED = 25;
@@ -66,13 +67,18 @@ function parseRssItems(xml: string): { title: string; link: string; pubDate: str
 
 async function fetchFeed(feed: RssFeed, maxItems: number): Promise<ForumThreadSignal[]> {
   try {
-    const response = await fetch(feed.url, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(12_000),
+    // Solo el host del feed y sus allowedLinkHosts; redirects fuera de esa lista se descartan.
+    let feedHost: string;
+    try {
+      feedHost = new URL(feed.url).hostname.toLowerCase();
+    } catch {
+      return [];
+    }
+    const xml = await fetchAllowlistedText(feed.url, [feedHost, ...feed.allowedLinkHosts], {
+      timeoutMs: 12_000,
       headers: { "user-agent": SCRAPE_UA, accept: "application/rss+xml, application/xml, text/xml, application/atom+xml" },
     });
-    if (!response.ok) return [];
-    const xml = await response.text();
+    if (!xml) return [];
     const out: ForumThreadSignal[] = [];
     for (const item of parseRssItems(xml)) {
       const link = assertAllowlistedUrl(item.link, feed.allowedLinkHosts);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { ServiceCategory } from "@prisma/client";
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -72,7 +73,17 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ success: false, error: "No tienes permiso para editar este servicio" }, { status: 403 });
     }
 
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ success: false, error: "JSON inválido" }, { status: 400 });
+    }
+    if (body.category !== undefined && !(Object.values(ServiceCategory) as string[]).includes(body.category)) {
+      return NextResponse.json({ success: false, error: "Categoría inválida" }, { status: 400 });
+    }
+    if ((body.title !== undefined && (typeof body.title !== "string" || body.title.length > 150)) ||
+        (body.description !== undefined && (typeof body.description !== "string" || body.description.length > 10000))) {
+      return NextResponse.json({ success: false, error: "Título o descripción inválidos" }, { status: 400 });
+    }
     const updated = await prisma.service.update({
       where: { id: params.id },
       data: {

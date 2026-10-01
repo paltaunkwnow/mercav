@@ -61,7 +61,13 @@ export async function fetchKevCatalog(): Promise<ConnectorResponse<CisaKevEntry[
     return { configured: false };
   }
   if (!response.ok) throw new PwnProviderError("CISA KEV");
-  const payload = record(await response.json());
+  // JSON inválido → error de proveedor (antes escapaba un SyntaxError y tumbaba el ciclo).
+  let payload: JsonRecord | null;
+  try {
+    payload = record(await response.json());
+  } catch {
+    throw new PwnProviderError("CISA KEV");
+  }
   if (!Array.isArray(payload?.vulnerabilities)) throw new PwnProviderError("CISA KEV");
   return {
     configured: true,

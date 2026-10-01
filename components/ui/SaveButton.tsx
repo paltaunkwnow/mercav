@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Bookmark, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Toast } from "@/components/ui/toast";
 
 interface SaveButtonProps {
@@ -42,23 +41,20 @@ export function SaveButton({ itemId, type, initialSaved = false }: SaveButtonPro
 
   return (
     <>
-      <Button 
-        variant="outline" 
+      <button
+        type="button"
         disabled={loading}
         onClick={toggleSave}
-        className={`w-full gap-2 transition-all duration-300 ${
-          saved 
-            ? "border-gold bg-gold/10 text-gold shadow-[0_0_15px_rgba(255,215,0,0.1)]" 
-            : "border-border text-gray-400 hover:border-gold hover:text-gold bg-transparent"
-        }`}
+        aria-pressed={saved}
+        className={`mv-btn mv-btn-secondary w-full ${saved ? "!border-[var(--color-border-gold)] text-gold" : ""}`}
       >
         {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
         ) : (
-          <Bookmark className={`h-4 w-4 ${saved ? "fill-gold" : ""}`} />
+          <Bookmark className={`h-4 w-4 ${saved ? "fill-current" : ""}`} aria-hidden />
         )}
         {saved ? "Guardado" : "Guardar para después"}
-      </Button>
+      </button>
 
       <Toast 
         isVisible={toast.visible} 

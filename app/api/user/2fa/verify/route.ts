@@ -11,7 +11,11 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { token } = await req.json();
+    const body = await req.json().catch(() => null);
+    const token = typeof body?.token === "string" ? body.token.trim() : "";
+    if (!/^\d{6}$/.test(token)) {
+      return NextResponse.json({ error: "Código inválido. Inténtalo de nuevo." }, { status: 400 });
+    }
     const userId = (session.user as any).id;
     
     const user = await prisma.user.findUnique({

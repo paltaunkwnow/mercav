@@ -1,27 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  Megaphone, 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreVertical, 
-  Edit3, 
-  Trash2, 
-  ExternalLink,
-  MapPin,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-  ArrowLeft,
-  Calendar
-} from "lucide-react";
-import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { Megaphone, Plus, Search, MapPin, CalendarDays } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { Container, PageHero, ButtonLink } from "@/components/site/primitives";
+import { EmptyState, ManageItem, MediaFrame, PageLoading, SPACE_TYPE_LABEL, formatMoney, labelFor } from "@/components/anuncios/market-ui";
 
 export default function MisEspaciosPage() {
   const { data: session } = useSession();
@@ -68,141 +52,103 @@ export default function MisEspaciosPage() {
   );
 
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-bg-primary">
-        <Loader2 className="w-8 h-8 text-gold animate-spin" />
-      </div>
-    );
+    return <PageLoading label="Cargando tus espacios…" />;
   }
 
   return (
-    <div className="min-h-screen bg-bg-primary pt-24 pb-20">
-      <div className="container mx-auto px-4 max-w-6xl">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
-          <div>
-            <Button variant="ghost" asChild className="text-gray-500 hover:text-white -ml-4 mb-4">
-              <Link href="/dashboard"><ArrowLeft className="w-4 h-4 mr-2" /> Volver al Dashboard</Link>
-            </Button>
-            <h1 className="text-4xl font-display font-black text-white tracking-tighter">Gestión de <span className="text-emerald-400">Espacios</span></h1>
-            <p className="text-gray-500 mt-2">Administra tus vallas, letreros y espacios publicitarios disponibles.</p>
-          </div>
-          <Button asChild className="bg-emerald-500 text-black hover:bg-emerald-400 rounded-2xl h-14 px-8 font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20">
-            <Link href="/anuncios/publicar"><Plus className="w-5 h-5 mr-2" /> Registrar Espacio</Link>
-          </Button>
-        </div>
+    <div className="w-full bg-bg-primary">
+      <PageHero
+        kicker="Mercav Ads"
+        title="Mis espacios"
+        lead="Administrá tus vallas, pantallas y vidrieras: editá la ficha, revisá cómo se ven o dalos de baja."
+        actions={
+          <>
+            <ButtonLink href="/anuncios/publicar" size="lg" className="w-full sm:w-auto">
+              <Plus className="h-5 w-5" aria-hidden />
+              Publicar un espacio
+            </ButtonLink>
+            <ButtonLink href="/dashboard" tone="ghost" size="lg" className="w-full sm:w-auto">
+              Ir al panel
+            </ButtonLink>
+          </>
+        }
+      />
 
-        {/* Filters and Search */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-            <input 
-              type="text"
-              placeholder="Buscar por título o ciudad..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-bg-secondary border border-border rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
-            />
-          </div>
-          <Button variant="outline" className="h-14 px-6 border-border rounded-2xl text-gray-400 hover:text-white">
-            <Filter className="w-5 h-5 mr-2" /> Filtros
-          </Button>
-        </div>
+      <section aria-label="Listado de espacios" className="pb-14 md:pb-24">
+        <Container>
+          {spaces.length > 0 ? (
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <label className="relative block sm:w-96">
+                <span className="sr-only">Buscar por título o ciudad</span>
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-tertiary)]" aria-hidden />
+                <input
+                  type="search"
+                  placeholder="Buscar por título o ciudad…"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="mv-input pl-11"
+                />
+              </label>
+              <p className="text-sm text-[var(--text-secondary)]" aria-live="polite">
+                <span className="mv-data font-semibold text-[var(--text-primary)]">{filteredSpaces.length}</span> de{" "}
+                <span className="mv-data">{spaces.length}</span> espacios
+              </p>
+            </div>
+          ) : null}
 
-        {/* Spaces List */}
-        <div className="space-y-4">
-          <AnimatePresence>
-            {filteredSpaces.length > 0 ? (
-              filteredSpaces.map((space, i) => (
-                <motion.div
+          {filteredSpaces.length > 0 ? (
+            <ul className="flex flex-col gap-3">
+              {filteredSpaces.map((space) => (
+                <ManageItem
                   key={space.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="bg-bg-secondary border border-border p-6 rounded-[2rem] hover:border-emerald-500/20 transition-all group"
-                >
-                  <div className="flex flex-col lg:flex-row items-center gap-8">
-                    {/* Preview Image */}
-                    <div className="w-full lg:w-48 h-32 bg-bg-tertiary rounded-2xl overflow-hidden flex-shrink-0 border border-white/5 relative">
-                      <img 
-                        src={space.images?.[0]?.url || "https://images.unsplash.com/photo-1542204165-65bf26472b9b"} 
-                        className="w-full h-full object-cover" 
-                        alt={space.title} 
-                      />
-                      <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-400/20">
-                        {space.type}
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                          <MapPin size={12} className="text-emerald-400" /> {space.city}, {space.country}
-                        </span>
-                        {space.isActive ? (
-                          <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
-                            <CheckCircle2 size={12} /> Disponible
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                            <AlertCircle size={12} /> Pausado
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2 truncate group-hover:text-emerald-400 transition-colors">{space.title}</h3>
-                      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                        <span className="flex items-center gap-1.5"><Calendar size={12} /> Registrado {new Date(space.createdAt).toLocaleDateString()}</span>
-                        <span className="flex items-center gap-1.5"><Megaphone size={12} /> 1.2k interesados</span>
-                        <span className="flex items-center gap-1.5 text-white"><span className="text-emerald-400">$</span>{space.pricePerMonth}/mes</span>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-3">
-                      <Button variant="ghost" asChild className="w-12 h-12 rounded-xl p-0 text-gray-500 hover:text-white hover:bg-white/5">
-                        <Link href={`/anuncios/${space.id}`} target="_blank"><ExternalLink size={18} /></Link>
-                      </Button>
-                      <Button variant="ghost" asChild className="w-12 h-12 rounded-xl p-0 text-gray-500 hover:text-white hover:bg-white/5">
-                        <Link href={`/anuncios/editar/${space.id}`}><Edit3 size={18} /></Link>
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        onClick={() => setDeleteModal({ isOpen: true, id: space.id })}
-                        className="w-12 h-12 rounded-xl p-0 text-red-500 hover:bg-red-500/10"
-                      >
-                        <Trash2 size={18} />
-                      </Button>
-                      <Button variant="ghost" className="w-12 h-12 rounded-xl p-0 text-gray-400">
-                        <MoreVertical size={18} />
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              <div className="text-center py-32 bg-bg-secondary border border-border border-dashed rounded-[3rem]">
-                <div className="bg-white/5 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Megaphone className="text-gray-700 w-10 h-10" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">No tienes espacios registrados</h3>
-                <p className="text-gray-500 max-w-sm mx-auto mb-8">Registra tus vallas y letreros para que las empresas de Bolivia puedan reservarlos.</p>
-                <Button asChild className="bg-emerald-500 text-black hover:bg-emerald-400 rounded-2xl h-12 px-8 font-black uppercase tracking-widest">
-                  <Link href="/anuncios/publicar">Registrar mi primer espacio</Link>
-                </Button>
-              </div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
+                  media={<MediaFrame src={space.images?.[0]?.url} alt="" icon={Megaphone} emptyLabel="Sin foto" />}
+                  title={space.title}
+                  viewHref={`/anuncios/${space.id}`}
+                  editHref={`/anuncios/editar/${space.id}`}
+                  onDelete={() => setDeleteModal({ isOpen: true, id: space.id })}
+                  active={!!space.isActive}
+                  activeLabel="Disponible"
+                  inactiveLabel="Pausado"
+                  badge={<span className="mv-chip">{labelFor(SPACE_TYPE_LABEL, space.type)}</span>}
+                  meta={[
+                    <>
+                      <MapPin className="h-3.5 w-3.5 text-gold" aria-hidden /> {[space.city, space.country].filter(Boolean).join(", ")}
+                    </>,
+                    <span key="p" className="mv-data font-semibold text-[var(--text-primary)]">
+                      {formatMoney(space.pricePerMonth, space.currency) ?? "Sin precio"} / mes
+                    </span>,
+                    <>
+                      <CalendarDays className="h-3.5 w-3.5" aria-hidden /> Publicado el{" "}
+                      <span className="mv-data">{new Date(space.createdAt).toLocaleDateString("es")}</span>
+                    </>,
+                  ]}
+                />
+              ))}
+            </ul>
+          ) : spaces.length > 0 ? (
+            <EmptyState icon={Search} title="Ningún espacio coincide" body="Probá con otro título o ciudad." />
+          ) : (
+            <EmptyState
+              icon={Megaphone}
+              title="Todavía no publicaste espacios"
+              body="Registrá tus vallas, letreros o vidrieras para que las marcas puedan reservarlos. Tu primer alquiler no paga comisión de plataforma."
+              action={
+                <ButtonLink href="/anuncios/publicar" className="w-full sm:w-auto">
+                  Publicar mi primer espacio
+                </ButtonLink>
+              }
+            />
+          )}
+        </Container>
+      </section>
 
       <ConfirmationModal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
         onConfirm={handleDelete}
-        title="¿Eliminar Espacio?"
-        message="Esta acción eliminará permanentemente este espacio publicitario de Mercav. No podrás recuperar la información ni las reservas asociadas."
-        confirmText="Eliminar permanentemente"
+        title="¿Eliminar este espacio?"
+        message="Se borra de Mercav de forma permanente, junto con sus reservas asociadas. No se puede deshacer."
+        confirmText="Eliminar espacio"
         variant="danger"
       />
     </div>

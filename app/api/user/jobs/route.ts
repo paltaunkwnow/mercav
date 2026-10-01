@@ -8,7 +8,6 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    console.log("JOBS SESSION EMAIL:", session?.user?.email);
     if (!session?.user?.email) {
       return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
     }

@@ -11,7 +11,21 @@ export async function POST(req: Request) {
   }
 
   try {
-    const data = await req.json();
+    const data = await req.json().catch(() => null);
+    if (!data || typeof data !== "object") {
+      return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+    }
+    // announcementLink se muestra como enlace a todos los usuarios: solo rutas internas o http(s)
+    if (data.announcementLink && (typeof data.announcementLink !== "string" ||
+        !(/^https?:\/\//i.test(data.announcementLink) || (data.announcementLink.startsWith("/") && !data.announcementLink.startsWith("//"))))) {
+      return NextResponse.json({ error: "El enlace del anuncio debe ser una ruta interna o una URL http(s)" }, { status: 400 });
+    }
+    if (data.platformFeePercentage !== undefined && data.platformFeePercentage !== null) {
+      const fee = Number(data.platformFeePercentage);
+      if (!Number.isFinite(fee) || fee < 0 || fee > 100) {
+        return NextResponse.json({ error: "Comisión inválida (0-100)" }, { status: 400 });
+      }
+    }
     
     const config = await prisma.globalConfig.upsert({
       where: { id: "singleton" },

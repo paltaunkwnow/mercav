@@ -26,7 +26,22 @@ export async function GET(req: Request, { params }: { params: { username: string
       return NextResponse.json({ success: false, error: "Usuario no encontrado" }, { status: 404 });
     }
 
-    const { password: _password, twoFactorSecret: _secret, email: _email, ...publicUser } = user;
+    // Perfil público: además de password/2FA/email, ocultar documentos (NIT/CI), datos de sanción
+    // y el salario si el usuario no lo hizo visible.
+    const {
+      password: _password,
+      twoFactorSecret: _secret,
+      email: _email,
+      nit: _nit,
+      ci: _ci,
+      sanctionReason: _sanctionReason,
+      sanctionExpiresAt: _sanctionExpiresAt,
+      planExpiresAt: _planExpiresAt,
+      ...publicUser
+    } = user;
+    if (publicUser.profile && !publicUser.profile.salaryVisible) {
+      publicUser.profile = { ...publicUser.profile, salaryMin: null, salaryMax: null };
+    }
     return NextResponse.json(
       { success: true, data: publicUser },
       { headers: { "Cache-Control": "private, no-store" } },

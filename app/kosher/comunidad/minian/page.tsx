@@ -43,7 +43,7 @@ export default async function KosherMinyanPage({ searchParams }: { searchParams:
       </PageIntro>
       <CityPills cities={cities} current={city.slug} basePath="/kosher/comunidad/minian" />
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_24rem]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <section aria-label="Minianim abiertos">
           {minyanim.length === 0 ? (
             <EmptyState>No hay minianim abiertos en {city.city}. Los horarios fijos de cada sinagoga están en su ficha del mapa.</EmptyState>
@@ -61,13 +61,13 @@ export default async function KosherMinyanPage({ searchParams }: { searchParams:
                           <Pill tone="gold">{PRAYER[m.prayer]}</Pill>
                           {full && <Pill tone="techelet">¡Hay minián!</Pill>}
                         </div>
-                        <p className="mt-3 font-display text-xl font-semibold text-[var(--text-primary)]">
+                        <p className="mv-h3 mt-3">
                           {formatDay(m.startsAt, city.timezone, { weekday: "long", month: "short" })} · {formatTime(m.startsAt, city.timezone)}
                         </p>
                         <p className="mt-1 flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
                           <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
                           {m.place ? (
-                            <Link href={`/kosher/lugar/${m.place.slug}`} className="font-medium text-techelet hover:underline">
+                            <Link href={`/kosher/lugar/${m.place.slug}`} className="mv-focus rounded font-semibold text-techelet hover:underline">
                               {m.place.name}
                             </Link>
                           ) : (
@@ -76,18 +76,18 @@ export default async function KosherMinyanPage({ searchParams }: { searchParams:
                           {m.place && m.locationNote && <span>· {m.locationNote}</span>}
                         </p>
                         {m.note && <p className="mt-2 text-sm italic text-[var(--text-secondary)]">“{m.note}”</p>}
-                        <p className="mt-2 text-xs text-[var(--text-tertiary)]">Lo pidió {publicAuthorName(m.createdBy.name)}</p>
+                        <p className="mt-2 text-xs text-[var(--text-secondary)]">Lo pidió {publicAuthorName(m.createdBy.name)}</p>
                       </div>
-                      <div className="flex shrink-0 flex-col items-stretch gap-3 md:w-44">
+                      <div className="flex shrink-0 flex-col items-stretch gap-3 md:w-48">
                         <div>
                           <div className="flex items-baseline justify-between text-xs">
                             <span className="text-[var(--text-secondary)]">Confirmados</span>
-                            <span className="font-mono font-semibold tabular-nums text-[var(--text-primary)]">
+                            <span className="mv-data font-medium text-[var(--text-primary)]">
                               {count}/{MINYAN_SIZE}
                             </span>
                           </div>
                           <div
-                            className="mt-1.5 h-2 overflow-hidden rounded-full bg-bg-tertiary"
+                            className="mt-1.5 h-2 overflow-hidden rounded-full bg-[var(--mv-panel-hover)] ring-1 ring-inset ring-[var(--mv-hairline)]"
                             role="progressbar"
                             aria-valuemin={0}
                             aria-valuemax={MINYAN_SIZE}
@@ -110,8 +110,8 @@ export default async function KosherMinyanPage({ searchParams }: { searchParams:
         <aside className="lg:sticky lg:top-28 lg:self-start">
           {viewer ? (
             <div className={cardClass}>
-              <h2 className="font-display text-xl font-semibold text-[var(--text-primary)]">Pedir minián</h2>
-              <p className="mb-5 mt-1 text-sm text-[var(--text-secondary)]">
+              <h2 className="mv-h3">Pedir minián</h2>
+              <p className="mb-6 mt-2 text-sm text-[var(--text-secondary)]">
                 Se publica al instante y avisa a quienes activaron alertas de minián en la ciudad. Preferí sinagogas o lugares públicos.
               </p>
               <MinyanForm cities={cities} places={places} city={city.slug} />

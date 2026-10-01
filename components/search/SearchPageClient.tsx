@@ -112,7 +112,7 @@ function ResultCard({ item, kind }: { item: any; kind: string }) {
     return (
       <Link href={`/perfil/${item.username}`} className="rounded-2xl border border-border bg-bg-primary p-4 transition-colors hover:border-gold/40">
         <div className="flex items-center gap-3">
-          <div className="h-12 w-12 overflow-hidden rounded-full bg-bg-tertiary">{item.avatar ? <img src={item.avatar} className="h-full w-full object-cover" /> : null}</div>
+          <div className="h-12 w-12 overflow-hidden rounded-full bg-bg-tertiary">{item.avatar ? <img src={item.avatar} alt="" className="h-full w-full object-cover" /> : null}</div>
           <div className="min-w-0">
             <div className="truncate font-semibold text-white">{item.name}</div>
             <div className="truncate text-xs text-gray-500">@{item.username}</div>
@@ -127,7 +127,7 @@ function ResultCard({ item, kind }: { item: any; kind: string }) {
     return (
       <Link href={`/empleos/${item.id}`} className="rounded-2xl border border-border bg-bg-primary p-4 transition-colors hover:border-gold/40">
         <div className="flex items-start gap-3">
-          <div className="h-12 w-12 overflow-hidden rounded-xl bg-bg-tertiary">{item.company?.avatar ? <img src={item.company.avatar} className="h-full w-full object-cover" /> : <Briefcase className="m-3 h-6 w-6 text-gold" />}</div>
+          <div className="h-12 w-12 overflow-hidden rounded-xl bg-bg-tertiary">{item.company?.avatar ? <img src={item.company.avatar} alt="" className="h-full w-full object-cover" /> : <Briefcase className="m-3 h-6 w-6 text-gold" />}</div>
           <div>
             <div className="font-semibold text-white">{item.title}</div>
             <div className="text-xs text-gray-500">{item.company?.name} · {item.city}</div>
@@ -141,7 +141,7 @@ function ResultCard({ item, kind }: { item: any; kind: string }) {
     return (
       <Link href={`/servicios/${item.id}`} className="rounded-2xl border border-border bg-bg-primary p-4 transition-colors hover:border-gold/40">
         <div className="flex items-start gap-3">
-          <div className="h-12 w-12 overflow-hidden rounded-xl bg-bg-tertiary">{item.provider?.avatar ? <img src={item.provider.avatar} className="h-full w-full object-cover" /> : <Zap className="m-3 h-6 w-6 text-gold" />}</div>
+          <div className="h-12 w-12 overflow-hidden rounded-xl bg-bg-tertiary">{item.provider?.avatar ? <img src={item.provider.avatar} alt="" className="h-full w-full object-cover" /> : <Zap className="m-3 h-6 w-6 text-gold" />}</div>
           <div>
             <div className="font-semibold text-white">{item.title}</div>
             <div className="text-xs text-gray-500">{item.provider?.name}</div>
@@ -154,7 +154,7 @@ function ResultCard({ item, kind }: { item: any; kind: string }) {
   return (
     <Link href={`/anuncios/${item.id}`} className="rounded-2xl border border-border bg-bg-primary p-4 transition-colors hover:border-gold/40">
       <div className="flex items-start gap-3">
-        <div className="h-12 w-12 overflow-hidden rounded-xl bg-bg-tertiary">{item.images?.[0]?.url ? <img src={item.images[0].url} className="h-full w-full object-cover" /> : <MapPin className="m-3 h-6 w-6 text-gold" />}</div>
+        <div className="h-12 w-12 overflow-hidden rounded-xl bg-bg-tertiary">{item.images?.[0]?.url ? <img src={item.images[0].url} alt="" className="h-full w-full object-cover" /> : <MapPin className="m-3 h-6 w-6 text-gold" />}</div>
         <div>
           <div className="font-semibold text-white">{item.title}</div>
           <div className="text-xs text-gray-500">{item.city} · {item.country}</div>

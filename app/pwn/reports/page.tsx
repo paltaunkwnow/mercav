@@ -6,8 +6,10 @@ import { RiskBadge } from "@/components/pwn/RiskBadge";
 import { StatCard } from "@/components/pwn/StatCard";
 import { DisabledState, EmptyState, ErrorState, LoadingState, UnauthorizedState } from "@/components/pwn/EmptyState";
 import { FadeIn } from "@/components/pwn/PwnShell";
-import { Button } from "@/components/ui/button";
-import { focusRing, formatScore, formatWhen } from "@/components/pwn/format";
+import { formatScore, formatWhen } from "@/components/pwn/format";
+import { Meta, MetaGrid, PwnPageHeader } from "@/components/pwn/ui";
+import { buttonClass } from "@/components/site/primitives";
+import { FileText, RotateCw } from "lucide-react";
 
 type Status =
   | { kind: "idle" }
@@ -33,29 +35,30 @@ export default function ReportsPage() {
   }
 
   return (
-    <FadeIn className="space-y-6">
-      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="font-display text-4xl font-black tracking-tight text-white md:text-5xl">Informes</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-400">
-            Genera un informe a partir de tus objetivos autorizados, las exposiciones guardadas y tus alertas. Cada generación queda registrada en tu cuenta.
-          </p>
-        </div>
-        {status.kind !== "idle" && status.kind !== "disabled" && status.kind !== "unauthorized" ? (
-          <Button type="button" onClick={() => void generate()} disabled={status.kind === "loading"} className={`rounded-xl bg-gold font-semibold text-black hover:bg-gold-light ${focusRing}`}>
-            {status.kind === "loading" ? "Generando…" : "Generar de nuevo"}
-          </Button>
-        ) : null}
-      </header>
+    <FadeIn className="space-y-8">
+      <PwnPageHeader
+        kicker="Informes"
+        title="El estado de tu exposición, en una página."
+        lead="Generá un informe a partir de tus objetivos autorizados, las exposiciones guardadas y tus alertas. Cada generación queda registrada en tu cuenta."
+        actions={
+          status.kind !== "idle" && status.kind !== "disabled" && status.kind !== "unauthorized" ? (
+            <button type="button" onClick={() => void generate()} disabled={status.kind === "loading"} className={buttonClass("secondary", "md", "w-full sm:w-auto")}>
+              <RotateCw className="h-4 w-4" aria-hidden />
+              {status.kind === "loading" ? "Generando…" : "Generar de nuevo"}
+            </button>
+          ) : null
+        }
+      />
 
       {status.kind === "idle" ? (
         <EmptyState
-          title="Todavía no has generado un informe"
+          icon={<FileText className="h-5 w-5" aria-hidden />}
+          title="Todavía no generaste un informe"
           description="El informe resume tus objetivos de monitoreo, exposiciones y alertas en este momento."
           action={
-            <Button type="button" onClick={() => void generate()} className={`rounded-xl bg-gold font-semibold text-black hover:bg-gold-light ${focusRing}`}>
+            <button type="button" onClick={() => void generate()} className={buttonClass("primary", "md", "w-full sm:w-auto")}>
               Generar informe
-            </Button>
+            </button>
           }
         />
       ) : null}
@@ -72,32 +75,28 @@ function ReportCard({ report }: { report: ReportView }) {
   const { metrics } = report;
   const hasExposures = (metrics.exposures ?? 0) > 0;
   return (
-    <article className="space-y-5 rounded-3xl border border-white/5 bg-bg-secondary/70 p-5 md:p-6">
-      <header>
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="font-display text-2xl text-white">{report.title}</h2>
-          {hasExposures && metrics.highestRisk?.level ? <RiskBadge level={metrics.highestRisk.level} /> : null}
+    <article className="mv-panel space-y-6 rounded-[1.75rem] p-5 md:p-8">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h2 className="mv-h3">{report.title}</h2>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
+            Generado: <span className="mv-data">{formatWhen(report.createdAt) ?? "No indicado"}</span>
+          </p>
         </div>
-        <p className="mt-1 text-sm text-gray-400">Generado: {formatWhen(report.createdAt) ?? "No indicado"}</p>
+        {hasExposures && metrics.highestRisk?.level ? <RiskBadge level={metrics.highestRisk.level} /> : null}
       </header>
-      {report.summary ? <p className="text-sm leading-relaxed text-gray-300">{report.summary}</p> : null}
+      {report.summary ? <p className="mv-body max-w-3xl">{report.summary}</p> : null}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Objetivos autorizados" value={metrics.monitoringTargets} />
         <StatCard label="Exposiciones" value={metrics.exposures} />
         <StatCard label="Alertas" value={metrics.alerts} />
         <StatCard label="Sin leer" value={metrics.unreadAlerts} />
       </div>
-      <dl className="grid gap-3 text-sm sm:grid-cols-2">
-        <div>
-          <dt className="text-gray-500">Confianza promedio</dt>
-          <dd className="text-white">{hasExposures ? (formatScore(metrics.averageConfidence) ?? "—") : "— (sin exposiciones)"}</dd>
-        </div>
-        <div>
-          <dt className="text-gray-500">Riesgo máximo</dt>
-          <dd className="text-white">{hasExposures ? (formatScore(metrics.highestRisk?.score) ?? "—") : "— (sin exposiciones)"}</dd>
-        </div>
-      </dl>
-      <p className="text-xs text-gray-500">Las exposiciones en disputa no cuentan para la confianza ni el riesgo.</p>
+      <MetaGrid className="lg:grid-cols-2">
+        <Meta label="Confianza promedio">{hasExposures ? (formatScore(metrics.averageConfidence) ?? "—") : "— (sin exposiciones)"}</Meta>
+        <Meta label="Riesgo máximo">{hasExposures ? (formatScore(metrics.highestRisk?.score) ?? "—") : "— (sin exposiciones)"}</Meta>
+      </MetaGrid>
+      <p className="text-xs text-[var(--text-tertiary)]">Las exposiciones en disputa no cuentan para la confianza ni el riesgo.</p>
     </article>
   );
 }

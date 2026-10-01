@@ -40,37 +40,35 @@ export function Toast({ message, type, isVisible, onClose }: ToastProps) {
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, y: -50, x: 50, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -20, x: 20, scale: 0.9, transition: { duration: 0.2 } }}
-          role="status"
+          initial={{ opacity: 0, y: -12, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -8, scale: 0.98, transition: { duration: 0.16 } }}
+          transition={{ duration: 0.24, ease: [0.23, 1, 0.32, 1] }}
+          role={type === "error" ? "alert" : "status"}
+          aria-live={type === "error" ? "assertive" : "polite"}
           className={cn(
-            "fixed z-[999999] flex items-center gap-4 lg:gap-6 rounded-2xl lg:rounded-[3rem] border p-4 lg:p-5 lg:pr-8 shadow-[0_40px_100px_rgba(0,0,0,0.9)] backdrop-blur-[40px] no-print transition-all",
-            "top-6 left-6 right-6 lg:top-12 lg:right-12 lg:left-auto lg:w-auto lg:min-w-[380px]",
-            type === "success" ? "border-green-500/40 bg-[#0A0D0A]/98 text-green-400" :
-            type === "error" ? "border-red-500/40 bg-[#0D0A0A]/98 text-red-400" :
-            "border-gold/30 bg-[#0D0D0A]/98 text-gold"
+            "mv-menu fixed z-[999999] flex items-center gap-3 rounded-[1.25rem] p-3 pr-2 no-print",
+            "left-3 right-3 top-[max(0.75rem,env(safe-area-inset-top,0px))] sm:left-auto sm:right-6 sm:top-6 sm:w-[24rem]"
           )}
         >
           <div className={cn(
-            "flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.5rem] shadow-2xl",
-            type === "success" ? "bg-green-500/10 border border-green-500/20 text-green-400" :
-            type === "error" ? "bg-red-500/10 border border-red-500/20 text-red-400" :
-            "bg-gold/10 border border-gold/20 text-gold"
+            "grid h-10 w-10 shrink-0 place-items-center rounded-xl",
+            type === "success" ? "bg-green-500/10 text-green-400" :
+            type === "error" ? "bg-red-500/10 text-red-400" :
+            "bg-gold/10 text-gold"
           )}>
-            {type === "success" && <CheckCircle2 className="h-7 w-7" />}
-            {type === "error" && <AlertCircle className="h-7 w-7" />}
-            {type === "info" && <Info className="h-7 w-7" />}
+            {type === "success" && <CheckCircle2 className="h-5 w-5" aria-hidden />}
+            {type === "error" && <AlertCircle className="h-5 w-5" aria-hidden />}
+            {type === "info" && <Info className="h-5 w-5" aria-hidden />}
           </div>
-          <div className="flex-1 space-y-1">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Sistema Mercav</p>
-            <p className="text-base font-bold tracking-tight text-white leading-tight">{message}</p>
-          </div>
-          <button 
-            onClick={onClose} 
-            className="rounded-2xl p-2.5 bg-white/5 hover:bg-white/10 transition-all hover:scale-110 active:scale-95"
+          <p className="min-w-0 flex-1 text-[15px] font-medium leading-snug text-[var(--text-primary)]">{message}</p>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar aviso"
+            className="mv-focus grid h-10 w-10 shrink-0 place-items-center rounded-full text-[var(--text-secondary)] transition-colors hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]"
           >
-            <X className="h-5 w-5 opacity-40" />
+            <X className="h-4 w-4" aria-hidden />
           </button>
         </motion.div>
       )}

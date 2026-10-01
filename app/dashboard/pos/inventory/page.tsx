@@ -1,19 +1,18 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import POSHeader from '@/components/pos/POSHeader';
 import { 
-  Package, Plus, Search, Filter, Edit2, Trash2, Loader2, 
+  Package, Plus, Search, Edit2, Trash2, Loader2, 
   Image as ImageIcon, FolderPlus, ToggleLeft, ToggleRight, 
-  CheckCircle2, DollarSign, Check, Leaf, Heart, ShieldCheck,
-  LayoutDashboard
+  CheckCircle2, Check, Leaf, Heart, ShieldCheck, ChevronDown, X, Star
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Toast } from '@/components/ui/toast';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { BUSINESS_TYPES, UNITS, formatQuantity, getBusinessType, getUnit } from '@/lib/pos/business';
 import { formatMoney } from '@/lib/pos/money';
+import { KOSHER_STOCK_CATEGORIES, isLowStock } from '@/lib/pos/stock';
+import { useManagerPin } from '@/components/pos/useManagerPin';
 
 const EMPTY_FORM = {
   name: '',
@@ -32,7 +31,9 @@ const EMPTY_FORM = {
   isKosher: false,
   isHalal: false,
   isVegan: false,
-  isGlutenFree: false
+  isGlutenFree: false,
+  minStock: '',
+  kosherCategory: ''
 };
 
 export default function POSInventoryPage() {
@@ -51,6 +52,10 @@ export default function POSInventoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const [formData, setFormData] = useState(EMPTY_FORM);
+
+  const { pinFetch, pinDialog } = useManagerPin();
+  const [kosher, setKosher] = useState<{ places: { id: string; name: string; city: string }[]; linkedPlaceId: string | null; shabbatLocked: boolean; preview: { category: string; label: string; count: number }[] } | null>(null);
+  const [publishing, setPublishing] = useState(false);
 
   const [catName, setCatName] = useState('');
   const [showCatDropdown, setShowCatDropdown] = useState(false);
@@ -74,6 +79,10 @@ export default function POSInventoryPage() {
       if (pDataJson.success) setProducts(pDataJson.data);
       if (cDataJson.success) setCategories(cDataJson.data);
       if (confDataJson.success) setConfig(confDataJson.data);
+      if (confDataJson.success && confDataJson.data?.kosherPlaceId) {
+        const k = await fetch('/api/pos/kosher').then((r) => r.json()).catch(() => null);
+        if (k?.success) setKosher(k.data);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -85,7 +94,7 @@ export default function POSInventoryPage() {
     setSubmitting(true);
     try {
       for (const name of set) {
-        await fetch('/api/pos/categories', {
+        await pinFetch('/api/pos/categories', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name })
@@ -114,6 +123,19 @@ export default function POSInventoryPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Escape closes the topmost dialog
+  useEffect(() => {
+    if (!showProductModal && !showCategoryModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (showCategoryModal) setShowCategoryModal(false);
+      else if (showCatDropdown) setShowCatDropdown(false);
+      else setShowProductModal(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showProductModal, showCategoryModal, showCatDropdown]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -188,7 +210,9 @@ export default function POSInventoryPage() {
       isKosher: p.isKosher ?? false,
       isHalal: p.isHalal ?? false,
       isVegan: p.isVegan ?? false,
-      isGlutenFree: p.isGlutenFree ?? false
+      isGlutenFree: p.isGlutenFree ?? false,
+      minStock: p.minStock === null || p.minStock === undefined ? '' : Number(p.minStock).toString(),
+      kosherCategory: p.kosherCategory || ''
     });
     setShowProductModal(true);
   };
@@ -200,7 +224,7 @@ export default function POSInventoryPage() {
       const url = editingProductId ? `/api/pos/products/${editingProductId}` : '/api/pos/products';
       const method = editingProductId ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await pinFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -230,13 +254,15 @@ export default function POSInventoryPage() {
     const id = deleteModal.id;
     if (!id) return;
     try {
-      const res = await fetch(`/api/pos/products/${id}`, {
+      const res = await pinFetch(`/api/pos/products/${id}`, {
         method: 'DELETE'
       });
       const data = await res.json();
       if (data.success) {
         setToast({ visible: true, message: data.archived ? 'Tiene ventas registradas: quedó archivado' : 'Producto eliminado', type: 'success' });
         fetchData();
+      } else if (data.error) {
+        setToast({ visible: true, message: data.error, type: 'error' });
       }
     } catch (err) {
       setToast({ visible: true, message: 'Error al eliminar producto', type: 'error' });
@@ -248,7 +274,7 @@ export default function POSInventoryPage() {
     if (!catName) return;
     setSubmitting(true);
     try {
-      const res = await fetch('/api/pos/categories', {
+      const res = await pinFetch('/api/pos/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: catName })
@@ -267,6 +293,23 @@ export default function POSInventoryPage() {
     }
   };
 
+  const handlePublishKosher = async () => {
+    setPublishing(true);
+    try {
+      const res = await pinFetch('/api/pos/kosher', { method: 'POST' });
+      const data = await res.json().catch(() => null);
+      if (data?.success) {
+        setToast({ visible: true, message: `Publicado en ${data.data.placeName}: ${data.data.reports.map((r: { label: string }) => r.label).join(', ')}`, type: 'success' });
+      } else {
+        setToast({ visible: true, message: data?.error || 'No pudimos publicar el stock', type: 'error' });
+      }
+    } catch {
+      setToast({ visible: true, message: 'Sin conexión. Probá de nuevo en un rato.', type: 'error' });
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   const term = searchTerm.trim().toLowerCase();
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(term) ||
@@ -275,497 +318,664 @@ export default function POSInventoryPage() {
     (p.barcode && p.barcode.includes(term))
   );
 
+  const currency = config?.currency;
+  const fieldLabel = 'block text-sm font-semibold text-[var(--text-secondary)]';
+  const hint = 'font-normal text-[var(--text-tertiary)]';
+  const iconBtn = 'mv-focus grid h-11 w-11 place-items-center rounded-xl border border-[var(--mv-hairline-strong)] text-[var(--text-secondary)] transition-colors duration-150';
+  const plainBtn = 'mv-btn border border-[var(--mv-hairline-strong)] text-[var(--text-primary)] hover:border-[var(--color-border-gold)]';
+  const dietBadges = (p: any) => (
+    <span className="flex gap-1">
+      {p.isKosher && <span title="Kosher" className="mv-chip h-6 px-2">Kosher</span>}
+      {p.isHalal && <span title="Halal" className="mv-chip h-6 px-2">Halal</span>}
+      {p.isVegan && <span title="Vegano" className="mv-chip h-6 px-2"><Leaf size={11} aria-hidden />Vegano</span>}
+      {p.isGlutenFree && <span title="Sin TACC" className="mv-chip h-6 px-2">Sin TACC</span>}
+    </span>
+  );
+  const stockCell = (p: any) => {
+    if (!p.trackStock) return <span className="text-sm text-[var(--text-secondary)]">Sin control</span>;
+    const out = Number(p.stock) <= 0;
+    const low = isLowStock(p);
+    return (
+      <span className={`mv-data text-sm font-semibold ${out || low ? 'text-red-400' : 'text-[var(--text-primary)]'}`}>
+        {formatQuantity(p.stock, p.unit)}
+        {(out || low) && <span className="ml-1.5 font-sans text-xs font-medium">{out ? 'Agotado' : 'Stock bajo'}</span>}
+      </span>
+    );
+  };
+  const codes = (p: any) => [p.sku && `SKU ${p.sku}`, p.barcode].filter(Boolean).join(' · ');
+
   return (
-    <div className="min-h-screen bg-bg-primary text-white">
+    <div className="min-h-screen bg-bg-primary text-[var(--text-primary)]">
       <POSHeader />
 
-      <main className="container mx-auto px-4 py-12 max-w-7xl">
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-widest mb-4">
-              <Package className="w-3 h-3" /> Control de Stock
-            </div>
-            <h1 className="text-4xl md:text-5xl font-display font-bold">Inventario</h1>
+      <main className="mx-auto max-w-6xl px-4 pt-8 pb-[calc(3rem+env(safe-area-inset-bottom,0px))] sm:px-6 md:pt-12">
+        <header className="mb-6 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div className="space-y-3">
+            <p className="mv-kicker">Inventario</p>
+            <h1 className="mv-h2">Productos y stock</h1>
+            {!loading && (
+              <p className="mv-body">
+                <span className="mv-data text-[var(--text-primary)]">{products.length}</span> {products.length === 1 ? 'producto' : 'productos'} en{' '}
+                <span className="mv-data text-[var(--text-primary)]">{categories.length}</span> {categories.length === 1 ? 'categoría' : 'categorías'}.
+              </p>
+            )}
           </div>
 
-          <div className="flex flex-col sm:flex-row flex-wrap gap-4 w-full sm:w-auto">
-            <Link
-              href="/dashboard/pos"
-              className="w-full sm:w-auto h-14 px-6 bg-white/5 border border-white/5 text-white font-black uppercase tracking-widest text-[10px] rounded-2xl flex items-center justify-center gap-3 hover:bg-white/10 transition-all"
-            >
-              <LayoutDashboard size={16} className="text-gold" />
-              Volver al POS
-            </Link>
-            <button
-              onClick={() => setShowCategoryModal(true)}
-              className="w-full sm:w-auto h-14 px-6 bg-bg-secondary border border-white/5 text-white font-black uppercase tracking-widest text-[10px] rounded-2xl flex items-center justify-center gap-3 hover:border-gold/30 transition-all"
-            >
-              <FolderPlus size={16} className="text-gold" />
-              Nueva Categoría
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button type="button" onClick={() => setShowCategoryModal(true)} className={`${plainBtn} w-full sm:w-auto`}>
+              <FolderPlus size={18} className="text-gold" aria-hidden />
+              Categorías
             </button>
-            <button
-              onClick={handleOpenCreateModal}
-              className="w-full sm:w-auto h-14 px-8 bg-gold hover:bg-gold-light text-primary-foreground font-black uppercase tracking-widest text-[10px] rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-gold/20"
-            >
-              <Plus size={18} />
-              Agregar Producto
+            <button type="button" onClick={handleOpenCreateModal} className="mv-btn mv-btn-primary w-full sm:w-auto">
+              <Plus size={18} aria-hidden />
+              Agregar producto
             </button>
           </div>
         </header>
 
+        {!loading && kosher?.linkedPlaceId && (
+          <section aria-labelledby="kosher-publish-title" className="mv-panel mb-4 flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+            <div className="min-w-0">
+              <h2 id="kosher-publish-title" className="text-base font-semibold text-[var(--text-primary)]">
+                Mercav Kosher · {kosher.places.find((pl) => pl.id === kosher.linkedPlaceId)?.name ?? 'lugar vinculado'}
+              </h2>
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                {kosher.preview.length
+                  ? <>Se publica qué hay disponible: {kosher.preview.map((c) => `${c.label} (${c.count})`).join(', ')}.</>
+                  : 'Asigná una categoría Kosher a tus productos con stock para poder publicarlos.'}
+                {' '}Es un aviso de disponibilidad: Mercav no emite hechsher ni certifica productos.
+              </p>
+              {kosher.shabbatLocked && <p className="mt-1 text-sm font-medium text-gold">Tu modo Shabat está activo: podés publicar después de Havdalá.</p>}
+            </div>
+            <button
+              type="button"
+              onClick={handlePublishKosher}
+              disabled={publishing || kosher.shabbatLocked || kosher.preview.length === 0}
+              className="mv-btn mv-btn-sm w-full shrink-0 border border-[var(--mv-hairline-strong)] text-[var(--text-primary)] sm:w-auto"
+            >
+              {publishing ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <Star size={16} className="text-gold" aria-hidden />}
+              {publishing ? 'Publicando…' : 'Publicar stock en Mercav Kosher'}
+            </button>
+          </section>
+        )}
+
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-10 h-10 text-gold animate-spin mb-4" />
-            <p className="text-gray-500 font-black uppercase tracking-[0.3em] text-[10px]">Cargando inventario...</p>
+          <div className="flex flex-col items-center justify-center gap-3 py-24" role="status">
+            <Loader2 className="w-8 h-8 text-gold animate-spin" aria-hidden />
+            <p className="text-sm font-medium text-[var(--text-secondary)]">Cargando inventario…</p>
           </div>
         ) : (
-          <div className="bg-bg-secondary border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl">
-            <div className="p-8 border-b border-white/5 bg-white/5 flex flex-col md:flex-row gap-6 justify-between items-center">
-               <div className="relative flex-1 w-full max-w-md">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+          <div className="mv-panel overflow-hidden">
+            <div className="flex flex-col gap-3 border-b border-[var(--mv-hairline)] p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+              <div className="relative w-full sm:max-w-md">
+                <label htmlFor="inventory-search" className="sr-only">Buscar en el inventario</label>
+                <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" size={18} aria-hidden />
                 <input
-                  type="text"
+                  id="inventory-search"
+                  type="search"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Buscar por nombre, SKU o código de barras"
-                  className="w-full h-12 bg-bg-primary border border-white/5 rounded-xl pl-12 pr-4 text-white outline-none focus:border-gold/30 transition-all"
+                  autoComplete="off"
+                  className="mv-input pl-11"
                 />
               </div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mt-4 md:mt-0">
-                Total: <span className="text-white">{filteredProducts.length} productos</span> en <span className="text-white">{categories.length} categorías</span>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-white/5">
-                    <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Producto</th>
-                    {business.dietary && <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500 hidden sm:table-cell">Dietarios</th>}
-                    <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500 hidden sm:table-cell">Categoría</th>
-                    <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500 hidden sm:table-cell">Costo</th>
-                    <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Precio</th>
-                    <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Stock</th>
-                    <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500 text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {filteredProducts.map((p) => (
-                    <tr key={p.id} className="hover:bg-white/5 transition-colors group" style={{ opacity: p.isActive ? 1 : 0.5 }}>
-                      <td className="p-4 md:p-6">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-bg-primary border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                            {p.imageUrl ? <img src={p.imageUrl} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-700"><Package size={20}/></div>}
-                          </div>
-                          <div>
-                            <p className="font-bold text-white group-hover:text-gold transition-colors">{p.name}</p>
-                            <p className="text-[10px] text-gray-500 uppercase font-black tracking-tighter line-clamp-1">
-                              {[p.sku && `SKU ${p.sku}`, p.barcode, !p.isActive && 'Archivado'].filter(Boolean).join(' · ') || p.description || 'Sin descripción'}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      {business.dietary && <td className="p-4 md:p-6 hidden sm:table-cell">
-                        <div className="flex gap-1.5">
-                          {p.isKosher && <div title="Kosher" className="w-6 h-6 rounded-md bg-blue-500/10 text-blue-400 flex items-center justify-center text-[8px] font-black border border-blue-500/20">K</div>}
-                          {p.isHalal && <div title="Halal" className="w-6 h-6 rounded-md bg-green-500/10 text-green-400 flex items-center justify-center text-[8px] font-black border border-green-500/20">H</div>}
-                          {p.isVegan && <div title="Vegano" className="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20"><Leaf size={12} /></div>}
-                          {p.isGlutenFree && <div title="Sin TACC" className="w-6 h-6 rounded-md bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20"><ShieldCheck size={12} /></div>}
-                        </div>
-                      </td>}
-                      <td className="p-4 md:p-6 hidden sm:table-cell">
-                        <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-400">
-                          {p.category?.name || 'General'}
-                        </span>
-                      </td>
-                      <td className="p-4 md:p-6 hidden sm:table-cell">
-                        <span className="font-mono font-bold text-gray-400">{formatMoney(p.costPrice, config?.currency)}</span>
-                      </td>
-                      <td className="p-4 md:p-6">
-                        <span className="font-mono font-bold text-gold">{formatMoney(p.price, config?.currency)}</span>
-                        {p.unit && p.unit !== 'UNIT' && <span className="text-[10px] text-gray-500"> / {getUnit(p.unit).short}</span>}
-                      </td>
-                      <td className="p-4 md:p-6">
-                        {p.trackStock
-                          ? <span className={`font-bold ${Number(p.stock) < 10 ? 'text-red-500' : 'text-white'}`}>{formatQuantity(p.stock, p.unit)}</span>
-                          : <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Sin control</span>}
-                      </td>
-                      <td className="p-4 md:p-6 text-right">
-                        <div className="flex justify-end gap-2">
-                           <button 
-                             onClick={() => handleOpenEditModal(p)}
-                             className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-gray-400 hover:text-gold hover:border-gold/30 transition-all"
-                           >
-                            <Edit2 size={16} />
-                          </button>
-                           <button 
-                             onClick={() => handleDeleteClick(p.id)}
-                             className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500/30 transition-all"
-                           >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {filteredProducts.length === 0 && (
-                <div className="p-20 text-center text-gray-700 opacity-30">
-                  <Package size={80} className="mx-auto mb-4" strokeWidth={1} />
-                  <p className="font-black uppercase tracking-widest text-xs">No hay productos registrados</p>
-                </div>
+              {term && (
+                <p className="text-sm text-[var(--text-secondary)]" aria-live="polite">
+                  <span className="mv-data text-[var(--text-primary)]">{filteredProducts.length}</span> {filteredProducts.length === 1 ? 'resultado' : 'resultados'}
+                </p>
               )}
             </div>
+
+            {filteredProducts.length > 0 && (
+              <>
+                {/* Tablet and desktop: table */}
+                <div className="hidden overflow-x-auto md:block">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-[var(--mv-hairline)] text-xs font-semibold text-[var(--text-secondary)]">
+                        <th scope="col" className="px-4 py-3 font-semibold">Producto</th>
+                        {business.dietary && <th scope="col" className="hidden px-4 py-3 font-semibold lg:table-cell">Dietarios</th>}
+                        <th scope="col" className="hidden px-4 py-3 font-semibold lg:table-cell">Categoría</th>
+                        <th scope="col" className="px-4 py-3 text-right font-semibold">Costo</th>
+                        <th scope="col" className="px-4 py-3 text-right font-semibold">Precio</th>
+                        <th scope="col" className="px-4 py-3 text-right font-semibold">Stock</th>
+                        <th scope="col" className="px-4 py-3 text-right font-semibold"><span className="sr-only">Acciones</span></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--mv-hairline)]">
+                      {filteredProducts.map((p) => (
+                        <tr key={p.id} className={`transition-colors duration-150 hover:bg-[var(--mv-panel-hover)] ${p.isActive ? '' : 'opacity-60'}`}>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-[var(--color-bg-tertiary)] text-[var(--text-tertiary)]">
+                                {p.imageUrl ? <img src={p.imageUrl} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <Package size={18} aria-hidden />}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+                                  <span className="truncate">{p.name}</span>
+                                  {!p.isActive && <span className="mv-chip h-6 shrink-0 px-2">Archivado</span>}
+                                </p>
+                                <p className="mv-data line-clamp-1 text-xs text-[var(--text-secondary)]">
+                                  {codes(p) || <span className="font-sans">{p.description || 'Sin código'}</span>}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          {business.dietary && <td className="hidden px-4 py-3 lg:table-cell">{dietBadges(p)}</td>}
+                          <td className="hidden px-4 py-3 text-sm text-[var(--text-secondary)] lg:table-cell">{p.category?.name || 'General'}</td>
+                          <td className="mv-data px-4 py-3 text-right text-sm text-[var(--text-secondary)]">{formatMoney(p.costPrice, currency)}</td>
+                          <td className="px-4 py-3 text-right">
+                            <span className="mv-data text-sm font-semibold text-[var(--text-primary)]">{formatMoney(p.price, currency)}</span>
+                            {p.unit && p.unit !== 'UNIT' && <span className="text-xs text-[var(--text-secondary)]"> / {getUnit(p.unit).short}</span>}
+                          </td>
+                          <td className="px-4 py-3 text-right">{stockCell(p)}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex justify-end gap-1.5">
+                              <button type="button" onClick={() => handleOpenEditModal(p)} aria-label={`Editar ${p.name}`} className={`${iconBtn} hover:border-[var(--color-border-gold)] hover:text-gold`}>
+                                <Edit2 size={16} aria-hidden />
+                              </button>
+                              <button type="button" onClick={() => handleDeleteClick(p.id)} aria-label={`Eliminar ${p.name}`} className={`${iconBtn} hover:border-red-500/30 hover:text-red-400`}>
+                                <Trash2 size={16} aria-hidden />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Phone: cards */}
+                <ul className="divide-y divide-[var(--mv-hairline)] md:hidden">
+                  {filteredProducts.map((p) => (
+                    <li key={p.id} className={`p-3 ${p.isActive ? '' : 'opacity-60'}`}>
+                      <div className="flex gap-3">
+                        <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-[var(--color-bg-tertiary)] text-[var(--text-tertiary)]">
+                          {p.imageUrl ? <img src={p.imageUrl} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <Package size={20} aria-hidden />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold leading-snug text-[var(--text-primary)]">{p.name}</p>
+                          <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
+                            {p.category?.name || 'General'}
+                            {codes(p) && <span className="mv-data"> · {codes(p)}</span>}
+                          </p>
+                          {(!p.isActive || (business.dietary && (p.isKosher || p.isHalal || p.isVegan || p.isGlutenFree))) && (
+                            <div className="mt-1.5 flex flex-wrap gap-1">
+                              {!p.isActive && <span className="mv-chip h-6 px-2">Archivado</span>}
+                              {business.dietary && dietBadges(p)}
+                            </div>
+                          )}
+                        </div>
+                        <div className="-mr-1 flex shrink-0 flex-col gap-1.5 min-[380px]:flex-row">
+                          <button type="button" onClick={() => handleOpenEditModal(p)} aria-label={`Editar ${p.name}`} className={iconBtn}>
+                            <Edit2 size={16} aria-hidden />
+                          </button>
+                          <button type="button" onClick={() => handleDeleteClick(p.id)} aria-label={`Eliminar ${p.name}`} className={`${iconBtn} hover:text-red-400`}>
+                            <Trash2 size={16} aria-hidden />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="mt-3 rounded-xl bg-[var(--mv-panel)] px-3 py-2">
+                        <dl className="grid min-w-0 grid-cols-3 gap-x-3">
+                          <div className="min-w-0">
+                            <dt className="text-xs text-[var(--text-secondary)]">Precio</dt>
+                            <dd className="mv-data truncate text-sm font-semibold text-[var(--text-primary)]">{formatMoney(p.price, currency)}</dd>
+                          </div>
+                          <div className="min-w-0">
+                            <dt className="text-xs text-[var(--text-secondary)]">Costo</dt>
+                            <dd className="mv-data truncate text-sm text-[var(--text-secondary)]">{formatMoney(p.costPrice, currency)}</dd>
+                          </div>
+                          <div className="min-w-0">
+                            <dt className="text-xs text-[var(--text-secondary)]">Stock</dt>
+                            <dd>{stockCell(p)}</dd>
+                          </div>
+                        </dl>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {filteredProducts.length === 0 && (
+              <div className="flex flex-col items-center px-6 py-16 text-center" role="status">
+                <span className="grid h-14 w-14 place-items-center rounded-2xl bg-[var(--mv-panel)] text-[var(--text-tertiary)] ring-1 ring-inset ring-[color:var(--mv-hairline-strong)]">
+                  <Package size={26} strokeWidth={1.5} aria-hidden />
+                </span>
+                {products.length === 0 ? (
+                  <>
+                    <p className="mt-4 text-base font-semibold text-[var(--text-primary)]">Todavía no cargaste productos</p>
+                    <p className="mt-1 max-w-sm text-sm text-[var(--text-secondary)]">Agregá tu primer producto o servicio. Si querés, empezá creando las categorías sugeridas para tu rubro.</p>
+                    <div className="mt-5 flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                      <button type="button" onClick={handleOpenCreateModal} className="mv-btn mv-btn-primary mv-btn-sm">
+                        <Plus size={16} aria-hidden /> Agregar producto
+                      </button>
+                      <button type="button" onClick={() => setShowCategoryModal(true)} className={`${plainBtn} mv-btn-sm`}>
+                        Crear categorías
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="mt-4 text-base font-semibold text-[var(--text-primary)]">Nada coincide con <span className="mv-data">“{searchTerm.trim()}”</span></p>
+                    <p className="mt-1 max-w-sm text-sm text-[var(--text-secondary)]">Revisá el nombre o probá con el SKU o el código de barras.</p>
+                    <button type="button" onClick={() => setSearchTerm('')} className={`${plainBtn} mv-btn-sm mt-5`}>
+                      Limpiar búsqueda
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
       </main>
 
       {/* Product Modal */}
-      <AnimatePresence>
-        {showProductModal && (
-          <div className="fixed inset-0 z-[400] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setShowProductModal(false)} />
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              className="relative w-full max-w-3xl bg-bg-secondary border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
-            >
-              <form onSubmit={handleFormSubmit} className="p-6 md:p-10 space-y-8 overflow-y-auto custom-scrollbar pr-8">
-                <header className="flex justify-between items-center">
-                  <div>
-                    <h2 className="text-2xl md:text-3xl font-bold">{editingProductId ? 'Editar Producto' : 'Nuevo Producto'}</h2>
-                    <p className="text-xs md:text-sm text-gray-500 mt-1">Registra los detalles del artículo de tu catálogo.</p>
-                  </div>
-                  <button type="button" onClick={() => setShowProductModal(false)} className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/5 flex items-center justify-center text-gray-500 hover:text-white transition-colors">✕</button>
-                </header>
+      {showProductModal && (
+        <div className="fixed inset-0 z-[400] flex items-end justify-center p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
+          <div className="mv-fade absolute inset-0 bg-black/50" onClick={() => setShowProductModal(false)} aria-hidden />
+          <div className="mv-pop mv-menu relative flex max-h-[calc(100dvh-1.5rem)] w-full max-w-3xl flex-col overflow-hidden rounded-[1.75rem]">
+            <form onSubmit={handleFormSubmit} className="custom-scrollbar space-y-6 overflow-y-auto p-5 sm:p-8">
+              <header className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 id="product-modal-title" className="mv-h3">{editingProductId ? 'Editar producto' : 'Nuevo producto'}</h2>
+                  <p className="mt-1 text-sm text-[var(--text-secondary)]">Lo que cargues acá aparece en la caja y en el ticket.</p>
+                </div>
+                <button type="button" onClick={() => setShowProductModal(false)} aria-label="Cerrar" className="mv-focus grid h-11 w-11 shrink-0 place-items-center rounded-full text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
+                  <X size={20} aria-hidden />
+                </button>
+              </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Nombre del Producto</label>
-                    <input
-                      required
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all"
-                    />
-                  </div>
-                  <div className="space-y-2 relative">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Categoría</label>
-                    <button
-                      type="button"
-                      onClick={() => setShowCatDropdown(!showCatDropdown)}
-                      className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white flex items-center justify-between outline-none hover:border-white/20 transition-all"
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label htmlFor="p-name" className={fieldLabel}>Nombre</label>
+                  <input
+                    id="p-name"
+                    required
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    autoComplete="off"
+                    className="mv-input"
+                  />
+                </div>
+                <div className="relative space-y-2">
+                  <span id="p-category-label" className={fieldLabel}>Categoría</span>
+                  <button
+                    type="button"
+                    aria-labelledby="p-category-label p-category-value"
+                    aria-haspopup="listbox"
+                    aria-expanded={showCatDropdown}
+                    onClick={() => setShowCatDropdown(!showCatDropdown)}
+                    className="mv-input mv-focus flex items-center justify-between gap-3 text-left"
+                  >
+                    <span id="p-category-value" className={`truncate ${formData.categoryId ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'}`}>
+                      {categories.find(c => c.id === formData.categoryId)?.name || 'Sin categoría'}
+                    </span>
+                    <ChevronDown size={16} className={`shrink-0 text-[var(--text-secondary)] transition-transform duration-200 ${showCatDropdown ? 'rotate-180' : ''}`} aria-hidden />
+                  </button>
+                  
+                  {showCatDropdown && (
+                    <div
+                      className="mv-pop absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-[var(--mv-hairline-strong)] bg-[var(--color-bg-secondary)] shadow-2xl"
+                      style={{ transformOrigin: 'top center' }}
+                      onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); setShowCatDropdown(false); } }}
                     >
-                      <span className={formData.categoryId ? 'text-white' : 'text-gray-500 font-bold'}>
-                        {categories.find(c => c.id === formData.categoryId)?.name || 'Seleccionar Categoría'}
-                      </span>
-                      <Filter size={16} className={showCatDropdown ? 'text-gold rotate-180' : 'text-gray-500'} />
-                    </button>
-                    
-                    <AnimatePresence>
-                      {showCatDropdown && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          className="absolute left-0 right-0 top-full mt-2 bg-bg-secondary border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden"
-                        >
-                          <div className="max-h-60 overflow-y-auto custom-scrollbar p-2">
-                            <button
-                              type="button"
-                              onClick={() => { setFormData({ ...formData, categoryId: '' }); setShowCatDropdown(false); }}
-                              className="w-full px-4 py-3 text-left hover:bg-white/5 rounded-xl text-xs font-bold text-gray-400 transition-colors"
-                            >
-                              Sin Categoría
-                            </button>
-                            {categories.map(c => (
-                              <button
-                                key={c.id}
-                                type="button"
-                                onClick={() => { setFormData({ ...formData, categoryId: c.id }); setShowCatDropdown(false); }}
-                                className={`w-full px-4 py-3 text-left rounded-xl text-xs font-bold transition-all ${formData.categoryId === c.id ? 'bg-gold text-black' : 'text-white hover:bg-white/5'}`}
-                              >
-                                {c.name}
-                              </button>
-                            ))}
-                          </div>
+                      <ul className="custom-scrollbar max-h-60 overflow-y-auto p-1.5" role="listbox" aria-labelledby="p-category-label">
+                        <li role="option" aria-selected={!formData.categoryId}>
                           <button
                             type="button"
-                            onClick={() => { setShowCategoryModal(true); setShowCatDropdown(false); }}
-                            className="w-full p-4 bg-bg-tertiary text-[10px] font-black text-gold uppercase tracking-widest border-t border-white/5 flex items-center justify-center gap-2 hover:bg-gold hover:text-primary-foreground transition-all"
+                            onClick={() => { setFormData({ ...formData, categoryId: '' }); setShowCatDropdown(false); }}
+                            className="mv-focus flex min-h-11 w-full items-center rounded-xl px-3 text-left text-sm text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)]"
                           >
-                            <Plus size={14} /> Nueva Categoría
+                            Sin categoría
                           </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Precio de Venta ({config?.currency || 'USD'}{formUnit.id !== 'UNIT' ? ` por ${formUnit.short}` : ''}, {config?.pricesIncludeTax === false ? 'sin' : 'con'} {config?.taxName || 'IVA'})</label>
-                    <div className="relative">
-                      <DollarSign size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gold" />
-                      <input
-                        required
-                        type="number"
-                        step="0.01"
-                        value={formData.price}
-                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                        className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl pl-12 pr-5 text-white outline-none focus:border-gold/30 transition-all font-mono"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Precio de Costo / Compra ({config?.currency || 'USD'})</label>
-                    <div className="relative">
-                      <DollarSign size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-                      <input
-                        required
-                        type="number"
-                        step="0.01"
-                        value={formData.costPrice}
-                        onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
-                        className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl pl-12 pr-5 text-white outline-none focus:border-gold/30 transition-all font-mono"
-                      />
-                    </div>
-                  </div>
-                  {showUnits && (
-                    <div className="space-y-2">
-                      <label htmlFor="unit" className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Se vende por</label>
-                      <select
-                        id="unit"
-                        value={formData.unit}
-                        onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                        className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all"
-                      >
-                        {UNITS.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.short})</option>)}
-                      </select>
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between px-1">
-                      <label htmlFor="stock" className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                        Stock{formUnit.id !== 'UNIT' ? ` (${formUnit.short})` : ''}
-                      </label>
+                        </li>
+                        {categories.map(c => (
+                          <li key={c.id} role="option" aria-selected={formData.categoryId === c.id}>
+                            <button
+                              type="button"
+                              onClick={() => { setFormData({ ...formData, categoryId: c.id }); setShowCatDropdown(false); }}
+                              className={`mv-focus flex min-h-11 w-full items-center justify-between rounded-xl px-3 text-left text-sm font-medium hover:bg-[var(--mv-panel-hover)] ${formData.categoryId === c.id ? 'bg-[var(--mv-gold-wash)] text-gold' : 'text-[var(--text-primary)]'}`}
+                            >
+                              {c.name}
+                              {formData.categoryId === c.id && <Check size={14} aria-hidden />}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
                       <button
                         type="button"
-                        aria-pressed={formData.trackStock}
-                        onClick={() => setFormData({ ...formData, trackStock: !formData.trackStock })}
-                        className={`text-[9px] font-black uppercase tracking-widest ${formData.trackStock ? 'text-gold' : 'text-gray-500'}`}
+                        onClick={() => { setShowCategoryModal(true); setShowCatDropdown(false); }}
+                        className="mv-focus flex h-12 w-full items-center justify-center gap-2 border-t border-[var(--mv-hairline)] text-sm font-semibold text-gold hover:bg-[var(--mv-panel-hover)]"
                       >
-                        {formData.trackStock ? 'Controlar stock' : 'Sin control de stock'}
+                        <Plus size={16} aria-hidden /> Nueva categoría
                       </button>
                     </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="p-price" className={fieldLabel}>
+                    Precio de venta <span className={hint}>{config?.currency || 'USD'}{formUnit.id !== 'UNIT' ? ` por ${formUnit.short}` : ''}, {config?.pricesIncludeTax === false ? 'sin' : 'con'} {config?.taxName || 'IVA'}</span>
+                  </label>
+                  <input
+                    id="p-price"
+                    required
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    className="mv-input mv-data"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="p-cost" className={fieldLabel}>Costo de compra <span className={hint}>{config?.currency || 'USD'}</span></label>
+                  <input
+                    id="p-cost"
+                    required
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    value={formData.costPrice}
+                    onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
+                    className="mv-input mv-data"
+                  />
+                </div>
+                {showUnits && (
+                  <div className="space-y-2">
+                    <label htmlFor="unit" className={fieldLabel}>Se vende por</label>
+                    <select
+                      id="unit"
+                      value={formData.unit}
+                      onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                      className="mv-input"
+                    >
+                      {UNITS.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.short})</option>)}
+                    </select>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <label htmlFor="stock" className={fieldLabel}>
+                      Stock{formUnit.id !== 'UNIT' ? <span className={hint}> ({formUnit.short})</span> : ''}
+                    </label>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={formData.trackStock}
+                      onClick={() => setFormData({ ...formData, trackStock: !formData.trackStock })}
+                      className="mv-focus -my-2 inline-flex h-11 items-center gap-2 rounded-full px-1 text-sm font-medium text-[var(--text-secondary)]"
+                    >
+                      <span className={`relative h-6 w-10 rounded-full transition-colors duration-200 ${formData.trackStock ? 'bg-gold' : 'bg-[var(--mv-hairline-strong)]'}`} aria-hidden>
+                        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-[#fff] shadow transition-transform duration-200 ${formData.trackStock ? 'translate-x-[1.125rem]' : 'translate-x-0.5'}`} />
+                      </span>
+                      Controlar stock
+                    </button>
+                  </div>
+                  <input
+                    id="stock"
+                    required={formData.trackStock}
+                    disabled={!formData.trackStock}
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    step={formUnit.step}
+                    value={formData.trackStock ? formData.stock : ''}
+                    placeholder={formData.trackStock ? '0' : 'Servicio o producto sin inventario'}
+                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                    className="mv-input mv-data disabled:opacity-60 placeholder:font-sans placeholder:text-sm"
+                  />
+                </div>
+                {formData.trackStock && (
+                  <div className="space-y-2">
+                    <label htmlFor="minStock" className={fieldLabel}>Avisar con stock bajo en <span className={hint}>opcional{formUnit.id !== 'UNIT' ? `, en ${formUnit.short}` : ''}</span></label>
                     <input
-                      id="stock"
-                      required={formData.trackStock}
-                      disabled={!formData.trackStock}
+                      id="minStock"
                       type="number"
+                      inputMode="decimal"
                       min={0}
                       step={formUnit.step}
-                      value={formData.trackStock ? formData.stock : ''}
-                      placeholder={formData.trackStock ? '0' : 'Servicio o producto sin inventario'}
-                      onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                      className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all font-mono disabled:opacity-50 placeholder:text-gray-600 placeholder:font-sans placeholder:text-xs"
+                      value={formData.minStock}
+                      onChange={(e) => setFormData({ ...formData, minStock: e.target.value })}
+                      placeholder="Sin aviso"
+                      aria-describedby="minStock-hint"
+                      className="mv-input mv-data placeholder:font-sans placeholder:text-sm"
                     />
+                    <p id="minStock-hint" className="text-xs text-[var(--text-secondary)]">Cuando quede esa cantidad o menos, se marca “Stock bajo” en la caja y en reportes.</p>
                   </div>
+                )}
+                {(config?.kosherPlaceId || business.dietary || formData.kosherCategory) && (
                   <div className="space-y-2">
-                    <label htmlFor="sku" className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">SKU o código interno</label>
-                    <input
-                      id="sku"
-                      type="text"
-                      value={formData.sku}
-                      onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                      placeholder="Opcional"
-                      className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all font-mono"
-                    />
+                    <label htmlFor="kosherCategory" className={fieldLabel}>Categoría en Mercav Kosher <span className={hint}>opcional</span></label>
+                    <select
+                      id="kosherCategory"
+                      value={formData.kosherCategory}
+                      onChange={(e) => setFormData({ ...formData, kosherCategory: e.target.value })}
+                      className="mv-input"
+                    >
+                      <option value="">No publicar</option>
+                      {KOSHER_STOCK_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+                    </select>
                   </div>
-                  <div className="space-y-2">
-                    <label htmlFor="barcode" className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Código de barras</label>
-                    <input
-                      id="barcode"
-                      type="text"
-                      inputMode="numeric"
-                      value={formData.barcode}
-                      onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                      placeholder="Escaneá o escribí el código"
-                      className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all font-mono"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="taxRate" className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">{config?.taxName || 'IVA'} propio (%)</label>
-                    <input
-                      id="taxRate"
-                      type="number"
-                      min={0}
-                      max={100}
-                      step="0.01"
-                      value={formData.taxRate}
-                      onChange={(e) => setFormData({ ...formData, taxRate: e.target.value })}
-                      placeholder={`Usa la tasa general: ${Number(config?.taxRate ?? 0)}%`}
-                      className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl px-5 text-white outline-none focus:border-gold/30 transition-all font-mono placeholder:font-sans placeholder:text-xs placeholder:text-gray-600"
-                    />
-                  </div>
-                  
-                  <div className="md:col-span-2 space-y-4">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Imagen del Producto (Máx 5MB)</label>
-                    <div className="flex gap-4">
-                      <div className="flex-1 relative">
-                        <input
-                          type="text"
-                          value={formData.imageUrl}
-                          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                          placeholder="URL o sube un archivo"
-                          className="w-full h-14 bg-bg-primary border border-white/5 rounded-2xl pl-12 pr-5 text-white outline-none focus:border-gold/30 transition-all text-xs"
-                        />
-                        <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
-                        
-                        <label className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-4 bg-white/5 hover:bg-white/10 text-white rounded-xl flex items-center justify-center cursor-pointer transition-all border border-white/5 text-[8px] font-black uppercase tracking-widest">
-                          {uploading ? <Loader2 size={14} className="animate-spin" /> : 'Subir'}
-                          <input type="file" className="hidden" accept="image/jpeg,image/png" onChange={handleFileUpload} disabled={uploading} />
-                        </label>
+                )}
+                <div className="space-y-2">
+                  <label htmlFor="sku" className={fieldLabel}>SKU o código interno <span className={hint}>opcional</span></label>
+                  <input
+                    id="sku"
+                    type="text"
+                    value={formData.sku}
+                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                    autoComplete="off"
+                    className="mv-input mv-data"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="barcode" className={fieldLabel}>Código de barras <span className={hint}>opcional</span></label>
+                  <input
+                    id="barcode"
+                    type="text"
+                    inputMode="numeric"
+                    value={formData.barcode}
+                    onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                    placeholder="Escaneá o escribí el código"
+                    autoComplete="off"
+                    className="mv-input mv-data placeholder:font-sans"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="taxRate" className={fieldLabel}>{config?.taxName || 'IVA'} propio (%) <span className={hint}>opcional</span></label>
+                  <input
+                    id="taxRate"
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={100}
+                    step="0.01"
+                    value={formData.taxRate}
+                    onChange={(e) => setFormData({ ...formData, taxRate: e.target.value })}
+                    placeholder={`Usa la tasa general: ${Number(config?.taxRate ?? 0)}%`}
+                    className="mv-input mv-data placeholder:font-sans placeholder:text-sm"
+                  />
+                </div>
+                
+                <div className="space-y-2 md:col-span-2">
+                  <label htmlFor="p-image" className={fieldLabel}>Imagen <span className={hint}>JPG o PNG, hasta 5 MB</span></label>
+                  <div className="flex gap-2">
+                    <div className="relative min-w-0 flex-1">
+                      <ImageIcon className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" size={18} aria-hidden />
+                      <input
+                        id="p-image"
+                        type="text"
+                        inputMode="url"
+                        value={formData.imageUrl}
+                        onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                        placeholder="Pegá una URL o subí un archivo"
+                        className="mv-input pl-11 pr-24 text-sm"
+                      />
+                      <label className="absolute right-1.5 top-1/2 inline-flex h-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-[0.625rem] border border-[var(--mv-hairline-strong)] px-3 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:border-[var(--color-border-gold)] focus-within:ring-2 focus-within:ring-[color:var(--color-gold)]">
+                        {uploading ? <Loader2 size={14} className="animate-spin" aria-label="Subiendo imagen" /> : 'Subir'}
+                        <input type="file" className="sr-only" accept="image/jpeg,image/png" onChange={handleFileUpload} disabled={uploading} aria-label="Subir imagen desde un archivo" />
+                      </label>
+                    </div>
+                    {formData.imageUrl && (
+                      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-[0.875rem] border border-[var(--mv-hairline-strong)]">
+                        <img src={formData.imageUrl} alt="Vista previa de la imagen" className="h-full w-full object-cover" />
                       </div>
-                      {formData.imageUrl && (
-                        <div className="w-14 h-14 rounded-2xl border border-white/10 overflow-hidden flex-shrink-0">
-                          <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {showDietary && <div className="md:col-span-2 space-y-4">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Certificaciones y Dieta</label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {[
-                        { id: 'isKosher', label: 'Kosher', icon: ShieldCheck, color: 'text-blue-400' },
-                        { id: 'isHalal', label: 'Halal', icon: Heart, color: 'text-green-400' },
-                        { id: 'isVegan', label: 'Vegano', icon: Leaf, color: 'text-emerald-400' },
-                        { id: 'isGlutenFree', label: 'Sin TACC', icon: Check, color: 'text-amber-400' },
-                      ].map((diet) => (
-                        <button
-                          key={diet.id}
-                          type="button"
-                          onClick={() => toggleDiet(diet.id)}
-                          className={`h-14 rounded-2xl border flex items-center gap-3 px-4 transition-all ${formData[diet.id as keyof typeof formData] ? 'bg-white/10 border-white/20' : 'bg-transparent border-white/5 opacity-40 hover:opacity-100'}`}
-                        >
-                          <diet.icon size={16} className={formData[diet.id as keyof typeof formData] ? diet.color : 'text-gray-500'} />
-                          <span className="text-[10px] font-black uppercase tracking-widest">{diet.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>}
-
-                  <div className="md:col-span-2 space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Descripción</label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="w-full h-24 bg-bg-primary border border-white/5 rounded-2xl p-5 text-white outline-none focus:border-gold/30 transition-all resize-none"
-                    />
+                    )}
                   </div>
                 </div>
 
-                <div className="flex gap-4">
-                   <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
-                    className={`flex-1 h-16 rounded-2xl border flex items-center justify-center gap-3 transition-all font-black uppercase tracking-widest text-[10px] ${formData.isActive ? 'bg-green-500/10 border-green-500/30 text-green-500' : 'bg-gray-500/10 border-white/5 text-gray-500'}`}
-                  >
-                    {formData.isActive ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
-                    {formData.isActive ? 'Producto Activo' : 'Inactivo'}
-                  </button>
+                {showDietary && (
+                  <fieldset className="space-y-2 md:col-span-2">
+                    <legend className={`${fieldLabel} mb-2`}>Etiquetas dietarias</legend>
+                    <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                      {[
+                        { id: 'isKosher', label: 'Kosher', icon: ShieldCheck },
+                        { id: 'isHalal', label: 'Halal', icon: Heart },
+                        { id: 'isVegan', label: 'Vegano', icon: Leaf },
+                        { id: 'isGlutenFree', label: 'Sin TACC', icon: Check },
+                      ].map((diet) => {
+                        const on = Boolean(formData[diet.id as keyof typeof formData]);
+                        return (
+                          <button
+                            key={diet.id}
+                            type="button"
+                            aria-pressed={on}
+                            onClick={() => toggleDiet(diet.id)}
+                            className={`mv-focus flex h-12 items-center gap-2 rounded-[0.875rem] border px-3 text-sm font-semibold transition-colors duration-150 ${on ? 'border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold' : 'border-[var(--mv-hairline-strong)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                          >
+                            <diet.icon size={16} aria-hidden />
+                            {diet.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-xs text-[var(--text-secondary)]">Marcá solo lo que respalda la certificación del producto. Mercav no certifica ni emite hechsher.</p>
+                  </fieldset>
+                )}
+
+                <div className="space-y-2 md:col-span-2">
+                  <label htmlFor="p-description" className={fieldLabel}>Descripción <span className={hint}>opcional</span></label>
+                  <textarea
+                    id="p-description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="mv-input h-24 resize-none py-3"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col-reverse gap-2 border-t border-[var(--mv-hairline)] pt-5 sm:flex-row sm:items-center sm:justify-between">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={formData.isActive}
+                  onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
+                  className="mv-focus inline-flex h-12 items-center gap-3 rounded-full px-2 text-sm font-semibold text-[var(--text-primary)]"
+                >
+                  {formData.isActive ? <ToggleRight size={26} className="text-green-400" aria-hidden /> : <ToggleLeft size={26} className="text-[var(--text-tertiary)]" aria-hidden />}
+                  {formData.isActive ? 'Visible en la caja' : 'Oculto en la caja'}
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting || uploading}
+                  className="mv-btn mv-btn-primary mv-btn-lg w-full sm:w-auto"
+                >
+                  {submitting ? <Loader2 className="animate-spin w-4 h-4" aria-hidden /> : <CheckCircle2 size={18} aria-hidden />}
+                  {editingProductId ? 'Guardar cambios' : 'Crear producto'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Category Modal */}
+      {showCategoryModal && (
+        <div className="fixed inset-0 z-[500] flex items-end justify-center p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="category-modal-title">
+          <div className="mv-fade absolute inset-0 bg-black/50" onClick={() => setShowCategoryModal(false)} aria-hidden />
+          <div className="mv-pop mv-menu custom-scrollbar relative max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-y-auto rounded-[1.75rem] p-5 sm:p-8">
+            <header className="flex items-start justify-between gap-3">
+              <div>
+                <h2 id="category-modal-title" className="mv-h3">Categorías</h2>
+                <p className="mt-1 text-sm text-[var(--text-secondary)]">Creá las tuyas o sumá las sugeridas para un rubro.</p>
+              </div>
+              <button type="button" onClick={() => setShowCategoryModal(false)} aria-label="Cerrar" className="mv-focus grid h-11 w-11 shrink-0 place-items-center rounded-full text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
+                <X size={20} aria-hidden />
+              </button>
+            </header>
+            
+            <div className="mt-6 space-y-6">
+              <form onSubmit={handleCreateCategory} className="space-y-2">
+                <label htmlFor="cat-name" className={fieldLabel}>Nueva categoría</label>
+                <div className="flex gap-2">
+                  <input
+                    id="cat-name"
+                    autoFocus
+                    type="text"
+                    value={catName}
+                    onChange={(e) => setCatName(e.target.value)}
+                    placeholder={`Ej: ${business.categoryPresets.slice(0, 2).join(', ') || 'Destacados'}`}
+                    autoComplete="off"
+                    className="mv-input min-w-0 flex-1"
+                  />
                   <button
-                    disabled={submitting || uploading}
-                    className="flex-[2] h-16 bg-gold hover:bg-gold-light text-primary-foreground font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl shadow-xl shadow-gold/20 flex items-center justify-center gap-3 transition-all disabled:opacity-50"
+                    type="submit"
+                    disabled={!catName || submitting}
+                    aria-label="Crear categoría"
+                    className="mv-btn mv-btn-primary shrink-0 px-4"
                   >
-                    {submitting ? <Loader2 className="animate-spin w-4 h-4" /> : <Plus size={18} />}
-                    {editingProductId ? 'Guardar Cambios' : 'Registrar Producto'}
+                    {submitting ? <Loader2 className="animate-spin w-5 h-5" aria-hidden /> : <Plus size={20} aria-hidden />}
+                    <span className="hidden sm:inline">Crear</span>
                   </button>
                 </div>
               </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
-      {/* Category Modal */}
-      <AnimatePresence>
-        {showCategoryModal && (
-          <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
-             <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" onClick={() => setShowCategoryModal(false)} />
-             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="relative w-full max-w-xl bg-bg-secondary border border-white/10 rounded-[3rem] shadow-2xl p-10 overflow-hidden"
-            >
-              <header className="mb-10">
-                <h2 className="text-3xl font-bold mb-2 text-white">Gestión de Categorías</h2>
-                <p className="text-sm text-gray-500">Añade categorías personalizadas o usa nuestros ajustes preestablecidos.</p>
-              </header>
-              
-              <div className="space-y-10">
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Nueva Categoría Manual</label>
-                  <div className="flex gap-4">
-                    <input
-                      autoFocus
-                      type="text"
-                      value={catName}
-                      onChange={(e) => setCatName(e.target.value)}
-                      placeholder="Ej: Bebidas, Postres..."
-                      className="flex-1 h-16 bg-bg-primary border border-white/5 rounded-2xl px-6 text-white outline-none focus:border-gold/30 transition-all font-bold"
-                    />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className={fieldLabel} id="presets-label">Sugeridas por rubro</p>
+                  {submitting && <Loader2 className="w-4 h-4 animate-spin text-gold" aria-label="Creando categorías" />}
+                </div>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2" role="group" aria-labelledby="presets-label">
+                  {presets.map((preset) => (
                     <button
-                      onClick={handleCreateCategory}
-                      disabled={!catName || submitting}
-                      className="w-16 h-16 bg-gold text-primary-foreground rounded-2xl flex items-center justify-center hover:bg-gold-light transition-all disabled:opacity-50"
+                      key={preset.id}
+                      type="button"
+                      onClick={() => handleAddPreset(preset.categoryPresets.filter((n) => !categories.some((c) => c.name === n)))}
+                      disabled={submitting}
+                      className={`mv-focus rounded-2xl border p-4 text-left transition-colors duration-150 disabled:opacity-50 ${preset.id === business.id ? 'border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)]' : 'border-[var(--mv-hairline-strong)] hover:border-[var(--color-border-gold)]'}`}
                     >
-                      {submitting ? <Loader2 className="animate-spin w-6 h-6" /> : <Plus size={24} />}
+                      <p className="text-sm font-semibold text-[var(--text-primary)]">
+                        {preset.name}{preset.id === business.id && <span className="font-medium text-gold"> · tu rubro</span>}
+                      </p>
+                      <p className="mt-0.5 line-clamp-1 text-xs text-[var(--text-secondary)]">{preset.categoryPresets.join(', ')}</p>
                     </button>
-                  </div>
+                  ))}
                 </div>
-
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Presets por Industria</label>
-                    {submitting && <Loader2 className="w-4 h-4 animate-spin text-gold" />}
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {presets.map((preset) => (
-                      <button
-                        key={preset.id}
-                        onClick={() => handleAddPreset(preset.categoryPresets.filter((n) => !categories.some((c) => c.name === n)))}
-                        disabled={submitting}
-                        className={`p-5 border rounded-[1.5rem] text-left hover:border-gold/40 hover:bg-white/10 transition-all group disabled:opacity-50 ${preset.id === business.id ? 'bg-gold/5 border-gold/30' : 'bg-white/5 border-white/5'}`}
-                      >
-                        <p className="text-xs font-black uppercase tracking-widest text-white group-hover:text-gold transition-colors mb-1">
-                          {preset.name}{preset.id === business.id && <span className="text-gold"> · tu rubro</span>}
-                        </p>
-                        <p className="text-[9px] text-gray-500 line-clamp-1">{preset.categoryPresets.join(', ')}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setShowCategoryModal(false)}
-                  className="w-full h-14 bg-white/5 text-gray-500 font-black uppercase tracking-widest text-[10px] rounded-xl hover:text-white transition-all"
-                >
-                  Cerrar
-                </button>
               </div>
-            </motion.div>
+
+              <button
+                type="button"
+                onClick={() => setShowCategoryModal(false)}
+                className={`${plainBtn} w-full`}
+              >
+                Listo
+              </button>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
+
+      {pinDialog}
 
       <ConfirmationModal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
         onConfirm={handleConfirmDelete}
-        title="¿Eliminar Producto?"
-        message="¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer."
+        title="¿Eliminar este producto?"
+        message="Si tiene ventas registradas lo archivamos para conservar el historial. Si no, se elimina y no se puede deshacer."
         confirmText="Eliminar"
         cancelText="Cancelar"
         variant="danger"

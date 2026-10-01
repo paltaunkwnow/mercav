@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, Minus } from "lucide-react";
+import { HelpCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ButtonLink, CTABand, Container, PageHero, Section } from "@/components/site/primitives";
+import { FaqItem, FaqSearch } from "@/app/faq/FaqAccordion";
 
 const FAQ_DATA = {
   general: [
@@ -49,11 +51,11 @@ const FAQ_DATA = {
 
 const CATEGORIES = [
   ["general", "General"],
-  ["pagos", "Pagos y Comisiones"],
-  ["ads", "Publicidad Offline"],
+  ["pagos", "Pagos y comisiones"],
+  ["ads", "Publicidad offline"],
   ["services", "Servicios"],
   ["jobs", "Empleos"],
-  ["account", "Cuenta y Perfil"],
+  ["account", "Cuenta y perfil"],
 ];
 
 export default function FAQPage() {
@@ -71,64 +73,84 @@ export default function FAQPage() {
     setOpen((current) => current.includes(question) ? current.filter((item) => item !== question) : [...current, question]);
   };
 
+  const activeLabel = CATEGORIES.find(([key]) => key === activeCategory)?.[1] ?? "";
+
+  const chip = (key: string, label: string, vertical = false) => {
+    const active = activeCategory === key;
+    return (
+      <button
+        key={key}
+        type="button"
+        aria-pressed={active}
+        onClick={() => setActiveCategory(key)}
+        className={cn(
+          "mv-focus flex h-10 shrink-0 items-center whitespace-nowrap px-4 text-sm transition-colors duration-200",
+          vertical ? "w-full rounded-xl text-left" : "rounded-full border",
+          active
+            ? vertical
+              ? "bg-[var(--mv-gold-wash)] font-semibold text-gold"
+              : "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] font-semibold text-gold"
+            : vertical
+              ? "text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]"
+              : "border-[var(--mv-hairline)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
+        )}
+      >
+        {label}
+        {active ? <span className="mv-data ml-2 text-xs opacity-70">{FAQ_DATA[key as keyof typeof FAQ_DATA]?.length ?? 0}</span> : null}
+      </button>
+    );
+  };
+
   return (
-    <div className="w-full min-h-screen bg-bg-primary pt-32 pb-20">
-      <div className="container mx-auto px-4 max-w-7xl grid gap-8 lg:grid-cols-[260px_1fr]">
-        <aside className="hidden lg:block">
-          <div className="sticky top-24 rounded-3xl border border-border bg-bg-secondary p-4">
-            <div className="mb-4 text-sm font-semibold text-white">Categorías</div>
-            <div className="space-y-2">
-              {CATEGORIES.map(([key, label]) => (
-                <button key={key} onClick={() => setActiveCategory(key)} className={`w-full rounded-2xl border px-4 py-3 text-left text-sm transition-colors ${activeCategory === key ? "border-gold bg-gold/10 text-gold" : "border-border bg-bg-primary text-gray-300 hover:text-white"}`}>
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </aside>
+    <div className="w-full bg-bg-primary">
+      <PageHero
+        kicker="Preguntas frecuentes"
+        title="Lo que más nos preguntan, en un solo lugar."
+        lead="Elegí una categoría y buscá dentro de ella. Si no está tu respuesta, el equipo de soporte te ayuda."
+      >
+        <div className="max-w-2xl">
+          <FaqSearch value={search} onChange={setSearch} placeholder={`Buscar en ${activeLabel}`} resultCount={filtered.length} />
+        </div>
+      </PageHero>
 
-        <main>
-          <motion.header initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="mb-8 rounded-3xl border border-border bg-bg-secondary p-8 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-white">Preguntas <span className="text-gold">Frecuentes</span></h1>
-            <p className="mt-3 text-gray-400">Buscador en tiempo real, tabs de categorías y acordeones independientes.</p>
-            <div className="mx-auto mt-6 flex max-w-2xl items-center gap-3 rounded-2xl border border-border bg-bg-primary px-4 py-3">
-              <Search className="h-5 w-5 text-gold" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar una pregunta" className="w-full bg-transparent text-white outline-none placeholder:text-gray-500" />
-            </div>
-          </motion.header>
+      <Section tight className="!pt-4 md:!pt-6">
+        <Container>
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-16">
+            <nav aria-label="Categorías" className="min-w-0 lg:sticky lg:top-28 lg:self-start">
+              <div className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 lg:hidden">{CATEGORIES.map(([key, label]) => chip(key, label))}</div>
+              <div className="hidden flex-col gap-0.5 lg:-ml-3 lg:flex">{CATEGORIES.map(([key, label]) => chip(key, label, true))}</div>
+            </nav>
 
-          <div className="mb-6 flex flex-wrap gap-2 lg:hidden">
-            {CATEGORIES.map(([key, label]) => (
-              <button key={key} onClick={() => setActiveCategory(key)} className={`rounded-full border px-4 py-2 text-sm ${activeCategory === key ? "border-gold bg-gold/10 text-gold" : "border-border bg-bg-secondary text-gray-300"}`}>
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <div className="space-y-4">
-            {filtered.length === 0 ? (
-              <div className="rounded-3xl border border-border bg-bg-secondary p-10 text-center text-gray-400">No encontramos resultados. Probá con otro término o cambiá de categoría.</div>
-            ) : filtered.map((item) => {
-              const isOpen = open.includes(item.q);
-              return (
-                <motion.div key={item.q} layout initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-border bg-bg-secondary overflow-hidden">
-                  <button onClick={() => toggle(item.q)} className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left">
-                    <span className="text-lg font-semibold text-white">{item.q}</span>
-                    {isOpen ? <Minus className="h-5 w-5 text-gold" /> : <Plus className="h-5 w-5 text-gray-500" />}
+            <section aria-labelledby="pf-cat" className="min-w-0">
+              <h2 id="pf-cat" className="mv-h3 mb-5">
+                {activeLabel}
+              </h2>
+              {filtered.length === 0 ? (
+                <div className="mv-panel flex flex-col items-center px-6 py-14 text-center">
+                  <HelpCircle className="h-8 w-8 text-[var(--text-tertiary)]" aria-hidden />
+                  <p className="mt-4 font-semibold text-[var(--text-primary)]">No encontramos resultados.</p>
+                  <p className="mt-1 text-sm text-[var(--text-secondary)]">Probá con otro término o cambiá de categoría.</p>
+                  <button type="button" onClick={() => setSearch("")} className="mv-link mt-5 text-sm">
+                    Limpiar búsqueda
                   </button>
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} className="px-6 pb-5 text-gray-400 leading-7">
-                        {item.a}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
+                </div>
+              ) : (
+                <ul className="space-y-2.5">
+                  {filtered.map((item) => (
+                    <FaqItem key={item.q} question={item.q} answer={item.a} open={open.includes(item.q)} onToggle={() => toggle(item.q)} />
+                  ))}
+                </ul>
+              )}
+            </section>
           </div>
-        </main>
-      </div>
+        </Container>
+      </Section>
+
+      <CTABand
+        title="¿No encontraste tu respuesta?"
+        lead="Escribinos con el detalle de tu consulta y te respondemos por correo."
+        action={<ButtonLink href="/soporte" size="lg" className="w-full sm:w-auto">Ir a soporte</ButtonLink>}
+      />
     </div>
   );
 }

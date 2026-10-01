@@ -3,6 +3,9 @@
 // Idempotent: re-running updates rows by slug and removes seed rows that are no longer listed.
 // Run with: npm run seed:kosher
 import prismaPkg from "@prisma/client";
+import { readdirSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const { PrismaClient } = prismaPkg;
 const prisma = new PrismaClient();
@@ -320,8 +323,36 @@ const communities = [
   },
 ];
 
+// Extra verified places live in prisma/kosher-places/*.json (one file per region), same shape as `places`.
+// Each file is { verifiedAt: ISO date, places: Place[] }.
+function loadRegionFiles(): Array<{ place: Place; verifiedAt: Date }> {
+  const dir = join(dirname(fileURLToPath(import.meta.url)), "kosher-places");
+  let files: string[] = [];
+  try {
+    files = readdirSync(dir).filter((f) => f.endsWith(".json")).sort();
+  } catch {
+    return [];
+  }
+  const rows: Array<{ place: Place; verifiedAt: Date }> = [];
+  for (const file of files) {
+    const parsed = JSON.parse(readFileSync(join(dir, file), "utf8")) as { verifiedAt: string; places: Place[] };
+    const verifiedAt = new Date(parsed.verifiedAt);
+    for (const place of parsed.places) {
+      if (!place.slug || !place.name || !place.sourceUrl) throw new Error(`${file}: lugar sin slug, nombre o fuente`);
+      rows.push({ place, verifiedAt });
+    }
+  }
+  return rows;
+}
+
 async function main() {
-  const slugs = places.map((p) => p.slug);
+  const regionRows = loadRegionFiles();
+  const seen = new Set<string>();
+  for (const slug of [...places.map((p) => p.slug), ...regionRows.map((r) => r.place.slug)]) {
+    if (seen.has(slug)) throw new Error(`Slug repetido en el seed: ${slug}`);
+    seen.add(slug);
+  }
+  const slugs = [...seen];
   const removed = await prisma.kosherPlace.deleteMany({ where: { source: "seed", slug: { notIn: slugs } } });
   const removedCommunities = await prisma.kosherCommunity.deleteMany({ where: { slug: { notIn: communities.map((c) => c.slug) } } });
 
@@ -329,12 +360,16 @@ async function main() {
     const data = { ...p, source: "seed", verifiedAt: VERIFIED_AT } as never;
     await prisma.kosherPlace.upsert({ where: { slug: p.slug }, create: data, update: data });
   }
+  for (const { place, verifiedAt } of regionRows) {
+    const data = { ...place, source: "seed", verifiedAt } as never;
+    await prisma.kosherPlace.upsert({ where: { slug: place.slug }, create: data, update: data });
+  }
   for (const c of communities) {
     const data = { ...c, population: null, populationYear: null, populationSource: null };
     await prisma.kosherCommunity.upsert({ where: { slug: c.slug }, create: data, update: data });
   }
   console.log(
-    `Kosher: ${places.length} lugares y ${communities.length} comunidades verificados. Eliminados: ${removed.count} lugares y ${removedCommunities.count} comunidades sin fuente.`,
+    `Kosher: ${places.length + regionRows.length} lugares y ${communities.length} comunidades verificados. Eliminados: ${removed.count} lugares y ${removedCommunities.count} comunidades sin fuente.`,
   );
 }
 

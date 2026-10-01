@@ -8,10 +8,15 @@ import POSCart, { type CartItem, type CheckoutData } from '@/components/pos/POSC
 import POSInvoice from '@/components/pos/POSInvoice';
 import POSPaymentModal, { type PaymentConfirmation } from '@/components/pos/POSPaymentModal';
 import type { POSGridProduct } from '@/components/pos/POSProductGrid';
-import { getBusinessType, paymentMethodLabel } from '@/lib/pos/business';
-import { formatMoney } from '@/lib/pos/money';
-import { Loader2, Plus, LogOut, Wallet, ShieldAlert, CheckCircle2, X, Package, TrendingUp, ShoppingBag, LayoutDashboard } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import VoidSaleDialog from '@/components/pos/VoidSaleDialog';
+import ShortcutsSheet from '@/components/pos/ShortcutsSheet';
+import { getBusinessType, getUnit, paymentMethodLabel } from '@/lib/pos/business';
+import { currencyDecimals, formatMoney, roundMoney } from '@/lib/pos/money';
+import { computeSale } from '@/lib/pos/pricing';
+import { SYNCED_EVENT, enqueueSale, isNetworkError, newClientRef, setActivePosConfig } from '@/lib/pos/offline';
+import { keyTiming } from '@/lib/pos/stock';
+import { Loader2, LogOut, Wallet, CheckCircle2, X, ShoppingBag, LayoutDashboard, ArrowLeft, Settings2, Keyboard, UserRound } from 'lucide-react';
+import { buttonClass } from '@/components/site/primitives';
 import { Toast } from '@/components/ui/toast';
 
 type TerminalCartItem = CartItem & { stock: number; trackStock: boolean };
@@ -40,6 +45,11 @@ export default function POSTerminalPage() {
   const [lastSale, setLastSale] = useState<any>(null);
   const [toast, setToast] = useState({ visible: false, message: '', type: 'info' as any });
   const [mobileView, setMobileView] = useState<'products' | 'cart'>('products');
+  const [staff, setStaff] = useState<{ id: string; name: string; role: string; isActive: boolean }[]>([]);
+  const [openStaffId, setOpenStaffId] = useState('');
+  const [openPin, setOpenPin] = useState('');
+  const [voidTarget, setVoidTarget] = useState<any>(null);
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   const currentSessionSalesTotal = Number(session?.summary?.total ?? 0);
   const business = getBusinessType(config?.businessType);
@@ -69,23 +79,34 @@ export default function POSTerminalPage() {
   }, [showCajaModal, showCloseModal, showPaymentModal, lastSale]);
 
   useEffect(() => {
+    if (!showCloseModal) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowCloseModal(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showCloseModal]);
+
+  useEffect(() => {
     const init = async () => {
       try {
-        const [configRes, productsRes, catsRes, sessionRes] = await Promise.all([
+        const [configRes, productsRes, catsRes, sessionRes, staffRes] = await Promise.all([
           fetch('/api/pos/config'),
           fetch('/api/pos/products'),
           fetch('/api/pos/categories'),
-          fetch('/api/pos/sessions')
+          fetch('/api/pos/sessions'),
+          fetch('/api/pos/staff')
         ]);
 
-        const [configData, productsData, catsData, sessionData] = await Promise.all([
+        const [configData, productsData, catsData, sessionData, staffData] = await Promise.all([
           configRes.json(),
           productsRes.json(),
           catsRes.json(),
-          sessionRes.json()
+          sessionRes.json(),
+          staffRes.json().catch(() => null)
         ]);
 
         if (configData.success) setConfig(configData.data);
+        if (configData.success && configData.data?.id) setActivePosConfig(configData.data.id);
+        if (staffData?.success) setStaff(staffData.data.filter((p: { isActive: boolean }) => p.isActive));
         if (productsData.success) setProducts(productsData.data);
         if (catsData.success) setCategories(catsData.data);
         if (sessionData.success) setSession(sessionData.data);
@@ -100,6 +121,49 @@ export default function POSTerminalPage() {
       }
     };
     init();
+  }, []);
+
+  // Sales queued offline were just sent: refresh totals and stock.
+  useEffect(() => {
+    const onSynced = () => {
+      refreshSession().catch(() => {});
+      refreshProducts().catch(() => {});
+      setToast({ visible: true, message: 'Ventas sin conexión sincronizadas', type: 'success' });
+    };
+    window.addEventListener(SYNCED_EVENT, onSynced);
+    return () => window.removeEventListener(SYNCED_EVENT, onSynced);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keyboard shortcuts. Nothing animates; F keys work while typing, the rest don't.
+  const shortcutRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  shortcutRef.current = (e: KeyboardEvent) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (document.querySelector('[aria-modal="true"]')) return;
+    const t = e.target as HTMLElement | null;
+    const typing = !!t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
+    const focusSearch = () => {
+      setMobileView('products');
+      requestAnimationFrame(() => document.querySelector<HTMLInputElement>('[data-pos-search]')?.focus());
+    };
+    if (e.key === 'F2') { e.preventDefault(); focusSearch(); return; }
+    if (typing) return;
+    // A scanner burst can contain "-" or "+": only react to keys typed by hand.
+    if (keyTiming.last - keyTiming.previous < 45) return;
+    if (e.key === '/') { e.preventDefault(); focusSearch(); return; }
+    if (e.key === '?') { e.preventDefault(); setShowShortcuts(true); return; }
+    if (e.key === '+' || e.key === '-') {
+      const last = cartRef.current[cartRef.current.length - 1];
+      if (!last || getUnit(last.unit).step < 1) return;
+      e.preventDefault();
+      const step = last.unit === 'G' ? 100 : 1;
+      handleUpdateQuantity(last.id, e.key === '+' ? step : -step);
+    }
+  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => shortcutRef.current(e);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   const exceedsStock = (item: { name: string; stock: number; trackStock: boolean }, quantity: number) => {
@@ -153,12 +217,13 @@ export default function POSTerminalPage() {
       const res = await fetch('/api/pos/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'OPEN', amount: Number(openingAmount) })
+        body: JSON.stringify({ action: 'OPEN', amount: Number(openingAmount), staffId: openStaffId || undefined, pin: openStaffId ? openPin : undefined })
       });
       const data = await res.json();
       if (data.success) {
         await refreshSession();
         setShowCajaModal(false);
+        setOpenPin('');
         setToast({ visible: true, message: 'Caja abierta con éxito', type: 'success' });
       } else {
         showError(data.error || 'Error al abrir caja');
@@ -199,12 +264,82 @@ export default function POSTerminalPage() {
     setShowPaymentModal(true);
   };
 
+  // No network: keep the sale in the local queue, show its ticket as pending and discount stock on screen.
+  const queueOffline = (payload: Record<string, unknown>, clientRef: string, payment: PaymentConfirmation) => {
+    if (!pendingCheckoutData) return;
+    const items = cartRef.current;
+    const decimals = currencyDecimals(config.currency);
+    const pricing = computeSale({
+      lines: items.map((i) => ({
+        productId: i.id,
+        quantity: i.quantity,
+        unitPrice: Number(i.price),
+        taxRate: i.taxRate === null || i.taxRate === undefined ? Number(config.taxRate || 0) : Number(i.taxRate),
+      })),
+      discountType: pendingCheckoutData.discountType,
+      discountValue: pendingCheckoutData.discountValue,
+      pricesIncludeTax: config.pricesIncludeTax !== false,
+      decimals,
+    });
+    const paid = payment.payments.reduce((sum, p) => sum + p.amount, 0);
+    const change = roundMoney(Math.max(0, paid - pricing.total), decimals);
+    const byId = new Map(items.map((i) => [i.id, i]));
+    const preview = {
+      pending: true,
+      transactionId: clientRef,
+      createdAt: new Date().toISOString(),
+      subtotalAmount: pricing.subtotal,
+      taxAmount: pricing.tax,
+      discountAmount: pricing.discount,
+      totalAmount: pricing.total,
+      changeAmount: change,
+      orderType: pendingCheckoutData.orderType,
+      deliveryChannel: pendingCheckoutData.deliveryChannel,
+      clientNit: payment.clientNit,
+      clientName: payment.clientName,
+      payments: payment.payments.map((p, idx) => ({
+        id: `${clientRef}-${idx}`,
+        method: p.method,
+        amount: p.method === 'CASH' ? roundMoney(p.amount - change, decimals) : p.amount,
+        reference: p.reference,
+      })),
+      items: pricing.lines.map((l) => ({
+        id: l.productId,
+        productName: byId.get(l.productId)?.name,
+        unit: byId.get(l.productId)?.unit,
+        quantity: l.quantity,
+        unitPrice: l.unitPrice,
+        subtotal: l.gross,
+      })),
+    };
+    const stored = enqueueSale(config.id, { clientRef, payload, preview, createdAt: preview.createdAt });
+    if (!stored) {
+      showError('Sin conexión y el navegador no permite guardar la venta. No se registró.');
+      return;
+    }
+    setProducts((prev) => prev.map((p) => {
+      const sold = items.find((i) => i.id === p.id);
+      return sold && p.trackStock !== false ? { ...p, stock: Number(p.stock) - sold.quantity } : p;
+    }));
+    setLastSale(preview);
+    setCartItems([]);
+    setCartKey((k) => k + 1);
+    setShowPaymentModal(false);
+    setToast({ visible: true, message: 'Sin conexión: la venta quedó guardada y se envía sola cuando vuelva internet', type: 'info' });
+  };
+
   const handleConfirmPayment = async (payment: PaymentConfirmation) => {
     if (!pendingCheckoutData) return;
     setProcessing(true);
+    const { totalAmount, ...checkout } = pendingCheckoutData;
+    const clientRef = newClientRef();
+    const finalPayload = { ...checkout, ...payment, clientRef };
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      queueOffline(finalPayload, clientRef, payment);
+      setProcessing(false);
+      return;
+    }
     try {
-      const { totalAmount, ...checkout } = pendingCheckoutData;
-      const finalPayload = { ...checkout, ...payment };
 
       const res = await fetch('/api/pos/sales', {
         method: 'POST',
@@ -224,31 +359,44 @@ export default function POSTerminalPage() {
         if (res.status === 409 || res.status === 400) refreshProducts();
       }
     } catch (err) {
-      setToast({ visible: true, message: 'Error de conexión', type: 'error' });
+      if (isNetworkError(err)) queueOffline(finalPayload, clientRef, payment);
+      else setToast({ visible: true, message: 'Error de conexión', type: 'error' });
     } finally {
       setProcessing(false);
     }
   };
 
+  const onTill = session?.staff as { name: string; role: string } | null | undefined;
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center">
-        <Loader2 className="w-10 h-10 text-gold animate-spin mb-4" />
-        <p className="text-gray-500 font-black uppercase tracking-[0.3em] text-[10px]">Iniciando Terminal POS...</p>
+      <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center gap-3" role="status">
+        <Loader2 className="w-8 h-8 text-gold animate-spin" aria-hidden />
+        <p className="text-sm font-medium text-[var(--text-secondary)]">Abriendo la caja…</p>
       </div>
     );
   }
 
   if (!config) {
     return (
-      <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center p-8 text-center">
-        <ShieldAlert size={60} className="text-red-500 mb-6" />
-        <h1 className="text-2xl font-bold text-white mb-4">Configuración Requerida</h1>
-        <p className="text-gray-400 max-w-md mb-8">Debes configurar el nombre y la moneda de tu local antes de poder usar la terminal de punto de venta.</p>
-        <a href="/dashboard/pos/config" className="px-8 py-4 bg-gold text-black rounded-2xl font-black uppercase tracking-widest text-[10px]">Ir a Configuración</a>
+      <div className="min-h-screen bg-bg-primary">
+        <div className="no-print"><POSHeader /></div>
+        <main className="mx-auto flex max-w-lg flex-col items-center px-4 py-20 text-center">
+          <span className="grid h-14 w-14 place-items-center rounded-2xl bg-[var(--mv-gold-wash)] text-gold">
+            <Settings2 size={26} aria-hidden />
+          </span>
+          <h1 className="mv-h3 mt-6">Configurá tu caja para empezar</h1>
+          <p className="mv-body mt-3">Antes de vender necesitamos el nombre de tu negocio y la moneda con la que cobrás. Te lleva un minuto.</p>
+          <Link href="/dashboard/pos/config" className={buttonClass('primary', 'lg', 'mt-8 w-full sm:w-auto')}>
+            Ir a configuración
+          </Link>
+        </main>
       </div>
     );
   }
+
+  const fieldLabel = 'block text-sm font-semibold text-[var(--text-secondary)]';
+  const amountInput = 'mv-input mv-data h-16 text-center text-3xl font-semibold';
 
   return (
     <div className="min-h-screen lg:h-screen bg-bg-primary flex flex-col lg:overflow-hidden relative">
@@ -256,62 +404,40 @@ export default function POSTerminalPage() {
         <POSHeader />
       </div>
 
-      <div className="flex-1 flex flex-col lg:flex-row lg:overflow-hidden relative">
-        {/* Premium Session Bar - Responsive & Sticky */}
-        <div className="sticky top-0 lg:absolute lg:top-6 lg:left-1/2 lg:-translate-x-1/2 z-[60] no-print w-full lg:w-auto px-4 py-3 lg:p-0 bg-bg-primary/60 backdrop-blur-xl lg:bg-transparent lg:backdrop-blur-none border-b border-white/5 lg:border-none">
-          <motion.div 
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="flex items-center justify-between lg:justify-start gap-1 p-1 bg-black/40 backdrop-blur-2xl border border-white/10 rounded-2xl lg:rounded-[2rem] shadow-2xl max-w-2xl mx-auto"
-          >
-            <div className="flex items-center gap-3 lg:gap-4 px-3 lg:px-6 py-2 lg:py-3">
-              <div className="relative flex-shrink-0">
-                <div className="w-2 h-2 lg:w-3 lg:h-3 rounded-full bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.5)]" />
-                <div className="absolute inset-0 w-2 h-2 lg:w-3 lg:h-3 rounded-full bg-green-500 animate-ping opacity-30" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[7px] lg:text-[8px] font-black uppercase tracking-[0.2em] text-gray-500 truncate">Ventas Turno</span>
-                <span className="text-[10px] lg:text-xs font-mono font-bold text-white whitespace-nowrap">
-                   <span className="text-gold">{formatMoney(currentSessionSalesTotal, config.currency)}</span>
-                </span>
-              </div>
-            </div>
-
-            <div className="w-[1px] h-6 lg:h-8 bg-white/5 mx-1 flex-shrink-0" />
-
-            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-              <Link
-                href="/dashboard/pos/inventory"
-                title="Inventario"
-                className="w-10 h-10 lg:w-auto lg:h-12 lg:px-5 bg-white/5 hover:bg-white/10 border border-white/5 text-gray-400 hover:text-gold rounded-xl lg:rounded-[1.5rem] flex items-center justify-center lg:gap-2 transition-all group flex-shrink-0"
-              >
-                <Package size={14} className="group-hover:scale-110 transition-transform" />
-                <span className="hidden lg:inline text-[10px] font-black uppercase tracking-[0.2em]">Inventario</span>
-              </Link>
-
-              <Link
-                href="/dashboard/pos/reports"
-                title="Reportes"
-                className="w-10 h-10 lg:w-auto lg:h-12 lg:px-5 bg-white/5 hover:bg-white/10 border border-white/5 text-gray-400 hover:text-gold rounded-xl lg:rounded-[1.5rem] flex items-center justify-center lg:gap-2 transition-all group flex-shrink-0"
-              >
-                <TrendingUp size={14} className="group-hover:scale-110 transition-transform" />
-                <span className="hidden lg:inline text-[10px] font-black uppercase tracking-[0.2em]">Reportes</span>
-              </Link>
-
-              <button
-                onClick={() => setShowCloseModal(true)}
-                title="Cerrar Caja"
-                className="w-10 h-10 lg:w-auto lg:h-12 lg:px-6 bg-red-500/10 hover:bg-red-500 border border-red-500/30 text-red-500 hover:text-white rounded-xl lg:rounded-[1.5rem] flex items-center justify-center lg:gap-2 transition-all group flex-shrink-0"
-              >
-                <LogOut size={14} className="group-hover:-translate-x-1 transition-transform" />
-                <span className="hidden lg:inline text-[10px] font-black uppercase tracking-[0.2em]">Cerrar</span>
-              </button>
-            </div>
-          </motion.div>
+      {/* Shift bar */}
+      <div className="no-print flex items-center justify-between gap-3 border-b border-[var(--mv-hairline)] px-4 py-2 lg:px-6">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="h-2 w-2 shrink-0 rounded-full bg-green-500" aria-hidden />
+          <p className="min-w-0 truncate text-sm text-[var(--text-secondary)]">
+            <span className="hidden sm:inline">Turno abierto · </span>Ventas del turno{' '}
+            <span className="mv-data font-semibold text-[var(--text-primary)]">{formatMoney(currentSessionSalesTotal, config.currency)}</span>
+            {onTill && <span className="hidden md:inline"> · Atiende {onTill.name}{onTill.role === 'MANAGER' ? ' (encargado)' : ''}</span>}
+          </p>
         </div>
+        <div className="flex shrink-0 items-center gap-1">
+        <button
+          type="button"
+          onClick={() => setShowShortcuts(true)}
+          aria-label="Ver atajos de teclado"
+          aria-keyshortcuts="?"
+          className="mv-focus hidden h-11 w-11 place-items-center rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] lg:grid"
+        >
+          <Keyboard size={18} aria-hidden />
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowCloseModal(true)}
+          className="mv-focus inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-red-500/30 px-4 text-sm font-semibold text-red-400 transition-colors duration-150 hover:bg-red-500/10"
+        >
+          <LogOut size={16} aria-hidden />
+          Cerrar caja
+        </button>
+        </div>
+      </div>
 
-        {/* Left: Product Selection */}
-        <div className={`flex-1 lg:overflow-hidden no-print ${mobileView === 'cart' ? 'hidden lg:block' : 'block'}`}>
+      <div className="flex-1 flex flex-col lg:flex-row lg:overflow-hidden relative">
+        {/* Left: product selection */}
+        <div className={`flex-1 lg:overflow-hidden no-print pb-[calc(6rem+env(safe-area-inset-bottom,0px))] lg:pb-0 ${mobileView === 'cart' ? 'hidden lg:block' : 'block'}`}>
           <POSProductGrid 
             products={products}
             categories={categories}
@@ -322,18 +448,18 @@ export default function POSTerminalPage() {
           />
         </div>
 
-        {/* Right: Cart and Checkout */}
-        <div className={`w-full lg:w-[450px] lg:h-full flex-shrink-0 no-print ${mobileView === 'products' ? 'hidden lg:block' : 'block'}`}>
-          {/* Back button on mobile cart view */}
+        {/* Right: cart and checkout */}
+        <div className={`w-full lg:w-[400px] xl:w-[440px] lg:h-full flex-shrink-0 no-print ${mobileView === 'products' ? 'hidden lg:block' : 'block'}`}>
           {mobileView === 'cart' && (
-            <div className="lg:hidden p-4 bg-bg-secondary border-b border-white/5 sticky top-0 z-50 flex items-center gap-4">
+            <div className="lg:hidden border-b border-[var(--mv-hairline)] px-2 py-1.5">
               <button 
+                type="button"
                 onClick={() => setMobileView('products')}
-                className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400"
+                className="mv-focus inline-flex h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold text-[var(--text-primary)]"
               >
-                <Plus className="rotate-45" size={20} />
+                <ArrowLeft size={18} aria-hidden />
+                Seguir agregando productos
               </button>
-              <span className="text-white font-bold">Volver al Catálogo</span>
             </div>
           )}
           <POSCart 
@@ -353,161 +479,195 @@ export default function POSTerminalPage() {
         </div>
       </div>
 
-      {/* Floating Action Button (FAB) for Mobile Cart */}
-      <AnimatePresence>
-        {cartItems.length > 0 && mobileView === 'products' && (
-          <motion.button
-            initial={{ scale: 0, opacity: 0, y: 50 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0, opacity: 0, y: 50 }}
+      {/* Phone and tablet: cart bar */}
+      {cartItems.length > 0 && mobileView === 'products' && (
+        <div className="no-print fixed inset-x-0 bottom-0 z-[60] px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 lg:hidden">
+          <button
+            type="button"
             onClick={() => setMobileView('cart')}
-            className="lg:hidden fixed bottom-8 right-6 z-[60] w-20 h-20 bg-gold text-primary-foreground rounded-full shadow-[0_10px_40px_rgba(212,175,55,0.4)] flex flex-col items-center justify-center border-4 border-bg-primary group active:scale-95 transition-all"
+            className="mv-focus liquid-glass flex h-14 w-full items-center justify-between gap-3 rounded-full pl-5 pr-2 text-[var(--text-primary)] transition-transform duration-150 active:scale-[0.97]"
           >
-            <div className="relative">
-              <ShoppingBag size={28} />
-              <span className="absolute -top-2 -right-2 w-6 h-6 bg-black text-gold text-[10px] font-black rounded-full flex items-center justify-center border-2 border-gold">
-                {cartItems.length}
+            <span className="flex items-center gap-3">
+              <ShoppingBag size={20} className="text-gold" aria-hidden />
+              <span className="text-sm font-semibold">
+                <span className="mv-data">{cartItems.length}</span> {cartItems.length === 1 ? 'producto' : 'productos'} en el carrito
               </span>
-            </div>
-            <span className="text-[7px] font-black uppercase tracking-tighter mt-1">Ver Caja</span>
-          </motion.button>
-        )}
-      </AnimatePresence>
+            </span>
+            <span className="inline-flex h-10 items-center rounded-full bg-gold px-4 text-sm font-semibold text-[var(--mv-on-gold)]">Ver y cobrar</span>
+          </button>
+        </div>
+      )}
 
-      {/* Caja Opening Modal */}
-      <AnimatePresence>
-        {showCajaModal && (
-          <div className="fixed inset-0 z-[400] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/90 backdrop-blur-md" />
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              className="relative w-full max-w-md bg-bg-secondary border border-white/5 p-10 rounded-[3rem] shadow-2xl overflow-hidden"
+      {/* Open shift */}
+      {showCajaModal && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="open-shift-title">
+          <div className="mv-fade absolute inset-0 bg-black/50" aria-hidden />
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleOpenCaja(); }}
+            className="mv-pop mv-menu relative w-full max-w-md rounded-[1.75rem] p-6 sm:p-8"
+          >
+            <Link
+              href="/dashboard"
+              aria-label="Volver al panel sin abrir la caja"
+              className="mv-focus absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-full text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
             >
-              <Link 
-                href="/dashboard"
-                className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-500 hover:bg-white/10 transition-all z-20"
-              >
-                <X size={20} />
-              </Link>
+              <X size={20} aria-hidden />
+            </Link>
 
-              <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
-                <Wallet size={120} className="text-gold" />
-              </div>
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-[var(--mv-gold-wash)] text-gold">
+              <Wallet size={22} aria-hidden />
+            </span>
+            <h2 id="open-shift-title" className="mv-h3 mt-5">Abrir caja</h2>
+            <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Contá el efectivo con el que arrancás el turno. Lo usamos para el arqueo del cierre.</p>
 
-              <header className="mb-8 relative z-10">
-                <div className="w-12 h-12 rounded-2xl bg-gold/10 flex items-center justify-center text-gold mb-6">
-                  <Wallet size={24} />
+            {staff.length > 0 && (
+              <fieldset className="mt-6 space-y-2">
+                <legend className={`${fieldLabel} mb-2`}>Quién atiende</legend>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {[{ id: '', name: 'Dueño de la cuenta', role: 'OWNER' }, ...staff].map((p) => {
+                    const active = openStaffId === p.id;
+                    return (
+                      <button
+                        key={p.id || 'owner'}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => { setOpenStaffId(p.id); setOpenPin(''); }}
+                        className={`mv-focus flex min-h-12 items-center gap-2 rounded-[0.875rem] border px-3 text-left text-sm font-semibold transition-colors duration-150 ${active ? 'border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold' : 'border-[var(--mv-hairline-strong)] text-[var(--text-primary)]'}`}
+                      >
+                        <UserRound size={16} aria-hidden />
+                        <span className="min-w-0 flex-1 truncate">{p.name}</span>
+                        <span className="text-xs font-medium text-[var(--text-secondary)]">{p.role === 'MANAGER' ? 'Encargado' : p.role === 'CASHIER' ? 'Cajero' : 'Sin PIN'}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2">Apertura de Caja</h2>
-                <p className="text-xs lg:text-sm text-gray-500">Ingresa el monto inicial para comenzar el turno.</p>
-              </header>
-
-              <div className="space-y-6 relative z-10">
-                <div className="space-y-4">
-                  <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Monto Inicial ({config.currency})</label>
-                  <input
-                    type="number"
-                    value={openingAmount}
-                    onChange={(e) => setOpeningAmount(e.target.value)}
-                    placeholder="0.00"
-                    className="w-full h-16 bg-bg-primary border border-white/5 rounded-2xl px-6 text-white text-3xl font-mono outline-none focus:border-gold/30 transition-all text-center"
-                  />
-                </div>
-
-                <button
-                  onClick={handleOpenCaja}
-                  disabled={!openingAmount || processing}
-                  className="w-full h-16 bg-gold hover:bg-gold-light text-primary-foreground font-black uppercase tracking-[0.3em] text-xs rounded-2xl shadow-xl shadow-gold/20 flex items-center justify-center gap-3 transition-all disabled:opacity-50"
-                >
-                  {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 size={18} />}
-                  Abrir Caja y Empezar
-                </button>
-
-                <Link
-                  href="/dashboard"
-                  className="w-full h-16 bg-white/5 hover:bg-white/10 text-gray-400 font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl flex items-center justify-center gap-3 transition-all"
-                >
-                  <LayoutDashboard size={18} />
-                  Regresar al Panel
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Caja Closing Modal */}
-      <AnimatePresence>
-        {showCloseModal && (
-          <div className="fixed inset-0 z-[400] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setShowCloseModal(false)} />
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              className="relative w-full max-w-md bg-bg-secondary border border-white/5 p-10 rounded-[3rem] shadow-2xl overflow-hidden"
-            >
-              <header className="mb-8 relative z-10">
-                <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 mb-6">
-                  <LogOut size={24} />
-                </div>
-                <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2">Cierre de Caja</h2>
-                <p className="text-xs lg:text-sm text-gray-500">Resumen del turno y arqueo final.</p>
-              </header>
-
-              <div className="space-y-6 relative z-10">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-white/5 rounded-2xl border border-white/5 text-center">
-                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Monto Apertura</p>
-                    <p className="text-lg font-mono font-bold text-white">{formatMoney(session?.openingAmount, config.currency)}</p>
+                {openStaffId && (
+                  <div className="space-y-2 pt-2">
+                    <label htmlFor="open-pin" className={fieldLabel}>PIN de {staff.find((p) => p.id === openStaffId)?.name}</label>
+                    <input
+                      id="open-pin"
+                      type="password"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      maxLength={6}
+                      value={openPin}
+                      onChange={(e) => setOpenPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      className="mv-input mv-data text-center text-xl tracking-[0.4em]"
+                    />
                   </div>
-                  <div className="p-4 bg-white/5 rounded-2xl border border-white/5 text-center">
-                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Total Ventas</p>
-                    <p className="text-lg font-mono font-bold text-white">{formatMoney(currentSessionSalesTotal, config.currency)}</p>
-                  </div>
-                </div>
-
-                {Object.keys(session?.summary?.byMethod ?? {}).length > 0 && (
-                  <ul className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-2">
-                    {Object.entries(session.summary.byMethod as Record<string, number>).map(([method, amount]) => (
-                      <li key={method} className="flex justify-between text-xs">
-                        <span className="text-gray-400 font-bold">{paymentMethodLabel(method)}</span>
-                        <span className="font-mono font-bold text-white">{formatMoney(amount, config.currency)}</span>
-                      </li>
-                    ))}
-                  </ul>
                 )}
+              </fieldset>
+            )}
 
-                <div className="p-4 bg-gold/5 rounded-2xl border border-gold/10 text-center">
-                   <p className="text-[10px] font-black text-gold uppercase tracking-widest mb-1">Efectivo Esperado en Caja</p>
-                   <p className="text-2xl font-mono font-black text-gold">{formatMoney(session?.summary?.expectedCash ?? session?.openingAmount, config.currency)}</p>
-                </div>
+            <div className="mt-6 space-y-2">
+              <label htmlFor="opening-amount" className={fieldLabel}>Efectivo inicial ({config.currency})</label>
+              <input
+                id="opening-amount"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                value={openingAmount}
+                onChange={(e) => setOpeningAmount(e.target.value)}
+                placeholder="0.00"
+                autoFocus
+                className={amountInput}
+              />
+            </div>
 
-                <div className="space-y-4">
-                  <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Monto en Caja Real</label>
-                  <input
-                    autoFocus
-                    type="number"
-                    value={closingAmount}
-                    onChange={(e) => setClosingAmount(e.target.value)}
-                    placeholder="0.00"
-                    className="w-full h-16 bg-bg-primary border border-white/5 rounded-2xl px-6 text-white text-3xl font-mono outline-none focus:border-gold/30 transition-all text-center"
-                  />
-                </div>
+            <div className="mt-6 flex flex-col gap-2">
+              <button
+                type="submit"
+                disabled={!openingAmount || processing || (!!openStaffId && !/^\d{4,6}$/.test(openPin))}
+                className="mv-btn mv-btn-primary mv-btn-lg w-full"
+              >
+                {processing ? <Loader2 className="w-5 h-5 animate-spin" aria-hidden /> : <CheckCircle2 size={18} aria-hidden />}
+                {processing ? 'Abriendo…' : 'Abrir caja'}
+              </button>
+              <Link href="/dashboard" className="mv-btn mv-btn-ghost w-full">
+                <LayoutDashboard size={18} aria-hidden />
+                Volver al panel
+              </Link>
+            </div>
+          </form>
+        </div>
+      )}
 
-                <button
-                  onClick={handleCloseCaja}
-                  disabled={!closingAmount || processing}
-                  className="w-full h-16 bg-red-500 hover:bg-red-600 text-white font-black uppercase tracking-[0.3em] text-xs rounded-2xl shadow-xl shadow-red-500/20 flex items-center justify-center gap-3 transition-all disabled:opacity-50"
-                >
-                  {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : <X size={18} />}
-                  Cerrar Caja y Turno
-                </button>
+      {/* Close shift */}
+      {showCloseModal && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="close-shift-title">
+          <div className="mv-fade absolute inset-0 bg-black/50" onClick={() => setShowCloseModal(false)} aria-hidden />
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleCloseCaja(); }}
+            className="mv-pop mv-menu custom-scrollbar relative max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-[1.75rem] p-6 sm:p-8"
+          >
+            <button
+              type="button"
+              onClick={() => setShowCloseModal(false)}
+              aria-label="Cancelar el cierre de caja"
+              className="mv-focus absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-full text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+            >
+              <X size={20} aria-hidden />
+            </button>
+
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-red-500/10 text-red-400">
+              <LogOut size={22} aria-hidden />
+            </span>
+            <h2 id="close-shift-title" className="mv-h3 mt-5">Cerrar caja</h2>
+            <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Resumen del turno y arqueo final.</p>
+
+            <dl className="mt-6 grid grid-cols-2 gap-2">
+              <div className="rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] p-4">
+                <dt className="text-xs font-medium text-[var(--text-secondary)]">Apertura</dt>
+                <dd className="mv-data mt-1 text-lg font-semibold text-[var(--text-primary)]">{formatMoney(session?.openingAmount, config.currency)}</dd>
               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              <div className="rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] p-4">
+                <dt className="text-xs font-medium text-[var(--text-secondary)]">Ventas del turno</dt>
+                <dd className="mv-data mt-1 text-lg font-semibold text-[var(--text-primary)]">{formatMoney(currentSessionSalesTotal, config.currency)}</dd>
+              </div>
+            </dl>
+
+            {Object.keys(session?.summary?.byMethod ?? {}).length > 0 && (
+              <dl className="mt-2 space-y-2 rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] p-4 text-sm">
+                {Object.entries(session.summary.byMethod as Record<string, number>).map(([method, amount]) => (
+                  <div key={method} className="flex justify-between gap-4">
+                    <dt className="text-[var(--text-secondary)]">{paymentMethodLabel(method)}</dt>
+                    <dd className="mv-data text-[var(--text-primary)]">{formatMoney(amount, config.currency)}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+
+            <div className="mt-2 flex items-baseline justify-between gap-4 rounded-2xl border border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] p-4">
+              <p className="text-sm font-semibold text-gold">Efectivo esperado en caja</p>
+              <p className="mv-data text-xl font-semibold text-gold">{formatMoney(session?.summary?.expectedCash ?? session?.openingAmount, config.currency)}</p>
+            </div>
+
+            <div className="mt-6 space-y-2">
+              <label htmlFor="closing-amount" className={fieldLabel}>Efectivo contado ({config.currency})</label>
+              <input
+                id="closing-amount"
+                autoFocus
+                type="number"
+                inputMode="decimal"
+                min={0}
+                value={closingAmount}
+                onChange={(e) => setClosingAmount(e.target.value)}
+                placeholder="0.00"
+                className={amountInput}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={!closingAmount || processing}
+              className="mv-btn mv-btn-lg mt-6 w-full bg-red-600 text-[#fff] hover:bg-red-700"
+            >
+              {processing ? <Loader2 className="w-5 h-5 animate-spin" aria-hidden /> : <LogOut size={18} aria-hidden />}
+              {processing ? 'Cerrando…' : 'Cerrar caja y turno'}
+            </button>
+          </form>
+        </div>
+      )}
 
       {/* Payment Modal */}
       <POSPaymentModal 
@@ -527,8 +687,26 @@ export default function POSTerminalPage() {
           sale={lastSale}
           config={config}
           onClose={() => setLastSale(null)}
+          onVoid={() => setVoidTarget(lastSale)}
         />
       )}
+
+      {voidTarget && (
+        <VoidSaleDialog
+          sale={voidTarget}
+          currency={config.currency}
+          onClose={() => setVoidTarget(null)}
+          onVoided={(updated) => {
+            setVoidTarget(null);
+            setLastSale(updated);
+            setToast({ visible: true, message: 'Venta anulada. El stock volvió al inventario.', type: 'success' });
+            refreshSession().catch(() => {});
+            refreshProducts().catch(() => {});
+          }}
+        />
+      )}
+
+      {showShortcuts && <ShortcutsSheet onClose={() => setShowShortcuts(false)} />}
 
       <Toast 
         isVisible={toast.visible}

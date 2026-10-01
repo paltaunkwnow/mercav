@@ -21,9 +21,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("mercav-theme") as Theme | null;
-    if (stored === "light" || stored === "dark") {
-      setThemeState(stored);
+    // Con el almacenamiento bloqueado getItem tira y, sin esta guarda, el provider
+    // rompía todo el árbol: el tema simplemente no se recuerda.
+    try {
+      const stored = localStorage.getItem("mercav-theme") as Theme | null;
+      if (stored === "light" || stored === "dark") {
+        setThemeState(stored);
+      }
+    } catch {
+      /* sin almacenamiento: queda el tema por defecto */
     }
     setMounted(true);
   }, []);
@@ -33,7 +39,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const root = document.documentElement;
     root.classList.remove("dark", "light");
     root.classList.add(theme);
-    localStorage.setItem("mercav-theme", theme);
+    try {
+      localStorage.setItem("mercav-theme", theme);
+    } catch {
+      /* sin almacenamiento */
+    }
   }, [theme, mounted]);
 
   const toggleTheme = useCallback(() => {

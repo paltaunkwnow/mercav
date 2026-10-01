@@ -1,42 +1,56 @@
 "use client";
 
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { AlertCircle, Home, ArrowLeft } from 'lucide-react';
+import Link from "next/link";
+import { ArrowLeft, Compass } from "lucide-react";
+import { Container, ButtonLink, buttonClass } from "@/components/site/primitives";
+
+const SUGGESTIONS = [
+  { href: "/anuncios", label: "Ads" },
+  { href: "/servicios", label: "Services" },
+  { href: "/empleos", label: "Jobs" },
+  { href: "/herramientas", label: "Tools" },
+  { href: "/faq", label: "Ayuda" },
+];
 
 export default function NotFound() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gold/[0.03] blur-[180px] rounded-full" />
-      </div>
-
-      <div className="relative z-10">
-        <div className="h-24 w-24 rounded-3xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-8 float-gentle">
-          <AlertCircle className="h-12 w-12 text-gold" />
-        </div>
-        <h2 className="font-display text-4xl md:text-5xl font-black mb-4 text-white tracking-tight">
-          <span className="gradient-text-gold">404</span>
-        </h2>
-        <h3 className="font-display text-xl md:text-2xl font-bold mb-4 text-white">
-          Esta página no existe o fue eliminada.
-        </h3>
-        <p className="text-gray-400 mb-10 max-w-md mx-auto leading-relaxed">
-          Lo sentimos, no pudimos encontrar la página que estás buscando. Puede que haya sido movida o que la dirección sea incorrecta.
+    <section aria-labelledby="nf-title" className="relative flex min-h-[80svh] w-full items-center overflow-hidden pb-16 pt-28 md:pt-32">
+      <div className="mv-aura" aria-hidden />
+      <Container width="narrow" className="relative flex flex-col items-center text-center">
+        <span className="mv-panel grid h-14 w-14 place-items-center rounded-2xl text-gold">
+          <Compass className="h-6 w-6" aria-hidden />
+        </span>
+        <p className="mv-kicker mt-8">
+          Error <span className="mv-data">404</span>
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button type="button" variant="outline" onClick={() => history.back()} className="border-white/10 text-gray-300 hover:text-white hover:border-white/20 rounded-xl">
-            <ArrowLeft className="h-4 w-4 mr-2" /> Volver atrás
-          </Button>
-          <Button asChild className="bg-gold text-black hover:bg-gold-light rounded-xl hover:scale-105 transition-transform hover:shadow-lg hover:shadow-gold/20">
-            <Link href="/">
-              <Home className="h-4 w-4 mr-2" /> Volver al inicio
-            </Link>
-          </Button>
+        <h1 id="nf-title" className="mv-h1 mt-4">
+          No encontramos esta página.
+        </h1>
+        <p className="mv-lead mx-auto mt-5">
+          Puede que el enlace esté mal escrito, que la página se haya movido o que ya no exista. Revisá la dirección o seguí desde el inicio.
+        </p>
+        <div className="mt-9 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+          <ButtonLink href="/" className="w-full sm:w-auto">
+            Ir al inicio
+          </ButtonLink>
+          <button type="button" onClick={() => history.back()} className={buttonClass("ghost", "md", "w-full sm:w-auto")}>
+            <ArrowLeft className="h-4 w-4" aria-hidden /> Volver atrás
+          </button>
         </div>
-      </div>
-    </div>
+        <nav aria-label="Secciones de Mercav" className="mt-12 w-full">
+          <p className="text-sm text-[var(--text-tertiary)]">O andá directo a</p>
+          <ul className="mt-3 flex flex-wrap justify-center gap-2">
+            {SUGGESTIONS.map((s) => (
+              <li key={s.href}>
+                <Link href={s.href} className="mv-chip mv-focus h-9 px-3.5 text-[13px] transition-colors hover:text-[var(--text-primary)]">
+                  {s.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </Container>
+    </section>
   );
 }
 // creado por pato dev y askforvini

@@ -38,8 +38,41 @@ export async function PUT(req: Request) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
 
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ success: false, error: "JSON inválido" }, { status: 400 });
+    }
     const email = session.user.email.toLowerCase();
+
+    // Validaciones mínimas de los campos que se renderizan públicamente
+    const tooLong = (v: unknown, max: number) => v !== undefined && v !== null && (typeof v !== "string" || v.length > max);
+    if (tooLong(body.name, 100) || tooLong(body.bio, 600) || tooLong(body.location, 150) || tooLong(body.headline, 200)) {
+      return NextResponse.json({ success: false, error: "Algún campo es demasiado largo" }, { status: 400 });
+    }
+    if (typeof body.name === "string" && !body.name.trim()) {
+      return NextResponse.json({ success: false, error: "El nombre no puede quedar vacío" }, { status: 400 });
+    }
+    // website se renderiza como <a href>: solo http(s). Un `javascript:` era XSS almacenado.
+    // Si no trae esquema (p. ej. "mercav.lat") se antepone https://.
+    let website: string | null | undefined = body.website;
+    if (typeof website === "string") {
+      website = website.trim();
+      if (!website) {
+        website = null;
+      } else {
+        if (!/^[a-z][a-z0-9+.-]*:/i.test(website)) website = `https://${website}`;
+        if (website.length > 2048 || !/^https?:\/\/[^\s]+$/i.test(website)) {
+          return NextResponse.json({ success: false, error: "El sitio web debe ser una URL http(s) válida" }, { status: 400 });
+        }
+      }
+    } else if (website !== undefined && website !== null) {
+      return NextResponse.json({ success: false, error: "Sitio web inválido" }, { status: 400 });
+    }
+    for (const list of ["experiences", "educations", "skills"]) {
+      if (body[list] !== undefined && body[list] !== null && (!Array.isArray(body[list]) || body[list].length > 50)) {
+        return NextResponse.json({ success: false, error: "Lista de perfil inválida" }, { status: 400 });
+      }
+    }
 
     // Start a transaction to ensure data integrity
     const result = await prisma.$transaction(async (tx) => {
@@ -61,7 +94,7 @@ export async function PUT(req: Request) {
         update: {
           headline: body.headline,
           publicEmail: body.publicEmail,
-          website: body.website,
+          website,
           profileType: body.profileType,
           workMode: body.workMode,
           availabilityStatus: body.availabilityStatus,
@@ -74,7 +107,7 @@ export async function PUT(req: Request) {
           userId: updatedUser.id,
           headline: body.headline,
           publicEmail: body.publicEmail,
-          website: body.website,
+          website,
           profileType: body.profileType,
           workMode: body.workMode,
           availabilityStatus: body.availabilityStatus,
@@ -149,10 +182,12 @@ export async function PUT(req: Request) {
       return { user: finalUser, profile: updatedProfile };
     });
 
-    return NextResponse.json({ success: true, data: result });
+    // No devolver el hash de la contraseña ni el secreto 2FA (antes iban en result.user)
+    const { password: _password, twoFactorSecret: _secret, ...safeUser } = result.user;
+    return NextResponse.json({ success: true, data: { ...result, user: safeUser } });
   } catch (error) {
     console.error("Error updating profile:", error);
-    return NextResponse.json({ success: false, error: "Error interno: " + (error as any).message }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 });
   }
 }
 // creado por pato dev y askforvini

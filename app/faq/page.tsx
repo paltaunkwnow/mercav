@@ -1,10 +1,13 @@
 "use client";
 
-import { ArrowLeft, ChevronDown, Search, ShieldCheck, CreditCard, ShoppingBag, HelpCircle, UserCheck, MessageSquare, Package } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { CreditCard, HelpCircle, Package, ShieldCheck, ShoppingBag, UserCheck } from "lucide-react";
+import { CTABand, ButtonLink, Container, PageHero, Section } from "@/components/site/primitives";
+import { FaqItem, FaqSearch } from "./FaqAccordion";
+
+function slug(text: string) {
+  return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
 
 export default function FAQPage() {
   const [openItems, setOpenItems] = useState<number[]>([]);
@@ -18,19 +21,19 @@ export default function FAQPage() {
 
   const faqs = [
     {
-      category: "Mercav POS (Punto de Venta)",
-      icon: <Package className="text-orange-400" size={20} />,
+      category: "Mercav POS (punto de venta)",
+      icon: Package,
       items: [
-        { q: "¿Cómo configuro mi moneda en el POS?", a: "Ve a Dashboard > Ajustes del POS. Ahí puedes seleccionar el símbolo de moneda (BOB, USD, etc.) y el nombre de tu negocio para los tickets." },
+        { q: "¿Cómo configuro mi moneda en el POS?", a: "Andá a Dashboard > Ajustes del POS. Ahí podés seleccionar el símbolo de moneda (BOB, USD, etc.) y el nombre de tu negocio para los tickets." },
         { q: "¿Puedo usar el POS desde mi celular?", a: "Sí, el POS está 100% optimizado para móviles. Incluye un botón flotante de caja para facilitar la facturación rápida." },
-        { q: "¿Cómo cierro mi turno de caja?", a: "En la parte superior de la terminal POS verás un botón rojo de 'Cerrar'. Al pulsarlo, el sistema te pedirá el arqueo final y te mostrará el resumen de ventas del turno." },
-        { q: "¿Genera tickets para impresoras térmicas?", a: "Sí, el sistema genera un recibo digital optimizado para impresión térmica (58mm/80mm) que puedes imprimir directamente desde el navegador de tu móvil o PC." },
+        { q: "¿Cómo cierro mi turno de caja?", a: "En la parte superior de la terminal POS vas a ver un botón rojo de 'Cerrar'. Al pulsarlo, el sistema te pedirá el arqueo final y te mostrará el resumen de ventas del turno." },
+        { q: "¿Genera tickets para impresoras térmicas?", a: "Sí, el sistema genera un recibo digital optimizado para impresión térmica (58mm/80mm) que podés imprimir directamente desde el navegador de tu móvil o PC." },
         { q: "¿El inventario se descuenta automáticamente?", a: "Correcto. Cada vez que procesas una venta exitosa, el stock de los productos se actualiza en tiempo real en tu base de datos." }
       ]
     },
     {
-      category: "Pagos y Protección",
-      icon: <CreditCard className="text-emerald-400" size={20} />,
+      category: "Pagos y protección",
+      icon: CreditCard,
       items: [
         { q: "¿Qué pasa si me estafan?", a: "Mercav utiliza un sistema de Depósito en Garantía (Escrow). Los pagos se retienen hasta que confirmes la entrega. Si hay un problema, abrimos una disputa oficial." },
         { q: "¿Cuándo recibo mi pago como vendedor?", a: "Una vez que el comprador acepta el trabajo o se cumple el tiempo de entrega sin reclamos, los fondos se liberan a tu billetera Mercav (generalmente en 48-72h)." },
@@ -39,30 +42,30 @@ export default function FAQPage() {
       ]
     },
     {
-      category: "Fraude y Verificación",
-      icon: <ShieldCheck className="text-gold" size={20} />,
+      category: "Fraude y verificación",
+      icon: ShieldCheck,
       items: [
-        { q: "¿Cómo sé si un perfil es real?", a: "Busca el distintivo dorado 'VERIFICADO'. Significa que Mercav ha validado la identidad legal y comercial del usuario o empresa." },
-        { q: "¿Qué hago si detecto una publicación sospechosa?", a: "Usa el botón de 'Reportar' en la publicación. Nuestro equipo de moderación revisa todos los reportes en menos de 24 horas." },
+        { q: "¿Cómo sé si un perfil es real?", a: "Buscá el distintivo dorado 'VERIFICADO'. Significa que Mercav ha validado la identidad legal y comercial del usuario o empresa." },
+        { q: "¿Qué hago si detecto una publicación sospechosa?", a: "Usá el botón de 'Reportar' en la publicación. Nuestro equipo de moderación revisa todos los reportes en menos de 24 horas." },
         { q: "¿Por qué Mercav me pide mi ID/Documento?", a: "Para mantener la red libre de estafadores. La verificación biométrica es obligatoria para usuarios que manejan pagos de servicios." }
       ]
     },
     {
-      category: "Servicios y Publicidad",
-      icon: <ShoppingBag className="text-blue-400" size={20} />,
+      category: "Servicios y publicidad",
+      icon: ShoppingBag,
       items: [
         { q: "¿Cuál es la comisión por venta?", a: "Mercav cobra un 12% de comisión en servicios freelance para mantener la infraestructura y el sistema de protección de pagos." },
         { q: "¿Los anuncios de empleo tienen costo?", a: "No. Publicar vacantes de empleo en Mercav es y siempre será gratuito para las empresas de toda Latinoamérica." },
-        { q: "¿Cómo funcionan las reservas de vallas publicitarias?", a: "Puedes ver la disponibilidad en el mapa, reservar el periodo que desees y pagar online. Mercav notificará al dueño del espacio para la instalación." }
+        { q: "¿Cómo funcionan las reservas de vallas publicitarias?", a: "Podés ver la disponibilidad en el mapa, reservar el período que quieras y pagar online. Mercav notificará al dueño del espacio para la instalación." }
       ]
     },
     {
-      category: "Cuentas y Seguridad",
-      icon: <UserCheck className="text-purple-400" size={20} />,
+      category: "Cuentas y seguridad",
+      icon: UserCheck,
       items: [
-        { q: "¿Puedo tener múltiples negocios?", a: "Sí, puedes configurar varios perfiles de POS o catálogos bajo una misma cuenta maestra de Mercav." },
+        { q: "¿Puedo tener múltiples negocios?", a: "Sí, podés configurar varios perfiles de POS o catálogos bajo una misma cuenta maestra de Mercav." },
         { q: "¿Cómo cambio mi contraseña?", a: "En la sección de Perfil > Ajustes > Seguridad. Recomendamos usar autenticación de dos pasos (2FA) para proteger tus fondos." },
-        { q: "¿Qué pasa si pierdo acceso a mi cuenta?", a: "Escribe inmediatamente a soporte@mercav.lat con tu ID de usuario y los últimos movimientos realizados para validar tu identidad." }
+        { q: "¿Qué pasa si pierdo acceso a mi cuenta?", a: "Escribí de inmediato a soporte@mercav.lat con tu ID de usuario y los últimos movimientos realizados para validar tu identidad." }
       ]
     }
   ];
@@ -77,128 +80,96 @@ export default function FAQPage() {
       })).filter(cat => cat.items.length > 0)
     : faqs;
 
+  const resultCount = filteredFaqs.reduce((n, c) => n + c.items.length, 0);
+
   return (
-    <div className="w-full min-h-screen bg-bg-primary pt-32 pb-20 overflow-hidden relative">
-      {/* Background Decor */}
-      <div className="fixed inset-0 pointer-events-none opacity-20">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-gold/10 rounded-full blur-[150px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/5 rounded-full blur-[150px]" />
-      </div>
-
-      <div className="container mx-auto px-4 max-w-4xl relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
-        >
-          <Link href="/" className="inline-flex items-center text-gray-500 hover:text-gold transition-colors mb-8 text-[10px] font-black uppercase tracking-[0.2em]">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Volver al Inicio
-          </Link>
-          <h1 className="text-5xl md:text-7xl font-display font-black tracking-tighter text-white mb-6">
-            Centro de <span className="text-gold">Ayuda</span>
-          </h1>
-          <p className="text-gray-500 text-lg max-w-2xl mx-auto leading-relaxed">
-            Todo lo que necesitas saber sobre cómo usar Mercav de forma segura y eficiente.
-          </p>
-        </motion.div>
-
-        {/* Search Bar */}
-        <div className="relative max-w-2xl mx-auto mb-20 group">
-          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-gold transition-colors" size={20} />
-          <input 
-            type="text"
-            placeholder="Busca respuestas (ej: pagos, POS, stock...)"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-16 bg-white/[0.03] border border-white/5 rounded-2xl pl-16 pr-6 text-white outline-none focus:border-gold/30 focus:bg-white/[0.05] transition-all"
-          />
+    <div className="w-full bg-bg-primary">
+      <PageHero
+        kicker="Centro de ayuda"
+        title="Respuestas para usar Mercav con tranquilidad."
+        lead="Pagos, POS, verificación, publicidad y cuenta. Buscá por palabra o recorré las categorías."
+      >
+        <div className="max-w-2xl">
+          <FaqSearch value={searchQuery} onChange={setSearchQuery} placeholder="Buscá respuestas: pagos, POS, stock…" resultCount={resultCount} />
         </div>
+      </PageHero>
 
-        <div className="space-y-12">
-          {filteredFaqs.map((section, sectionIndex) => (
-            <motion.div 
-              key={sectionIndex}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <div className="flex items-center gap-3 mb-8">
-                <div className="p-2 rounded-lg bg-white/5 border border-white/5">
-                  {section.icon}
-                </div>
-                <h2 className="text-2xl font-bold text-white">{section.category}</h2>
-                <div className="h-[1px] flex-1 bg-gradient-to-r from-white/10 to-transparent ml-4" />
-              </div>
-
-              <div className="space-y-4">
-                {section.items.map((item, itemIndex) => {
-                  const globalIndex = sectionIndex * 100 + itemIndex;
-                  const isOpen = openItems.includes(globalIndex);
-
+      <Section tight className="!pt-4 md:!pt-6">
+        <Container>
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-16">
+            <nav aria-label="Categorías" className="min-w-0 lg:sticky lg:top-28 lg:self-start">
+              <ul className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:flex-col lg:gap-0.5 lg:overflow-visible lg:px-0">
+                {filteredFaqs.map((section) => {
+                  const Icon = section.icon;
                   return (
-                    <div 
-                      key={itemIndex}
-                      className={`bg-bg-secondary/40 border transition-all rounded-3xl overflow-hidden ${isOpen ? 'border-gold/30 bg-white/[0.02]' : 'border-white/5 hover:border-white/10'}`}
-                    >
-                      <button
-                        onClick={() => toggleItem(globalIndex)}
-                        className="w-full p-6 text-left flex items-start justify-between gap-4"
+                    <li key={section.category} className="shrink-0">
+                      <a
+                        href={`#${slug(section.category)}`}
+                        className="mv-focus flex h-10 items-center gap-2.5 whitespace-nowrap rounded-full border border-[var(--mv-hairline)] px-4 text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] lg:-ml-3 lg:rounded-xl lg:border-transparent lg:px-3 lg:hover:bg-[var(--mv-panel-hover)]"
                       >
-                        <h3 className={`font-bold transition-colors ${isOpen ? 'text-gold' : 'text-gray-300'}`}>{item.q}</h3>
-                        <motion.div
-                          animate={{ rotate: isOpen ? 180 : 0 }}
-                          className="mt-1"
-                        >
-                          <ChevronDown size={20} className={isOpen ? 'text-gold' : 'text-gray-600'} />
-                        </motion.div>
-                      </button>
-                      <AnimatePresence>
-                        {isOpen && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="p-6 pt-0 text-gray-500 leading-relaxed text-sm">
-                              {item.a}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
+                        <Icon className="h-4 w-4 text-[var(--text-tertiary)]" aria-hidden />
+                        {section.category}
+                      </a>
+                    </li>
                   );
                 })}
-              </div>
-            </motion.div>
-          ))}
-          {filteredFaqs.length === 0 && (
-            <div className="text-center py-20 opacity-20">
-               <HelpCircle size={80} className="mx-auto mb-4" />
-               <p className="font-black uppercase tracking-widest text-xs">No se encontraron resultados</p>
-            </div>
-          )}
-        </div>
+              </ul>
+            </nav>
 
-        {/* Contact Footer */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-20 p-10 bg-gradient-to-br from-gold/10 to-transparent border border-gold/10 rounded-[3rem] text-center"
-        >
-          <h3 className="text-2xl font-bold text-white mb-4">¿Aún tienes dudas?</h3>
-          <p className="text-gray-500 mb-8 max-w-md mx-auto">Nuestro equipo técnico está disponible 24/7 para ayudarte con cualquier problema en la plataforma.</p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button asChild className="h-14 px-8 bg-gold text-primary-foreground hover:bg-gold-light rounded-2xl font-black uppercase tracking-widest text-[10px]">
-              <Link href="/soporte">Contactar Soporte</Link>
-            </Button>
-            <Button asChild className="h-14 px-8 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black uppercase tracking-widest text-[10px]">
-              <Link href="/mensajes">Chat en Vivo</Link>
-            </Button>
+            <div className="min-w-0 space-y-14">
+              {filteredFaqs.map((section) => {
+                const sectionIndex = faqs.findIndex((c) => c.category === section.category);
+                const Icon = section.icon;
+                const sid = slug(section.category);
+                return (
+                  <section key={section.category} id={sid} aria-labelledby={`${sid}-h`} className="scroll-mt-28">
+                    <div className="mb-5 flex items-center gap-3">
+                      <span className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] text-gold">
+                        <Icon className="h-[18px] w-[18px]" aria-hidden />
+                      </span>
+                      <h2 id={`${sid}-h`} className="mv-h3">
+                        {section.category}
+                      </h2>
+                    </div>
+                    <ul className="space-y-2.5">
+                      {section.items.map((item) => {
+                        const itemIndex = faqs[sectionIndex].items.findIndex((x) => x.q === item.q);
+                        const globalIndex = sectionIndex * 100 + itemIndex;
+                        return (
+                          <FaqItem
+                            key={item.q}
+                            question={item.q}
+                            answer={item.a}
+                            open={openItems.includes(globalIndex)}
+                            onToggle={() => toggleItem(globalIndex)}
+                          />
+                        );
+                      })}
+                    </ul>
+                  </section>
+                );
+              })}
+              {filteredFaqs.length === 0 && (
+                <div className="mv-panel flex flex-col items-center px-6 py-14 text-center">
+                  <HelpCircle className="h-8 w-8 text-[var(--text-tertiary)]" aria-hidden />
+                  <p className="mt-4 font-semibold text-[var(--text-primary)]">No encontramos resultados para “{searchQuery}”.</p>
+                  <p className="mt-1 text-sm text-[var(--text-secondary)]">Probá con otra palabra o escribinos a soporte.</p>
+                  <button type="button" onClick={() => setSearchQuery("")} className="mv-link mt-5 text-sm">
+                    Limpiar búsqueda
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </motion.div>
-      </div>
+        </Container>
+      </Section>
+
+      <CTABand
+        title="¿Seguís con dudas?"
+        lead="Contanos qué necesitás y una persona del equipo te responde por correo."
+        action={<ButtonLink href="/soporte" size="lg" className="w-full sm:w-auto">Contactar soporte</ButtonLink>}
+        note={<>También podés escribir desde <a href="/mensajes" className="mv-link font-medium">Mensajes</a> si ya tenés cuenta.</>}
+      />
     </div>
   );
 }

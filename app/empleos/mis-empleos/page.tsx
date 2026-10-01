@@ -1,28 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  Briefcase, 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreVertical, 
-  Edit3, 
-  Trash2, 
-  ExternalLink,
-  MapPin,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-  ArrowLeft,
-  Users,
-  Eye
-} from "lucide-react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { Briefcase, Plus, Search, MapPin, Users, Eye } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { Container, PageHero, ButtonLink } from "@/components/site/primitives";
+import { EmptyState, ManageItem, PageLoading, EMPLOYMENT_LABEL, labelFor } from "@/components/anuncios/market-ui";
 
 export default function MisEmpleosPage() {
   const { data: session } = useSession();
@@ -69,134 +53,112 @@ export default function MisEmpleosPage() {
   );
 
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-bg-primary">
-        <Loader2 className="w-8 h-8 text-gold animate-spin" />
-      </div>
-    );
+    return <PageLoading label="Cargando tus vacantes…" />;
   }
 
   return (
-    <div className="min-h-screen bg-bg-primary pt-24 pb-20">
-      <div className="container mx-auto px-4 max-w-6xl">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
-          <div>
-            <Button variant="ghost" asChild className="text-gray-500 hover:text-white -ml-4 mb-4">
-              <Link href="/dashboard"><ArrowLeft className="w-4 h-4 mr-2" /> Volver al Dashboard</Link>
-            </Button>
-            <h1 className="text-4xl font-display font-black text-white tracking-tighter">Gestión de <span className="text-blue-400">Vacantes</span></h1>
-            <p className="text-gray-500 mt-2">Publica ofertas laborales y gestiona tus procesos de selección.</p>
-          </div>
-          <Button asChild className="bg-blue-500 text-white hover:bg-blue-400 rounded-2xl h-14 px-8 font-black uppercase tracking-widest shadow-xl shadow-blue-500/20">
-            <Link href="/empleos/publicar"><Plus className="w-5 h-5 mr-2" /> Publicar Vacante</Link>
-          </Button>
-        </div>
+    <div className="w-full bg-bg-primary">
+      <PageHero
+        kicker="Mercav Jobs"
+        title="Mis vacantes"
+        lead="Seguí tus búsquedas abiertas: revisá postulantes, editá la oferta o cerrala."
+        actions={
+          <>
+            <ButtonLink href="/empleos/publicar" size="lg" className="w-full sm:w-auto">
+              <Plus className="h-5 w-5" aria-hidden />
+              Publicar una vacante
+            </ButtonLink>
+            <ButtonLink href="/dashboard" tone="ghost" size="lg" className="w-full sm:w-auto">
+              Ir al panel
+            </ButtonLink>
+          </>
+        }
+      />
 
-        {/* Filters and Search */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-            <input 
-              type="text"
-              placeholder="Buscar por cargo o ciudad..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-bg-secondary border border-border rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500/50 transition-colors"
-            />
-          </div>
-          <Button variant="outline" className="h-14 px-6 border-border rounded-2xl text-gray-400 hover:text-white">
-            <Filter className="w-5 h-5 mr-2" /> Filtros
-          </Button>
-        </div>
+      <section aria-label="Listado de vacantes" className="pb-14 md:pb-24">
+        <Container>
+          {jobs.length > 0 ? (
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <label className="relative block sm:w-96">
+                <span className="sr-only">Buscar por cargo o ciudad</span>
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-tertiary)]" aria-hidden />
+                <input
+                  type="search"
+                  placeholder="Buscar por cargo o ciudad…"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="mv-input pl-11"
+                />
+              </label>
+              <p className="text-sm text-[var(--text-secondary)]" aria-live="polite">
+                <span className="mv-data font-semibold text-[var(--text-primary)]">{filteredJobs.length}</span> de{" "}
+                <span className="mv-data">{jobs.length}</span> vacantes
+              </p>
+            </div>
+          ) : null}
 
-        {/* Jobs List */}
-        <div className="space-y-4">
-          <AnimatePresence>
-            {filteredJobs.length > 0 ? (
-              filteredJobs.map((job, i) => (
-                <motion.div
+          {filteredJobs.length > 0 ? (
+            <ul className="flex flex-col gap-3">
+              {filteredJobs.map((job) => (
+                <ManageItem
                   key={job.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="bg-bg-secondary border border-border p-8 rounded-[2.5rem] hover:border-blue-400/20 transition-all group"
-                >
-                  <div className="flex flex-col lg:flex-row items-center gap-8">
-                    {/* Icon/Logo Placeholder */}
-                    <div className="w-20 h-20 bg-blue-500/10 rounded-2xl flex items-center justify-center flex-shrink-0 border border-blue-500/20 group-hover:scale-110 transition-transform">
-                      <Briefcase className="text-blue-400 w-10 h-10" />
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/5 px-3 py-1 rounded-full border border-blue-500/10">
-                          {job.employmentType.replace('_', ' ')}
-                        </span>
-                        {job.isActive ? (
-                          <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
-                            <CheckCircle size={12} /> Abierta
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                            <AlertCircle size={12} /> Cerrada
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2 truncate group-hover:text-blue-400 transition-colors">{job.title}</h3>
-                      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                        <span className="flex items-center gap-1.5"><MapPin size={12} className="text-blue-400" /> {job.city}, {job.country}</span>
-                        <span className="flex items-center gap-1.5"><Users size={12} className="text-gold" /> {job._count.applications} Postulantes</span>
-                        <span className="flex items-center gap-1.5"><Eye size={12} /> {job.viewCount} vistas</span>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-3">
-                      <Button variant="ghost" asChild className="h-12 px-6 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 border border-white/5">
-                        <Link href={`/dashboard/postulantes?jobId=${job.id}`}><Users size={16} className="mr-2" /> Candidatos</Link>
-                      </Button>
-                      <Button variant="ghost" asChild className="w-12 h-12 rounded-xl p-0 text-gray-500 hover:text-white hover:bg-white/5">
-                        <Link href={`/empleos/${job.id}`} target="_blank"><ExternalLink size={18} /></Link>
-                      </Button>
-                      <Button variant="ghost" asChild className="w-12 h-12 rounded-xl p-0 text-gray-500 hover:text-white hover:bg-white/5">
-                        <Link href={`/empleos/editar/${job.id}`}><Edit3 size={18} /></Link>
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        onClick={() => setDeleteModal({ isOpen: true, id: job.id })}
-                        className="w-12 h-12 rounded-xl p-0 text-red-500 hover:bg-red-500/10"
-                      >
-                        <Trash2 size={18} />
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              <div className="text-center py-32 bg-bg-secondary border border-border border-dashed rounded-[3rem]">
-                <div className="bg-white/5 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Briefcase className="text-gray-700 w-10 h-10" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">No tienes vacantes publicadas</h3>
-                <p className="text-gray-500 max-w-sm mx-auto mb-8">Encuentra el talento ideal para tu equipo publicando tu primera oferta de empleo.</p>
-                <Button asChild className="bg-blue-500 text-white hover:bg-blue-400 rounded-2xl h-12 px-8 font-black uppercase tracking-widest">
-                  <Link href="/empleos/publicar">Publicar mi primera vacante</Link>
-                </Button>
-              </div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
+                  media={
+                    <span className="grid aspect-[4/3] place-items-center bg-[var(--mv-gold-wash)] text-gold">
+                      <Briefcase className="h-6 w-6" aria-hidden />
+                    </span>
+                  }
+                  title={job.title}
+                  viewHref={`/empleos/${job.id}`}
+                  editHref={`/empleos/editar/${job.id}`}
+                  onDelete={() => setDeleteModal({ isOpen: true, id: job.id })}
+                  active={!!job.isActive}
+                  activeLabel="Abierta"
+                  inactiveLabel="Cerrada"
+                  badge={job.employmentType ? <span className="mv-chip">{labelFor(EMPLOYMENT_LABEL, job.employmentType)}</span> : null}
+                  meta={[
+                    <>
+                      <MapPin className="h-3.5 w-3.5 text-gold" aria-hidden /> {[job.city, job.country].filter(Boolean).join(", ")}
+                    </>,
+                    <>
+                      <Users className="h-3.5 w-3.5" aria-hidden /> <span className="mv-data">{job._count?.applications ?? 0}</span> postulantes
+                    </>,
+                    <>
+                      <Eye className="h-3.5 w-3.5" aria-hidden /> <span className="mv-data">{job.viewCount ?? 0}</span> vistas
+                    </>,
+                  ]}
+                  extra={
+                    <Link href={`/dashboard/postulantes?jobId=${job.id}`} className="mv-btn mv-btn-secondary mv-btn-sm flex-1 sm:flex-none">
+                      <Users className="h-4 w-4" aria-hidden />
+                      Postulantes
+                    </Link>
+                  }
+                />
+              ))}
+            </ul>
+          ) : jobs.length > 0 ? (
+            <EmptyState icon={Search} title="Ninguna vacante coincide" body="Probá con otro cargo o ciudad." />
+          ) : (
+            <EmptyState
+              icon={Briefcase}
+              title="Todavía no publicaste vacantes"
+              body="Publicá tu primera búsqueda: definís modalidad, nivel y si mostrás el salario, y recibís las postulaciones acá."
+              action={
+                <ButtonLink href="/empleos/publicar" className="w-full sm:w-auto">
+                  Publicar mi primera vacante
+                </ButtonLink>
+              }
+            />
+          )}
+        </Container>
+      </section>
 
       <ConfirmationModal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
         onConfirm={handleDelete}
-        title="¿Eliminar Vacante?"
-        message="Esta acción eliminará permanentemente la oferta de empleo. Los postulantes ya no podrán verla ni enviar sus currículums."
-        confirmText="Eliminar permanentemente"
+        title="¿Eliminar esta vacante?"
+        message="La oferta se borra de forma permanente. Los postulantes ya no podrán verla ni postularse."
+        confirmText="Eliminar vacante"
         variant="danger"
       />
     </div>

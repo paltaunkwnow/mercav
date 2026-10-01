@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/app/api/pwn/_lib/rate-limit";
-import { EDITABLE_FIELDS } from "@/lib/kosher/edits";
+import { EDITABLE_FIELDS, editValueProblem } from "@/lib/kosher/edits";
 import { getKosherViewer, kosherError, publicAuthorName, unauthorized, writeGuard } from "@/lib/kosher/server";
 
 const schema = z.object({
@@ -23,6 +23,8 @@ export async function POST(request: NextRequest, { params }: { params: { slug: s
   const { field, newValue, note } = parsed.data;
   const spec = EDITABLE_FIELDS[field];
   if (spec.options && !spec.options.includes(newValue)) return kosherError(400, "Valor no válido para ese campo.");
+  const problem = editValueProblem(field, newValue);
+  if (problem) return kosherError(400, problem);
 
   const place = await prisma.kosherPlace.findUnique({ where: { slug: params.slug } });
   if (!place?.published) return kosherError(404, "Lugar no encontrado");

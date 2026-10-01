@@ -1,33 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  Briefcase, 
-  MapPin, 
-  DollarSign, 
-  Clock, 
-  Loader2, 
-  ArrowLeft, 
-  CheckCircle2,
-  Plus,
-  Trash2,
-  Globe,
-  Building2,
-  Send,
-  Zap,
-  Target,
-  ShieldCheck,
-  Building,
-  GraduationCap,
-  Users,
-  Settings2
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2, MapPin, Building2, UserRound } from "lucide-react";
 import Link from "next/link";
 import { Toast } from "@/components/ui/toast";
-import { CustomSelect } from "@/components/ui/CustomSelect";
-import { motion, AnimatePresence } from "framer-motion";
+import { Container, buttonClass } from "@/components/site/primitives";
+import { ChoiceMenu } from "@/components/anuncios/ChoiceMenu";
+import { BackLink, Field, FormSection, SwitchRow, textareaClass } from "@/components/anuncios/market-ui";
+import { cn } from "@/lib/utils";
 
 export default function PublicarEmpleoPage() {
   const router = useRouter();
@@ -54,13 +35,18 @@ export default function PublicarEmpleoPage() {
     officialCompanyId: "",
   });
 
-  useState(() => {
+  useEffect(() => {
+    let cancelled = false;
     fetch("/api/companies/user-approved")
-      .then(res => res.json())
+      .then(res => (res.ok ? res.json() : null))
       .then(data => {
-        if (data.success) setUserCompanies(data.data);
-      });
-  });
+        if (!cancelled && data?.success) setUserCompanies(data.data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const showToast = (message: string, type: "success" | "error" | "info" = "info") => {
     setToast({ visible: true, message, type });
@@ -107,240 +93,191 @@ export default function PublicarEmpleoPage() {
     }
   };
 
+  const set = (patch: Partial<typeof formData>) => setFormData({ ...formData, ...patch });
+  const identities = [{ id: "", name: "Mi cuenta personal", personal: true }, ...userCompanies.map((c: any) => ({ id: c.id, name: c.name, personal: false }))];
+
   return (
-    <div className="min-h-screen pt-28 pb-32">
-      {/* Background Ambience */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-blue-500/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-emerald-500/5 blur-[120px] rounded-full" />
-      </div>
+    <div className="relative w-full bg-bg-primary pb-14 pt-24 md:pb-24 md:pt-32">
+      <div className="mv-aura" aria-hidden />
+      <Container className="relative">
+        <BackLink href="/empleos">Volver a Mercav Jobs</BackLink>
+        <header className="mt-6 flex max-w-3xl flex-col gap-4">
+          <p className="mv-kicker">Mercav Jobs</p>
+          <h1 className="mv-h2">Publicar una vacante</h1>
+          <p className="mv-lead">Describí el puesto, las condiciones y si mostrás el salario. Las postulaciones te llegan a tu cuenta.</p>
+        </header>
 
-      <div className="container mx-auto px-6 max-w-[1600px] relative z-10">
-        {/* Header Section */}
-        <div className="flex items-center gap-6 mb-12">
-          <Link href="/empleos" className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-all backdrop-blur-md group shrink-0">
-            <ArrowLeft className="group-hover:-translate-x-1 transition-transform" size={20} />
-          </Link>
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[9px] font-black text-blue-400 uppercase tracking-[0.2em]">Mercav Recruitment</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-display font-black text-white tracking-tighter leading-tight">
-              Publicar <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">Vacante</span>
-            </h1>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-8 space-y-8">
-            {/* Brand Identity Selection */}
+        <form onSubmit={handleSubmit} className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
+          <div className="flex min-w-0 flex-col gap-6">
             {userCompanies.length > 0 && (
-              <div className="p-8 relative overflow-hidden">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
-                    <ShieldCheck size={18} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-white tracking-tight">Identidad de Marca</h3>
-                    <p className="text-[9px] text-gray-500 uppercase tracking-widest font-black">Publicación Corporativa</p>
-                  </div>
+              <FormSection id="job-identity" title="Publicar como" description="Elegí si la vacante sale con tu nombre o con el de una empresa que administrás.">
+                <div role="radiogroup" aria-labelledby="job-identity" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {identities.map((it) => {
+                    const on = formData.officialCompanyId === it.id;
+                    const Icon = it.personal ? UserRound : Building2;
+                    return (
+                      <button
+                        key={it.id || "personal"}
+                        type="button"
+                        role="radio"
+                        aria-checked={on}
+                        onClick={() => set({ officialCompanyId: it.id })}
+                        className={cn(
+                          "mv-focus flex min-h-[3.5rem] items-center gap-3 rounded-2xl border px-4 text-left text-sm font-medium transition-colors duration-200",
+                          on
+                            ? "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-[var(--text-primary)]"
+                            : "border-[var(--mv-hairline-strong)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
+                        )}
+                      >
+                        <Icon className="h-4 w-4 shrink-0 text-gold" aria-hidden />
+                        <span className="truncate">{it.name}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div 
-                    onClick={() => setFormData({ ...formData, officialCompanyId: "" })}
-                    className={`p-4 rounded-2xl transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-2 border-none ${
-                      formData.officialCompanyId === "" ? "bg-blue-500/10" : "bg-black/40 hover:bg-white/5"
-                    }`}
-                  >
-                    <Users size={20} className={formData.officialCompanyId === "" ? "text-blue-400" : "text-gray-500"} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Cuenta Personal</span>
-                  </div>
-                  
-                  {userCompanies.map(company => (
-                    <div 
-                      key={company.id}
-                      onClick={() => setFormData({ ...formData, officialCompanyId: company.id })}
-                      className={`p-4 rounded-2xl transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-2 border-none ${
-                        formData.officialCompanyId === company.id ? "bg-blue-500/10 shadow-[0_0_30px_rgba(59,130,246,0.05)]" : "bg-black/40 hover:bg-white/5"
-                      }`}
-                    >
-                      <Building size={20} className={formData.officialCompanyId === company.id ? "text-blue-400" : "text-gray-500"} />
-                      <span className="text-[10px] font-black uppercase tracking-widest truncate w-full px-2">{company.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              </FormSection>
             )}
 
-            {/* Core Info Card */}
-            <div className="relative overflow-hidden space-y-10">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/0 via-blue-500/20 to-blue-500/0" />
-              
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
-                  <Building2 size={18} />
-                </div>
-                <h3 className="text-lg font-bold text-white tracking-tight">Detalles de la Posición</h3>
+            <FormSection id="job-basics" step={1} title="El puesto">
+              <Field label="Título del puesto" htmlFor="job-title" required hint="Usá el nombre que buscaría un candidato. Ej.: Desarrollador full stack semi senior.">
+                <input
+                  id="job-title"
+                  required 
+                  value={formData.title}
+                  onChange={(e) => set({ title: e.target.value })}
+                  placeholder="Ej. Desarrollador full stack"
+                  aria-describedby="job-title-hint"
+                  className="mv-input"
+                />
+              </Field>
+              <Field label="Descripción" htmlFor="job-desc" required hint="Tareas, equipo, objetivos del rol.">
+                <textarea 
+                  id="job-desc"
+                  required 
+                  rows={6}
+                  value={formData.description}
+                  onChange={(e) => set({ description: e.target.value })}
+                  placeholder="Describí las tareas, la cultura del equipo y los objetivos…"
+                  aria-describedby="job-desc-hint"
+                  className={textareaClass}
+                />
+              </Field>
+              <Field label="Requisitos" htmlFor="job-req" required hint="Conocimientos técnicos, experiencia y habilidades.">
+                <textarea 
+                  id="job-req"
+                  required 
+                  rows={4}
+                  value={formData.requirements}
+                  onChange={(e) => set({ requirements: e.target.value })}
+                  placeholder="Enumerá conocimientos técnicos y habilidades…"
+                  aria-describedby="job-req-hint"
+                  className={textareaClass}
+                />
+              </Field>
+              <div className="grid gap-5 md:grid-cols-2">
+                <Field label="Responsabilidades" htmlFor="job-resp" optional>
+                  <textarea id="job-resp" rows={4} value={formData.responsibilities} onChange={(e) => set({ responsibilities: e.target.value })} className={textareaClass} />
+                </Field>
+                <Field label="Beneficios" htmlFor="job-benefits" optional>
+                  <textarea id="job-benefits" rows={4} value={formData.benefits} onChange={(e) => set({ benefits: e.target.value })} className={textareaClass} />
+                </Field>
               </div>
+            </FormSection>
 
-              <div className="space-y-8">
-                <div>
-                  <label className="block text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3 ml-2">Título del Puesto</label>
-                  <input 
-                    required 
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    placeholder="Ej. Senior Full Stack Developer"
-                    className="w-full bg-black/60 rounded-2xl h-16 px-6 text-white text-lg font-bold focus:outline-none focus:bg-white/[0.05] transition-all border-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3 ml-2">Descripción del Cargo</label>
-                  <textarea 
-                    required 
-                    rows={6}
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    placeholder="Describe las tareas, la cultura del equipo y los objetivos..."
-                    className="w-full bg-black/60 rounded-[2rem] p-6 text-white text-base focus:outline-none focus:bg-white/[0.05] transition-all resize-none leading-relaxed border-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3 ml-2">Requisitos Clave</label>
-                  <textarea 
-                    required 
-                    rows={4}
-                    value={formData.requirements}
-                    onChange={(e) => setFormData({...formData, requirements: e.target.value})}
-                    placeholder="Enumera los conocimientos técnicos y habilidades blandas..."
-                    className="w-full bg-black/60 rounded-[2rem] p-6 text-white text-base focus:outline-none focus:bg-white/[0.05] transition-all resize-none leading-relaxed border-none"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Social Amplification Card */}
-            <div className="p-8 relative overflow-hidden group">
-              <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-                <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-xl font-black text-white mb-2">Impacto en Comunidad</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">Notifica automáticamente a toda la red sobre esta vacante.</p>
-                </div>
-                <div 
-                  onClick={() => setCreatePost(!createPost)}
-                  className={`flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer min-w-[240px] border-none ${
-                    createPost ? "bg-blue-500/10" : "bg-black/60"
-                  }`}
-                >
-                  <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
-                    createPost ? "border-blue-500 bg-blue-500 text-white" : "border-gray-700"
-                  }`}>
-                    {createPost && <CheckCircle2 className="h-3.5 w-3.5" />}
-                  </div>
-                  <p className="text-xs font-black text-white uppercase tracking-widest">Publicar en Feed</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-4 space-y-6">
-            {/* Logistics Card */}
-            <div className="relative overflow-hidden space-y-8 sticky top-28">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400">
-                  <Settings2 size={18} />
-                </div>
-                <h3 className="text-lg font-bold text-white tracking-tight">Condiciones</h3>
-              </div>
-
-              <div className="space-y-4">
-                <CustomSelect
-                  label="Tipo de Contrato"
+            <FormSection id="job-terms" step={2} title="Condiciones">
+              <div className="grid gap-5 md:grid-cols-3">
+                <ChoiceMenu
+                  label="Tipo de contrato"
                   value={formData.employmentType}
-                  onChange={(val) => setFormData({...formData, employmentType: val})}
+                  onChange={(val) => set({ employmentType: val })}
                   options={[
-                    { value: "TIEMPO_COMPLETO", label: "Tiempo Completo" },
-                    { value: "PART_TIME", label: "Medio Tiempo" },
+                    { value: "TIEMPO_COMPLETO", label: "Tiempo completo" },
+                    { value: "PART_TIME", label: "Medio tiempo" },
                     { value: "FREELANCE", label: "Freelance" },
                     { value: "PASANTIA", label: "Pasantía" },
                   ]}
                 />
-
-                <CustomSelect
-                  label="Entorno de Trabajo"
+                <ChoiceMenu
+                  label="Modalidad"
                   value={formData.workMode}
-                  onChange={(val) => setFormData({...formData, workMode: val})}
+                  onChange={(val) => set({ workMode: val })}
                   options={[
                     { value: "PRESENCIAL", label: "Presencial" },
                     { value: "REMOTO", label: "Remoto" },
                     { value: "HIBRIDO", label: "Híbrido" },
                   ]}
                 />
-
-                <CustomSelect
-                  label="Nivel de Experiencia"
+                <ChoiceMenu
+                  label="Experiencia"
                   value={formData.experienceLevel}
-                  onChange={(val) => setFormData({...formData, experienceLevel: val})}
+                  onChange={(val) => set({ experienceLevel: val })}
                   options={[
-                    { value: "SIN_EXPERIENCIA", label: "Sin Experiencia" },
+                    { value: "SIN_EXPERIENCIA", label: "Sin experiencia" },
                     { value: "JUNIOR", label: "Junior" },
-                    { value: "SEMI_SENIOR", label: "Middle" },
+                    { value: "SEMI_SENIOR", label: "Semi senior" },
                     { value: "SENIOR", label: "Senior" },
                   ]}
                 />
-
-                <div>
-                  <label className="block text-[9px] font-black text-gray-500 uppercase tracking-[0.2em] mb-3 ml-2">Ubicación / Ciudad</label>
+              </div>
+              <div className="grid gap-5 md:grid-cols-2">
+                <Field label="Ciudad" htmlFor="job-city" required>
                   <div className="relative">
-                    <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-blue-400 h-4 w-4" />
-                    <input 
+                    <MapPin className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gold" aria-hidden />
+                    <input
+                      id="job-city"
                       required 
                       value={formData.city}
-                      onChange={(e) => setFormData({...formData, city: e.target.value})}
+                      onChange={(e) => set({ city: e.target.value })}
                       placeholder="Ej. Santa Cruz"
-                      className="w-full bg-black/60 rounded-xl h-14 pl-12 pr-4 text-white text-sm font-bold focus:bg-white/[0.05] transition-all border-none"
+                      autoComplete="address-level2"
+                      className="mv-input pl-11"
                     />
                   </div>
-                </div>
-
-                <div className="space-y-3 pt-2">
-                  <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-2">Rango Salarial (USD)</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700 h-3 w-3" />
-                      <input type="number" value={formData.salaryMin} onChange={(e) => setFormData({...formData, salaryMin: e.target.value})} placeholder="Min" className="w-full bg-black/60 rounded-xl h-12 pl-8 text-white text-xs font-mono border-none outline-none focus:bg-white/[0.05] transition-all" />
-                    </div>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700 h-3 w-3" />
-                      <input type="number" value={formData.salaryMax} onChange={(e) => setFormData({...formData, salaryMax: e.target.value})} placeholder="Max" className="w-full bg-black/60 rounded-xl h-12 pl-8 text-white text-xs font-mono border-none outline-none focus:bg-white/[0.05] transition-all" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4">
-                  <button 
-                    type="submit" 
-                    disabled={loading} 
-                    className="w-full bg-blue-600 text-white hover:bg-blue-500 font-black uppercase tracking-[0.2em] h-16 rounded-2xl shadow-xl shadow-blue-600/10 transition-all hover:scale-[1.02] flex items-center justify-center gap-2 group"
-                  >
-                    {loading ? (
-                      <Loader2 className="w-6 h-6 animate-spin" />
-                    ) : (
-                      <>
-                        <span className="text-xs">Lanzar Vacante</span>
-                        <Send size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                      </>
-                    )}
-                  </button>
-                </div>
+                </Field>
+                <Field label="País" htmlFor="job-country">
+                  <input id="job-country" value={formData.country} onChange={(e) => set({ country: e.target.value })} autoComplete="country-name" className="mv-input" />
+                </Field>
               </div>
-            </div>
+            </FormSection>
           </div>
+
+          <aside aria-label="Salario y publicación" className="flex flex-col gap-4 lg:sticky lg:top-28">
+            <FormSection id="job-salary" step={3} title="Salario mensual" description="En USD. Podés cargarlo y no mostrarlo.">
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Mínimo" htmlFor="job-min">
+                  <input id="job-min" type="number" inputMode="numeric" min={0} value={formData.salaryMin} onChange={(e) => set({ salaryMin: e.target.value })} placeholder="0" className="mv-input mv-data" />
+                </Field>
+                <Field label="Máximo" htmlFor="job-max">
+                  <input id="job-max" type="number" inputMode="numeric" min={0} value={formData.salaryMax} onChange={(e) => set({ salaryMax: e.target.value })} placeholder="0" className="mv-input mv-data" />
+                </Field>
+              </div>
+              <SwitchRow
+                id="job-salary-visible"
+                checked={formData.salaryVisible}
+                onChange={() => set({ salaryVisible: !formData.salaryVisible })}
+                title="Mostrar el salario"
+                description={formData.salaryVisible ? "Los candidatos ven el rango en la vacante." : "La vacante dirá «A convenir»."}
+              />
+              <SwitchRow
+                id="job-post"
+                checked={createPost}
+                onChange={() => setCreatePost(!createPost)}
+                title="Anunciarla en el feed"
+                description="Crea una publicación automática en tu perfil."
+              />
+              <div className="flex flex-col gap-3 border-t border-[var(--mv-hairline)] pt-5">
+                <button type="submit" disabled={loading} aria-busy={loading} className={buttonClass("primary", "lg", "w-full")}>
+                  {loading ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> : null}
+                  {loading ? "Publicando…" : "Publicar vacante"}
+                </button>
+                <Link href="/empleos" className={buttonClass("ghost", "md", "w-full")}>
+                  Cancelar
+                </Link>
+              </div>
+            </FormSection>
+          </aside>
         </form>
-      </div>
+      </Container>
 
       <Toast 
         isVisible={toast.visible} 

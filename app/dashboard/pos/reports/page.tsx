@@ -3,21 +3,19 @@
 import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { 
-  TrendingUp, 
-  ShoppingBag, 
-  DollarSign, 
-  ChevronLeft,
   Clock,
-  XCircle,
   FileText,
   Printer,
-  TrendingDown,
-  BarChart3,
-  Percent,
-  Package
+  Package,
+  Loader2,
+  Ban,
+  AlertTriangle
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import POSHeader from "@/components/pos/POSHeader";
+import { formatMoney } from "@/lib/pos/money";
+import { formatQuantity } from "@/lib/pos/business";
+import VoidSaleDialog from "@/components/pos/VoidSaleDialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import * as XLSX from "xlsx";
@@ -30,10 +28,12 @@ export default function POSReportsPage() {
   const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState("BOB");
   const [mounted, setMounted] = useState(false);
+  const [voidTarget, setVoidTarget] = useState<any>(null);
+  const [voidNotice, setVoidNotice] = useState('');
 
   const incomeSeries = useMemo(() => {
     const buckets = new Map<string, number>();
-    for (const sale of data?.sales || []) {
+    for (const sale of (data?.sales || []).filter((x: any) => x.status !== 'VOIDED')) {
       const label = format(new Date(sale.createdAt), "d MMM", { locale: es });
       buckets.set(label, (buckets.get(label) || 0) + Number(sale.totalAmount || 0));
     }
@@ -64,7 +64,8 @@ export default function POSReportsPage() {
   };
 
   const handleExportExcel = () => {
-    if (!data?.sales || data.sales.length === 0) return;
+    const completed = (data?.sales || []).filter((x: any) => x.status !== 'VOIDED');
+    if (completed.length === 0) return;
 
     if (activeTab === 'profitability' && data.productProfitability) {
       const summaryData = [
@@ -105,7 +106,7 @@ export default function POSReportsPage() {
     ];
 
     const detailedData: any[] = [];
-    data.sales.forEach((sale: any) => {
+    completed.forEach((sale: any) => {
       sale.items.forEach((item: any) => {
         const pName = item.product?.name || item.productName || "Producto";
         detailedData.push({
@@ -130,23 +131,9 @@ export default function POSReportsPage() {
     XLSX.writeFile(wb, `Reporte_Mercav_Detallado_${range}_${format(new Date(), "yyyyMMdd")}.xlsx`);
   };
 
-  const statCards = [
-    { label: "Ventas Totales", value: data?.stats?.totalRevenue || 0, icon: DollarSign, color: "gold", prefix: currency },
-    { label: "Órdenes", value: data?.stats?.totalOrders || 0, icon: ShoppingBag, color: "blue", prefix: "" },
-    { label: "Promedio Ticket", value: data?.stats?.averageOrder || 0, icon: TrendingUp, color: "green", prefix: currency },
-    { label: "Descuentos", value: data?.stats?.totalDiscounts || 0, icon: XCircle, color: "red", prefix: currency },
-  ];
-
   const profitAverageMargin = data?.stats?.totalRevenue > 0 
     ? (Number(data.stats.totalProfit || 0) / Number(data.stats.totalRevenue)) * 100 
     : 0;
-
-  const profitabilityCards = [
-    { label: "Ingresos Totales", value: data?.stats?.totalRevenue || 0, icon: DollarSign, color: "gold", prefix: currency },
-    { label: "Costo de Ventas", value: data?.stats?.totalCost || 0, icon: TrendingDown, color: "red", prefix: currency },
-    { label: "Ganancia Neta", value: data?.stats?.totalProfit || 0, icon: BarChart3, color: "green", prefix: currency },
-    { label: "Margen Promedio", value: profitAverageMargin || 0, icon: Percent, color: "blue", prefix: "", suffix: "%" },
-  ];
 
   const getMarginBadgeClass = (margin: number) => {
     if (margin >= 30) return "bg-green-500/10 text-green-400 border-green-500/20";
@@ -160,241 +147,370 @@ export default function POSReportsPage() {
     return "Bajo";
   };
 
-  return (
-    <div className="min-h-screen bg-bg-primary text-white p-8 pt-32">
-      {/* Header section */}
-      <div className="max-w-7xl mx-auto mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6 no-print">
-        <div className="flex items-center gap-6">
-          <Link href="/dashboard/pos" className="h-14 w-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all">
-            <ChevronLeft size={24} />
-          </Link>
-          <div>
-            <h1 className="text-4xl font-black tracking-tighter uppercase">Reportes <span className="text-gold">POS</span></h1>
-            <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px] mt-1">Análisis de rendimiento y sesiones</p>
-          </div>
-        </div>
+  const money = (v: unknown) => formatMoney(Number(v || 0), currency);
+  const allSales: any[] = data?.sales || [];
+  const completedSales = allSales.filter((x) => x.status !== 'VOIDED');
+  const hasSales = completedSales.length > 0;
+  const lowStock: any[] = data?.lowStock || [];
+  const rangeLabel = range === 'day' ? 'hoy' : range === 'week' ? 'esta semana' : 'este mes';
+  const sessions: any[] = data?.sessions || [];
+  const products: any[] = data?.productProfitability || [];
+  const plainBtn = 'mv-btn w-full border border-[var(--mv-hairline-strong)] text-[var(--text-primary)] hover:border-[var(--color-border-gold)]';
 
-        <div className="flex items-center p-1.5 bg-white/5 border border-white/10 rounded-[2rem]">
-          {["day", "week", "month"].map((t) => (
-            <button key={t} onClick={() => setRange(t)} className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${range === t ? "bg-gold text-black" : "text-gray-400 hover:text-white"}`}>
-              {t === "day" ? "Hoy" : t === "week" ? "Semana" : "Mes"}
+  const kpis = activeTab === 'sales'
+    ? [
+        { label: 'Ventas totales', value: money(data?.stats?.totalRevenue), tone: '' },
+        { label: 'Órdenes', value: String(Number(data?.stats?.totalOrders || 0)), tone: '' },
+        { label: 'Ticket promedio', value: money(data?.stats?.averageOrder), tone: '' },
+        { label: 'Descuentos', value: money(data?.stats?.totalDiscounts), tone: '' },
+      ]
+    : [
+        { label: 'Ingresos', value: money(data?.stats?.totalRevenue), tone: '' },
+        { label: 'Costo de ventas', value: money(data?.stats?.totalCost), tone: '' },
+        { label: 'Ganancia neta', value: money(data?.stats?.totalProfit), tone: Number(data?.stats?.totalProfit || 0) >= 0 ? 'text-green-400' : 'text-red-400' },
+        { label: 'Margen promedio', value: `${Number(profitAverageMargin || 0).toFixed(2)}%`, tone: '' },
+      ];
+
+  const emptyState = (title: string, body: string) => (
+    <div className="mv-panel flex flex-col items-center px-6 py-14 text-center" role="status">
+      <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--mv-panel)] text-[var(--text-tertiary)] ring-1 ring-inset ring-[color:var(--mv-hairline-strong)]">
+        <Package size={22} strokeWidth={1.5} aria-hidden />
+      </span>
+      <p className="mt-3 text-base font-semibold text-[var(--text-primary)]">{title}</p>
+      <p className="mt-1 max-w-sm text-sm text-[var(--text-secondary)]">{body}</p>
+      <div className="mt-5 flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+        <Link href="/dashboard/pos" className="mv-btn mv-btn-primary mv-btn-sm">Ir a la caja</Link>
+        {range !== 'month' && (
+          <button type="button" onClick={() => setRange('month')} className="mv-btn mv-btn-sm border border-[var(--mv-hairline-strong)] text-[var(--text-primary)]">
+            Ver el mes completo
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-bg-primary text-[var(--text-primary)]">
+      <div className="no-print">
+        <POSHeader />
+      </div>
+
+      <main className="mx-auto max-w-6xl px-4 pt-8 pb-[calc(3rem+env(safe-area-inset-bottom,0px))] sm:px-6 md:pt-12 no-print">
+        <header className="mb-6 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div className="space-y-3">
+            <p className="mv-kicker">Reportes</p>
+            <h1 className="mv-h2">Ventas y rentabilidad</h1>
+            <p className="mv-body">Turnos, ingresos y margen por producto de {rangeLabel}.</p>
+          </div>
+
+          <div className="inline-flex self-start rounded-full border border-[var(--mv-hairline-strong)] p-1 md:self-auto" role="group" aria-label="Período">
+            {["day", "week", "month"].map((t) => (
+              <button
+                key={t}
+                type="button"
+                aria-pressed={range === t}
+                onClick={() => setRange(t)}
+                className={`mv-focus h-10 rounded-full px-4 text-sm font-semibold transition-colors duration-150 sm:px-5 ${range === t ? "bg-gold text-[var(--mv-on-gold)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+              >
+                {t === "day" ? "Hoy" : t === "week" ? "Semana" : "Mes"}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        {/* Tabs */}
+        <div className="scrollbar-hide mb-6 flex gap-6 overflow-x-auto border-b border-[var(--mv-hairline)]" role="tablist" aria-label="Tipo de reporte">
+          {([['sales', 'Turnos y ventas'], ['profitability', 'Rentabilidad']] as const).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              id={`tab-${id}`}
+              aria-selected={activeTab === id}
+              aria-controls="report-panel"
+              onClick={() => setActiveTab(id)}
+              className={`mv-focus relative h-12 shrink-0 whitespace-nowrap text-sm font-semibold transition-colors duration-150 ${activeTab === id ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+            >
+              {label}
+              {activeTab === id && <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-gold" aria-hidden />}
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Tabs bar */}
-      <div className="max-w-7xl mx-auto mb-8 border-b border-white/5 flex gap-8 no-print">
-        <button
-          onClick={() => setActiveTab('sales')}
-          className={`pb-4 text-xs font-black uppercase tracking-widest transition-all relative ${activeTab === 'sales' ? 'text-gold' : 'text-gray-500 hover:text-white'}`}
-        >
-          Sesiones y Ventas
-          {activeTab === 'sales' && (
-            <motion.div layoutId="activeTabUnderline" className="absolute bottom-0 left-0 right-0 h-[2px] bg-gold" />
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('profitability')}
-          className={`pb-4 text-xs font-black uppercase tracking-widest transition-all relative ${activeTab === 'profitability' ? 'text-gold' : 'text-gray-500 hover:text-white'}`}
-        >
-          Análisis de Rentabilidad
-          {activeTab === 'profitability' && (
-            <motion.div layoutId="activeTabUnderline" className="absolute bottom-0 left-0 right-0 h-[2px] bg-gold" />
-          )}
-        </button>
-      </div>
-
-      <div className="max-w-7xl mx-auto space-y-8 no-print">
-        {/* Render stats cards based on tab */}
-        {activeTab === 'sales' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {statCards.map((stat, idx) => (
-              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: idx * 0.1 }} key={stat.label} className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10">
-                <div className={`w-14 h-14 rounded-2xl bg-${stat.color}-500/10 border border-${stat.color}-500/20 flex items-center justify-center text-${stat.color} mb-4`}>
-                  <stat.icon size={24} />
-                </div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-1">{stat.label}</p>
-                <p className="text-3xl font-black tracking-tighter">{stat.prefix} {stat.prefix ? Number(stat.value).toFixed(2) : Number(stat.value)}</p>
-              </motion.div>
+        <div id="report-panel" role="tabpanel" aria-labelledby={`tab-${activeTab}`} aria-busy={loading} className="space-y-6">
+          <dl className="grid grid-cols-2 gap-2 lg:grid-cols-4 lg:gap-3">
+            {kpis.map((k) => (
+              <div key={k.label} className="mv-panel rounded-[1.25rem] p-4 sm:p-5">
+                <dt className="text-sm text-[var(--text-secondary)]">{k.label}</dt>
+                <dd className={`mv-data mt-1 truncate text-xl font-semibold tracking-tight sm:text-2xl ${k.tone || 'text-[var(--text-primary)]'} ${loading ? 'opacity-50' : ''}`}>{k.value}</dd>
+              </div>
             ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {profitabilityCards.map((stat, idx) => (
-              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: idx * 0.1 }} key={stat.label} className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10">
-                <div className={`w-14 h-14 rounded-2xl bg-${stat.color === 'gold' ? 'yellow' : stat.color}-500/10 border border-${stat.color === 'gold' ? 'yellow' : stat.color}-500/20 flex items-center justify-center text-${stat.color === 'gold' ? 'gold' : stat.color === 'green' ? 'green-400' : stat.color === 'red' ? 'red-400' : 'blue-400'} mb-4`}>
-                  <stat.icon size={24} />
-                </div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-1">{stat.label}</p>
-                <p className={`text-3xl font-black tracking-tighter ${stat.color === 'green' ? 'text-green-400' : stat.color === 'red' ? 'text-red-400' : 'text-white'}`}>
-                  {stat.prefix} {Number(stat.value).toFixed(2)}{stat.suffix}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        )}
+          </dl>
 
-        <PullChart
-          title="Ingresos del POS"
-          caption="Arrastrá la curva para ver cada día. Hacia abajo, actualiza el reporte."
-          points={incomeSeries}
-          formatValue={(value) => `${currency} ${value.toLocaleString("es-BO", { maximumFractionDigits: 2 })}`}
-          onRefresh={fetchData}
-        />
+          <PullChart
+            title="Ingresos del POS"
+            caption="Arrastrá la curva para ver cada día. Hacia abajo, actualiza el reporte."
+            points={incomeSeries}
+            formatValue={(value) => `${currency} ${value.toLocaleString("es-BO", { maximumFractionDigits: 2 })}`}
+            onRefresh={fetchData}
+          />
 
-        {/* Tab content */}
-        {activeTab === 'sales' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-6">
-              <h2 className="text-xl font-black uppercase tracking-tighter px-4">Historial de <span className="text-gold">Sesiones</span></h2>
-              <div className="space-y-4">
+          {activeTab === 'sales' ? (
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <section aria-labelledby="sessions-title" className="space-y-3 lg:col-span-2">
+                <h2 id="sessions-title" className="mv-h3">Turnos</h2>
                 {loading ? (
-                  <div className="p-20 text-center text-gray-500 font-bold uppercase tracking-widest text-xs">Cargando...</div>
-                ) : data?.sessions?.map((session: any) => (
-                  <div key={session.id} className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex items-center justify-between">
-                    <div className="flex items-center gap-6">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${session.status === 'OPEN' ? "bg-green-500/10 text-green-400" : "bg-gray-500/10 text-gray-400"}`}>
-                        <Clock size={20} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold">{format(new Date(session.openedAt), "d 'de' MMMM, HH:mm", { locale: es })}</p>
-                        <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${session.status === 'OPEN' ? "bg-green-500/20 text-green-400" : "bg-gray-500/20 text-gray-400"}`}>
-                          {session.status === 'OPEN' ? 'Abierta' : 'Cerrada'}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                       <p className="text-[8px] font-black uppercase tracking-widest text-gray-500 mb-1">Ventas Turno</p>
-                       <p className="text-lg font-black">{currency} {Number(session.displayTotal || 0).toFixed(2)}</p>
-                    </div>
+                  <div className="mv-panel flex items-center justify-center gap-3 py-14" role="status">
+                    <Loader2 className="h-5 w-5 animate-spin text-gold" aria-hidden />
+                    <span className="text-sm text-[var(--text-secondary)]">Cargando turnos…</span>
                   </div>
-                ))}
-              </div>
-            </div>
+                ) : sessions.length === 0 ? (
+                  emptyState(`No hubo turnos ${rangeLabel}`, 'Cuando abras la caja y registres ventas, cada turno aparece acá con su total.')
+                ) : (
+                  <ul className="mv-panel divide-y divide-[var(--mv-hairline)] overflow-hidden">
+                    {sessions.map((session: any) => {
+                      const open = session.status === 'OPEN';
+                      return (
+                        <li key={session.id} className="flex items-center justify-between gap-4 px-4 py-3 sm:px-5">
+                          <div className="flex min-w-0 items-center gap-3">
+                            <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${open ? 'bg-green-500/10 text-green-400' : 'bg-[var(--mv-panel)] text-[var(--text-tertiary)]'}`}>
+                              <Clock size={18} aria-hidden />
+                            </span>
+                            <div className="min-w-0">
+                              <p className="mv-data truncate text-sm font-semibold text-[var(--text-primary)]">{format(new Date(session.openedAt), "d MMM, HH:mm", { locale: es })}</p>
+                              <p className={`text-xs font-medium ${open ? 'text-green-400' : 'text-[var(--text-secondary)]'}`}>{open ? 'Abierto' : 'Cerrado'}</p>
+                            </div>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <p className="text-xs text-[var(--text-secondary)]">Ventas</p>
+                            <p className="mv-data text-base font-semibold text-[var(--text-primary)]">{money(session.displayTotal)}</p>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
 
-            <div className="space-y-6">
-              <div className="p-8 bg-gold/5 border border-gold/10 rounded-[3rem] space-y-6">
-                 <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                    <span className="text-gray-500 text-xs font-bold uppercase">Total Bruto</span>
-                    <span className="text-xl font-black">{currency} {Number(data?.stats?.totalRevenue || 0).toFixed(2)}</span>
-                 </div>
-                 <div className="flex flex-col gap-3">
-                   <button onClick={handleExportExcel} className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 transition-colors hover:bg-white/10">
-                     <FileText size={16} /> Excel (.xlsx)
-                   </button>
-                   <button onClick={() => window.print()} className="w-full h-14 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 transition-colors hover:bg-gold">
-                     <Printer size={16} /> PDF Reporte
-                   </button>
-                 </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
-            {/* Left: Product Profitability Table */}
-            <div className="lg:col-span-2 space-y-6">
-              <h2 className="text-xl font-black uppercase tracking-tighter px-4">Rentabilidad por <span className="text-gold">Producto</span></h2>
-              
-              <div className="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-white/5">
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Producto</th>
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Uds</th>
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Ingresos</th>
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500 hidden sm:table-cell">Costos</th>
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500 hidden sm:table-cell">Ganancia</th>
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500 text-right">Margen</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {loading ? (
-                        <tr>
-                          <td colSpan={6} className="p-20 text-center text-gray-500 font-bold uppercase tracking-widest text-xs">Cargando...</td>
-                        </tr>
-                      ) : data?.productProfitability?.map((p: any) => (
-                        <tr key={p.id} className="hover:bg-white/5 transition-colors group">
-                          <td className="p-6">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-black/40 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                                {p.imageUrl ? (
-                                  <img src={p.imageUrl} alt="" className="w-full h-full object-cover" />
-                                ) : (
-                                  <Package size={14} className="text-gray-500" />
-                                )}
-                              </div>
-                              <div>
-                                <p className="font-bold text-white group-hover:text-gold transition-colors text-xs">{p.name}</p>
-                                <p className="text-[9px] text-gray-500 font-bold uppercase tracking-tighter">{p.categoryName}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-6 text-xs font-mono font-bold text-gray-300">
-                            {p.quantitySold}
-                          </td>
-                          <td className="p-6 text-xs font-mono font-bold text-white">
-                            {currency} {Number(p.revenue).toFixed(2)}
-                          </td>
-                          <td className="p-6 text-xs font-mono font-bold text-gray-500 hidden sm:table-cell">
-                            {currency} {Number(p.cost).toFixed(2)}
-                          </td>
-                          <td className={`p-6 text-xs font-mono font-bold ${p.profit >= 0 ? 'text-green-400' : 'text-red-400'} hidden sm:table-cell`}>
-                            {currency} {Number(p.profit).toFixed(2)}
-                          </td>
-                          <td className="p-6 text-right">
-                            <div className="flex flex-col items-end gap-1">
-                              <span className="font-mono font-black text-xs text-white">
-                                {Number(p.margin).toFixed(2)}%
-                              </span>
-                              <span className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest border ${getMarginBadgeClass(p.margin)}`}>
-                                {getMarginLabel(p.margin)}
-                              </span>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {!loading && (!data?.productProfitability || data.productProfitability.length === 0) && (
-                        <tr>
-                          <td colSpan={6} className="p-20 text-center text-gray-700 opacity-30">
-                            <Package size={60} className="mx-auto mb-4" strokeWidth={1} />
-                            <p className="font-black uppercase tracking-widest text-[10px]">No hay transacciones registradas</p>
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                <h2 id="sales-list-title" className="mv-h3 pt-4">Ventas</h2>
+                <p aria-live="polite" className="sr-only">{voidNotice}</p>
+                {!loading && allSales.length > 0 && (
+                  <ul className="mv-panel divide-y divide-[var(--mv-hairline)] overflow-hidden" aria-labelledby="sales-list-title">
+                    {allSales.map((sale: any) => {
+                      const voided = sale.status === 'VOIDED';
+                      return (
+                        <li key={sale.id} className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
+                          <div className="min-w-0">
+                            <p className="flex flex-wrap items-center gap-x-2 text-sm">
+                              <span className="mv-data font-semibold text-[var(--text-primary)]">#{String(sale.transactionId).slice(-8).toUpperCase()}</span>
+                              <span className="mv-data text-[var(--text-secondary)]">{format(new Date(sale.createdAt), "d MMM, HH:mm", { locale: es })}</span>
+                              {sale.staff?.name && <span className="text-[var(--text-secondary)]">· {sale.staff.name}</span>}
+                            </p>
+                            {voided ? (
+                              <p className="text-xs font-medium text-red-400">Anulada{sale.voidReason ? ` · ${sale.voidReason}` : ''}</p>
+                            ) : (
+                              <p className="text-xs text-[var(--text-secondary)]">{sale.items?.length ?? 0} {sale.items?.length === 1 ? 'producto' : 'productos'}</p>
+                            )}
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <span className={`mv-data text-sm font-semibold ${voided ? 'text-[var(--text-tertiary)] line-through' : 'text-[var(--text-primary)]'}`}>
+                              {money(sale.totalAmount)}
+                              {voided && <span className="sr-only"> (anulada, no suma)</span>}
+                            </span>
+                            {!voided && (
+                              <button
+                                type="button"
+                                onClick={() => setVoidTarget(sale)}
+                                aria-label={`Anular venta ${String(sale.transactionId).slice(-8).toUpperCase()}`}
+                                className="mv-focus grid h-11 w-11 place-items-center rounded-xl text-[var(--text-tertiary)] transition-colors hover:bg-red-500/10 hover:text-red-400"
+                              >
+                                <Ban size={16} aria-hidden />
+                              </button>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                {!loading && allSales.length === 0 && (
+                  <p className="text-sm text-[var(--text-secondary)]">No hay ventas {rangeLabel}.</p>
+                )}
+              </section>
+
+              <aside aria-label="Exportar" className="space-y-3">
+                <h2 className="mv-h3">Exportar</h2>
+                <div className="mv-panel space-y-4 p-5">
+                  <div className="flex items-baseline justify-between gap-4 border-b border-[var(--mv-hairline)] pb-4">
+                    <span className="text-sm text-[var(--text-secondary)]">Total bruto</span>
+                    <span className="mv-data text-xl font-semibold text-[var(--text-primary)]">{money(data?.stats?.totalRevenue)}</span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <button type="button" onClick={handleExportExcel} disabled={!hasSales} className={plainBtn}>
+                      <FileText size={16} aria-hidden /> Descargar Excel
+                    </button>
+                    <button type="button" onClick={() => window.print()} disabled={!data} className={plainBtn}>
+                      <Printer size={16} aria-hidden /> Imprimir o guardar PDF
+                    </button>
+                  </div>
+                  {!loading && !hasSales && <p className="text-xs text-[var(--text-secondary)]">El Excel se habilita cuando hay ventas en el período.</p>}
                 </div>
-              </div>
+              </aside>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <section aria-labelledby="profit-title" className="space-y-3 lg:col-span-2">
+                <h2 id="profit-title" className="mv-h3">Rentabilidad por producto</h2>
+                {loading ? (
+                  <div className="mv-panel flex items-center justify-center gap-3 py-14" role="status">
+                    <Loader2 className="h-5 w-5 animate-spin text-gold" aria-hidden />
+                    <span className="text-sm text-[var(--text-secondary)]">Cargando productos…</span>
+                  </div>
+                ) : products.length === 0 ? (
+                  emptyState(`No hay ventas ${rangeLabel}`, 'La rentabilidad se calcula con el costo que cargaste en el inventario y las ventas del período.')
+                ) : (
+                  <div className="mv-panel overflow-hidden">
+                    {/* Tablet and desktop: table */}
+                    <div className="hidden overflow-x-auto md:block">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="border-b border-[var(--mv-hairline)] text-xs text-[var(--text-secondary)]">
+                            <th scope="col" className="px-4 py-3 font-semibold">Producto</th>
+                            <th scope="col" className="px-4 py-3 text-right font-semibold">Uds.</th>
+                            <th scope="col" className="px-4 py-3 text-right font-semibold">Ingresos</th>
+                            <th scope="col" className="px-4 py-3 text-right font-semibold">Costo</th>
+                            <th scope="col" className="px-4 py-3 text-right font-semibold">Ganancia</th>
+                            <th scope="col" className="px-4 py-3 text-right font-semibold">Margen</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[var(--mv-hairline)]">
+                          {products.map((p: any) => (
+                            <tr key={p.id} className="transition-colors duration-150 hover:bg-[var(--mv-panel-hover)]">
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-[var(--color-bg-tertiary)] text-[var(--text-tertiary)]">
+                                    {p.imageUrl ? <img src={p.imageUrl} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <Package size={14} aria-hidden />}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{p.name}</p>
+                                    <p className="truncate text-xs text-[var(--text-secondary)]">{p.categoryName}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="mv-data px-4 py-3 text-right text-sm text-[var(--text-secondary)]">{p.quantitySold}</td>
+                              <td className="mv-data px-4 py-3 text-right text-sm text-[var(--text-primary)]">{money(p.revenue)}</td>
+                              <td className="mv-data px-4 py-3 text-right text-sm text-[var(--text-secondary)]">{money(p.cost)}</td>
+                              <td className={`mv-data px-4 py-3 text-right text-sm font-semibold ${p.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>{money(p.profit)}</td>
+                              <td className="px-4 py-3 text-right">
+                                <span className="mv-data text-sm font-semibold text-[var(--text-primary)]">{Number(p.margin).toFixed(2)}%</span>
+                                <span className={`ml-2 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${getMarginBadgeClass(p.margin)}`}>{getMarginLabel(p.margin)}</span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
 
-            {/* Right Side Control */}
-            <div className="space-y-6">
-              <div className="p-8 bg-gold/5 border border-gold/10 rounded-[3rem] space-y-6">
-                 <div className="space-y-2">
-                   <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Utilidad Neta</p>
-                   <p className={`text-3xl font-black tracking-tighter ${Number(data?.stats?.totalProfit || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                     {currency} {Number(data?.stats?.totalProfit || 0).toFixed(2)}
-                   </p>
-                 </div>
-                 <div className="flex justify-between items-center border-t border-white/5 pt-4">
-                    <span className="text-gray-500 text-xs font-bold uppercase">Costo total (COGS)</span>
-                    <span className="text-sm font-mono font-bold text-white">{currency} {Number(data?.stats?.totalCost || 0).toFixed(2)}</span>
-                 </div>
-                 <div className="flex flex-col gap-3 pt-2">
-                   <button onClick={handleExportExcel} className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 transition-colors hover:bg-white/10">
-                     <FileText size={16} /> Excel Rentabilidad
-                   </button>
-                   <button onClick={() => window.print()} className="w-full h-14 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 transition-colors hover:bg-gold">
-                     <Printer size={16} /> PDF Rentabilidad
-                   </button>
-                 </div>
-              </div>
+                    {/* Phone: cards */}
+                    <ul className="divide-y divide-[var(--mv-hairline)] md:hidden">
+                      {products.map((p: any) => (
+                        <li key={p.id} className="space-y-2 p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-[var(--text-primary)]">{p.name}</p>
+                              <p className="text-xs text-[var(--text-secondary)]">{p.categoryName} · <span className="mv-data">{p.quantitySold}</span> uds.</p>
+                            </div>
+                            <span className="shrink-0 text-right">
+                              <span className="mv-data block text-sm font-semibold text-[var(--text-primary)]">{Number(p.margin).toFixed(2)}%</span>
+                              <span className={`mt-0.5 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${getMarginBadgeClass(p.margin)}`}>{getMarginLabel(p.margin)}</span>
+                            </span>
+                          </div>
+                          <dl className="grid grid-cols-3 gap-2 rounded-xl bg-[var(--mv-panel)] px-3 py-2">
+                            <div className="min-w-0">
+                              <dt className="text-xs text-[var(--text-secondary)]">Ingresos</dt>
+                              <dd className="mv-data truncate text-sm text-[var(--text-primary)]">{money(p.revenue)}</dd>
+                            </div>
+                            <div className="min-w-0">
+                              <dt className="text-xs text-[var(--text-secondary)]">Costo</dt>
+                              <dd className="mv-data truncate text-sm text-[var(--text-secondary)]">{money(p.cost)}</dd>
+                            </div>
+                            <div className="min-w-0">
+                              <dt className="text-xs text-[var(--text-secondary)]">Ganancia</dt>
+                              <dd className={`mv-data truncate text-sm font-semibold ${p.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>{money(p.profit)}</dd>
+                            </div>
+                          </dl>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </section>
+
+              <aside aria-label="Resumen y exportación" className="space-y-3">
+                <h2 className="mv-h3">Resumen</h2>
+                <div className="mv-panel space-y-4 p-5">
+                  <div>
+                    <p className="text-sm text-[var(--text-secondary)]">Ganancia neta</p>
+                    <p className={`mv-data mt-1 text-2xl font-semibold ${Number(data?.stats?.totalProfit || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {money(data?.stats?.totalProfit)}
+                    </p>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-4 border-t border-[var(--mv-hairline)] pt-4">
+                    <span className="text-sm text-[var(--text-secondary)]">Costo de lo vendido</span>
+                    <span className="mv-data text-sm font-semibold text-[var(--text-primary)]">{money(data?.stats?.totalCost)}</span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <button type="button" onClick={handleExportExcel} disabled={!hasSales} className={plainBtn}>
+                      <FileText size={16} aria-hidden /> Descargar Excel
+                    </button>
+                    <button type="button" onClick={() => window.print()} disabled={!data} className={plainBtn}>
+                      <Printer size={16} aria-hidden /> Imprimir o guardar PDF
+                    </button>
+                  </div>
+                </div>
+              </aside>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+
+          {!loading && (
+            <section aria-labelledby="low-stock-title" className="space-y-3">
+              <h2 id="low-stock-title" className="mv-h3 flex items-center gap-2">
+                <AlertTriangle size={18} className="text-red-400" aria-hidden />
+                Stock bajo
+              </h2>
+              {lowStock.length === 0 ? (
+                <p className="text-sm text-[var(--text-secondary)]">
+                  Ningún producto está por debajo de su mínimo. El mínimo se define en cada producto del{' '}
+                  <Link href="/dashboard/pos/inventory" className="mv-link">inventario</Link>.
+                </p>
+              ) : (
+                <ul className="mv-panel divide-y divide-[var(--mv-hairline)] overflow-hidden">
+                  {lowStock.map((p: any) => (
+                    <li key={p.id} className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
+                      <span className="min-w-0 truncate text-sm font-semibold text-[var(--text-primary)]">{p.name}</span>
+                      <span className="mv-data shrink-0 text-sm text-red-400">
+                        {formatQuantity(p.stock, p.unit)} <span className="text-[var(--text-secondary)]">/ mín. {formatQuantity(p.minStock, p.unit)}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
+        </div>
+      </main>
+
+      {voidTarget && (
+        <VoidSaleDialog
+          sale={voidTarget}
+          currency={currency}
+          onClose={() => setVoidTarget(null)}
+          onVoided={() => {
+            setVoidTarget(null);
+            setVoidNotice('Venta anulada. Los totales se actualizaron.');
+            fetchData();
+          }}
+        />
+      )}
 
       {/* Printable template */}
       {mounted && typeof document !== 'undefined' && createPortal(
@@ -462,7 +578,7 @@ export default function POSReportsPage() {
                         </tr>
                      </thead>
                      <tbody>
-                        {data?.sales?.map((sale: any) => (
+                        {completedSales.map((sale: any) => (
                            <tr key={sale.id} className="border-b border-gray-100 break-inside-avoid">
                               <td className="py-6 px-3 font-bold text-[9px] text-gray-400 uppercase tracking-widest align-top">#{sale.transactionId.slice(-8).toUpperCase()}</td>
                               <td className="py-6 px-3 text-[10px] font-bold text-gray-500 uppercase tracking-tighter align-top">
@@ -560,7 +676,7 @@ export default function POSReportsPage() {
                  <p className="text-[8px] font-bold uppercase tracking-tighter">Reporte generado el {format(new Date(), "PPPPpppp", { locale: es })}</p>
               </div>
               <div className="text-right">
-                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#D4AF37]">Premium Financial Statement</p>
+                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#D4AF37]">Reporte financiero</p>
                  <p className="text-[8px] font-bold text-gray-300">© 2026 Mercav.lat — Todos los derechos reservados</p>
               </div>
            </div>

@@ -42,8 +42,8 @@ export async function GET(req: Request) {
     const saleModel = prismaAny.posSale || prismaAny.pOSSale;
     const sessionModel = prismaAny.posCashSession || prismaAny.pOSCashSession;
 
-    // Fetch sales for the range
-    const sales = await saleModel.findMany({
+    // Fetch sales for the range (voided ones are listed, but never counted)
+    const allSales = await saleModel.findMany({
       where: {
         posConfigId: user.posConfig.id,
         createdAt: {
@@ -57,9 +57,12 @@ export async function GET(req: Request) {
             product: { include: { category: true } }
           }
         },
-        payments: true
-      }
+        payments: true,
+        staff: { select: { id: true, name: true, role: true } }
+      },
+      orderBy: { createdAt: 'desc' }
     });
+    const sales = allSales.filter((sale: any) => sale.status !== 'VOIDED');
 
     // Fetch sessions for the range with their sales
     const rawSessions = await sessionModel.findMany({
@@ -72,8 +75,10 @@ export async function GET(req: Request) {
       },
       include: {
         sales: {
+          where: { status: { not: 'VOIDED' } },
           select: { totalAmount: true }
-        }
+        },
+        staff: { select: { id: true, name: true, role: true } }
       },
       orderBy: {
         openedAt: 'desc'
@@ -152,6 +157,14 @@ export async function GET(req: Request) {
       return { ...p, margin };
     }).sort((a, b) => b.profit - a.profit);
 
+    // Low stock: products that track stock and dropped to or below their own minimum
+    const tracked = await prisma.pOSProduct.findMany({
+      where: { posConfigId: user.posConfig.id, isActive: true, trackStock: true, minStock: { not: null } },
+      select: { id: true, name: true, stock: true, minStock: true, unit: true, imageUrl: true },
+      orderBy: { name: 'asc' }
+    });
+    const lowStock = tracked.filter((p) => Number(p.stock) <= Number(p.minStock));
+
     return NextResponse.json({
       success: true,
       stats: {
@@ -164,8 +177,9 @@ export async function GET(req: Request) {
         byMethod,
         averageOrder: totalOrders > 0 ? totalRevenue / totalOrders : 0
       },
-      sales,
+      sales: allSales,
       sessions,
+      lowStock,
       productProfitability,
       config: user.posConfig
     });

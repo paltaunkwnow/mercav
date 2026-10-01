@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Bell, CheckCircle2, XCircle, Info, Briefcase, Megaphone, Loader2, ShieldAlert, Users, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -9,6 +10,16 @@ import { Button } from "@/components/ui/button";
 
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -73,16 +84,19 @@ export default function NotificationBell() {
         variant="ghost" 
         size="icon" 
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative text-gray-400 hover:text-gold transition-colors ${isOpen ? 'text-gold bg-gold/5' : ''}`}
+        aria-label={unreadCount > 0 ? `Notificaciones, ${unreadCount} sin leer` : "Notificaciones"}
+        aria-expanded={isOpen}
+        className={`mv-focus relative h-9 w-9 rounded-full text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)] transition-colors ${isOpen ? 'text-gold bg-gold/10' : ''}`}
       >
-        <Bell className="h-5 w-5" />
+        <Bell className="h-[18px] w-[18px]" aria-hidden />
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 border-2 border-[#050505] rounded-full flex items-center justify-center text-[8px] font-black text-white">
+          <span aria-hidden className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 border-2 border-[var(--color-bg-primary)] rounded-full flex items-center justify-center text-[10px] font-bold tabular-nums text-white">
             {unreadCount}
           </span>
         )}
       </Button>
 
+      {mounted && createPortal(
       <AnimatePresence>
         {isOpen && (
           <>
@@ -91,13 +105,17 @@ export default function NotificationBell() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
+              className="fixed inset-0 z-[150] bg-black/20"
             />
             <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              initial={{ opacity: 0, y: -4, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute right-0 mt-4 w-80 md:w-96 bg-bg-secondary border border-white/10 rounded-[2rem] shadow-2xl z-50 overflow-hidden"
+              exit={{ opacity: 0, y: -4, scale: 0.97 }}
+              transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+              style={{ transformOrigin: "top right" }}
+              role="dialog"
+              aria-label="Notificaciones"
+              className="mv-menu fixed right-3 top-[calc(max(0.75rem,env(safe-area-inset-top,0px))+4.5rem)] w-[min(24rem,calc(100vw-1.5rem))] rounded-[1.5rem] z-[160] overflow-hidden"
             >
               <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
                 <h3 className="font-bold text-white flex items-center gap-2">
@@ -128,7 +146,7 @@ export default function NotificationBell() {
                     {notifications.map((n) => (
                       <div 
                         key={n.id} 
-                        className={`p-5 transition-all hover:bg-white/[0.03] relative group ${!n.isRead ? 'bg-white/[0.02]' : ''}`}
+                        className={`p-5 transition-colors hover:bg-white/[0.03] relative group ${!n.isRead ? 'bg-white/[0.02]' : ''}`}
                       >
                         {!n.isRead && <div className="absolute left-0 top-0 bottom-0 w-1 bg-gold" />}
                         <div className="flex gap-4">
@@ -171,7 +189,9 @@ export default function NotificationBell() {
             </motion.div>
           </>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+        document.body,
+      )}
     </div>
   );
 }

@@ -17,20 +17,23 @@ export function ReportButton({ targetId, targetType, variant = "flag" }: ReportB
     <>
       {variant === "flag" && (
         <button
+          type="button"
           onClick={() => setIsOpen(true)}
-          className="flex items-center justify-center h-12 w-12 rounded-xl bg-white/5 border border-white/10 text-gray-500 hover:text-yellow-500 hover:border-yellow-500/30 hover:bg-yellow-500/5 transition-all shadow-md group"
-          title="Reportar Contenido"
+          aria-label="Reportar contenido"
+          title="Reportar contenido"
+          className="mv-focus grid h-11 w-11 place-items-center rounded-full border border-[var(--mv-hairline-strong)] text-[var(--text-secondary)] transition-colors hover:border-yellow-500/40 hover:text-yellow-500"
         >
-          <ShieldAlert className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <ShieldAlert className="h-[18px] w-[18px]" aria-hidden />
         </button>
       )}
 
       {variant === "button" && (
         <button
+          type="button"
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 rounded-xl border border-white/5 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-yellow-500 hover:border-yellow-500/20 hover:bg-yellow-500/5 transition-all"
+          className="mv-btn mv-btn-ghost mv-btn-sm"
         >
-          <ShieldAlert className="h-4 w-4" /> Reportar
+          <ShieldAlert className="h-4 w-4" aria-hidden /> Reportar
         </button>
       )}
 

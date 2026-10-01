@@ -12,7 +12,9 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const currency = typeof body.currency === "string" && body.currency.length === 3 ? body.currency.toLowerCase() : "usd";
+    // Los precios de pedidos/reservas están en USD: aceptar otra moneda del cliente cambiaba el valor
+    // cobrado (p. ej. 10 USD -> 10 JPY).
+    const currency = "usd";
     const metadata = body.metadata && typeof body.metadata === "object" ? body.metadata : {};
     const userId = (session.user as { id?: string }).id;
     const orderId = typeof metadata.orderId === "string" ? metadata.orderId : "";
@@ -22,13 +24,13 @@ export async function POST(req: Request) {
 
     const order = await prisma.serviceOrder.findUnique({
       where: { id: orderId },
-      select: { totalPrice: true, clientId: true },
+      select: { totalPrice: true, clientId: true, status: true, serviceId: true },
     });
     const reservation = order
       ? null
       : await prisma.reservation.findUnique({
           where: { id: orderId },
-          select: { totalPrice: true, advertiserId: true },
+          select: { totalPrice: true, advertiserId: true, status: true, spaceId: true },
         });
     const owned =
       (order && order.clientId === userId) || (reservation && reservation.advertiserId === userId);
@@ -36,14 +38,20 @@ export async function POST(req: Request) {
       return new NextResponse("No autorizado para este pedido", { status: 403 });
     }
 
+    // Solo se cobran pedidos/reservas pendientes de pago (evita cobrar dos veces o pedidos cancelados)
+    if ((order && order.status !== "PENDING") || (reservation && reservation.status !== "PENDING")) {
+      return new NextResponse("El pedido ya no está pendiente de pago", { status: 409 });
+    }
+
     const amount = Number(order?.totalPrice ?? reservation?.totalPrice);
     if (!Number.isFinite(amount) || amount < 0.5 || amount > 100_000) {
       return new NextResponse("Monto del pedido inválido", { status: 400 });
     }
 
+    // Tipo e id derivados del pedido real, no de lo que manda el cliente
     const safeMetadata = {
-      type: typeof metadata.type === "string" ? metadata.type.slice(0, 40) : "",
-      id: typeof metadata.id === "string" ? metadata.id.slice(0, 80) : "",
+      type: order ? "service" : "anuncio",
+      id: order ? order.serviceId : reservation!.spaceId,
       orderId,
       userId,
     };
@@ -65,11 +73,15 @@ export async function POST(req: Request) {
         status: 'PENDING',
         userId,
         metadata: safeMetadata,
+        // Vincular al pedido de servicio (lo usan disputas/reembolsos y el panel del pedido)
+        ...(order ? { orderId } : {}),
       },
     });
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
+      // Monto real cobrado (incluye comisiones), para que la UI muestre lo mismo que se cobra
+      amount,
     });
   } catch (error: any) {
     console.error('[STRIPE_CREATE_INTENT]', error);

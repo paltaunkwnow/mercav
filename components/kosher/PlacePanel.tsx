@@ -16,6 +16,7 @@ import { kosherFetch, useKosherViewer } from "@/components/kosher/KosherViewer";
 import { PlaceIcon } from "@/components/kosher/PlaceIcon";
 import { Stars, StatusBadge } from "@/components/kosher/StatusBadge";
 import { ThreadView } from "@/components/kosher/ThreadView";
+import { fieldClass, primaryButton, secondaryButton } from "@/components/kosher/ui";
 import { cn } from "@/lib/utils";
 
 type Stock = { id: string; category: KosherStockCategory; note: string; authorName: string; confirmations: number; confirmedAt: string; confirmedByMe: boolean };
@@ -23,8 +24,6 @@ type Review = { id: string; rating: number; body: string | null; author: string;
 type PlaceEvent = { id: string; kind: KosherEventKind; title: string; startsAt: string; official: boolean };
 type Detail = { place: PlaceDTO; stock: Stock[]; reviews: Review[]; events: PlaceEvent[]; managedByMe: boolean; timezone: string };
 
-const fieldClass =
-  "w-full rounded-xl border border-border bg-bg-tertiary px-3 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-gold/50 focus:ring-2 focus:ring-gold/15";
 
 function relativeDays(iso: string) {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
@@ -37,9 +36,9 @@ function relativeDays(iso: string) {
 
 function Section({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <section className="border-t border-border pt-5">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-[var(--text-tertiary)]">{title}</h3>
+    <section className="border-t border-[var(--mv-hairline)] pt-5">
+      <div className="mb-3 flex min-h-9 items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold text-[var(--text-primary)]">{title}</h3>
         {action}
       </div>
       {children}
@@ -71,13 +70,13 @@ export function PlacePanel({ slug, onClose, standalone = false }: { slug: string
     load();
   }, [load]);
 
-  if (error) return <p className="p-6 text-sm text-[var(--text-secondary)]">{error}</p>;
+  if (error) return <p role="alert" className="p-6 text-sm text-[var(--text-secondary)]">{error}</p>;
   if (!detail) {
     return (
-      <div className="space-y-3 p-6" aria-busy>
-        <div className="h-6 w-2/3 animate-pulse rounded-lg bg-bg-tertiary" />
-        <div className="h-4 w-1/2 animate-pulse rounded-lg bg-bg-tertiary" />
-        <div className="h-24 animate-pulse rounded-2xl bg-bg-tertiary" />
+      <div className="space-y-3 p-6" aria-busy aria-label="Cargando la ficha">
+        <div className="h-6 w-2/3 animate-pulse rounded-lg bg-[var(--mv-panel-hover)]" />
+        <div className="h-4 w-1/2 animate-pulse rounded-lg bg-[var(--mv-panel-hover)]" />
+        <div className="h-24 animate-pulse rounded-2xl bg-[var(--mv-panel-hover)]" />
       </div>
     );
   }
@@ -105,11 +104,11 @@ export function PlacePanel({ slug, onClose, standalone = false }: { slug: string
     <div className="flex h-full min-h-0 flex-col">
       <div className="shrink-0 px-5 pb-4 pt-5 md:px-6">
         <div className="flex items-start gap-3">
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gold/10 text-gold ring-1 ring-gold/20">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[var(--mv-gold-wash)] text-gold ring-1 ring-inset ring-gold/20">
             <PlaceIcon type={place.type} className="h-6 w-6" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-[var(--text-tertiary)]">{PLACE_TYPES[place.type]}</p>
+            <p className="text-xs font-medium text-[var(--text-secondary)]">{PLACE_TYPES[place.type]}</p>
             <h2 className="font-display text-xl font-semibold leading-tight tracking-tight text-[var(--text-primary)]">{place.name}</h2>
             {place.nameLocal && <p className="mt-0.5 text-sm text-[var(--text-secondary)]">{place.nameLocal}</p>}
           </div>
@@ -118,7 +117,7 @@ export function PlacePanel({ slug, onClose, standalone = false }: { slug: string
               type="button"
               onClick={onClose}
               aria-label="Cerrar ficha"
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[var(--text-secondary)] hover:bg-bg-tertiary hover:text-[var(--text-primary)]"
+              className="mv-focus -mr-2 -mt-1 grid h-11 w-11 shrink-0 place-items-center rounded-full text-[var(--text-secondary)] transition-colors hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
                 <path d="M6 6l12 12M18 6 6 18" />
@@ -130,17 +129,17 @@ export function PlacePanel({ slug, onClose, standalone = false }: { slug: string
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <StatusBadge status={place.status} type={place.type} verified={!!place.verifiedAt} />
           {place.foodCategory && (
-            <span className="inline-flex h-6 items-center rounded-full bg-bg-tertiary px-2.5 text-[11px] font-medium text-[var(--text-secondary)]">
+            <span className="mv-chip h-6">
               {FOOD[place.foodCategory]}
             </span>
           )}
           {place.managed && (
-            <span className="inline-flex h-6 items-center gap-1 rounded-full bg-techelet-dim px-2.5 text-[11px] font-semibold text-techelet ring-1 ring-inset ring-techelet/30">
+            <span className="inline-flex h-6 items-center gap-1 rounded-full bg-techelet-dim px-2.5 text-xs font-semibold text-techelet ring-1 ring-inset ring-techelet/30">
               <BadgeCheck className="h-3.5 w-3.5" aria-hidden /> Ficha oficial
             </span>
           )}
-          {place.glatt && <span className="inline-flex h-6 items-center rounded-full bg-bg-tertiary px-2.5 text-[11px] font-medium text-[var(--text-secondary)]">Glatt</span>}
-          {place.beitYosef && <span className="inline-flex h-6 items-center rounded-full bg-bg-tertiary px-2.5 text-[11px] font-medium text-[var(--text-secondary)]">Beit Yosef</span>}
+          {place.glatt && <span className="mv-chip h-6">Glatt</span>}
+          {place.beitYosef && <span className="mv-chip h-6">Beit Yosef</span>}
           {place.reviewCount > 0 && place.rating != null && (
             <span className="inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
               <Stars value={place.rating} /> {place.rating.toFixed(1)} · {place.reviewCount}
@@ -175,7 +174,7 @@ export function PlacePanel({ slug, onClose, standalone = false }: { slug: string
               {place.certificateUrl && (
                 <>
                   {" "}
-                  <a href={place.certificateUrl} target="_blank" rel="noreferrer nofollow" className="font-semibold text-techelet underline-offset-4 hover:underline">
+                  <a href={place.certificateUrl} target="_blank" rel="noreferrer nofollow" className="font-semibold text-techelet underline underline-offset-4">
                     Ver certificado
                   </a>
                 </>
@@ -188,7 +187,7 @@ export function PlacePanel({ slug, onClose, standalone = false }: { slug: string
             href={place.sourceUrl}
             target="_blank"
             rel="noreferrer nofollow"
-            className="mt-3 flex items-center gap-2 rounded-2xl border border-techelet/25 bg-techelet-dim px-3.5 py-2.5 text-[13px] text-[var(--text-primary)] hover:border-techelet/50"
+            className="mv-focus mt-3 flex items-center gap-2 rounded-2xl border border-techelet/25 bg-techelet-dim px-3.5 py-2.5 text-[13px] text-[var(--text-primary)] transition-colors hover:border-techelet/50"
           >
             <ShieldCheck className="h-4 w-4 shrink-0 text-techelet" aria-hidden />
             <span className="min-w-0 flex-1">
@@ -200,33 +199,33 @@ export function PlacePanel({ slug, onClose, standalone = false }: { slug: string
         )}
 
         <div className="mt-4 grid grid-cols-3 gap-2">
-          <a href={directions} target="_blank" rel="noreferrer" className="flex h-12 flex-col items-center justify-center rounded-2xl bg-gold text-[11px] font-semibold text-black">
+          <a href={directions} target="_blank" rel="noreferrer" className="mv-focus flex h-14 flex-col items-center justify-center gap-1 rounded-2xl bg-gold text-xs font-semibold text-[var(--mv-on-gold)] transition-transform duration-150 active:scale-[0.97]">
             <Navigation className="h-4 w-4" aria-hidden />
             Cómo llegar
           </a>
           {place.phone ? (
-            <a href={`tel:${place.phone.replace(/[^\d+]/g, "")}`} className="flex h-12 flex-col items-center justify-center rounded-2xl border border-border bg-bg-secondary text-[11px] font-semibold text-[var(--text-primary)]">
+            <a href={`tel:${place.phone.replace(/[^\d+]/g, "")}`} className="mv-focus flex h-14 flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] text-xs font-semibold text-[var(--text-primary)] transition-[transform,border-color] duration-150 hover:border-[var(--color-border-gold)] active:scale-[0.97]">
               <Phone className="h-4 w-4" aria-hidden />
               Llamar
             </a>
           ) : place.website ? (
-            <a href={place.website} target="_blank" rel="noreferrer nofollow" className="flex h-12 flex-col items-center justify-center rounded-2xl border border-border bg-bg-secondary text-[11px] font-semibold text-[var(--text-primary)]">
+            <a href={place.website} target="_blank" rel="noreferrer nofollow" className="mv-focus flex h-14 flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] text-xs font-semibold text-[var(--text-primary)] transition-[transform,border-color] duration-150 hover:border-[var(--color-border-gold)] active:scale-[0.97]">
               <Globe className="h-4 w-4" aria-hidden />
               Sitio web
             </a>
           ) : (
-            <button type="button" onClick={() => setTab("chat")} className="flex h-12 flex-col items-center justify-center rounded-2xl border border-border bg-bg-secondary text-[11px] font-semibold text-[var(--text-primary)]">
+            <button type="button" onClick={() => setTab("chat")} className="mv-focus flex h-14 flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] text-xs font-semibold text-[var(--text-primary)] transition-[transform,border-color] duration-150 hover:border-[var(--color-border-gold)] active:scale-[0.97]">
               <MessagesSquare className="h-4 w-4" aria-hidden />
               Conversación
             </button>
           )}
-          <button type="button" onClick={share} className="flex h-12 flex-col items-center justify-center rounded-2xl border border-border bg-bg-secondary text-[11px] font-semibold text-[var(--text-primary)]">
+          <button type="button" onClick={share} className="mv-focus flex h-14 flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] text-xs font-semibold text-[var(--text-primary)] transition-[transform,border-color] duration-150 hover:border-[var(--color-border-gold)] active:scale-[0.97]">
             <Share2 className="h-4 w-4" aria-hidden />
             Compartir
           </button>
         </div>
 
-        <div role="tablist" aria-label="Ficha del lugar" className="relative mt-5 grid grid-cols-2 rounded-full bg-bg-tertiary p-1">
+        <div role="tablist" aria-label="Ficha del lugar" className="relative mt-5 grid grid-cols-2 rounded-full border border-[var(--mv-hairline)] bg-[var(--mv-panel)] p-1">
           {(["info", "chat"] as const).map((key) => (
             <button
               key={key}
@@ -234,7 +233,7 @@ export function PlacePanel({ slug, onClose, standalone = false }: { slug: string
               type="button"
               aria-selected={tab === key}
               onClick={() => setTab(key)}
-              className={cn("relative h-9 rounded-full text-sm font-medium", tab === key ? "text-black" : "text-[var(--text-secondary)]")}
+              className={cn("mv-focus relative h-10 rounded-full text-sm font-semibold transition-colors duration-200", tab === key ? "text-[var(--mv-on-gold)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]")}
             >
               {tab === key && (
                 <motion.span
@@ -255,7 +254,7 @@ export function PlacePanel({ slug, onClose, standalone = false }: { slug: string
             <ThreadView threadKey={placeThreadKey(place.slug)} compact />
             <Link
               href={`/kosher/chat?sala=${encodeURIComponent(cityThreadKey(place.city, place.countryCode))}`}
-              className="flex items-center justify-between rounded-2xl border border-border px-4 py-3 text-sm text-[var(--text-primary)] hover:border-gold/40"
+              className="mv-focus flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-[var(--mv-hairline-strong)] px-4 py-3 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--color-border-gold)]"
             >
               Conversación de {place.city}
               <ExternalLink className="h-4 w-4 text-[var(--text-tertiary)]" aria-hidden />
@@ -289,7 +288,7 @@ export function PlacePanel({ slug, onClose, standalone = false }: { slug: string
               )}
             </ul>
 
-            {place.notes && <p className="rounded-2xl bg-bg-tertiary/70 px-4 py-3 text-sm leading-relaxed text-[var(--text-secondary)]">{place.notes}</p>}
+            {place.notes && <p className="rounded-2xl bg-[var(--mv-panel)] ring-1 ring-inset ring-[var(--mv-hairline)] px-4 py-3 text-sm leading-relaxed text-[var(--text-secondary)]">{place.notes}</p>}
             {place.chainName && place.type === "grocery_branch" && (
               <p className="rounded-2xl border border-techelet/25 bg-techelet-dim px-4 py-3 text-sm text-[var(--text-primary)]">
                 {place.chainName}: el stock se reporta por sucursal. Una cadena no es una cocina kosher.
@@ -301,13 +300,13 @@ export function PlacePanel({ slug, onClose, standalone = false }: { slug: string
                 <dl className="grid grid-cols-2 gap-3 text-sm">
                   {place.nusach && (
                     <div>
-                      <dt className="text-xs text-[var(--text-tertiary)]">Nusaj</dt>
+                      <dt className="text-xs text-[var(--text-secondary)]">Nusaj</dt>
                       <dd className="text-[var(--text-primary)]">{NUSACH[place.nusach]}</dd>
                     </div>
                   )}
                   {(place.orthodoxStream || place.denomination) && (
                     <div>
-                      <dt className="text-xs text-[var(--text-tertiary)]">Corriente</dt>
+                      <dt className="text-xs text-[var(--text-secondary)]">Corriente</dt>
                       <dd className="text-[var(--text-primary)]">
                         {place.orthodoxStream ? STREAM[place.orthodoxStream] : DENOMINATION[place.denomination!]}
                       </dd>
@@ -318,9 +317,9 @@ export function PlacePanel({ slug, onClose, standalone = false }: { slug: string
                   <ul className="mt-3 grid grid-cols-3 gap-2">
                     {(["shacharit", "mincha", "maariv"] as const).map((k) =>
                       place.prayerTimes?.[k] ? (
-                        <li key={k} className="rounded-2xl bg-bg-tertiary/70 px-3 py-2.5 text-center">
-                          <span className="block text-[11px] text-[var(--text-tertiary)]">{{ shacharit: "Shajarit", mincha: "Minjá", maariv: "Arvit" }[k]}</span>
-                          <span className="font-mono text-sm text-[var(--text-primary)]">{place.prayerTimes[k]}</span>
+                        <li key={k} className="rounded-2xl bg-[var(--mv-panel)] ring-1 ring-inset ring-[var(--mv-hairline)] px-3 py-2.5 text-center">
+                          <span className="block text-xs text-[var(--text-secondary)]">{{ shacharit: "Shajarit", mincha: "Minjá", maariv: "Arvit" }[k]}</span>
+                          <span className="mv-data text-sm text-[var(--text-primary)]">{place.prayerTimes[k]}</span>
                         </li>
                       ) : null,
                     )}
@@ -333,7 +332,7 @@ export function PlacePanel({ slug, onClose, standalone = false }: { slug: string
               <Section title="Próximamente acá">
                 <ul className="space-y-2">
                   {events.map((e) => (
-                    <li key={e.id} className="flex items-start gap-3 rounded-2xl border border-border px-4 py-3">
+                    <li key={e.id} className="flex items-start gap-3 rounded-2xl border border-[var(--mv-hairline)] px-4 py-3">
                       <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-techelet" aria-hidden />
                       <span className="min-w-0">
                         <span className="block text-sm font-semibold text-[var(--text-primary)]">{e.title}</span>
@@ -354,10 +353,10 @@ export function PlacePanel({ slug, onClose, standalone = false }: { slug: string
 
             <SuggestEdit slug={place.slug} canWrite={canWrite} />
 
-            <section className="flex flex-col gap-3 border-t border-border pt-5">
+            <section className="flex flex-col gap-3 border-t border-[var(--mv-hairline)] pt-5">
               <Link
                 href={`/kosher/lugar/${place.slug}/administrar`}
-                className="flex items-center justify-between rounded-2xl border border-border px-4 py-3 text-sm text-[var(--text-primary)] hover:border-gold/40"
+                className="mv-focus flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-[var(--mv-hairline-strong)] px-4 py-3 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--color-border-gold)]"
               >
                 {managedByMe ? "Administrar esta ficha" : place.managed ? "¿Sos parte del equipo? Pedí acceso" : "¿Es tu lugar? Administrá la ficha"}
                 <BadgeCheck className="h-4 w-4 text-[var(--text-tertiary)]" aria-hidden />
@@ -408,16 +407,16 @@ function StockSection({ slug, stock, canWrite, onChange }: { slug: string; stock
         {stock.map((s) => {
           const stale = Date.now() - new Date(s.confirmedAt).getTime() > STOCK_STALE_DAYS * 86_400_000;
           return (
-            <li key={s.id} className="rounded-2xl border border-border bg-bg-secondary px-4 py-3">
+            <li key={s.id} className="rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] px-4 py-3">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-semibold text-[var(--text-primary)]">{STOCK[s.category]}</span>
-                <span className={cn("inline-flex items-center gap-1 text-[11px]", stale ? "text-amber-500" : "text-emerald-500")}>
+                <span className={cn("inline-flex items-center gap-1 text-xs", stale ? "text-amber-500" : "text-emerald-500")}>
                   <Clock className="h-3 w-3" aria-hidden />
                   {stale ? "Puede estar desactualizado" : `Confirmado ${relativeDays(s.confirmedAt)}`}
                 </span>
               </div>
               <p className="mt-1 text-sm text-[var(--text-secondary)]">{s.note}</p>
-              <div className="mt-2 flex items-center justify-between text-[11px] text-[var(--text-tertiary)]">
+              <div className="mt-2 flex items-center justify-between gap-3 text-xs text-[var(--text-tertiary)]">
                 <span>
                   {s.authorName} · {s.confirmations} {s.confirmations === 1 ? "confirmación" : "confirmaciones"}
                 </span>
@@ -426,7 +425,7 @@ function StockSection({ slug, stock, canWrite, onChange }: { slug: string; stock
                     type="button"
                     disabled={s.confirmedByMe}
                     onClick={() => confirm(s.id)}
-                    className="inline-flex h-8 items-center rounded-full border border-border px-3 font-semibold text-[var(--text-primary)] hover:border-gold/40 disabled:opacity-50"
+                    className={cn(secondaryButton, "h-9 px-3 text-xs")}
                   >
                     {s.confirmedByMe ? "Ya confirmaste" : "Sigue ahí"}
                   </button>
@@ -437,18 +436,18 @@ function StockSection({ slug, stock, canWrite, onChange }: { slug: string; stock
         })}
       </ul>
       {canWrite && (
-        <form onSubmit={submit} className="mt-3 space-y-2 rounded-2xl border border-dashed border-border p-3">
+        <form onSubmit={submit} className="mt-3 space-y-2 rounded-2xl border border-dashed border-[var(--mv-hairline-strong)] p-3">
           <div className="flex gap-2">
             <label className="sr-only" htmlFor={`stock-cat-${slug}`}>Categoría</label>
-            <select id={`stock-cat-${slug}`} value={category} onChange={(e) => setCategory(e.target.value as KosherStockCategory)} className={cn(fieldClass, "h-11 w-36")}>
+            <select id={`stock-cat-${slug}`} value={category} onChange={(e) => setCategory(e.target.value as KosherStockCategory)} className={cn(fieldClass, "h-11 w-36 shrink-0 text-sm")}>
               {Object.entries(STOCK).map(([value, label]) => (
                 <option key={value} value={value}>{label}</option>
               ))}
             </select>
             <label className="sr-only" htmlFor={`stock-note-${slug}`}>Qué viste</label>
-            <input id={`stock-note-${slug}`} value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} placeholder="Qué viste y dónde (pasillo, marca)" className={cn(fieldClass, "h-11 flex-1")} />
+            <input id={`stock-note-${slug}`} value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} placeholder="Qué viste y dónde (pasillo, marca)" className={cn(fieldClass, "h-11 min-w-0 flex-1 text-sm")} />
           </div>
-          <button type="submit" disabled={busy || note.trim().length < 3} className="h-10 w-full rounded-full bg-gold text-sm font-semibold text-black disabled:opacity-40">
+          <button type="submit" disabled={busy || note.trim().length < 3} className={cn(primaryButton, "w-full")}>
             Reportar stock
           </button>
         </form>
@@ -482,7 +481,7 @@ function ReviewsSection({ slug, reviews, canWrite, onChange }: { slug: string; r
   return (
     <Section title="Valoraciones de la comunidad">
       {canWrite && (
-        <form onSubmit={submit} className="mb-4 space-y-2 rounded-2xl border border-border bg-bg-secondary p-4">
+        <form onSubmit={submit} className="mb-4 space-y-3 rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] p-4">
           <p className="text-sm font-medium text-[var(--text-primary)]">{mine ? "Tu valoración" : "¿Cómo fue tu experiencia?"}</p>
           <div className="flex gap-1" role="radiogroup" aria-label="Estrellas" onMouseLeave={() => setHover(0)}>
             {[1, 2, 3, 4, 5].map((i) => (
@@ -494,7 +493,7 @@ function ReviewsSection({ slug, reviews, canWrite, onChange }: { slug: string; r
                 aria-label={`${i} ${i === 1 ? "estrella" : "estrellas"}`}
                 onMouseEnter={() => setHover(i)}
                 onClick={() => setRating(i)}
-                className="grid h-10 w-10 place-items-center rounded-full transition-transform active:scale-90"
+                className="mv-focus grid h-11 w-11 place-items-center rounded-full transition-transform duration-150 active:scale-90"
               >
                 <svg viewBox="0 0 20 20" className={cn("h-7 w-7 transition-colors", (hover || rating) >= i ? "text-gold" : "text-[var(--text-tertiary)]")} aria-hidden>
                   <path d="M10 1.8l2.5 5.2 5.7.8-4.1 4 1 5.6L10 14.7l-5.1 2.7 1-5.6-4.1-4 5.7-.8L10 1.8z" fill={(hover || rating) >= i ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.2" />
@@ -503,8 +502,8 @@ function ReviewsSection({ slug, reviews, canWrite, onChange }: { slug: string; r
             ))}
           </div>
           <label className="sr-only" htmlFor={`review-${slug}`}>Comentario</label>
-          <textarea id={`review-${slug}`} value={body} onChange={(e) => setBody(e.target.value)} maxLength={600} rows={2} placeholder="Comida, atención, cómo se maneja la kashrut… (opcional)" className={cn(fieldClass, "resize-none py-2.5")} />
-          <button type="submit" disabled={busy || !rating} className="h-10 w-full rounded-full bg-gold text-sm font-semibold text-black disabled:opacity-40">
+          <textarea id={`review-${slug}`} value={body} onChange={(e) => setBody(e.target.value)} maxLength={600} rows={2} placeholder="Comida, atención, cómo se maneja la kashrut… (opcional)" className={cn(fieldClass, "h-auto resize-none py-2.5 text-sm")} />
+          <button type="submit" disabled={busy || !rating} className={cn(primaryButton, "w-full")}>
             {mine ? "Actualizar" : "Publicar valoración"}
           </button>
         </form>
@@ -512,13 +511,13 @@ function ReviewsSection({ slug, reviews, canWrite, onChange }: { slug: string; r
       <ul className="space-y-3">
         {reviews.length === 0 && <li className="text-sm text-[var(--text-secondary)]">Todavía sin valoraciones. La primera ayuda a toda la comunidad.</li>}
         {reviews.map((r) => (
-          <li key={r.id} className="rounded-2xl border border-border px-4 py-3">
+          <li key={r.id} className="rounded-2xl border border-[var(--mv-hairline)] px-4 py-3">
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm font-semibold text-[var(--text-primary)]">{r.mine ? "Vos" : r.author}</span>
               <Stars value={r.rating} />
             </div>
             {r.body && <p className="mt-1.5 text-sm leading-relaxed text-[var(--text-secondary)]">{r.body}</p>}
-            <p className="mt-1 text-[11px] text-[var(--text-tertiary)]">{relativeDays(r.updatedAt)}</p>
+            <p className="mt-1 text-xs text-[var(--text-tertiary)]">{relativeDays(r.updatedAt)}</p>
           </li>
         ))}
       </ul>
@@ -552,8 +551,8 @@ function SuggestEdit({ slug, canWrite }: { slug: string; canWrite: boolean }) {
 
   if (!canWrite) {
     return (
-      <p className="border-t border-border pt-5 text-sm text-[var(--text-secondary)]">
-        ¿Algo cambió? <Link href="/login?callbackUrl=/kosher/mapa" className="font-semibold text-gold">Entrá con Mercav</Link> para sugerir una corrección.
+      <p className="border-t border-[var(--mv-hairline)] pt-5 text-sm text-[var(--text-secondary)]">
+        ¿Algo cambió? <Link href="/login?callbackUrl=/kosher/mapa" className="mv-link">Entrá con Mercav</Link> para sugerir una corrección.
       </p>
     );
   }
@@ -563,7 +562,7 @@ function SuggestEdit({ slug, canWrite }: { slug: string; canWrite: boolean }) {
       title="¿Algo cambió?"
       action={
         !open && (
-          <button type="button" onClick={() => setOpen(true)} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold text-[var(--text-primary)] hover:border-gold/40">
+          <button type="button" onClick={() => setOpen(true)} className={cn(secondaryButton, "h-9 px-3 text-xs")}>
             <PencilLine className="h-3.5 w-3.5" aria-hidden /> Sugerir cambio
           </button>
         )
@@ -579,28 +578,28 @@ function SuggestEdit({ slug, canWrite }: { slug: string; canWrite: boolean }) {
               setField(e.target.value as EditableField);
               setValue("");
             }}
-            className={cn(fieldClass, "h-11")}
+            className={cn(fieldClass, "h-11 text-sm")}
           >
             {Object.entries(EDITABLE_FIELDS).map(([k, spec]) => (
               <option key={k} value={k}>{spec.label}</option>
             ))}
           </select>
           {options ? (
-            <select aria-label="Nuevo valor" value={value} onChange={(e) => setValue(e.target.value)} className={cn(fieldClass, "h-11")}>
+            <select aria-label="Nuevo valor" value={value} onChange={(e) => setValue(e.target.value)} className={cn(fieldClass, "h-11 text-sm")}>
               <option value="">Elegí el nuevo estado</option>
               {options.map((o) => (
                 <option key={o} value={o}>{({ certified: "Certificado", community_report: "Reporte comunitario", unknown: "Sin verificar", disputed: "En disputa", closed: "Cerrado" } as Record<string, string>)[o]}</option>
               ))}
             </select>
           ) : (
-            <input aria-label="Nuevo valor" value={value} onChange={(e) => setValue(e.target.value)} maxLength={600} placeholder="Nuevo valor" className={cn(fieldClass, "h-11")} />
+            <input aria-label="Nuevo valor" value={value} onChange={(e) => setValue(e.target.value)} maxLength={600} placeholder="Nuevo valor" className={cn(fieldClass, "h-11 text-sm")} />
           )}
-          <input aria-label="Cómo lo sabés" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="Cómo lo sabés (ej.: vi el certificado en la puerta)" className={cn(fieldClass, "h-11")} />
+          <input aria-label="Cómo lo sabés" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="Cómo lo sabés (ej.: vi el certificado en la puerta)" className={cn(fieldClass, "h-11 text-sm")} />
           <div className="flex gap-2">
-            <button type="button" onClick={() => setOpen(false)} className="h-10 flex-1 rounded-full border border-border text-sm font-medium text-[var(--text-primary)]">
+            <button type="button" onClick={() => setOpen(false)} className={cn(secondaryButton, "flex-1")}>
               Cancelar
             </button>
-            <button type="submit" disabled={busy || !value.trim()} className="h-10 flex-1 rounded-full bg-gold text-sm font-semibold text-black disabled:opacity-40">
+            <button type="submit" disabled={busy || !value.trim()} className={cn(primaryButton, "flex-1")}>
               Enviar a revisión
             </button>
           </div>

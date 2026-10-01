@@ -9,8 +9,9 @@ import {
 } from "@/components/pwn/api";
 import { DisabledState, EmptyState, ErrorState, LoadingState, UnauthorizedState } from "@/components/pwn/EmptyState";
 import { ListControls, pageWindow } from "@/components/pwn/ListControls";
-import { Button } from "@/components/ui/button";
-import { focusRing, formatWhen, pwnFieldClass, pwnFieldLabelClass, pwnPanelClass } from "@/components/pwn/format";
+import { focusRing, formatWhen, pwnCardClass, pwnFieldClass, pwnFieldLabelClass, pwnPanelClass } from "@/components/pwn/format";
+import { Meta, MetaGrid, PwnNotice, PwnSectionHeading, pwnErrorTextClass } from "@/components/pwn/ui";
+import { buttonClass } from "@/components/site/primitives";
 import { PwnSelect } from "@/components/pwn/PwnSelect";
 import {
   MONITOR_AUTH_MESSAGE_MAX,
@@ -31,10 +32,10 @@ const TYPE_LABEL: Record<string, string> = { EMAIL: "Correo", DOMAIN: "Dominio",
 const DOMAIN_RE = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i;
 
 const BADGE_CLASS: Record<string, string> = {
-  ok: "border-gold/40 bg-gold/10 text-gold",
-  waiting: "border-gold/50 bg-gold/5 text-gold",
-  denied: "border-red-400/40 bg-red-400/10 text-red-200",
-  pending: "border-dashed border-gray-400 bg-transparent text-gray-200",
+  ok: "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold",
+  waiting: "border-dashed border-[var(--color-border-gold)] bg-transparent text-gold",
+  denied: "border-red-400/40 bg-red-400/10 text-red-200 [.light_&]:border-red-700/30 [.light_&]:text-red-800",
+  pending: "border-dashed border-[var(--text-tertiary)] bg-transparent text-[var(--text-secondary)]",
 };
 
 type Status =
@@ -50,7 +51,7 @@ function normalize(value: string, type: TargetType) {
 }
 
 function validate(value: string, type: TargetType) {
-  if (!value) return "Escribe un objetivo.";
+  if (!value) return "Escribí un objetivo.";
   if (type === "email" && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || value.length > 254)) return "El correo no es válido.";
   if (type === "domain" && !DOMAIN_RE.test(value)) return "El dominio no es válido.";
   return null;
@@ -130,7 +131,7 @@ export function WatchTargets({
     setNotice(
       created.target?.verificationStatus === "VERIFIED"
         ? "Quedó en seguimiento. El patrullaje puede generar alertas."
-        : created.verification?.message ?? "Puedes consultarlo ya. El patrullaje espera autorización.",
+        : created.verification?.message ?? "Ya podés consultarlo. El patrullaje espera autorización.",
     );
     setTarget("");
     await load();
@@ -208,19 +209,17 @@ export function WatchTargets({
 
   return (
     <section className="space-y-6" aria-labelledby="watch-title">
-      <header>
-        <h2 id="watch-title" className="font-display text-3xl font-black tracking-tight text-white">
-          Seguimiento
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-400">
-          El correo de tu cuenta y cualquier dominio se siguen al añadirlos. Un correo distinto pide autorización solo para el patrullaje y las alertas; la consulta de arriba no espera.
-        </p>
-      </header>
+      <PwnSectionHeading
+        id="watch-title"
+        kicker="Seguimiento"
+        title="Objetivos que vigilás"
+        lead="El correo de tu cuenta y cualquier dominio se siguen al añadirlos. Un correo distinto pide autorización solo para el patrullaje y las alertas; la consulta de arriba no espera."
+      />
 
       {status.kind === "loading" ? <LoadingState label="Cargando objetivos…" /> : null}
       {status.kind === "disabled" ? <DisabledState title="Seguimiento no configurado" /> : null}
       {status.kind === "unauthorized" ? (
-        <UnauthorizedState callbackPath="/pwn/exposure" description="Inicia sesión para seguir correos y dominios y recibir alertas." />
+        <UnauthorizedState callbackPath="/pwn/exposure" description="Iniciá sesión para seguir correos y dominios y recibir alertas." />
       ) : null}
       {status.kind === "error" ? <ErrorState message={status.message} onRetry={() => void load()} /> : null}
 
@@ -233,8 +232,8 @@ export function WatchTargets({
               void createTarget();
             }}
           >
-            <h3 className="font-display text-2xl text-white">Añadir a seguimiento</h3>
-            <div className="grid gap-4 md:grid-cols-2">
+            <h3 className="mv-h3 text-lg">Añadir a seguimiento</h3>
+            <div className="grid gap-4 md:grid-cols-[14rem_minmax(0,1fr)]">
               <div className="space-y-2">
                 <label htmlFor="monitor-type" className={pwnFieldLabelClass}>
                   Tipo
@@ -267,28 +266,24 @@ export function WatchTargets({
                 />
               </div>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs leading-relaxed text-[var(--text-tertiary)]">
               {targetType === "email"
                 ? "Si no es el correo de esta cuenta, un administrador autoriza el patrullaje. La consulta de exposición no lo necesita."
                 : "Los dominios se consultan y se patrullan al añadirlos."}
             </p>
             {formError ? (
-              <p role="alert" className="text-sm text-red-200">
+              <p role="alert" className={pwnErrorTextClass}>
                 {formError}
               </p>
             ) : null}
-            <Button type="submit" disabled={saving} className={`rounded-xl bg-gold font-semibold text-black hover:bg-gold-light ${focusRing}`}>
+            <button type="submit" disabled={saving} className={buttonClass("primary", "md", "w-full sm:w-auto")}>
               {saving ? "Guardando…" : "Seguir objetivo"}
-            </Button>
+            </button>
           </form>
 
-          {notice ? (
-            <p role="status" className="text-sm text-gold">
-              {notice}
-            </p>
-          ) : null}
+          {notice ? <PwnNotice>{notice}</PwnNotice> : null}
 
-          {status.items.length === 0 ? <EmptyState title="Todavía no hay objetivos en seguimiento" description="Después de consultar, puedes añadir el correo o el dominio aquí para alertas." /> : null}
+          {status.items.length === 0 ? <EmptyState title="Todavía no hay objetivos en seguimiento" description="Después de consultar, podés sumar el correo o el dominio acá para recibir alertas." /> : null}
           {status.items.length > 0 ? (
             <>
               <ListControls
@@ -323,51 +318,48 @@ export function WatchTargets({
                     item.targetType === "EMAIL" && !verified && canRequestMonitorAuthorization(item.verificationStatus);
                   const flash = authFlash[item.id];
                   return (
-                    <li key={item.id} className={`rounded-3xl border bg-bg-secondary/70 p-5 ${verified ? "border-white/5" : "border-dashed border-gold/30"}`}>
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <h3 className="font-mono text-lg text-white">{item.targetLookup ?? item.targetDisplay}</h3>
-                        <div className="flex flex-wrap items-center gap-2">
+                    <li key={item.id} className={`${pwnCardClass} ${verified ? "" : "border-dashed !border-[var(--color-border-gold)]"}`}>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="text-xs text-[var(--text-tertiary)]">{TYPE_LABEL[item.targetType] ?? item.targetType}</p>
+                          <h3 className="mv-data mt-1 break-all text-base text-[var(--text-primary)] md:text-lg">{item.targetLookup ?? item.targetDisplay}</h3>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5">
                           <span
-                            className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${BADGE_CLASS[badge.tone]}`}
+                            className={`inline-flex h-6 items-center rounded-full border px-2.5 text-[11px] font-semibold ${BADGE_CLASS[badge.tone]}`}
                           >
                             {badge.label}
                           </span>
-                          <span className="text-xs uppercase tracking-[0.14em] text-gray-400">{item.active ? "Activo" : "Pausado"}</span>
-                          <button
-                            type="button"
-                            className={`rounded-full border border-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-200 ${focusRing}`}
-                            onClick={() => void setActive(item, !item.active)}
-                          >
-                            {item.active ? "Pausar" : "Reanudar"}
-                          </button>
-                          <button
-                            type="button"
-                            className={`rounded-full border border-red-400/30 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-red-200 ${focusRing}`}
-                            onClick={() => void removeTarget(item)}
-                          >
-                            Eliminar
-                          </button>
+                          <span className="inline-flex h-6 items-center gap-1.5 rounded-full border border-[var(--mv-hairline-strong)] px-2.5 text-[11px] font-semibold text-[var(--text-secondary)]">
+                            <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${item.active ? "bg-gold" : "bg-[var(--text-tertiary)]"}`} />
+                            {item.active ? "Activo" : "Pausado"}
+                          </span>
                         </div>
                       </div>
-                      <p className="mt-1 text-sm text-gray-400">{TYPE_LABEL[item.targetType] ?? item.targetType}</p>
-                      {hint ? <p className="mt-2 text-sm text-gray-300">{hint}</p> : null}
-                      <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                        <div>
-                          <dt className="text-gray-500">Creado</dt>
-                          <dd className="text-white">{formatWhen(item.createdAt) ?? "No indicado"}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-gray-500">{verified ? "En seguimiento" : "Autorización"}</dt>
-                          <dd className="text-white">
-                            {verified
-                              ? formatWhen(item.verifiedAt) ?? "Activo"
-                              : formatWhen(item.authorizationRequestedAt) ?? "Sin solicitar"}
-                          </dd>
-                        </div>
-                      </dl>
+                      {hint ? <p className="mt-3 text-sm text-[var(--text-secondary)]">{hint}</p> : null}
+                      <MetaGrid className="lg:grid-cols-2">
+                        <Meta label="Creado">{formatWhen(item.createdAt) ?? "No indicado"}</Meta>
+                        <Meta label={verified ? "En seguimiento" : "Autorización"}>
+                          {verified
+                            ? formatWhen(item.verifiedAt) ?? "Activo"
+                            : formatWhen(item.authorizationRequestedAt) ?? "Sin solicitar"}
+                        </Meta>
+                      </MetaGrid>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <button type="button" className={buttonClass("secondary", "sm", "flex-1 sm:flex-none")} onClick={() => void setActive(item, !item.active)}>
+                          {item.active ? "Pausar" : "Reanudar"}
+                        </button>
+                        <button
+                          type="button"
+                          className={`mv-btn mv-btn-sm mv-btn-ghost flex-1 text-red-300 sm:flex-none [.light_&]:text-red-700 ${focusRing}`}
+                          onClick={() => void removeTarget(item)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
                       {canRequest ? (
                         <form
-                          className="mt-4 space-y-3"
+                          className="mt-5 space-y-3 border-t border-[var(--mv-hairline)] pt-5"
                           onSubmit={(event) => {
                             event.preventDefault();
                             void requestAuthorization(item);
@@ -379,22 +371,22 @@ export function WatchTargets({
                             </label>
                             <textarea
                               id={`auth-note-${item.id}`}
-                              className={`${pwnFieldClass} h-auto min-h-[4.5rem] py-2.5`}
+                              className={`${pwnFieldClass} h-auto min-h-[5.5rem] py-3 leading-relaxed`}
                               value={authNote[item.id] ?? ""}
                               maxLength={MONITOR_AUTH_MESSAGE_MAX}
                               onChange={(event) => setAuthNote((current) => ({ ...current, [item.id]: event.target.value }))}
-                              placeholder="Por qué necesitas patrullar este correo"
+                              placeholder="Por qué necesitás patrullar este correo"
                             />
                           </div>
-                          <Button type="submit" disabled={authBusy === item.id} className={`rounded-xl bg-gold font-semibold text-black hover:bg-gold-light ${focusRing}`}>
+                          <button type="submit" disabled={authBusy === item.id} className={buttonClass("primary", "sm", "w-full sm:w-auto")}>
                             {authBusy === item.id ? "Enviando…" : "Solicitar patrullaje"}
-                          </Button>
+                          </button>
                         </form>
                       ) : null}
                       {flash ? (
-                        <p role={flash.tone === "error" ? "alert" : "status"} className={`mt-3 text-sm ${flash.tone === "error" ? "text-red-200" : "text-gold"}`}>
-                          {flash.text}
-                        </p>
+                        <div className="mt-3">
+                          <PwnNotice tone={flash.tone === "error" ? "error" : "ok"}>{flash.text}</PwnNotice>
+                        </div>
                       ) : null}
                     </li>
                   );

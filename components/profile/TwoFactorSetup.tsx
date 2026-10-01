@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ShieldCheck, Lock, Smartphone, Loader2, CheckCircle2, AlertTriangle } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { KeyRound, Smartphone, Loader2, CheckCircle2, AlertTriangle } from "lucide-react"
+import { BodyPortal } from "@/components/auth/BodyPortal"
 
 export function TwoFactorSetup({ isEnabledInitial }: { isEnabledInitial: boolean }) {
   const [isEnabled, setIsEnabled] = useState(isEnabledInitial)
@@ -92,138 +92,172 @@ export function TwoFactorSetup({ isEnabledInitial }: { isEnabledInitial: boolean
 
   if (success) {
     return (
-      <div className="p-6 rounded-3xl bg-green-500/10 border border-green-500/20 text-center">
-        <div className="h-16 w-16 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle2 className="h-10 w-10" />
+      <div className="mv-panel p-6 sm:p-8" role="status">
+        <div className="flex items-start gap-4">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-green-500/10 text-green-400">
+            <CheckCircle2 className="h-6 w-6" aria-hidden />
+          </span>
+          <div className="flex-1">
+            <h2 className="mv-h3">Verificación en dos pasos activada</h2>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+              Desde ahora, al iniciar sesión te vamos a pedir el código de tu app de autenticación.
+            </p>
+            <button type="button" onClick={() => setSuccess(false)} className="mv-btn mv-btn-secondary mv-btn-sm mt-5">Entendido</button>
+          </div>
         </div>
-        <h3 className="text-xl font-bold text-white mb-2">¡Seguridad Activada!</h3>
-        <p className="text-sm text-green-200/70 mb-6">Tu cuenta ahora está protegida.</p>
-        <Button onClick={() => setSuccess(false)} variant="outline">Entendido</Button>
       </div>
     )
   }
 
   return (
-    <div className="rounded-3xl border border-white/5 bg-bg-secondary p-8 overflow-hidden relative">
-      {/* Custom Confirmation Modal */}
+    <div className="mv-panel p-5 sm:p-7">
+      {/* Disable confirmation dialog */}
       {showConfirmDisable && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-bg-secondary border border-white/10 p-8 rounded-[2.5rem] max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-300">
-            <div className="h-16 w-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <AlertTriangle className="h-8 w-8" />
-            </div>
-            <h3 className="text-2xl font-bold text-white text-center mb-3">¿Desactivar 2FA?</h3>
-            <p className="text-gray-400 text-center text-sm leading-relaxed mb-4">
-              Confirma con tu contraseña y un código de tu app de autenticación.
-            </p>
-            <input
-              type="password"
-              value={disablePassword}
-              onChange={(e) => setDisablePassword(e.target.value)}
-              placeholder="Contraseña"
-              className="mb-3 h-11 w-full rounded-xl border border-white/10 bg-[#141416] px-3 text-sm text-white"
-              autoComplete="current-password"
-            />
-            <input
-              type="text"
-              inputMode="numeric"
-              value={disableCode}
-              onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder="Código 2FA"
-              className="mb-6 h-11 w-full rounded-xl border border-white/10 bg-[#141416] px-3 text-sm text-white"
-            />
-            <div className="flex gap-3">
-              <Button 
-                onClick={() => setShowConfirmDisable(false)} 
-                variant="outline" 
-                className="flex-1 rounded-xl h-12 border-white/10 text-gray-400 hover:bg-white/5 hover:text-white"
-              >
-                Cancelar
-              </Button>
-              <Button 
-                onClick={disable2FA} 
-                className="flex-1 rounded-xl h-12 bg-red-500 hover:bg-red-600 text-white font-bold"
-              >
-                Desactivar
-              </Button>
+        <BodyPortal>
+          <div className="fixed inset-0 z-[200] flex items-end justify-center p-3 sm:items-center sm:p-4">
+            <div className="mv-fade absolute inset-0 bg-black/50" onClick={() => setShowConfirmDisable(false)} aria-hidden />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="disable-2fa-title"
+              aria-describedby="disable-2fa-desc"
+              onKeyDown={(e) => e.key === "Escape" && setShowConfirmDisable(false)}
+              className="mv-pop mv-menu relative w-full max-w-md rounded-[1.75rem] p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:p-8"
+            >
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-red-500/10 text-red-400">
+                <AlertTriangle className="h-6 w-6" aria-hidden />
+              </span>
+              <h3 id="disable-2fa-title" className="mv-h3 mt-5">¿Desactivar la verificación en dos pasos?</h3>
+              <p id="disable-2fa-desc" className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
+                Tu cuenta quedará protegida solo con la contraseña. Confirmá con tu contraseña y un código de tu app.
+              </p>
+              <div className="mt-6 space-y-4">
+                <div>
+                  <label htmlFor="disable-2fa-password" className="mb-2 block text-sm font-medium text-[var(--text-primary)]">Contraseña</label>
+                  <input
+                    id="disable-2fa-password"
+                    type="password"
+                    value={disablePassword}
+                    onChange={(e) => setDisablePassword(e.target.value)}
+                    className="mv-input"
+                    autoComplete="current-password"
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label htmlFor="disable-2fa-code" className="mb-2 block text-sm font-medium text-[var(--text-primary)]">Código de 6 dígitos</label>
+                  <input
+                    id="disable-2fa-code"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    value={disableCode}
+                    onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="000000"
+                    className="mv-input mv-data tracking-[0.3em]"
+                  />
+                </div>
+                {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
+              </div>
+              <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row">
+                <button type="button" onClick={() => setShowConfirmDisable(false)} className="mv-btn mv-btn-secondary flex-1">
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={disable2FA}
+                  disabled={loading}
+                  aria-busy={loading}
+                  className="mv-btn flex-1 bg-red-500 text-white hover:bg-red-600"
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+                  Desactivar
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </BodyPortal>
       )}
 
-      <div className="flex items-start justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <div className={`h-14 w-14 rounded-2xl flex items-center justify-center ${isEnabled ? 'bg-green-500/10 text-green-500' : 'bg-gold/10 text-gold'}`}>
-            <ShieldCheck className="h-8 w-8" />
-          </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-4">
+          <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${isEnabled ? 'bg-green-500/10 text-green-400' : 'bg-[var(--mv-gold-wash)] text-gold'}`}>
+            <KeyRound className="h-6 w-6" aria-hidden />
+          </span>
           <div>
-            <h3 className="text-xl font-bold text-white">Autenticación en Dos Pasos (2FA)</h3>
-            <p className="text-sm text-gray-500 mt-1">Protege tu cuenta con Google Authenticator.</p>
+            <h2 className="mv-h3">Verificación en dos pasos</h2>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">Pedí un código de tu app de autenticación además de la contraseña.</p>
           </div>
         </div>
-        <div className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest ${isEnabled ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-white/5 text-gray-500 border border-white/10'}`}>
-          {isEnabled ? 'ACTIVO' : 'RECOMENDADO'}
-        </div>
+        <span className={`mv-chip w-fit shrink-0 ${isEnabled ? 'border-green-500/30 bg-green-500/10 text-green-400' : 'mv-chip-gold'}`}>
+          {isEnabled ? 'Activa' : 'Recomendada'}
+        </span>
       </div>
 
       {!isEnabled && !setupData && (
-        <div className="flex flex-col md:flex-row items-center gap-8 p-6 bg-white/5 rounded-2xl border border-white/5">
-          <div className="flex-1">
-            <p className="text-gray-300 text-sm leading-relaxed mb-4">
-              La verificación en dos pasos solicita un código único al iniciar sesión.
-            </p>
-            <Button onClick={startSetup} disabled={loading} className="bg-gold text-black font-bold rounded-xl h-11 px-6">
-              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Configurar 2FA ahora"}
-            </Button>
-            {error && <p className="text-red-500 text-xs mt-3 italic">{error}</p>}
-          </div>
-          <div className="h-32 w-32 bg-bg-tertiary rounded-2xl flex items-center justify-center text-gray-700">
-            <Smartphone className="h-16 w-16 opacity-20" />
-          </div>
+        <div className="mt-6 flex flex-col gap-4 rounded-[1.25rem] border border-[var(--mv-hairline)] bg-[var(--mv-panel)] p-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex items-start gap-3 text-sm leading-relaxed text-[var(--text-secondary)]">
+            <Smartphone className="mt-0.5 h-5 w-5 shrink-0 text-[var(--text-tertiary)]" aria-hidden />
+            Funciona con Google Authenticator, 1Password, Authy u otra app compatible con TOTP.
+          </p>
+          <button type="button" onClick={startSetup} disabled={loading} aria-busy={loading} className="mv-btn mv-btn-primary mv-btn-sm w-full shrink-0 sm:w-auto">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+            {loading ? "Generando…" : "Configurar"}
+          </button>
         </div>
       )}
+      {!isEnabled && !setupData && error && <p role="alert" className="mt-3 text-sm text-red-400">{error}</p>}
 
       {setupData && (
-        <div className="space-y-8">
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <p className="text-sm font-bold text-white">1. Escanea el código QR</p>
-              <div className="bg-white p-3 rounded-2xl w-fit">
-                <img src={setupData.qrCodeUrl} alt="QR" className="w-40 h-40" />
-              </div>
-              <p className="text-[10px] text-gray-500">Manual: <code className="text-gold">{setupData.secret}</code></p>
+        <ol className="mt-6 grid gap-6 md:grid-cols-2">
+          <li className="rounded-[1.25rem] border border-[var(--mv-hairline)] p-5">
+            <p className="text-sm font-semibold text-[var(--text-primary)]"><span className="mv-data mr-2 text-gold">1</span>Escaneá el código QR</p>
+            <div className="mt-4 w-fit rounded-2xl bg-white p-3">
+              <img src={setupData.qrCodeUrl} alt="Código QR para tu app de autenticación" width={160} height={160} className="h-40 w-40" />
             </div>
-            <div className="space-y-6">
-              <p className="text-sm font-bold text-white">2. Introduce el código</p>
-              <input 
-                type="text" maxLength={6} placeholder="000000" value={token}
-                onChange={(e) => setToken(e.target.value.replace(/\D/g, ""))}
-                className="w-full bg-bg-tertiary border border-white/10 rounded-xl px-4 py-4 text-center text-2xl font-mono tracking-[0.5em] text-white outline-none"
-              />
-              <div className="flex gap-3">
-                <Button onClick={() => setSetupData(null)} variant="outline" className="flex-1">Cancelar</Button>
-                <Button onClick={verifySetup} disabled={loading || token.length !== 6} className="flex-[2] bg-gold text-black font-bold">
-                  {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Activar"}
-                </Button>
-              </div>
-              {error && <p className="text-red-500 text-xs italic">{error}</p>}
+            <p className="mt-4 text-xs text-[var(--text-secondary)]">¿No podés escanear? Ingresá esta clave a mano:</p>
+            <code className="mv-data mt-1 block break-all text-sm text-gold">{setupData.secret}</code>
+          </li>
+          <li className="flex flex-col rounded-[1.25rem] border border-[var(--mv-hairline)] p-5">
+            <label htmlFor="setup-2fa-code" className="text-sm font-semibold text-[var(--text-primary)]"><span className="mv-data mr-2 text-gold">2</span>Ingresá el código de la app</label>
+            <input
+              id="setup-2fa-code"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              placeholder="000000"
+              value={token}
+              onChange={(e) => setToken(e.target.value.replace(/\D/g, ""))}
+              aria-describedby={error ? "setup-2fa-error" : undefined}
+              className="mv-input mv-data mt-4 h-14 text-center text-2xl tracking-[0.5em]"
+            />
+            {error && <p id="setup-2fa-error" role="alert" className="mt-3 text-sm text-red-400">{error}</p>}
+            <div className="mt-auto flex gap-2 pt-5">
+              <button type="button" onClick={() => setSetupData(null)} className="mv-btn mv-btn-secondary mv-btn-sm flex-1">Cancelar</button>
+              <button type="button" onClick={verifySetup} disabled={loading || token.length !== 6} aria-busy={loading} className="mv-btn mv-btn-primary mv-btn-sm flex-[2]">
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+                {loading ? "Verificando…" : "Activar"}
+              </button>
             </div>
-          </div>
-        </div>
+          </li>
+        </ol>
       )}
 
       {isEnabled && !success && (
-        <div className="p-6 bg-green-500/5 rounded-2xl border border-green-500/10 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Lock className="h-5 w-5 text-green-500" />
-            <div>
-              <p className="font-bold text-white text-sm">Protección activa</p>
-              <p className="text-xs text-gray-500">Tu cuenta está segura.</p>
-            </div>
+        <div className="mt-6 flex flex-col gap-4 rounded-[1.25rem] border border-red-500/20 bg-red-500/[0.04] p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-[var(--text-primary)]">Desactivar la verificación</p>
+            <p className="mt-0.5 text-sm text-[var(--text-secondary)]">Tu cuenta quedará protegida solo con la contraseña.</p>
           </div>
-          <Button onClick={() => setShowConfirmDisable(true)} disabled={loading} variant="ghost" className="text-red-400 hover:text-red-500 text-xs">
-            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "Desactivar"}
-          </Button>
+          <button
+            type="button"
+            onClick={() => { setError(null); setShowConfirmDisable(true); }}
+            disabled={loading}
+            className="mv-btn mv-btn-sm w-full border border-red-500/30 text-red-400 hover:bg-red-500/10 sm:w-auto"
+          >
+            Desactivar
+          </button>
         </div>
       )}
     </div>

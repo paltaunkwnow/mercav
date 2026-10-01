@@ -25,12 +25,14 @@ import {
   Loader2,
   ChevronDown
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { ButtonLink, Container, PageHero, Section, buttonClass } from "@/components/site/primitives";
 import { ReceiptTemplate } from "@/components/checkout/ReceiptTemplate";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useRef } from "react";
+
+const EASE = [0.23, 1, 0.32, 1] as const;
 
 interface PedidosClientProps {
   user: any;
@@ -65,6 +67,7 @@ export default function PedidosClient({
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const receiptRef = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
 
   const allPurchases = [...purchases, ...spacePurchases].sort((a, b) => 
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -95,17 +98,43 @@ export default function PedidosClient({
     switch (status) {
       case 'COMPLETED':
       case 'SUCCESS':
-        return 'bg-green-500/10 text-green-500 border-green-500/20';
+      case 'PAGADO':
+      case 'CONFIRMED':
+        return 'border-green-500/25 bg-green-500/10 text-green-400';
       case 'PENDING':
-        return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+        return 'border-yellow-500/25 bg-yellow-500/10 text-yellow-400';
       case 'EXPIRED':
       case 'EXPIRADO':
-        return 'bg-red-500/10 text-red-500 border-red-500/20';
+      case 'FAILED':
+        return 'border-red-500/25 bg-red-500/10 text-red-400';
       case 'CANCELLED':
-        return 'bg-red-500/10 text-red-500 border-red-500/20';
+        return 'border-red-500/25 bg-red-500/10 text-red-400';
       default:
-        return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+        return 'mv-chip-gold';
     }
+  };
+
+  const statusLabels: Record<string, string> = {
+    PENDING: "Pendiente",
+    EXPIRADO: "Expirado",
+    EXPIRED: "Expirado",
+    PROCESANDO: "En curso",
+    IN_PROGRESS: "En curso",
+    PAGADO: "Pagado",
+    PAID: "Pagado",
+    COMPLETED: "Completado",
+    SUCCESS: "Exitoso",
+    CANCELLED: "Cancelado",
+    IN_REVIEW: "En revisión",
+    REVISION: "Con cambios",
+    DISPUTED: "En disputa",
+    CONFIRMED: "Confirmada",
+    ACTIVE: "Activa",
+    FAILED: "Fallido",
+    REFUNDED: "Reembolsado",
+    OPEN: "Abierto",
+    RESOLVED: "Resuelto",
+    CLOSED: "Cerrado",
   };
 
   const getDisplayStatus = (item: any) => {
@@ -185,7 +214,9 @@ export default function PedidosClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...ticketForm,
-          transactionId: selectedItemForTicket?.stripeId || selectedItemForTicket?.id,
+          // Solo los pagos (tienen stripeId) llevan transactionId, y es el id interno de la transacción.
+          // Antes se mandaba el stripeId o el id del pedido y el servidor respondía 403.
+          transactionId: selectedItemForTicket?.stripeId ? selectedItemForTicket.id : null,
           orderId: selectedItemForTicket?.serviceId ? selectedItemForTicket.id : null
         })
       });
@@ -211,366 +242,431 @@ export default function PedidosClient({
     { value: "OTHER", label: "Otro" }
   ];
 
+  const tabs = [
+    { id: 'purchases', label: 'Compras', icon: ShoppingBag },
+    { id: 'sales', label: 'Ventas', icon: DollarSign },
+    { id: 'transactions', label: 'Transacciones', icon: CreditCard },
+    { id: 'tickets', label: 'Reportes', icon: LifeBuoy },
+  ];
+
+  const emptyStates: Record<string, { title: string; body: string; href?: string; cta: string }> = {
+    purchases: {
+      title: "Todavía no tenés compras",
+      body: "Cuando contrates un servicio o reserves un espacio, el pedido aparece acá con su estado y su recibo.",
+      href: "/servicios",
+      cta: "Explorar servicios",
+    },
+    sales: {
+      title: "Todavía no tenés ventas",
+      body: "Los pedidos de tus servicios y las reservas de tus espacios se listan acá. Publicá algo para empezar a recibirlos.",
+      href: "/dashboard/crear",
+      cta: "Nueva publicación",
+    },
+    transactions: {
+      title: "Sin movimientos registrados",
+      body: "Cada pago que hagas en Mercav queda registrado acá, con la opción de reportarlo si algo salió mal.",
+      href: "/servicios",
+      cta: "Explorar servicios",
+    },
+    tickets: {
+      title: "No abriste ningún reporte",
+      body: "Si tenés un problema con un pago o un pedido, usá Reportar en la compra o la transacción y seguí el caso desde acá.",
+      cta: "Ver mis compras",
+    },
+  };
+
+  const items = filteredItems();
+  const empty = emptyStates[activeTab];
+  const ticketCategoryLabel = (category: string) =>
+    category === "PAYMENT_ERROR" ? "Error en el Pago" :
+    category === "DOUBLE_PAYMENT" ? "Pago Duplicado" :
+    category === "FRAUD" ? "Sospecha de Fraude" :
+    category === "SCAM" ? "Estafa / No entrega" :
+    category === "TECHNICAL_ISSUE" ? "Problema Técnico" :
+    "Otro";
+
   return (
-    <div className="w-full min-h-screen bg-bg-primary text-white pt-24 pb-32">
-      <div className="container mx-auto px-4 max-w-6xl">
-        {/* Breadcrumbs & Header */}
-        <div className="mb-12">
-          <Link href="/dashboard" className="inline-flex items-center text-gray-500 hover:text-gold transition-colors mb-6 text-[10px] font-black uppercase tracking-[0.2em] group">
-            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" /> Volver al Panel
-          </Link>
-          <h1 className="text-4xl md:text-5xl font-display font-black tracking-tighter mb-4">
-            Gestión de <span className="text-gold">Pedidos</span>
-          </h1>
-          <p className="text-gray-500 text-lg">Historial completo de tus compras, ventas y movimientos financieros.</p>
-        </div>
+    <div className="w-full min-h-screen bg-bg-primary">
+      <PageHero
+        kicker={
+          <>
+            <Link href="/dashboard" className="-my-2 rounded py-2 hover:underline mv-focus">Panel</Link>
+            <span aria-hidden>/</span>
+            <span>Pedidos</span>
+          </>
+        }
+        title="Pedidos y pagos"
+        lead="Tus compras, tus ventas, los pagos registrados y los reportes que abriste, en un mismo lugar."
+      />
 
-        {/* Tab Navigation */}
-        <div className="flex flex-wrap gap-4 mb-10 p-2 bg-white/[0.03] border border-white/5 rounded-3xl w-fit">
-          {[
-            { id: 'purchases', label: 'Mis Compras', icon: ShoppingBag },
-            { id: 'sales', label: 'Mis Ventas', icon: DollarSign },
-            { id: 'transactions', label: 'Transacciones', icon: CreditCard },
-            { id: 'tickets', label: 'Reportes y Tickets', icon: LifeBuoy },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-bold transition-all ${
-                activeTab === tab.id 
-                ? 'bg-gold text-primary-foreground shadow-lg shadow-gold/20' 
-                : 'text-gray-500 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <tab.icon size={20} />
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      <Section tight labelledBy="pedidos-lista" className="pt-0 md:pt-0">
+        <Container>
+          <h2 id="pedidos-lista" className="sr-only">Listado</h2>
 
-        {/* Search & Actions */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
-          <div className="relative w-full md:max-w-md group">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-gold transition-colors" size={20} />
-            <input 
-              type="text" 
-              placeholder="Buscar por título o ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/[0.03] border border-white/10 rounded-2xl h-14 pl-16 pr-6 text-white focus:outline-none focus:border-gold/30 transition-all"
-            />
-          </div>
-          
-          <div className="flex items-center gap-4 text-xs font-black uppercase tracking-widest text-gray-500">
-            Total items: <span className="text-white font-mono">{filteredItems().length}</span>
-          </div>
-        </div>
-
-        {/* Items List */}
-        <div className="space-y-6">
-          <AnimatePresence mode="wait">
-            {filteredItems().length > 0 ? (
-              <motion.div
-                key={activeTab + searchQuery}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="grid grid-cols-1 gap-6"
-              >
-                {filteredItems().map((item: any, i: number) => (
-                  <div key={item.id} className="group relative bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 hover:bg-white/[0.04] hover:border-white/10 transition-all">
-                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
-                      {/* Left Side: Info */}
-                      <div className="flex items-center gap-6">
-                        <div className="w-20 h-20 rounded-2xl bg-gold/10 flex items-center justify-center text-gold group-hover:scale-110 transition-transform">
-                          {activeTab === 'transactions' ? <CreditCard size={32} /> : (item.service ? <Package size={32} /> : <Calendar size={32} />)}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusStyle(getDisplayStatus(item))}`}>
-                              {getDisplayStatus(item)}
-                            </span>
-                            <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest flex items-center gap-2">
-                              <Clock size={12} /> {formatDate(item.createdAt)}
-                            </span>
-                          </div>
-                          <h3 className="text-xl font-bold text-white mb-2 group-hover:text-gold transition-colors">
-                            {activeTab === 'transactions' 
-                              ? `Pago por ${item.metadata?.title || "Servicio Digital"}` 
-                              : (item.subject || item.service?.title || item.space?.title || "Sin Título")}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            {activeTab === 'purchases' ? (
-                              <>Comprado a <span className="text-gray-300 font-bold">{item.service?.provider?.name || item.space?.owner?.name || "Proveedor"}</span></>
-                            ) : activeTab === 'sales' ? (
-                              <>Vendido a <span className="text-gray-300 font-bold">{item.client?.name || item.advertiser?.name || "Cliente"}</span></>
-                            ) : activeTab === 'tickets' ? (
-                               <>Categoría: <span className="text-gray-300">{
-                                 item.category === "PAYMENT_ERROR" ? "Error en el Pago" :
-                                 item.category === "DOUBLE_PAYMENT" ? "Pago Duplicado" :
-                                 item.category === "FRAUD" ? "Sospecha de Fraude" :
-                                 item.category === "SCAM" ? "Estafa / No entrega" :
-                                 item.category === "TECHNICAL_ISSUE" ? "Problema Técnico" :
-                                 "Otro"
-                               }</span></>
-                            ) : (
-                              <>Procesado de forma segura vía Mercav Protocol</>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Right Side: Price & Actions */}
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 w-full lg:w-auto">
-                        {(item.totalPrice || item.amount) && (
-                          <div className="text-right">
-                            <div className="text-2xl font-mono font-black text-gold mb-1">
-                              {formatPrice(item.totalPrice || item.amount)}
-                            </div>
-                            <div className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">
-                              {activeTab === 'tickets' ? 'Monto Reportado' : 'Pago Protegido'}
-                            </div>
-                          </div>
-                        )}
-                        
-                        <div className="flex gap-3 w-full sm:w-auto">
-                          {activeTab === 'purchases' && (
-                             <Button 
-                              onClick={() => handleDownloadReceipt(item)}
-                              disabled={isGenerating}
-                              variant="outline" 
-                              className="flex-1 sm:flex-initial rounded-xl border-gold/20 text-gold hover:bg-gold/5 h-12 px-6"
-                             >
-                               {isGenerating ? <Loader2 className="animate-spin w-4 h-4" /> : <FileText className="mr-2 w-4 h-4" />}
-                               Recibo
-                             </Button>
-                          )}
-                          {(activeTab === 'transactions' || activeTab === 'purchases') && (
-                             <Button 
-                              onClick={() => {
-                                setSelectedItemForTicket(item);
-                                setTicketForm({ ...ticketForm, subject: `Problema con: ${item.metadata?.title || item.service?.title || "Pago"}` });
-                                setIsTicketModalOpen(true);
-                              }}
-                              variant="outline" 
-                              className="flex-1 sm:flex-initial rounded-xl border-red-500/20 text-red-400 hover:bg-red-500/5 h-12 px-6"
-                             >
-                               <ShieldAlert className="mr-2 w-4 h-4" />
-                               Reportar
-                             </Button>
-                          )}
-                          {(item.status === 'FAILED' || getDisplayStatus(item) === 'EXPIRADO') && (
-                             <Button asChild className="flex-1 sm:flex-initial bg-foreground text-background hover:opacity-90 rounded-xl h-12 px-6 font-bold">
-                               <Link href={`/checkout/${item.metadata?.type || 'servicio'}/${item.metadata?.id || ''}`}>
-                                 <RefreshCcw className="mr-2 w-4 h-4" /> Reintentar
-                               </Link>
-                             </Button>
-                          )}
-                          {(item.service || activeTab === 'tickets') && activeTab !== 'transactions' && (
-                             <Button asChild variant="outline" className="flex-1 sm:flex-initial rounded-xl border-white/5 bg-white/5 hover:bg-white/10 h-12 px-6">
-                               <Link href={activeTab === 'tickets' ? `/dashboard/pedidos/tickets/${item.id}` : `/dashboard/pedidos/${item.id}`}>
-                                 Detalles <ChevronRight className="ml-2 w-4 h-4" />
-                               </Link>
-                             </Button>
-                          )}
-                          {activeTab !== 'tickets' && (
-                             <Button asChild className="flex-1 sm:flex-initial bg-gold text-primary-foreground hover:bg-gold-light rounded-xl h-12 px-6 font-bold">
-                               <Link href="/mensajes">
-                                 Chat <MessageSquare className="ml-2 w-4 h-4" />
-                               </Link>
-                             </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Progress Bar (Mock) */}
-                    {item.status === 'PENDING' && (
-                      <div className="mt-8 pt-8 border-t border-white/5">
-                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-gray-500 mb-4">
-                          <span>Progreso del Proyecto</span>
-                          <span className="text-gold">30% completado</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                          <div className="h-full bg-gold w-[30%] rounded-full shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </motion.div>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center py-32 text-center"
-              >
-                <div className="w-24 h-24 rounded-full bg-white/[0.02] border border-white/5 flex items-center justify-center text-gray-700 mb-8">
-                  <Package size={48} />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-400 mb-2">No se encontraron registros</h3>
-                <p className="text-gray-600 max-w-sm mx-auto">Parece que aún no tienes actividad en esta sección. ¡Explora Mercav para comenzar!</p>
-                <Button asChild className="mt-10 bg-gold text-primary-foreground rounded-2xl h-14 px-10 font-bold">
-                  <Link href="/servicios">Explorar Servicios</Link>
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Custom Modal for Tickets */}
-        <AnimatePresence>
-          {isTicketModalOpen && (
-            <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsTicketModalOpen(false)}
-                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-              />
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative w-full max-w-lg bg-bg-secondary border border-white/10 rounded-[2.5rem] p-10 shadow-2xl overflow-hidden"
-              >
-                {/* Decor */}
-                <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-                  <LifeBuoy size={120} className="text-gold" />
-                </div>
-
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-white mb-2">Reportar Problema</h2>
-                    <p className="text-sm text-gray-400">Describe el problema que tuviste con esta transacción.</p>
-                  </div>
-                  <button onClick={() => setIsTicketModalOpen(false)} className="p-2 hover:bg-white/5 rounded-full text-gray-500 hover:text-white transition-colors">
-                    <X size={20} />
-                  </button>
-                </div>
-
-                <div className="space-y-6 mt-8">
-                  <div className="relative">
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Categoría</label>
-                    <button 
-                      onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                      className="w-full bg-bg-primary border border-white/5 rounded-xl h-12 px-4 text-white flex items-center justify-between hover:border-gold/30 transition-all"
+          {/* Tabs + búsqueda */}
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="liquid-glass rounded-full p-1.5 lg:w-auto">
+              <div role="group" aria-label="Secciones" className="scrollbar-hide flex gap-1 overflow-x-auto">
+                {tabs.map((tab) => {
+                  const active = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setActiveTab(tab.id as any)}
+                      className={`mv-focus flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-semibold outline-none transition-colors duration-200 ${
+                        active
+                          ? 'bg-gold text-[var(--mv-on-gold)]'
+                          : 'text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]'
+                      }`}
                     >
-                      <span>{categories.find(c => c.value === ticketForm.category)?.label}</span>
-                      <ChevronDown size={16} className={`text-gray-500 transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+                      <tab.icon className="h-4 w-4" aria-hidden />
+                      {tab.label}
                     </button>
+                  );
+                })}
+              </div>
+            </div>
 
-                    <AnimatePresence>
-                      {isCategoryDropdownOpen && (
-                        <>
-                          <div className="fixed inset-0 z-[160]" onClick={() => setIsCategoryDropdownOpen(false)} />
-                          <motion.div 
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className="absolute top-full left-0 w-full mt-2 bg-bg-secondary border border-white/10 rounded-xl overflow-hidden shadow-2xl z-[170]"
-                          >
-                            {categories.map((cat) => (
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+              <div className="relative w-full lg:w-80">
+                <label htmlFor="pedidos-search" className="sr-only">Buscar por título o ID</label>
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-tertiary)]" aria-hidden />
+                <input
+                  id="pedidos-search"
+                  type="search"
+                  inputMode="search"
+                  autoComplete="off"
+                  placeholder="Buscar por título o ID"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="mv-input pl-11"
+                />
+              </div>
+              <p className="shrink-0 text-sm text-[var(--text-secondary)]" aria-live="polite">
+                <span className="mv-data text-[var(--text-primary)]">{items.length}</span> {items.length === 1 ? "resultado" : "resultados"}
+              </p>
+            </div>
+          </div>
+
+          {/* Items */}
+          <div className="mt-8">
+            <AnimatePresence mode="wait" initial={false}>
+              {items.length > 0 ? (
+                <motion.ul
+                  key={activeTab + searchQuery}
+                  initial={reduce ? false : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2, ease: EASE }}
+                  className="flex flex-col gap-3"
+                >
+                  {items.map((item: any) => {
+                    const displayStatus = getDisplayStatus(item);
+                    return (
+                      <li key={item.id} className="mv-panel p-5 md:p-6">
+                        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+                          {/* Info */}
+                          <div className="flex min-w-0 items-start gap-4">
+                            <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--mv-gold-wash)] text-gold sm:flex">
+                              {activeTab === 'transactions' ? <CreditCard className="h-5 w-5" aria-hidden /> : (item.service ? <Package className="h-5 w-5" aria-hidden /> : activeTab === 'tickets' ? <LifeBuoy className="h-5 w-5" aria-hidden /> : <Calendar className="h-5 w-5" aria-hidden />)}
+                            </span>
+                            <div className="min-w-0">
+                              <div className="mb-2 flex flex-wrap items-center gap-2">
+                                <span className={`mv-chip ${getStatusStyle(displayStatus)}`}>
+                                  {statusLabels[displayStatus] || displayStatus}
+                                </span>
+                                <span className="mv-data inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
+                                  <Clock className="h-3.5 w-3.5" aria-hidden /> {formatDate(item.createdAt)}
+                                </span>
+                              </div>
+                              <h3 className="text-base font-semibold text-[var(--text-primary)] md:text-lg">
+                                {activeTab === 'transactions'
+                                  ? `Pago por ${item.metadata?.title || "Servicio Digital"}`
+                                  : (item.subject || item.service?.title || item.space?.title || "Sin título")}
+                              </h3>
+                              <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                                {activeTab === 'purchases' ? (
+                                  <>Proveedor: <span className="font-medium text-[var(--text-primary)]">{item.service?.provider?.name || item.space?.owner?.name || "Proveedor"}</span></>
+                                ) : activeTab === 'sales' ? (
+                                  <>Cliente: <span className="font-medium text-[var(--text-primary)]">{item.client?.name || item.advertiser?.name || "Cliente"}</span></>
+                                ) : activeTab === 'tickets' ? (
+                                  <>Categoría: <span className="font-medium text-[var(--text-primary)]">{ticketCategoryLabel(item.category)}</span></>
+                                ) : (
+                                  <>Pago registrado en Mercav</>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Monto + acciones */}
+                          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between lg:justify-end lg:gap-6">
+                            {(item.totalPrice || item.amount) && (
+                              <div className="sm:text-right">
+                                <p className="text-xs text-[var(--text-secondary)]">{activeTab === 'tickets' ? 'Monto reportado' : 'Monto'}</p>
+                                <p className="mv-data text-xl font-medium text-[var(--text-primary)]">{formatPrice(item.totalPrice || item.amount)}</p>
+                              </div>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+                              {activeTab === 'purchases' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadReceipt(item)}
+                                  disabled={isGenerating}
+                                  className={buttonClass("ghost", "sm", "w-full sm:w-auto")}
+                                >
+                                  {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <FileText className="h-4 w-4" aria-hidden />}
+                                  Recibo
+                                </button>
+                              )}
+                              {(activeTab === 'transactions' || activeTab === 'purchases') && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedItemForTicket(item);
+                                    setTicketForm({ ...ticketForm, subject: `Problema con: ${item.metadata?.title || item.service?.title || "Pago"}` });
+                                    setIsTicketModalOpen(true);
+                                  }}
+                                  className={buttonClass("ghost", "sm", "w-full text-red-400 sm:w-auto")}
+                                >
+                                  <ShieldAlert className="h-4 w-4" aria-hidden />
+                                  Reportar
+                                </button>
+                              )}
+                              {(item.status === 'FAILED' || displayStatus === 'EXPIRADO') && (
+                                <ButtonLink href={`/checkout/${item.metadata?.type || 'servicio'}/${item.metadata?.id || ''}`} size="sm" className="w-full sm:w-auto">
+                                  <RefreshCcw className="h-4 w-4" aria-hidden /> Reintentar
+                                </ButtonLink>
+                              )}
+                              {(item.service || activeTab === 'tickets') && activeTab !== 'transactions' && (
+                                <ButtonLink
+                                  href={activeTab === 'tickets' ? `/dashboard/pedidos/tickets/${item.id}` : `/dashboard/pedidos/${item.id}`}
+                                  tone="secondary"
+                                  size="sm"
+                                  className="w-full sm:w-auto"
+                                >
+                                  Detalles <ChevronRight className="h-4 w-4" aria-hidden />
+                                </ButtonLink>
+                              )}
+                              {activeTab !== 'tickets' && (
+                                <ButtonLink href="/mensajes" tone="secondary" size="sm" className="w-full sm:w-auto">
+                                  <MessageSquare className="h-4 w-4" aria-hidden /> Chat
+                                </ButtonLink>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </motion.ul>
+              ) : (
+                <motion.div
+                  key={"empty-" + activeTab}
+                  initial={reduce ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="mv-panel flex flex-col items-start gap-4 p-8 md:p-12"
+                >
+                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--mv-gold-wash)] text-gold">
+                    <Package className="h-5 w-5" aria-hidden />
+                  </span>
+                  {searchQuery ? (
+                    <>
+                      <h3 className="mv-h3">Sin resultados para “{searchQuery}”</h3>
+                      <p className="mv-body max-w-lg">Probá con otra palabra del título o con parte del ID.</p>
+                      <button type="button" onClick={() => setSearchQuery("")} className={buttonClass("secondary", "md", "mt-2 w-full sm:w-auto")}>
+                        Limpiar búsqueda
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="mv-h3">{empty.title}</h3>
+                      <p className="mv-body max-w-lg">{empty.body}</p>
+                      {empty.href ? (
+                        <ButtonLink href={empty.href} className="mt-2 w-full sm:w-auto">{empty.cta}</ButtonLink>
+                      ) : (
+                        <button type="button" onClick={() => setActiveTab('purchases')} className={buttonClass("secondary", "md", "mt-2 w-full sm:w-auto")}>
+                          {empty.cta}
+                        </button>
+                      )}
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </Container>
+      </Section>
+
+      {/* Modal de reporte */}
+      <AnimatePresence>
+        {isTicketModalOpen && (
+          <div className="fixed inset-0 z-[150] flex items-end justify-center p-3 sm:items-center sm:p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setIsTicketModalOpen(false)}
+              className="absolute inset-0 bg-black/50"
+              aria-hidden
+            />
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="ticket-modal-title"
+              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 12 }}
+              transition={{ duration: 0.22, ease: EASE }}
+              className="mv-menu relative max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto rounded-[1.75rem] p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:p-8"
+            >
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div>
+                  <h2 id="ticket-modal-title" className="mv-h3">Reportar un problema</h2>
+                  <p className="mt-1 text-sm text-[var(--text-secondary)]">Contanos qué pasó con esta transacción. El caso queda en la pestaña Reportes.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsTicketModalOpen(false)}
+                  aria-label="Cerrar"
+                  className={buttonClass("ghost", "sm", "w-10 shrink-0 px-0")}
+                >
+                  <X className="h-5 w-5" aria-hidden />
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-5">
+                <div className="relative">
+                  <p id="ticket-category-label" className="mb-2 block text-sm font-medium text-[var(--text-secondary)]">Categoría</p>
+                  <button
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded={isCategoryDropdownOpen}
+                    aria-labelledby="ticket-category-label"
+                    onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                    className="mv-input flex items-center justify-between text-left"
+                  >
+                    <span>{categories.find(c => c.value === ticketForm.category)?.label}</span>
+                    <ChevronDown className={`h-4 w-4 text-[var(--text-tertiary)] transition-transform duration-200 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} aria-hidden />
+                  </button>
+
+                  <AnimatePresence>
+                    {isCategoryDropdownOpen && (
+                      <>
+                        <div className="fixed inset-0 z-[160]" onClick={() => setIsCategoryDropdownOpen(false)} aria-hidden />
+                        <motion.ul
+                          role="listbox"
+                          aria-labelledby="ticket-category-label"
+                          initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                          transition={{ duration: 0.18, ease: EASE }}
+                          className="absolute left-0 top-full z-[170] mt-2 w-full origin-top overflow-hidden rounded-2xl border border-[var(--mv-hairline-strong)] bg-bg-secondary p-1 shadow-2xl"
+                        >
+                          {categories.map((cat) => (
+                            <li key={cat.value} role="option" aria-selected={ticketForm.category === cat.value}>
                               <button
-                                key={cat.value}
+                                type="button"
                                 onClick={() => {
                                   setTicketForm({ ...ticketForm, category: cat.value });
                                   setIsCategoryDropdownOpen(false);
                                 }}
-                                className={`w-full h-12 px-4 text-left text-sm hover:bg-gold hover:text-black transition-colors ${ticketForm.category === cat.value ? 'bg-white/5 text-gold' : 'text-gray-300'}`}
+                                className={`flex h-11 w-full items-center rounded-xl px-3 text-left text-sm outline-none transition-colors duration-150 hover:bg-[var(--mv-panel-hover)] focus-visible:bg-[var(--mv-panel-hover)] ${ticketForm.category === cat.value ? 'font-semibold text-gold' : 'text-[var(--text-primary)]'}`}
                               >
                                 {cat.label}
                               </button>
-                            ))}
-                          </motion.div>
-                        </>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Asunto</label>
-                    <input 
-                      type="text" 
-                      value={ticketForm.subject}
-                      onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })}
-                      className="w-full bg-bg-primary border border-white/5 rounded-xl h-12 px-4 text-white focus:outline-none focus:border-gold/30 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Mensaje Detallado</label>
-                    <textarea 
-                      value={ticketForm.message}
-                      onChange={(e) => setTicketForm({ ...ticketForm, message: e.target.value })}
-                      className="w-full bg-bg-primary border border-white/5 rounded-xl p-4 text-white min-h-[120px] focus:outline-none focus:border-gold/30 resize-none transition-all"
-                      placeholder="Explica qué sucedió..."
-                    />
-                  </div>
+                            </li>
+                          ))}
+                        </motion.ul>
+                      </>
+                    )}
+                  </AnimatePresence>
                 </div>
-
-                <div className="mt-10 flex gap-4">
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => setIsTicketModalOpen(false)} 
-                    className="flex-1 rounded-2xl border border-white/10 hover:bg-white/5 hover:border-white/20 h-14 font-bold text-gray-400 hover:text-white transition-all"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button 
-                    onClick={handleSubmitTicket} 
-                    className="flex-1 bg-gold text-primary-foreground hover:bg-gold-light rounded-2xl h-14 font-black uppercase tracking-widest shadow-xl shadow-gold/20 hover:scale-[1.02] transition-all"
-                  >
-                    <Send className="mr-2 w-5 h-5" /> Enviar Reporte
-                  </Button>
+                <div>
+                  <label htmlFor="ticket-subject" className="mb-2 block text-sm font-medium text-[var(--text-secondary)]">Asunto</label>
+                  <input
+                    id="ticket-subject"
+                    type="text"
+                    autoComplete="off"
+                    value={ticketForm.subject}
+                    onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })}
+                    className="mv-input"
+                  />
                 </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-
-        {/* Success Modal */}
-        <AnimatePresence>
-          {isSuccessModalOpen && (
-            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsSuccessModalOpen(false)}
-                className="absolute inset-0 bg-black/90 backdrop-blur-md"
-              />
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative w-full max-w-sm bg-bg-secondary border border-gold/20 rounded-[2.5rem] p-12 text-center shadow-[0_0_50px_rgba(212,175,55,0.1)]"
-              >
-                <div className="flex justify-center mb-8">
-                  <div className="w-20 h-20 bg-gold/10 rounded-full flex items-center justify-center border border-gold/20">
-                    <CheckCircle2 className="text-gold w-10 h-10" />
-                  </div>
+                <div>
+                  <label htmlFor="ticket-message" className="mb-2 block text-sm font-medium text-[var(--text-secondary)]">Qué pasó</label>
+                  <textarea
+                    id="ticket-message"
+                    value={ticketForm.message}
+                    onChange={(e) => setTicketForm({ ...ticketForm, message: e.target.value })}
+                    className="mv-input h-auto min-h-[120px] resize-y py-3"
+                    placeholder="Contá qué esperabas y qué ocurrió."
+                  />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-4">¡Envío Exitoso!</h2>
-                <p className="text-gray-400 text-sm leading-relaxed mb-10">
-                  {successMessage}
-                </p>
-                <Button 
-                  onClick={() => setIsSuccessModalOpen(false)}
-                  className="w-full bg-gold text-primary-foreground hover:bg-gold-light rounded-2xl h-14 font-black uppercase tracking-widest transition-all"
-                >
-                  Entendido
-                </Button>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+              </div>
 
-        {/* Hidden Receipt Template for Generation */}
-        <div className="fixed left-[-9999px] top-[-9999px]">
-          {receiptData && (
-            <ReceiptTemplate ref={receiptRef} data={receiptData} />
-          )}
-        </div>
+              <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row">
+                <button type="button" onClick={() => setIsTicketModalOpen(false)} className={buttonClass("ghost", "md", "w-full sm:flex-1")}>
+                  Cancelar
+                </button>
+                <button type="button" onClick={handleSubmitTicket} className={buttonClass("primary", "md", "w-full sm:flex-1")}>
+                  <Send className="h-4 w-4" aria-hidden /> Enviar reporte
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Confirmación */}
+      <AnimatePresence>
+        {isSuccessModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setIsSuccessModalOpen(false)}
+              className="absolute inset-0 bg-black/50"
+              aria-hidden
+            />
+            <motion.div
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="ticket-success-title"
+              aria-describedby="ticket-success-body"
+              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 12 }}
+              transition={{ duration: 0.22, ease: EASE }}
+              className="mv-menu relative w-full max-w-sm rounded-[1.75rem] p-8 text-center"
+            >
+              <span className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full border border-green-500/25 bg-green-500/10">
+                <CheckCircle2 className="h-6 w-6 text-green-400" aria-hidden />
+              </span>
+              <h2 id="ticket-success-title" className="mv-h3">Reporte enviado</h2>
+              <p id="ticket-success-body" className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">
+                {successMessage}
+              </p>
+              <button type="button" onClick={() => setIsSuccessModalOpen(false)} className={buttonClass("primary", "md", "mt-8 w-full")}>
+                Entendido
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Hidden Receipt Template for Generation */}
+      <div className="fixed left-[-9999px] top-[-9999px]" aria-hidden>
+        {receiptData && (
+          <ReceiptTemplate ref={receiptRef} data={receiptData} />
+        )}
       </div>
     </div>
   );

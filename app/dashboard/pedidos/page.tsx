@@ -11,7 +11,7 @@ export default async function PedidosPage({
 }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
-    redirect("/auth/login");
+    redirect("/login");
   }
 
   const user = await prisma.user.findUnique({
@@ -22,7 +22,7 @@ export default async function PedidosPage({
   });
 
   if (!user) {
-    redirect("/auth/login");
+    redirect("/login");
   }
 
   // Fetch Service Orders (Purchases)
@@ -58,7 +58,6 @@ export default async function PedidosPage({
   const spacePurchases = await prisma.reservation.findMany({
     where: { advertiserId: user.id },
     include: {
-      space: true,
       space: {
         include: {
           owner: { select: { name: true, avatar: true } }

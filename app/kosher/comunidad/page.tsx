@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BookOpenCheck, Briefcase, CalendarDays, HandHeart, Landmark, PlusCircle, UsersRound, UtensilsCrossed } from "lucide-react";
+import { ArrowRight, BookOpenCheck, Briefcase, CalendarDays, HandHeart, Landmark, PlusCircle, UsersRound, UtensilsCrossed } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getKosherViewer } from "@/lib/kosher/server";
 import { listCities, pickCity } from "@/lib/kosher/cities";
@@ -37,7 +37,7 @@ export default async function KosherCommunityHub({ searchParams }: { searchParam
 
   return (
     <div>
-      <PageIntro eyebrow="Kehilá" title={city ? `Comunidad en ${city.city}` : "Comunidad"}>
+      <PageIntro eyebrow="Comunidad" title={city ? `La kehilá de ${city.city}` : "Comunidad"}>
         <p>Todo lo que pasa en tu comunidad, más allá del mapa. Elegí la ciudad para ver su agenda, minianim y mesas de Shabat.</p>
       </PageIntro>
       {city && <CityPills cities={cities} current={city.slug} basePath="/kosher/comunidad" />}
@@ -46,18 +46,24 @@ export default async function KosherCommunityHub({ searchParams }: { searchParam
           <li key={s.title}>
             <Link
               href={s.href}
-              className="group flex h-full flex-col rounded-[1.75rem] border border-border bg-bg-secondary p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/35 hover:shadow-[var(--shadow-gold)]"
+              className="mv-panel mv-panel-interactive mv-focus group flex h-full flex-col p-6"
             >
-              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gold/10 text-gold ring-1 ring-gold/20">
-                <s.icon className="h-5 w-5" aria-hidden />
+              <span className="flex items-start justify-between gap-3">
+                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[var(--mv-gold-wash)] text-gold ring-1 ring-inset ring-gold/20">
+                  <s.icon className="h-5 w-5" aria-hidden />
+                </span>
+                {s.count != null && (
+                  <span className="mv-chip">
+                    <span className="mv-data">{s.count}</span> {s.unit[s.count === 1 ? 0 : 1]}
+                  </span>
+                )}
               </span>
-              <h2 className="mt-5 font-display text-lg font-semibold text-[var(--text-primary)] group-hover:text-gold">{s.title}</h2>
-              <p className="mt-1.5 flex-1 text-sm leading-relaxed text-[var(--text-secondary)]">{s.body}</p>
-              {s.count != null && (
-                <p className="mt-4 text-xs font-medium text-techelet">
-                  {s.count} {s.unit[s.count === 1 ? 0 : 1]}
-                </p>
-              )}
+              <h2 className="mv-h3 mt-5">{s.title}</h2>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-[var(--text-secondary)]">{s.body}</p>
+              <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--text-primary)]">
+                Abrir
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
+              </span>
             </Link>
           </li>
         ))}

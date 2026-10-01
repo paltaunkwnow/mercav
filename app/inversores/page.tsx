@@ -1,15 +1,30 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-import { TrendingUp, Globe2, Users, BarChart3, Rocket, Target, DollarSign, Shield, ArrowRight, Star, Zap, CheckCircle2, Mail, Building2 } from "lucide-react";
 import { useState } from "react";
+import { ArrowRight, BarChart3, CheckCircle2, DollarSign, Globe2, Layers, Rocket, Users } from "lucide-react";
+import { Container, Reveal, Section, SectionHeading, buttonClass } from "@/components/site/primitives";
 
-const fadeUp = {
-  initial: { opacity: 0, y: 30 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-50px" },
-};
+const PROBLEMS = [
+  "La publicidad offline en Latinoamérica no tiene infraestructura digital. Los dueños dependen de contactos personales y negociaciones informales.",
+  "El mercado freelance latinoamericano carece de una plataforma regional confiable con garantías reales.",
+  "Las bolsas de empleo existentes están desactualizadas y no integran el perfil profesional con el proceso de selección.",
+];
+
+const THESIS = [
+  { icon: Globe2, title: "Una región en digitalización", desc: "Latinoamérica es un mercado amplio que se digitaliza año tras año, con necesidades que las plataformas globales no atienden." },
+  { icon: BarChart3, title: "Monetización diversificada", desc: "Comisiones, suscripciones premium y herramientas con IA: más de una fuente de ingreso desde el inicio." },
+  { icon: Layers, title: "Ventaja por integración", desc: "Un ecosistema integrado genera efectos de red. Quien usa un módulo encuentra el siguiente con la misma cuenta." },
+  { icon: Rocket, title: "Escalable país por país", desc: "Infraestructura preparada para crecer mercado por mercado, con costos marginales decrecientes." },
+  { icon: Users, title: "Crecimiento con la comunidad", desc: "Un ecosistema conectado invita a sumar a otros: clientes, proveedores y equipos dentro de la misma red." },
+  { icon: DollarSign, title: "Ingresos futuros", desc: "Además de comisiones y planes, la publicidad programática es una línea prevista para más adelante." },
+];
+
+const LOOKING_FOR = [
+  "Inversores ángeles con conexión a Latam",
+  "Fondos de venture capital early-stage",
+  "Mentores estratégicos con experiencia en marketplaces",
+  "Partners tecnológicos que quieran co-construir",
+];
 
 export default function InversoresPage() {
   const [formData, setFormData] = useState({ name: '', email: '', company: '', message: '' });
@@ -33,363 +48,298 @@ export default function InversoresPage() {
     }
   };
 
+  const labelCls = "mb-2 block text-sm font-medium text-[var(--text-primary)]";
+
   return (
-    <div className="min-h-screen w-full bg-bg-primary overflow-hidden">
-      {/* Hero Section with golden gradient */}
-      <section className="relative pt-24 pb-20">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_center,_var(--tw-gradient-stops))] from-gold/10 via-gold/3 to-transparent pointer-events-none" />
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold to-transparent" />
-        
-        <div className="container mx-auto max-w-5xl px-4 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center pt-8"
-          >
-            <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-5 py-2 text-sm font-semibold text-gold mb-8">
-              <Star className="h-4 w-4 fill-gold" />
-              Oportunidad de Inversión
+    <div className="w-full bg-bg-primary">
+      {/* Hero */}
+      <header className="relative w-full overflow-hidden pb-16 pt-28 md:pb-24 md:pt-36">
+        <div className="mv-aura" aria-hidden />
+        <Container className="relative">
+          <Reveal className="grid gap-12 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
+            <div>
+              <p className="mv-kicker">Inversores</p>
+              <h1 className="mv-h1 mt-5">
+                Una oportunidad de construir <span className="mv-gold-text">junto a Latinoamérica.</span>
+              </h1>
+              <p className="mv-lead mt-6">
+                Mercav busca su primer capital semilla para escalar una plataforma que ya está construida: la infraestructura digital que le faltaba a la región.
+              </p>
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <a href="#contacto-inversores" className={buttonClass("primary", "lg", "w-full sm:w-auto")}>
+                  Contactar al fundador <ArrowRight className="h-4 w-4" aria-hidden />
+                </a>
+                <a href="#tesis" className={buttonClass("secondary", "lg", "w-full sm:w-auto")}>
+                  Ver la tesis
+                </a>
+              </div>
             </div>
-            
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-gold via-gold-light to-gold bg-clip-text text-transparent">
-                Una oportunidad de construir
-              </span>
-              <br />
-              <span className="text-white">junto a Latinoamérica</span>
-            </h1>
-            
-            <p className="mt-4 max-w-2xl mx-auto text-lg text-gray-300 leading-relaxed">
-              Mercav está buscando su primer capital semilla para escalar lo que ya funciona. 
-              Invertí en la infraestructura digital que le faltaba a toda una región.
-            </p>
-          </motion.div>
+            <dl className="mv-panel divide-y divide-[var(--mv-hairline)] rounded-[1.5rem]">
+              {[
+                { k: "Etapa", v: "Búsqueda de capital semilla" },
+                { k: "Producto", v: "Plataforma construida" },
+                { k: "Sede", v: "Santa Cruz de la Sierra, Bolivia" },
+                { k: "Modelo", v: "Comisiones, suscripciones y herramientas" },
+              ].map((f) => (
+                <div key={f.k} className="flex flex-col gap-0.5 px-5 py-4">
+                  <dt className="text-xs text-[var(--text-tertiary)]">{f.k}</dt>
+                  <dd className="text-[0.9375rem] font-medium text-[var(--text-primary)]">{f.v}</dd>
+                </div>
+              ))}
+            </dl>
+          </Reveal>
+        </Container>
+      </header>
 
-          {/* Key Metrics */}
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16"
-          >
-            {[
-              { label: "Mercado Objetivo", value: "660M+", sub: "personas en Latam" },
-              { label: "Módulos Activos", value: "4", sub: "y creciendo" },
-              { label: "Crecimiento Digital", value: "+12%", sub: "interanual en Latam" },
-              { label: "TAM Estimado", value: "$85B", sub: "mercado regional" },
-            ].map((metric, i) => (
-              <div key={i} className="rounded-2xl border border-gold/20 bg-gold/5 p-6 text-center backdrop-blur-sm">
-                <span className="font-display text-2xl md:text-3xl font-bold text-gold">{metric.value}</span>
-                <p className="text-xs text-gray-400 mt-1 uppercase tracking-wider">{metric.label}</p>
-                <p className="text-xs text-gold/60 mt-0.5">{metric.sub}</p>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* The Opportunity */}
-      <section className="blend-from-primary blend-to-primary relative overflow-hidden bg-bg-secondary py-24 section-transition">
-        <div className="container mx-auto max-w-5xl px-4">
-          <div className="grid gap-8 md:grid-cols-2">
-            <motion.div {...fadeUp} transition={{ duration: 0.5 }}>
-              <GoldCard 
-                icon={Target} 
-                title="El Proyecto" 
-                text="Mercav es una plataforma digital latinoamericana que integra en un solo ecosistema lo que hoy está fragmentado en docenas de herramientas separadas: publicidad offline, servicios digitales, bolsa de empleo y herramientas para empresas.
-
-El mercado existe, el problema es real y la solución ya está construida. Lo que necesitamos ahora es escala."
-              />
-            </motion.div>
-            <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.15 }}>
-              <GoldCard 
-                icon={Zap} 
-                title="El Problema que Resolvemos" 
-                text="1. La publicidad offline en Latinoamérica no tiene infraestructura digital. Los dueños dependen de contactos personales y negociaciones informales.
-
-2. El mercado freelance latinoamericano carece de una plataforma regional confiable con garantías reales.
-
-3. Las bolsas de empleo existentes están desactualizadas y no integran el perfil profesional con el proceso de selección."
-              />
-            </motion.div>
+      {/* 1. Problema → 2. Solución */}
+      <Section tone="raised" labelledBy="inv-problema">
+        <Container>
+          <div className="grid gap-12 lg:grid-cols-2 lg:gap-20">
+            <div>
+              <SectionHeading id="inv-problema" kicker="El problema" title="Tres mercados que siguen operando sin infraestructura." />
+              <ol className="mt-10 space-y-4">
+                {PROBLEMS.map((p, i) => (
+                  <li key={i} className="mv-panel flex gap-4 rounded-[1.25rem] p-5 md:p-6">
+                    <span className="mv-data shrink-0 pt-0.5 text-sm text-gold">0{i + 1}</span>
+                    <p className="mv-body text-[var(--text-primary)]">{p}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div className="lg:pt-24">
+              <Reveal className="liquid-glass rounded-[1.75rem] p-6 md:p-9">
+                <p className="mv-kicker">La solución</p>
+                <h2 className="mv-h3 mt-4">Un solo ecosistema para lo que hoy está fragmentado.</h2>
+                <p className="mv-body mt-4">
+                  Mercav es una plataforma digital latinoamericana que integra publicidad offline, servicios digitales, bolsa de empleo y herramientas para empresas.
+                </p>
+                <p className="mv-body mt-4">
+                  El mercado existe, el problema es real y la solución ya está construida. Lo que necesitamos ahora es escala.
+                </p>
+              </Reveal>
+            </div>
           </div>
-        </div>
-      </section>
+        </Container>
+      </Section>
 
-      {/* Kerem by Mercav - Visionary Project */}
-      <section className="blend-from-secondary relative overflow-hidden bg-bg-primary py-32 section-transition">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gold/[0.05] via-transparent to-transparent opacity-50" />
-        <div className="container mx-auto max-w-6xl px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <motion.div {...fadeUp} className="space-y-8">
-              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-gold/10 border border-gold/20">
-                <span className="w-2 h-2 rounded-full bg-gold animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">Kerem by Mercav · Santa Cruz</span>
+      {/* 3. Por qué ahora */}
+      <Section tight labelledBy="inv-ahora">
+        <Container>
+          <div className="grid gap-8 md:grid-cols-[0.8fr_1.2fr] md:items-end md:gap-16">
+            <SectionHeading id="inv-ahora" kicker="Por qué ahora" title="La región ya trabaja en digital." />
+            <Reveal>
+              <p className="mv-lead">
+                Hay más personas conectadas, más empresas digitalizándose y más profesionales buscando trabajar de forma independiente. Mercav llega cuando esa demanda ya existe y todavía no tiene una plataforma regional que la ordene.
+              </p>
+            </Reveal>
+          </div>
+        </Container>
+      </Section>
+
+      {/* 4. Cómo: tesis */}
+      <Section tone="raised" id="tesis" labelledBy="inv-tesis">
+        <Container>
+          <SectionHeading id="inv-tesis" kicker="Tesis de inversión" title="Por qué este modelo puede escalar." />
+          <ul className="mt-14 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+            {THESIS.map(({ icon: Icon, title, desc }) => (
+              <li key={title} className="flex flex-col gap-3 border-t border-[var(--mv-hairline)] pt-6">
+                <Icon className="h-5 w-5 text-gold" aria-hidden />
+                <h3 className="text-lg font-semibold tracking-tight text-[var(--text-primary)]">{title}</h3>
+                <p className="mv-body">{desc}</p>
+              </li>
+            ))}
+          </ul>
+        </Container>
+      </Section>
+
+      {/* Kerem by Mercav — proyecto próximo */}
+      <Section labelledBy="inv-kerem">
+        <Container>
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="mv-kicker">Kerem by Mercav</p>
+                <span className="mv-chip">Próximamente · Santa Cruz</span>
               </div>
-              
-              <h2 className="text-4xl font-black uppercase leading-tight tracking-tighter text-white md:text-6xl">
-                Hospitalidad <br />
-                <span className="bg-gradient-to-r from-gold via-yellow-200 to-gold bg-clip-text text-transparent">con kashrut</span> <br />
-                en Santa Cruz
+              <h2 id="inv-kerem" className="mv-h2 mt-5">
+                Hospitalidad con kashrut en Santa Cruz.
               </h2>
-
-              <p className="text-pretty text-lg font-normal leading-7 tracking-normal text-gray-400">
+              <p className="mv-body mt-6 text-base">
                 Kerem es un proyecto de hospitalidad en Santa Cruz de la Sierra. El estándar es kashrut. En la ciudad no hay una oferta de ese tipo; el objetivo es construirla con el mismo rigor que un sistema: verificable, usable y sostenible.
               </p>
-
-              <div className="rounded-[2.5rem] border border-white/5 bg-white/[0.02] p-8 backdrop-blur-xl">
-                <p className="text-pretty text-base font-normal leading-7 tracking-normal text-gray-200 md:text-[17px]">
-                  Mercav Kosher es el directorio que lo acompaña: lugares y servicios con fuente. No emite certificación. La expansión a otros países es una fase posterior, no el punto de partida.
-                </p>
-              </div>
-            </motion.div>
-
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1 }}
-              className="relative aspect-square rounded-[4rem] overflow-hidden group"
-            >
-              <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-bg-primary via-bg-primary/45 to-transparent" />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28 bg-bg-primary/70 blur-2xl" />
-              <img 
-                src="https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=1974&auto=format&fit=crop" 
-                alt="Kerem Gastronomy" 
-                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-100"
-              />
-              <div className="absolute bottom-10 left-10 right-10 z-20">
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { t: "Estándar", s: "Kashrut" },
-                    { t: "Sede", s: "Santa Cruz" },
-                    { t: "Alcance", s: "Bolivia" },
-                    { t: "Directorio", s: "Mercav Kosher" }
-                  ].map((f, i) => (
-                    <div key={i} className="p-4 rounded-2xl bg-black/60 backdrop-blur-md border border-white/10">
-                      <p className="text-[8px] font-black uppercase text-gold/60 tracking-widest mb-1">{f.t}</p>
-                      <p className="text-xs font-bold text-white">{f.s}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          </div>
-
-          <motion.div {...fadeUp} transition={{ delay: 0.4 }} className="mt-20 p-10 rounded-[3rem] bg-gold/[0.03] border border-gold/10 text-center">
-            <p className="mx-auto max-w-4xl text-pretty text-base leading-7 tracking-normal text-gray-400 md:text-lg">
-              Kerem se diseña para quien necesita ese estándar y para quien quiera un servicio claro. Mercav Kosher no certifica: muestra la fuente de cada lugar para que la decisión quede en quien consulta.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Why Now + Market */}
-      <section className="py-24 bg-bg-primary">
-        <div className="container mx-auto max-w-5xl px-4 space-y-12">
-          <motion.div {...fadeUp} transition={{ duration: 0.5 }}>
-            <GoldCard 
-              icon={TrendingUp} 
-              title="Por qué Ahora" 
-              text="El acceso a internet en Latinoamérica creció un 12% en los últimos tres años. Hay más personas conectadas, más empresas digitalizándose y más profesionales buscando trabajar de forma independiente. Mercav llega en el momento exacto."
-              fullWidth
-            />
-          </motion.div>
-
-          {/* Investment Thesis Points */}
-          <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.15 }} className="text-center mb-12">
-            <h2 className="font-display text-3xl font-bold text-white mb-4">Tesis de Inversión</h2>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: Globe2, title: "Mercado Masivo", desc: "660+ millones de personas en Latinoamérica. Un mercado que crece año tras año en digitalización." },
-              { icon: BarChart3, title: "Unit Economics Sólidos", desc: "Modelo de monetización diversificado: comisiones, suscripciones premium y herramientas de IA." },
-              { icon: Shield, title: "Moat Competitivo", desc: "Ecosistema integrado que crea efectos de red. Los usuarios se quedan porque todo está conectado." },
-              { icon: Rocket, title: "Escalabilidad", desc: "Infraestructura preparada para escalar país por país con costos marginales decrecientes." },
-              { icon: Users, title: "Community-Led Growth", desc: "Crecimiento orgánico impulsado por la comunidad. Cada usuario trae más usuarios al ecosistema." },
-              { icon: DollarSign, title: "Múltiples Revenue Streams", desc: "Comisiones, planes premium, herramientas con IA y publicidad programática en el futuro." },
-            ].map((point, i) => (
-              <motion.div 
-                key={i}
-                {...fadeUp}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="rounded-2xl border border-gold/15 bg-bg-secondary p-6 hover:border-gold/30 transition-all group"
-              >
-                <div className="h-10 w-10 rounded-xl bg-gold/10 flex items-center justify-center mb-4 group-hover:bg-gold/20 transition-colors">
-                  <point.icon className="h-5 w-5 text-gold" />
-                </div>
-                <h3 className="text-lg font-bold text-gold mb-2">{point.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{point.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Founder Section */}
-      <section className="blend-from-primary blend-to-primary relative overflow-hidden bg-bg-secondary py-24 section-transition">
-        <div className="container mx-auto max-w-5xl px-4">
-          <motion.div {...fadeUp} transition={{ duration: 0.5 }}>
-            <GoldCard 
-              icon={Star} 
-              title="Quién está detrás" 
-              text={`Me llamo Vinicius. Tengo 19 años y vivo en Santa Cruz de la Sierra.
-
-Soy el fundador de Mercav. Diseño sistemas —backend, autenticación, datos— y trabajo ciberseguridad: pentesting autorizado, defensa, auditoría y respuesta post-incidente. El perfil técnico está en askforvini.pw.
-
-Aprendí el oficio construyendo software para negocios reales: punto de venta, comercio y herramientas que alguien usaba al día siguiente. Mercav reúne anuncios, servicios, empleo y herramientas en un solo lugar, hecho desde Bolivia.
-
-Quiero devolver la generosidad con un sistema que se pueda usar de punta a punta: claro, completo y al alcance. El trabajo, la fe ante el Creador y el servicio van juntos.`}
-              fullWidth
-            />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* What we're looking for */}
-      <section className="py-24 bg-bg-primary">
-        <div className="container mx-auto max-w-5xl px-4">
-          <motion.div {...fadeUp} transition={{ duration: 0.5 }}>
-            <GoldCard 
-              icon={Users} 
-              title="Lo que buscamos" 
-              text="Estamos buscando inversores que no solo aporten capital, sino visión. Personas que entiendan el mercado latinoamericano, que crean en fundadores que construyen desde adentro y que quieran ser parte de algo que todavía está en sus primeros capítulos."
-              fullWidth
-            />
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-6 mt-12">
-            {[
-              "Inversores ángeles con conexión a Latam",
-              "Fondos de venture capital early-stage",
-              "Mentores estratégicos con experiencia en marketplaces",
-              "Partners tecnológicos que quieran co-construir"
-            ].map((item, i) => (
-              <motion.div 
-                key={i}
-                {...fadeUp}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="flex items-center gap-4 p-5 rounded-2xl border border-gold/15 bg-bg-secondary"
-              >
-                <CheckCircle2 className="h-5 w-5 text-gold flex-shrink-0" />
-                <span className="text-gray-200 font-medium">{item}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Form */}
-      <section className="blend-from-primary relative overflow-hidden bg-bg-secondary py-24 section-transition">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_center,_var(--tw-gradient-stops))] from-gold/8 via-transparent to-transparent pointer-events-none" />
-        
-        <div className="container mx-auto max-w-3xl px-4 relative z-10">
-          <motion.div {...fadeUp} transition={{ duration: 0.5 }}>
-            <div className="rounded-3xl border border-gold/20 bg-bg-primary/80 backdrop-blur-xl p-8 md:p-12 shadow-2xl shadow-gold/5">
-              <div className="text-center mb-10">
-                <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-sm text-gold mb-6">
-                  <Mail className="h-3.5 w-3.5" />
-                  Contacto Directo
-                </div>
-                <h2 className="text-3xl font-bold text-gold mb-3">Contacto para inversores</h2>
-                <p className="text-sm text-gray-400 max-w-lg mx-auto">
-                  Esta página tiene fines informativos. Cualquier proceso de inversión se llevará a cabo mediante documentación formal y acuerdos legales específicos.
-                </p>
-              </div>
-
-              {sent ? (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="text-center py-12"
-                >
-                  <CheckCircle2 className="h-16 w-16 text-gold mx-auto mb-6" />
-                  <h3 className="text-2xl font-bold text-white mb-3">¡Mensaje enviado!</h3>
-                  <p className="text-gray-400">Nos pondremos en contacto contigo a la brevedad.</p>
-                </motion.div>
-              ) : (
-                <form onSubmit={handleSubmit} className="grid gap-5 md:grid-cols-2">
-                  <div className="relative group">
-                    <label className="text-xs text-gold/70 uppercase tracking-wider mb-2 block font-medium">Nombre completo</label>
-                    <input 
-                      name="name" 
-                      required
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                      placeholder="Tu nombre" 
-                      className="rounded-xl border border-gold/15 bg-bg-tertiary px-4 py-3.5 text-white outline-none w-full focus:border-gold/40 focus:ring-1 focus:ring-gold/10 transition-all placeholder:text-gray-600" 
-                    />
+              <p className="mv-body mt-4 text-base">
+                Mercav Kosher es el directorio que lo acompaña: lugares y servicios con fuente. No emite certificación ni hechsher. La expansión a otros países es una fase posterior, no el punto de partida.
+              </p>
+              <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-[var(--mv-hairline)] pt-6">
+                {[
+                  { t: "Estándar", s: "Kashrut" },
+                  { t: "Sede", s: "Santa Cruz" },
+                  { t: "Alcance", s: "Bolivia" },
+                  { t: "Directorio", s: "Mercav Kosher" },
+                ].map((f) => (
+                  <div key={f.t}>
+                    <dt className="text-xs text-[var(--text-tertiary)]">{f.t}</dt>
+                    <dd className="mt-1 font-semibold text-[var(--text-primary)]">{f.s}</dd>
                   </div>
-                  <div className="relative group">
-                    <label className="text-xs text-gold/70 uppercase tracking-wider mb-2 block font-medium">Email</label>
-                    <input 
-                      name="email" 
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      placeholder="tu@email.com" 
-                      className="rounded-xl border border-gold/15 bg-bg-tertiary px-4 py-3.5 text-white outline-none w-full focus:border-gold/40 focus:ring-1 focus:ring-gold/10 transition-all placeholder:text-gray-600" 
-                    />
-                  </div>
-                  <div className="md:col-span-2 relative group">
-                    <label className="text-xs text-gold/70 uppercase tracking-wider mb-2 block font-medium">Empresa u organización (opcional)</label>
-                    <input 
-                      name="company" 
-                      value={formData.company}
-                      onChange={(e) => setFormData({...formData, company: e.target.value})}
-                      placeholder="Nombre de tu empresa" 
-                      className="rounded-xl border border-gold/15 bg-bg-tertiary px-4 py-3.5 text-white outline-none w-full focus:border-gold/40 focus:ring-1 focus:ring-gold/10 transition-all placeholder:text-gray-600" 
-                    />
-                  </div>
-                  <div className="md:col-span-2 relative group">
-                    <label className="text-xs text-gold/70 uppercase tracking-wider mb-2 block font-medium">Mensaje</label>
-                    <textarea 
-                      name="message" 
-                      required
-                      value={formData.message}
-                      onChange={(e) => setFormData({...formData, message: e.target.value})}
-                      placeholder="¿Por qué te interesa invertir en Mercav?" 
-                      className="min-h-40 rounded-xl border border-gold/15 bg-bg-tertiary px-4 py-3.5 text-white outline-none w-full focus:border-gold/40 focus:ring-1 focus:ring-gold/10 transition-all placeholder:text-gray-600 resize-none" 
-                    />
-                  </div>
-                  <div className="md:col-span-2 flex justify-end">
-                    <Button 
-                      type="submit"
-                      disabled={sending}
-                      className="bg-gradient-to-r from-gold to-gold-light text-black font-semibold px-8 py-3 rounded-xl hover:shadow-lg hover:shadow-gold/20 transition-all h-12"
-                    >
-                      {sending ? "Enviando..." : (
-                        <span className="flex items-center gap-2">
-                          Quiero saber más <ArrowRight className="h-4 w-4" />
-                        </span>
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              )}
+                ))}
+              </dl>
             </div>
-          </motion.div>
-        </div>
-      </section>
-    </div>
-  );
-}
+            <figure>
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem] border border-[var(--mv-hairline)] bg-bg-tertiary">
+                <img
+                  src="https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=1600&auto=format&fit=crop"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover grayscale-[40%]"
+                />
+                <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+              </div>
+              <figcaption className="mt-3 text-xs text-[var(--text-tertiary)]">Imagen ilustrativa. Kerem todavía no abrió sus puertas.</figcaption>
+            </figure>
+          </div>
+          <p className="mv-body mx-auto mt-14 max-w-3xl border-t border-[var(--mv-hairline)] pt-8 text-center">
+            Kerem se diseña para quien necesita ese estándar y para quien quiera un servicio claro. Mercav Kosher no certifica: muestra la fuente de cada lugar para que la decisión quede en quien consulta.
+          </p>
+        </Container>
+      </Section>
 
-function GoldCard({ icon: Icon, title, text, fullWidth = false }: { icon: any; title: string; text: string; fullWidth?: boolean }) {
-  return (
-    <div className={`rounded-3xl border border-gold/15 bg-bg-secondary p-8 md:p-10 hover:border-gold/30 transition-all group relative overflow-hidden ${fullWidth ? '' : ''}`}>
-      {/* Subtle gold glow */}
-      <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-gold/5 blur-3xl group-hover:bg-gold/10 transition-colors" />
-      
-      <div className="relative z-10">
-        <div className="h-12 w-12 rounded-xl bg-gold/10 flex items-center justify-center mb-6 group-hover:bg-gold/20 transition-colors">
-          <Icon className="h-6 w-6 text-gold" />
-        </div>
-        <h2 className="text-2xl font-bold text-gold mb-4">{title}</h2>
-        <p className="whitespace-pre-line text-gray-300 leading-7">{text}</p>
-      </div>
+      {/* 5. Confianza: quién está detrás + qué buscamos */}
+      <Section tone="raised" labelledBy="inv-fundador">
+        <Container>
+          <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
+            <div>
+              <SectionHeading id="inv-fundador" kicker="Quién está detrás" title="Un fundador que construye desde adentro." />
+              <Reveal className="mt-8 space-y-4">
+                <p className="mv-body text-base">Me llamo Vinicius. Tengo 19 años y vivo en Santa Cruz de la Sierra.</p>
+                <p className="mv-body text-base">
+                  Soy el fundador de Mercav. Diseño sistemas —backend, autenticación, datos— y trabajo ciberseguridad defensiva: pentesting autorizado, defensa, auditoría y respuesta post-incidente. El perfil técnico está en{" "}
+                  <a href="https://askforvini.pw" target="_blank" rel="noopener noreferrer" className="mv-link">
+                    askforvini.pw
+                  </a>
+                  .
+                </p>
+                <p className="mv-body text-base">
+                  Aprendí el oficio construyendo software para negocios reales: punto de venta, comercio y herramientas que alguien usaba al día siguiente. Mercav reúne anuncios, servicios, empleo y herramientas en un solo lugar, hecho desde Bolivia.
+                </p>
+                <p className="mv-body text-base">
+                  Quiero devolver la generosidad con un sistema que se pueda usar de punta a punta: claro, completo y al alcance. El trabajo, la fe ante el Creador y el servicio van juntos.
+                </p>
+              </Reveal>
+            </div>
+            <div>
+              <h3 className="mv-h3">Lo que buscamos</h3>
+              <p className="mv-body mt-3">
+                Inversores que aporten capital y visión: personas que entiendan el mercado latinoamericano, que crean en fundadores que construyen desde adentro y que quieran sumarse en los primeros capítulos.
+              </p>
+              <ul className="mt-6 space-y-2.5">
+                {LOOKING_FOR.map((item) => (
+                  <li key={item} className="mv-panel flex items-center gap-3 rounded-[1.25rem] px-5 py-4">
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-gold" aria-hidden />
+                    <span className="text-[0.9375rem] font-medium text-[var(--text-primary)]">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </Container>
+      </Section>
+
+      {/* 6. CTA: contacto */}
+      <Section id="contacto-inversores" labelledBy="inv-contacto">
+        <Container width="narrow">
+          <div className="liquid-glass rounded-[2rem] p-6 sm:p-8 md:p-12">
+            <p className="mv-kicker">Contacto directo</p>
+            <h2 id="inv-contacto" className="mv-h2 mt-4">
+              Contacto para inversores
+            </h2>
+            <p className="mv-body mt-4">
+              Esta página tiene fines informativos. Cualquier proceso de inversión se lleva a cabo mediante documentación formal y acuerdos legales específicos.
+            </p>
+
+            {sent ? (
+              <div role="status" className="mv-fade mt-10 flex flex-col items-center py-8 text-center">
+                <CheckCircle2 className="h-10 w-10 text-gold" aria-hidden />
+                <h3 className="mv-h3 mt-5">Mensaje enviado</h3>
+                <p className="mv-body mt-2">Te vamos a responder a la brevedad.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="mt-10 grid gap-5 md:grid-cols-2">
+                <div>
+                  <label htmlFor="inv-name" className={labelCls}>
+                    Nombre completo
+                  </label>
+                  <input
+                    id="inv-name"
+                    name="name"
+                    required
+                    autoComplete="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Tu nombre"
+                    className="mv-input"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="inv-email" className={labelCls}>
+                    Correo electrónico
+                  </label>
+                  <input
+                    id="inv-email"
+                    name="email"
+                    type="email"
+                    inputMode="email"
+                    required
+                    autoComplete="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="tu@email.com"
+                    className="mv-input"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label htmlFor="inv-company" className={labelCls}>
+                    Empresa u organización <span className="font-normal text-[var(--text-tertiary)]">(opcional)</span>
+                  </label>
+                  <input
+                    id="inv-company"
+                    name="company"
+                    autoComplete="organization"
+                    value={formData.company}
+                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                    placeholder="Nombre de tu empresa"
+                    className="mv-input"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label htmlFor="inv-message" className={labelCls}>
+                    Mensaje
+                  </label>
+                  <textarea
+                    id="inv-message"
+                    name="message"
+                    required
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    placeholder="¿Por qué te interesa invertir en Mercav?"
+                    className="mv-input min-h-40 resize-y py-3"
+                  />
+                </div>
+                <div className="flex flex-col gap-3 md:col-span-2 md:flex-row md:items-center md:justify-between">
+                  <p className="text-xs text-[var(--text-tertiary)]">Todos los campos son obligatorios salvo la empresa.</p>
+                  <button type="submit" disabled={sending} aria-busy={sending} className={buttonClass("primary", "md", "w-full md:w-auto")}>
+                    {sending ? "Enviando…" : (
+                      <>
+                        Quiero saber más <ArrowRight className="h-4 w-4" aria-hidden />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </Container>
+      </Section>
     </div>
   );
 }

@@ -4,8 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { pwnFetch, readAuthQueue, type MonitorAuthRequest } from "@/components/pwn/api";
 import { DisabledState, EmptyState, ErrorState, LoadingState, UnauthorizedState } from "@/components/pwn/EmptyState";
 import { FadeIn } from "@/components/pwn/PwnShell";
-import { Button } from "@/components/ui/button";
-import { focusRing, formatWhen } from "@/components/pwn/format";
+import { formatWhen, pwnCardClass } from "@/components/pwn/format";
+import { PwnNotice, PwnPageHeader } from "@/components/pwn/ui";
+import { buttonClass } from "@/components/site/primitives";
 
 const TYPE_LABEL: Record<string, string> = { EMAIL: "Correo", DOMAIN: "Dominio", IP: "IP", CVE: "CVE" };
 
@@ -65,13 +66,12 @@ export default function AutorizacionesPage() {
   }
 
   return (
-    <FadeIn className="space-y-6">
-      <header>
-        <h1 className="font-display text-4xl font-black tracking-tight text-white md:text-5xl">Autorizaciones</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-400">
-          Revisa quién pide patrullar un correo que no es el de su cuenta. La consulta de exposición no espera esta autorización.
-        </p>
-      </header>
+    <FadeIn className="space-y-8">
+      <PwnPageHeader
+        kicker="Administración"
+        title="Autorizaciones"
+        lead="Revisá quién pide patrullar un correo que no es el de su cuenta. La consulta de exposición no espera esta autorización."
+      />
 
       {status.kind === "loading" ? <LoadingState label="Cargando solicitudes…" /> : null}
       {status.kind === "disabled" ? <DisabledState title="Pwn no está activado" /> : null}
@@ -83,52 +83,52 @@ export default function AutorizacionesPage() {
 
       {status.kind === "ready" ? (
         <>
-          {flash ? (
-            <p role="status" className="text-sm text-gold">
-              {flash}
-            </p>
-          ) : null}
+          {flash ? <PwnNotice>{flash}</PwnNotice> : null}
           {status.items.length === 0 ? (
-            <EmptyState title="No hay solicitudes pendientes" description="Cuando alguien pida consultar un correo o un dominio, aparecerá aquí." />
+            <EmptyState title="No hay solicitudes pendientes" description="Cuando alguien pida patrullar un correo, va a aparecer acá." />
           ) : (
             <ul className="space-y-3">
               {status.items.map((item) => {
                 const display = item.targetLookup ?? item.targetDisplay;
                 return (
-                  <li key={item.id} className="rounded-3xl border border-gold/30 bg-bg-secondary/70 p-5">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.14em] text-gray-400">{TYPE_LABEL[item.targetType] ?? item.targetType}</p>
-                        <h2 className="mt-1 font-mono text-lg text-white">{display}</h2>
-                        <p className="mt-2 text-sm text-gray-300">
-                          Solicitado por {ownerLabel(item)}
+                  <li key={item.id} className={`${pwnCardClass} !border-[var(--color-border-gold)]`}>
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-xs text-[var(--text-tertiary)]">{TYPE_LABEL[item.targetType] ?? item.targetType}</p>
+                        <h2 className="mv-data mt-1 break-all text-base font-semibold text-[var(--text-primary)] md:text-lg">{display}</h2>
+                        <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                          Solicitado por <span className="font-medium text-[var(--text-primary)]">{ownerLabel(item)}</span>
                           {item.owner.email && item.owner.name ? ` · ${item.owner.email}` : ""}
                         </p>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Button
+                      <div className="flex flex-col gap-2 sm:flex-row md:shrink-0">
+                        <button
                           type="button"
                           disabled={busy !== null}
                           onClick={() => void decide(item, "approve")}
-                          className={`rounded-xl bg-gold font-semibold text-black hover:bg-gold-light ${focusRing}`}
+                          className={buttonClass("primary", "sm", "w-full sm:w-auto")}
                         >
                           {busy === `${item.id}:approve` ? "Autorizando…" : "Autorizar"}
-                        </Button>
-                        <Button
+                        </button>
+                        <button
                           type="button"
-                          variant="outline"
                           disabled={busy !== null}
                           onClick={() => void decide(item, "deny")}
-                          className={`rounded-xl border-red-400/30 text-red-200 ${focusRing}`}
+                          className={buttonClass("ghost", "sm", "w-full text-red-300 sm:w-auto [.light_&]:text-red-700")}
                         >
                           {busy === `${item.id}:deny` ? "Rechazando…" : "Rechazar"}
-                        </Button>
+                        </button>
                       </div>
                     </div>
                     {item.authorizationMessage ? (
-                      <p className="mt-4 rounded-2xl border border-white/5 bg-black/20 px-4 py-3 text-sm text-gray-200">{item.authorizationMessage}</p>
+                      <blockquote className="mt-4 rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] px-4 py-3 text-sm text-[var(--text-primary)]">
+                        <span className="mb-1 block text-xs text-[var(--text-tertiary)]">Nota del solicitante</span>
+                        {item.authorizationMessage}
+                      </blockquote>
                     ) : null}
-                    <p className="mt-3 text-xs text-gray-500">Solicitado {formatWhen(item.authorizationRequestedAt) ?? "hace un momento"}</p>
+                    <p className="mt-3 text-xs text-[var(--text-tertiary)]">
+                      Solicitado <span className="mv-data">{formatWhen(item.authorizationRequestedAt) ?? "hace un momento"}</span>
+                    </p>
                   </li>
                 );
               })}

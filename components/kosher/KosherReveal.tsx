@@ -1,19 +1,13 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
 import type { ReactNode } from "react";
+import { Reveal } from "@/components/site/Reveal";
 
+/** Kept for existing call sites; delegates to the shared CSS reveal. `delay` is in seconds. */
 export function KosherReveal({ children, className, delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
-  const reduce = useReducedMotion();
   return (
-    <motion.div
-      className={className}
-      initial={reduce ? false : { opacity: 0, y: 18, filter: "blur(6px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }}
-    >
+    <Reveal className={className} delay={Math.min(300, Math.round(delay * 1000))}>
       {children}
-    </motion.div>
+    </Reveal>
   );
 }
