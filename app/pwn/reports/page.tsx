@@ -38,7 +38,7 @@ export default function ReportsPage() {
         <div>
           <h1 className="font-display text-4xl font-black tracking-tight text-white md:text-5xl">Informes</h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-400">
-            Genera un informe a partir de tus objetivos verificados, las exposiciones guardadas y tus alertas. Cada generación queda registrada en tu cuenta.
+            Genera un informe a partir de tus objetivos autorizados, las exposiciones guardadas y tus alertas. Cada generación queda registrada en tu cuenta.
           </p>
         </div>
         {status.kind !== "idle" && status.kind !== "disabled" && status.kind !== "unauthorized" ? (
@@ -82,7 +82,7 @@ function ReportCard({ report }: { report: ReportView }) {
       </header>
       {report.summary ? <p className="text-sm leading-relaxed text-gray-300">{report.summary}</p> : null}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Objetivos verificados" value={metrics.monitoringTargets} />
+        <StatCard label="Objetivos autorizados" value={metrics.monitoringTargets} />
         <StatCard label="Exposiciones" value={metrics.exposures} />
         <StatCard label="Alertas" value={metrics.alerts} />
         <StatCard label="Sin leer" value={metrics.unreadAlerts} />

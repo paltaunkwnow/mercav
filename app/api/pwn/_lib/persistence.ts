@@ -61,6 +61,14 @@ export function safeDate(value: string | null | undefined): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+export async function listAdminUserIds(): Promise<string[]> {
+  const rows = await prisma.userRole.findMany({
+    where: { role: "ADMIN" },
+    select: { userId: true },
+  });
+  return [...new Set(rows.map((row) => row.userId))];
+}
+
 export function severityFromCvss(score: number | null): "INFO" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" {
   if (score === null) return "MEDIUM";
   if (score >= 9) return "CRITICAL";

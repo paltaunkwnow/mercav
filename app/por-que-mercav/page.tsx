@@ -58,7 +58,7 @@ export default function PorQueMercavPage() {
       </section>
 
       {/* The Problem Section */}
-      <section className="w-full py-24 bg-bg-secondary border-y border-border">
+      <section className="blend-from-primary blend-to-primary relative w-full overflow-hidden bg-bg-secondary py-24 section-transition">
         <div className="container mx-auto px-4 max-w-5xl">
           <motion.div {...fadeUp} transition={{ duration: 0.5 }} className="text-center mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">El problema que nadie resolvía</h2>
@@ -151,7 +151,7 @@ export default function PorQueMercavPage() {
       </section>
 
       {/* How we're different */}
-      <section className="w-full py-24 bg-bg-secondary border-y border-border">
+      <section className="blend-from-primary blend-to-primary relative w-full overflow-hidden bg-bg-secondary py-24 section-transition">
         <div className="container mx-auto px-4 max-w-5xl">
           <motion.div {...fadeUp} transition={{ duration: 0.5 }} className="text-center mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">Lo que nos hace diferentes</h2>
@@ -210,7 +210,7 @@ export default function PorQueMercavPage() {
       </section>
 
       {/* The Vision */}
-      <section className="w-full py-24 bg-bg-secondary border-t border-border">
+      <section className="blend-from-primary relative w-full overflow-hidden bg-bg-secondary py-24 section-transition">
         <div className="container mx-auto px-4 max-w-3xl text-center">
           <motion.div {...fadeUp} transition={{ duration: 0.6 }}>
             <Award className="h-12 w-12 text-gold mx-auto mb-8" />

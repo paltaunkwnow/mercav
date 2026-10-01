@@ -186,26 +186,39 @@ export const authOptions: AuthOptions = {
         token.name = user.name;
         token.username = (user as any).username;
       }
-      
-      if (token.id) {
-        try {
-          const dbUser = await prisma.user.findUnique({
-            where: { id: token.id as string },
-            select: { isSanctioned: true }
-          });
-          token.isSanctioned = dbUser?.isSanctioned || false;
 
-          const dbRoles = await prisma.userRole.findMany({
-            where: { userId: token.id as string },
-            select: { role: true }
+      const tokenId = typeof token.id === "string" ? token.id : "";
+      const tokenEmail = typeof token.email === "string" ? token.email.trim().toLowerCase() : "";
+
+      try {
+        let dbUser = tokenId
+          ? await prisma.user.findUnique({
+              where: { id: tokenId },
+              select: { id: true, isSanctioned: true },
+            })
+          : null;
+        if (!dbUser && tokenEmail) {
+          dbUser = await prisma.user.findUnique({
+            where: { email: tokenEmail },
+            select: { id: true, isSanctioned: true },
           });
-          token.roles = dbRoles.map(r => r.role);
-        } catch (dbErr) {
-          token.isSanctioned = false;
+          if (dbUser) token.id = dbUser.id;
+        }
+        token.isSanctioned = dbUser?.isSanctioned || false;
+        if (dbUser) {
+          const dbRoles = await prisma.userRole.findMany({
+            where: { userId: dbUser.id },
+            select: { role: true },
+          });
+          token.roles = dbRoles.map((r) => r.role);
+        } else {
           token.roles = [];
         }
+      } catch {
+        token.isSanctioned = false;
+        token.roles = [];
       }
-      
+
       return token;
     },
     async session({ session, token }) {

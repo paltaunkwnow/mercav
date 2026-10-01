@@ -2,9 +2,101 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion, useReducedMotion } from "framer-motion";
-import type { ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { pwnFetch, readForumSync } from "@/components/pwn/api";
+import { PWN_FEEDS_UPDATED, PWN_NOTIFICATIONS_UPDATED } from "@/components/pwn/events";
 import { focusRing } from "@/components/pwn/format";
+import { formatLeakNotice } from "@/lib/pwn/new-leak-notice";
+import { FORUM_SYNC_INTERVAL_MS } from "@/lib/pwn/forum-sync-policy";
+import { isAdmin } from "@/lib/pwn/permissions";
+
+export { PWN_FEEDS_UPDATED, PWN_NOTIFICATIONS_UPDATED };
+
+const WATERMARK_KEY = "mercav-pwn-signal-watermark";
+let presenceBusy = false;
+
+export function usePwnFeedRefresh(onRefresh: () => void) {
+  useEffect(() => {
+    const handler = () => onRefresh();
+    window.addEventListener(PWN_FEEDS_UPDATED, handler);
+    return () => window.removeEventListener(PWN_FEEDS_UPDATED, handler);
+  }, [onRefresh]);
+}
+
+function readWatermark(): string | null {
+  try {
+    return window.localStorage.getItem(WATERMARK_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeWatermark(value: string) {
+  try {
+    window.localStorage.setItem(WATERMARK_KEY, value);
+  } catch {
+    /* private mode */
+  }
+}
+
+function PwnPresencePatrol({
+  onNotice,
+}: {
+  onNotice: (notice: { title: string; body: string }) => void;
+}) {
+  useEffect(() => {
+    let stopped = false;
+    let lastAttempt = 0;
+    let timer: number | undefined;
+
+    async function tick() {
+      if (stopped || presenceBusy) return;
+      if (document.visibilityState === "hidden") return;
+      const now = Date.now();
+      if (lastAttempt > 0 && now - lastAttempt < FORUM_SYNC_INTERVAL_MS - 5_000) return;
+      presenceBusy = true;
+      lastAttempt = now;
+      const since = readWatermark();
+      const params = new URLSearchParams();
+      if (since) params.set("since", since);
+      const query = params.toString();
+      const response = await pwnFetch(`/api/pwn/forum-signals${query ? `?${query}` : ""}`, { method: "POST" });
+      presenceBusy = false;
+      if (stopped) return;
+      if (!response.ok && (response.reason === "unauthorized" || response.reason === "disabled")) {
+        stopped = true;
+        return;
+      }
+      if (!response.ok) return;
+      const parsed = readForumSync(response.data);
+      if (parsed?.skipReason === "in_flight") return;
+      if (parsed && parsed.freshCount > 0) {
+        const copy = formatLeakNotice({ count: parsed.freshCount, samples: parsed.freshSamples });
+        if (copy) onNotice(copy);
+      }
+      writeWatermark(new Date().toISOString());
+      window.dispatchEvent(new Event(PWN_FEEDS_UPDATED));
+      if (parsed?.notified) window.dispatchEvent(new Event(PWN_NOTIFICATIONS_UPDATED));
+    }
+
+    void tick();
+    timer = window.setInterval(() => void tick(), FORUM_SYNC_INTERVAL_MS);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void tick();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      stopped = true;
+      if (timer) window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [onNotice]);
+
+  return null;
+}
 
 const NAV = [
   { href: "/pwn", label: "Resumen" },
@@ -12,8 +104,8 @@ const NAV = [
   { href: "/pwn/breaches", label: "Filtraciones" },
   { href: "/pwn/vulnerabilities", label: "Vulnerabilidades" },
   { href: "/pwn/signals", label: "Señales" },
+  { href: "/pwn/actors", label: "Autores" },
   { href: "/pwn/organizations", label: "Organizaciones" },
-  { href: "/pwn/monitor", label: "Monitoreo" },
   { href: "/pwn/alerts", label: "Alertas" },
   { href: "/pwn/reports", label: "Informes" },
   { href: "/pwn/sources", label: "Fuentes" },
@@ -35,9 +127,30 @@ export function FadeIn({ children, className }: { children: ReactNode; className
 
 export function PwnShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const [notice, setNotice] = useState<{ title: string; body: string } | null>(null);
+  const roles = Array.isArray((session?.user as { roles?: unknown } | undefined)?.roles)
+    ? ((session?.user as { roles: string[] }).roles)
+    : [];
+  const navItems = isAdmin(roles)
+    ? NAV.flatMap((item) =>
+        item.href === "/pwn/exposure" ? [item, { href: "/pwn/autorizaciones", label: "Autorizaciones" }] : [item],
+      )
+    : NAV;
+
+  const onNotice = useCallback((next: { title: string; body: string }) => {
+    setNotice(next);
+  }, []);
+
+  useEffect(() => {
+    if (!notice) return;
+    const id = window.setTimeout(() => setNotice(null), 10_000);
+    return () => window.clearTimeout(id);
+  }, [notice]);
 
   return (
     <div className="relative min-h-screen w-full bg-bg-primary pb-28">
+      <PwnPresencePatrol onNotice={onNotice} />
       <div className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
         <div className="absolute left-1/2 top-0 h-[420px] w-full -translate-x-1/2 bg-gold/[0.03] blur-[120px]" />
@@ -58,7 +171,7 @@ export function PwnShell({ children }: { children: ReactNode }) {
 
           <nav aria-label="Secciones de Mercav Pwn" className="-mx-4 mb-8 px-4 md:mx-0 md:px-0">
             <ul className="scrollbar-hide flex gap-2 overflow-x-auto pb-1">
-              {NAV.map((item) => {
+              {navItems.map((item) => {
                 const active = item.href === "/pwn" ? pathname === "/pwn" : pathname === item.href || pathname.startsWith(`${item.href}/`);
                 return (
                   <li key={item.href} className="shrink-0">
@@ -76,6 +189,34 @@ export function PwnShell({ children }: { children: ReactNode }) {
               })}
             </ul>
           </nav>
+
+          {notice ? (
+            <div
+              role="status"
+              aria-live="polite"
+              className="mb-6 flex flex-col gap-3 rounded-2xl border border-gold/40 bg-gold/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div>
+                <p className="text-sm font-semibold text-white">{notice.title}</p>
+                <p className="mt-1 text-sm text-gray-300">{notice.body}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  href="/pwn/signals?kind=LEAKS"
+                  className={`text-sm font-semibold text-gold underline-offset-4 hover:underline ${focusRing}`}
+                >
+                  Ver señales
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setNotice(null)}
+                  className={`text-sm text-gray-400 hover:text-white ${focusRing}`}
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           {children}
         </div>

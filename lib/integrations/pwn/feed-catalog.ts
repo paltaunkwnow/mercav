@@ -32,6 +32,14 @@ export const PWN_FEED_SOURCES: PwnFeedSourceDefinition[] = [
     forumLabel: "Hackread",
   },
   {
+    name: "FEED_RANSOMWARELIVE",
+    label: "Ransomware.live (víctimas reclamadas)",
+    sourceType: "FORUM_SCRAPE",
+    reliability: 70,
+    method: "API pública; víctimas, ciberataques y robos de datos (permalink HTTPS, sin .onion)",
+    forumLabel: "Ransomware.live",
+  },
+  {
     name: "RSS_BLEEPINGCOMPUTER",
     label: "BleepingComputer RSS",
     sourceType: "RSS",
@@ -40,6 +48,26 @@ export const PWN_FEED_SOURCES: PwnFeedSourceDefinition[] = [
     forumLabel: "BleepingComputer",
     rssUrl: "https://www.bleepingcomputer.com/feed/",
     allowedLinkHosts: hosts("bleepingcomputer.com"),
+  },
+  {
+    name: "RSS_HIBP_BREACHES",
+    label: "Have I Been Pwned RSS",
+    sourceType: "RSS",
+    reliability: 88,
+    method: "RSS público de brechas nuevas",
+    forumLabel: "Have I Been Pwned",
+    rssUrl: "https://haveibeenpwned.com/Feeds/breaches.xml",
+    allowedLinkHosts: hosts("haveibeenpwned.com"),
+  },
+  {
+    name: "RSS_DATABREACHES",
+    label: "DataBreaches.net RSS",
+    sourceType: "RSS",
+    reliability: 64,
+    method: "RSS de seguimiento de filtraciones",
+    forumLabel: "DataBreaches.net",
+    rssUrl: "https://www.databreaches.net/feed/",
+    allowedLinkHosts: hosts("databreaches.net"),
   },
   {
     name: "RSS_THEHACKERNEWS",
@@ -267,6 +295,16 @@ export const PWN_FEED_SOURCE_NAMES = PWN_FEED_SOURCES.map((s) => s.name);
 
 export function pwnFeedSourceMeta(name: string): PwnFeedSourceDefinition | undefined {
   return PWN_FEED_SOURCES.find((s) => s.name === name);
+}
+
+/** Catalog minus sources explicitly disabled in the DB. Missing rows stay on. */
+export function resolveEnabledFeedSources(
+  catalogNames: readonly string[],
+  rows: Array<{ name: string; enabled: boolean }>,
+): Set<string> {
+  if (rows.length === 0) return new Set(catalogNames);
+  const disabled = new Set(rows.filter((row) => row.enabled === false).map((row) => row.name));
+  return new Set(catalogNames.filter((name) => !disabled.has(name)));
 }
 
 export function pwnRssFeedDefinitions(): Array<{

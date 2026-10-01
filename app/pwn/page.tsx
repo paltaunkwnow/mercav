@@ -23,7 +23,7 @@ import { SearchForm } from "@/components/pwn/SearchForm";
 import { SourceBadge } from "@/components/pwn/SourceBadge";
 import { RiskBadge } from "@/components/pwn/RiskBadge";
 import { DisabledState, EmptyState, ErrorState, LoadingState } from "@/components/pwn/EmptyState";
-import { FadeIn } from "@/components/pwn/PwnShell";
+import { FadeIn, usePwnFeedRefresh } from "@/components/pwn/PwnShell";
 import { ProtectionGuide } from "@/components/pwn/ProtectionGuide";
 import { focusRing, formatRelative, pwnPanelClass } from "@/components/pwn/format";
 
@@ -53,14 +53,14 @@ export default function PwnDashboardPage() {
     forumSignals: null,
   });
 
-  const load = useCallback(async (signal?: AbortSignal) => {
-    setState((current) => ({ ...current, loading: true }));
+  const load = useCallback(async (signal?: AbortSignal, silent?: boolean) => {
+    if (!silent) setState((current) => ({ ...current, loading: true }));
     const [breachesRes, alertsRes, unreadRes, monitoringRes, forumRes] = await Promise.all([
       pwnFetch("/api/pwn/breaches?page=1&limit=20", { signal }),
       pwnFetch("/api/pwn/alerts?page=1&limit=8", { signal }),
       pwnFetch("/api/pwn/alerts?page=1&limit=1&unread=true", { signal }),
       pwnFetch("/api/pwn/monitoring", { signal }),
-      pwnFetch("/api/pwn/forum-signals?page=1&limit=5&kind=DATA", { signal }),
+      pwnFetch("/api/pwn/forum-signals?page=1&limit=5&kind=LEAKS", { signal }),
     ]);
     if (signal?.aborted) return;
     const forumParsed = forumRes.ok ? readForumSignals(forumRes.data) : null;
@@ -85,6 +85,12 @@ export default function PwnDashboardPage() {
     void load(controller.signal);
     return () => controller.abort();
   }, [load]);
+
+  usePwnFeedRefresh(
+    useCallback(() => {
+      void load(undefined, true);
+    }, [load]),
+  );
 
   function submitSearch() {
     const value = query.trim();
@@ -169,7 +175,7 @@ export default function PwnDashboardPage() {
           <StatCard label="Filtraciones" value={breachValue} hint={hintFor(state.breaches, breachValue, "Ninguna registrada")} />
           <StatCard label="Alertas" value={alertValue} hint={hintFor(state.alerts, alertValue, "Ninguna registrada")} />
           <StatCard label="Sin leer" value={unreadValue} hint={hintFor(state.unread, unreadValue, "Todas leídas")} />
-          <StatCard label="Objetivos verificados" value={targetValue} hint={hintFor(state.verifiedTargets, targetValue, "Ninguno verificado")} />
+          <StatCard label="Objetivos autorizados" value={targetValue} hint={hintFor(state.verifiedTargets, targetValue, "Ninguno autorizado")} />
         </section>
       ) : null}
 

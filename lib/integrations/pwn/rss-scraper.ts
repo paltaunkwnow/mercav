@@ -5,10 +5,12 @@ import {
 } from "./forum-classifier";
 import { pwnRssFeedDefinitions } from "./feed-catalog";
 import type { ForumThreadSignal } from "./forum-scraper";
+import { normalizeAuthor } from "./author";
+import { titleKeyFromTitle } from "./forum-signal-utils";
 
 const SCRAPE_UA = "Mercav-Pwn/1.0 (+https://pwn.mercav.lat; defensive threat monitoring)";
-const RSS_ITEMS_PER_FEED = 12;
-const RSS_FETCH_CONCURRENCY = 6;
+const RSS_ITEMS_PER_FEED = 25;
+const RSS_FETCH_CONCURRENCY = 8;
 
 type RssFeed = ReturnType<typeof pwnRssFeedDefinitions>[number];
 
@@ -36,8 +38,8 @@ function decodeXml(value: string): string {
     .trim();
 }
 
-function parseRssItems(xml: string): { title: string; link: string; pubDate: string | null }[] {
-  const items: { title: string; link: string; pubDate: string | null }[] = [];
+function parseRssItems(xml: string): { title: string; link: string; pubDate: string | null; author: string | null }[] {
+  const items: { title: string; link: string; pubDate: string | null; author: string | null }[] = [];
   const blocks = xml.match(/<item[\s\S]*?<\/item>/gi) ?? xml.match(/<entry[\s\S]*?<\/entry>/gi) ?? [];
   for (const block of blocks) {
     const titleMatch = block.match(/<title(?:[^>]*)>([\s\S]*?)<\/title>/i);
@@ -45,10 +47,19 @@ function parseRssItems(xml: string): { title: string; link: string; pubDate: str
       block.match(/<link(?:[^>]*)>([\s\S]*?)<\/link>/i) ??
       block.match(/<link[^>]+href="([^"]+)"/i);
     const dateMatch = block.match(/<(?:pubDate|published|updated)>([\s\S]*?)<\//i);
+    const authorMatch =
+      block.match(/<dc:creator(?:[^>]*)>([\s\S]*?)<\/dc:creator>/i) ??
+      block.match(/<author>([\s\S]*?)<\/author>/i) ??
+      block.match(/<name>([\s\S]*?)<\/name>/i);
     const title = decodeXml(titleMatch?.[1] ?? "");
     const link = decodeXml(typeof linkMatch?.[1] === "string" ? linkMatch[1] : "");
     if (!title || !link) continue;
-    items.push({ title, link, pubDate: dateMatch?.[1]?.trim() ?? null });
+    items.push({
+      title,
+      link,
+      pubDate: dateMatch?.[1]?.trim() ?? null,
+      author: normalizeAuthor(authorMatch?.[1] ? decodeXml(authorMatch[1]) : null),
+    });
   }
   return items;
 }
@@ -57,7 +68,7 @@ async function fetchFeed(feed: RssFeed, maxItems: number): Promise<ForumThreadSi
   try {
     const response = await fetch(feed.url, {
       cache: "no-store",
-      signal: AbortSignal.timeout(22_000),
+      signal: AbortSignal.timeout(12_000),
       headers: { "user-agent": SCRAPE_UA, accept: "application/rss+xml, application/xml, text/xml, application/atom+xml" },
     });
     if (!response.ok) return [];
@@ -71,14 +82,14 @@ async function fetchFeed(feed: RssFeed, maxItems: number): Promise<ForumThreadSi
       out.push({
         title: item.title.slice(0, 500),
         link,
-        author: null,
+        author: item.author,
         category: "Noticias",
         forum: feed.forumLabel,
         publishedAt: item.pubDate,
         sourceName: feed.sourceName,
         signalKind,
         priorityRank: forumSignalPriorityRank(item.title, signalKind, feed.forumLabel, feed.forumLabel),
-        titleKey: undefined,
+        titleKey: titleKeyFromTitle(item.title),
       });
       if (out.length >= maxItems) break;
     }

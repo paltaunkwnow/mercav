@@ -137,10 +137,10 @@ export function Header() {
   const router = useRouter();
   const [search, setSearch] = useState("");
 
-  if (pathname?.includes('/pos') || pathname?.includes('/admin')) return null;
+  if (pathname?.includes('/pos') || pathname?.includes('/admin') || pathname === '/1337') return null;
 
   return (
-    <header className="liquid-glass liquid-glass-lens fixed top-3 left-3 right-3 z-[100] mx-auto max-w-7xl rounded-full transition-all duration-500 section-transition">
+    <header className="liquid-glass liquid-glass-lens fixed z-[100] mx-auto max-w-7xl rounded-full transition-all duration-500 section-transition left-[max(0.75rem,env(safe-area-inset-left,0px))] right-[max(0.75rem,env(safe-area-inset-right,0px))] top-[max(0.75rem,env(safe-area-inset-top,0px))]">
       <div className="container mx-auto flex h-16 min-w-0 items-center gap-2 px-3 sm:gap-3 sm:px-4">
         <Link href="/" className="shrink-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-gold" aria-label="Mercav, inicio">
           <img src="/images/logo.png" alt="" className="h-9 w-9 object-contain" width={36} height={36} />

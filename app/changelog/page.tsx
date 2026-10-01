@@ -221,7 +221,7 @@ export default function ChangelogPage() {
                   </Link>
                 </Button>
                 <Button asChild variant="ghost" className="text-gray-400 hover:text-white rounded-[1.5rem] h-16 px-8 font-black uppercase tracking-[0.2em]">
-                  <Link href="/nosotros">Nuestro Manifiesto</Link>
+                  <Link href="/nosotros">Quién soy</Link>
                 </Button>
               </div>
             </div>

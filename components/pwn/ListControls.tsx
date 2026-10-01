@@ -1,6 +1,7 @@
 "use client";
 
-import { focusRing, pwnFieldClass, pwnFieldLabelClass, pwnPanelClass } from "@/components/pwn/format";
+import { pwnFieldClass, pwnFieldLabelClass, pwnPanelClass, focusRing } from "@/components/pwn/format";
+import { PwnSelect } from "@/components/pwn/PwnSelect";
 
 export function ListControls({
   query,
@@ -47,26 +48,20 @@ export function ListControls({
             <label htmlFor="pwn-list-filter" className={pwnFieldLabelClass}>
               {filterLabel ?? "Filtro"}
             </label>
-            <select id="pwn-list-filter" value={filter} onChange={(event) => onFilter(event.target.value)} className={pwnFieldClass}>
-              {filterOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <PwnSelect
+              id="pwn-list-filter"
+              value={filter ?? filterOptions[0]?.value ?? ""}
+              onValueChange={onFilter}
+              options={filterOptions}
+              aria-label={filterLabel ?? "Filtro"}
+            />
           </div>
         ) : null}
         <div className="space-y-2">
           <label htmlFor="pwn-list-sort" className={pwnFieldLabelClass}>
             Orden
           </label>
-          <select id="pwn-list-sort" value={sort} onChange={(event) => onSort(event.target.value)} className={pwnFieldClass}>
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <PwnSelect id="pwn-list-sort" value={sort} onValueChange={onSort} options={sortOptions} aria-label="Orden" />
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-400">

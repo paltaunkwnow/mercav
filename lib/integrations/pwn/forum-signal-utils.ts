@@ -3,6 +3,7 @@ import type { ForumSignalKind } from "./forum-classifier";
 import {
   classifyForumSignal,
   forumSignalPriorityRank,
+  isBoliviaRelatedSignal,
   isGovernmentRelatedSignal,
 } from "./forum-classifier";
 
@@ -29,6 +30,7 @@ export function deriveSignalFields(title: string, category?: string | null, foru
     priorityRank: forumSignalPriorityRank(title, signalKind, category, forum),
     titleKey: titleKeyFromTitle(title),
     isGovernment: isGovernmentRelatedSignal(title, category, forum),
+    isBolivia: isBoliviaRelatedSignal(title, category, forum),
   };
 }
 
@@ -79,7 +81,9 @@ export function matchBreachNameInTitle(title: string, breachNames: string[]): st
 }
 
 export function kindRank(kind: ForumSignalKind): number {
-  if (kind === "DATABASE") return 3;
+  if (kind === "CORPORATE") return 5;
+  if (kind === "DATABASE") return 4;
+  if (kind === "STEALER") return 3;
   if (kind === "MIXED") return 2;
   if (kind === "CREDENTIALS") return 1;
   return 0;

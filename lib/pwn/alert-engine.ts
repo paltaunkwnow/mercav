@@ -1,4 +1,5 @@
 import { redactSubject } from "./redaction";
+import { translateDataClass } from "./breach-copy";
 import { isSeverity, isVerificationStatus, type PwnSeverity, type PwnVerificationStatus } from "./types";
 
 export type PwnAlertKind = "BREACH" | "VULNERABILITY" | "EXPOSURE" | "FORUM_SIGNAL";
@@ -42,17 +43,6 @@ const SEVERITY_LABELS: Record<PwnSeverity, string> = {
   CRITICAL: "Crítica",
 };
 
-const DATA_TYPE_LABELS: Record<string, string> = {
-  "email addresses": "correos electrónicos",
-  passwords: "contraseñas",
-  usernames: "nombres de usuario",
-  names: "nombres",
-  "phone numbers": "números de teléfono",
-  "physical addresses": "direcciones físicas",
-  "ip addresses": "direcciones IP",
-  "dates of birth": "fechas de nacimiento",
-};
-
 const MAX_FIELD_LENGTH = 120;
 
 function clean(value: string | undefined): string {
@@ -71,7 +61,10 @@ function describeDataTypes(dataTypes: string[] | undefined): string {
   const labels = (dataTypes ?? [])
     .map((type) => clean(type))
     .filter((type) => type.length > 0 && !/[:=]/.test(type))
-    .map((type) => DATA_TYPE_LABELS[type.toLowerCase()] ?? type.toLowerCase());
+    .map((type) => {
+      const label = translateDataClass(type);
+      return label ? label.charAt(0).toLowerCase() + label.slice(1) : type.toLowerCase();
+    });
   return Array.from(new Set(labels)).join(", ");
 }
 

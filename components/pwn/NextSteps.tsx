@@ -5,13 +5,13 @@ const STEPS: Record<"email" | "domain" | "password", { title: string; items: str
       "Cambia la contraseña de esa cuenta y de cualquier otra que use la misma clave.",
       "Activa un segundo factor antes de volver a iniciar sesión desde un enlace.",
       "Comprueba la contraseña nueva en esta misma página: el hash se calcula aquí y no se guarda.",
-      "Si es el correo de tu cuenta Mercav, añádelo en Monitoreo para recibir la alerta en la app.",
+      "Si quieres alertas, síguelo en Exposición. El correo de tu cuenta se patrulla al añadirlo; otro correo pide autorización solo para el patrullaje.",
     ],
   },
   domain: {
     title: "Si este dominio es tuyo",
     items: [
-      "Verifícalo en Monitoreo con el registro DNS TXT. Sin eso no hay detalle ni alerta.",
+      "Síguelo en Exposición para alertas. Un dominio no pide autorización para consultarlo ni para patrullarlo.",
       "Revisa qué tipos de dato cita la fuente. Un hallazgo sin verificar no es un hecho confirmado.",
       "Avisa a quien administra el correo del dominio para rotar claves reutilizadas.",
     ],

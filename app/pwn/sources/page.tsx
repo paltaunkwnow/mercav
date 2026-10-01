@@ -139,7 +139,7 @@ export default function SourcesPage() {
       <header>
         <h1 className="font-display text-4xl font-black tracking-tight text-white md:text-5xl">Fuentes</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-400">
-          Conectores oficiales y feeds de titulares. Puedes desactivar foros o RSS ruidosos; el ciclo horario respeta el interruptor.
+          Conectores oficiales y feeds de titulares. Puedes desactivar foros o RSS ruidosos; el patrullaje en Pwn respeta el interruptor.
         </p>
       </header>
       {status.kind === "loading" ? <LoadingState label="Cargando fuentes…" /> : null}

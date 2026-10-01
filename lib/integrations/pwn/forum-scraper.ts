@@ -8,6 +8,8 @@ import {
 import { kindRank, titleKeyFromTitle } from "./forum-signal-utils";
 import { PWN_FEED_SOURCE_NAMES } from "./feed-catalog";
 import { scrapeRssFeeds } from "./rss-scraper";
+import { scrapeRansomwareLive } from "./ransom-intel";
+import { normalizeAuthor } from "./author";
 
 export type ForumThreadSignal = {
   title: string;
@@ -28,7 +30,7 @@ const BLOCKLIST_HOST =
   /(?:localhost|127\.0\.0\.1|0\.0\.0\.0|169\.254\.|10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/i;
 
 const DATABASE_FORUM_SLUG =
-  /(?:database|databases|\bdb\b|dump|dumps|sql|leak|leaks|data-breach|breach|combo|rar|archive|exfil|mongodb|postgres)/i;
+  /(?:database|databases|\bdb\b|dump|dumps|sql|leak|leaks|leaked|data-breach|breach|combo|rar|archive|exfil|mongodb|postgres|stealer|stealers|logs|ulp|cookies|credential|corporate|government|gobierno|company|combolist|source-?code|marketplace|cracked|hacked)/i;
 
 export function forumSignalKey(link: string): string {
   return createHash("sha256").update(link.trim().toLowerCase(), "utf8").digest("hex");
@@ -82,18 +84,32 @@ function stripTags(value: string): string {
   return decodeHtmlEntities(value.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
 }
 
+export function scrubPublicTitle(title: string): string {
+  return title.replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[email]");
+}
+
 function enrichSignal(input: Omit<ForumThreadSignal, "signalKind" | "priorityRank" | "titleKey">): ForumThreadSignal | null {
-  if (!isForumSignalWorthy(input.title, input.category, input.forum)) return null;
-  const signalKind = classifyForumSignal(input.title, input.category, input.forum);
+  const title = scrubPublicTitle(input.title);
+  if (!isForumSignalWorthy(title, input.category, input.forum)) return null;
+  const signalKind = classifyForumSignal(title, input.category, input.forum);
   return {
     ...input,
+    title,
+    author: normalizeAuthor(input.author),
     signalKind,
-    priorityRank: forumSignalPriorityRank(input.title, signalKind, input.category, input.forum),
-    titleKey: titleKeyFromTitle(input.title),
+    priorityRank: forumSignalPriorityRank(title, signalKind, input.category, input.forum),
+    titleKey: titleKeyFromTitle(title),
   };
 }
 
-function parseDarknetArmyHtml(html: string, pageUrl: string, sectionLabel: string): ForumThreadSignal[] {
+function authorFromWindow(window: string): string | null {
+  const dataAuthor = window.match(/data-author="([^"]+)"/i)?.[1];
+  const username = window.match(/class="[^"]*username[^"]*"[^>]*>([^<]+)</i)?.[1];
+  return normalizeAuthor(dataAuthor ?? username ?? null);
+}
+
+export function parseDarknetArmyHtml(html: string, pageUrl: string, sectionLabel: string): ForumThreadSignal[] {
+  if (/just a moment|cf-challenge|attention required/i.test(html)) return [];
   const base = assertAllowlistedUrl(pageUrl, ["darknetarmy.st"]);
   const origin = new URL(base).origin;
   const items: ForumThreadSignal[] = [];
@@ -106,13 +122,16 @@ function parseDarknetArmyHtml(html: string, pageUrl: string, sectionLabel: strin
     const link = assertAllowlistedUrl(`${origin}${path}`, ["darknetarmy.st"]);
     if (seen.has(link)) continue;
     seen.add(link);
+    const idx = match.index ?? 0;
+    const nearby = html.slice(Math.max(0, idx - 1400), idx + match[0].length + 500);
+    const publishedAt = nearby.match(/datetime="([^"]+)"/i)?.[1] ?? null;
     const candidate = enrichSignal({
       title,
       link,
-      author: null,
+      author: authorFromWindow(nearby),
       category: sectionLabel,
       forum: "DarkNetArmy",
-      publishedAt: null,
+      publishedAt,
       sourceName: "FORUM_DARKNETARMY",
     });
     if (candidate) items.push(candidate);
@@ -129,7 +148,7 @@ function discoverDarknetArmyForumPages(html: string): string[] {
     if (!DATABASE_FORUM_SLUG.test(slug)) continue;
     found.add(`${origin}${path}`);
   }
-  return [...found].slice(0, 6);
+  return [...found].slice(0, 24);
 }
 
 const DARKNETARMY_STATIC = [
@@ -139,6 +158,12 @@ const DARKNETARMY_STATIC = [
 
 function sectionLabelForUrl(url: string): string {
   const slug = url.toLowerCase();
+  if (/(?:stealer|ulp|logs|cookies)/i.test(slug) && !/(?:database|sql|mongodb)/i.test(slug)) {
+    return "Stealer logs";
+  }
+  if (/(?:government|gobierno|gov|municipal|minister)/i.test(slug)) {
+    return "Robo corporativo";
+  }
   if (DATABASE_FORUM_SLUG.test(slug) && !slug.includes("login") && !slug.includes("account")) {
     return "Filtraciones de bases de datos";
   }
@@ -167,7 +192,7 @@ export async function scrapeDarknetArmyThreads(): Promise<ForumThreadSignal[]> {
   }
 
   merged.sort((a, b) => b.priorityRank - a.priorityRank || kindRank(b.signalKind) - kindRank(a.signalKind));
-  return merged.slice(0, 85);
+  return merged.slice(0, 140);
 }
 
 type WpPost = {
@@ -213,7 +238,7 @@ async function scrapeHackreadQuery(search: string, maxPages: number): Promise<Fo
       const candidate = enrichSignal({
         title,
         link,
-        author: post._embedded?.author?.[0]?.name ?? null,
+        author: normalizeAuthor(post._embedded?.author?.[0]?.name ?? null),
         category,
         forum: "Hackread",
         publishedAt: post.date ?? null,
@@ -229,29 +254,27 @@ async function scrapeHackreadQuery(search: string, maxPages: number): Promise<Fo
 
 export async function scrapeHackreadNews(): Promise<ForumThreadSignal[]> {
   const queries = [
-    "database leak",
-    "data breach",
-    "sql dump",
-    "mongodb leak",
-    "ransomware leak",
+    "stealer logs",
+    "lumma logs",
+    "infostealer",
+    "corporate data leak",
     "government data breach",
-    "healthcare breach",
-    "records exposed",
-    "voter data",
-    "employee data leak",
+    "bolivia data breach",
+    "bolivia ransomware",
+    "employee database",
+    "data breach",
+    "data leak",
+    "ransomware victim",
+    "source code leak",
+    "sql dump",
   ];
   const byLink = new Map<string, ForumThreadSignal>();
   for (const query of queries) {
-    for (const item of await scrapeHackreadQuery(query, 3)) {
+    for (const item of await scrapeHackreadQuery(query, 1)) {
       byLink.set(item.link.toLowerCase(), item);
     }
   }
-  for (const item of await scrapeHackreadQuery("", 3)) {
-    if (!byLink.has(item.link.toLowerCase()) && item.signalKind !== "CREDENTIALS") {
-      byLink.set(item.link.toLowerCase(), item);
-    }
-  }
-  return [...byLink.values()].slice(0, 55);
+  return [...byLink.values()].slice(0, 90);
 }
 
 export function forumScrapeEnabled(): boolean {
@@ -264,6 +287,7 @@ export async function collectForumSignals(enabledSources?: Set<string>): Promise
   const tasks: Promise<ForumThreadSignal[]>[] = [];
   if (enabled.has("FORUM_DARKNETARMY")) tasks.push(scrapeDarknetArmyThreads());
   if (enabled.has("FORUM_HACKREAD")) tasks.push(scrapeHackreadNews());
+  if (enabled.has("FEED_RANSOMWARELIVE")) tasks.push(scrapeRansomwareLive());
   tasks.push(scrapeRssFeeds(enabled));
   const chunks = await Promise.all(tasks);
   const byLink = new Map<string, ForumThreadSignal>();

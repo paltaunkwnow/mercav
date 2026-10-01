@@ -104,7 +104,7 @@ export default function AlertsPage() {
       <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="font-display text-4xl font-black tracking-tight text-white md:text-5xl">Alertas</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-400">Avisos generados a partir de tus objetivos verificados y de las fuentes consultadas.</p>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-400">Avisos generados a partir de tus objetivos autorizados y de las fuentes consultadas.</p>
         </div>
         {hasUnread ? (
           <Button type="button" variant="outline" disabled={pendingId === "all"} onClick={() => void markRead({ all: true })} className={`rounded-xl border-white/10 text-white ${focusRing}`}>

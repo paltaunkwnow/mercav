@@ -25,13 +25,13 @@ const KOSHER_ITEMS = [
 
 export function BottomNav() {
   const pathname = usePathname();
-  if (pathname?.includes("/pos") || pathname?.includes("/admin")) return null;
+  if (pathname?.includes("/pos") || pathname?.includes("/admin") || pathname === "/1337") return null;
 
   const kosher = pathname === "/kosher" || pathname?.startsWith("/kosher/");
   const navItems = kosher ? KOSHER_ITEMS : MERCAV_ITEMS;
 
   return (
-    <nav className="pointer-events-none fixed inset-x-0 bottom-3 z-50 flex justify-center px-3 md:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+    <nav className="pointer-events-none fixed z-50 flex justify-center px-3 md:hidden left-[max(0.75rem,env(safe-area-inset-left,0px))] right-[max(0.75rem,env(safe-area-inset-right,0px))] bottom-[max(0.75rem,env(safe-area-inset-bottom,0px))]">
       <div className="liquid-glass liquid-glass-lens pointer-events-auto flex max-w-full items-center gap-1 rounded-full px-1.5 py-1.5">
         {navItems.map((item) => {
           const isActive = pathname === item.href;

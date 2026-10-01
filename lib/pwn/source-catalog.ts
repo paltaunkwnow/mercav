@@ -39,7 +39,8 @@ export function getSourceCatalog(env: Env = process.env): PwnSourceDefinition[] 
       apiKeyRequired: true,
       enabled: hibpKey,
       disabledReason: hibpKey ? null : "Falta HIBP_API_KEY",
-      notes: "Búsqueda de correos requiere API key. Pwned Passwords usa k-anonymity: solo se envía el prefijo SHA-1.",
+      notes:
+        "Buscar un correo concreto exige HIBP_API_KEY. Un dominio se consulta con el catálogo público. Pwned Passwords (k-anonimato) no necesita clave.",
     },
     {
       key: "NVD",

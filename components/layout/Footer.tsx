@@ -25,7 +25,6 @@ const PWN: FooterLink[] = [
   { href: "/pwn/exposure", label: "Consultar exposición" },
   { href: "/pwn/signals", label: "Señales de filtraciones" },
   { href: "/pwn/signals?gov=true", label: "Alertas gubernamentales" },
-  { href: "/pwn/monitor", label: "Monitoreo" },
   { href: "/pwn/alerts", label: "Alertas" },
 ];
 
@@ -34,7 +33,7 @@ const PLATFORM: FooterLink[] = [
   { href: "/inversores", label: "Inversores" },
   { href: "/por-que-mercav", label: "Por qué Mercav" },
   { href: "/faq", label: "Preguntas frecuentes" },
-  { href: "/nosotros", label: "Nosotros" },
+  { href: "/nosotros", label: "Quién soy" },
   { href: "/explorar", label: "Explorar" },
   { href: "/feed", label: "Feed" },
   { href: "/buscar", label: "Buscar" },
@@ -111,13 +110,14 @@ function SocialIcon({ href, label, children }: { href: string; label: string; ch
 export function Footer() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  if (pathname?.includes("/pos") || pathname?.includes("/admin") || pathname === "/kosher/mapa") return null;
+  if (pathname?.includes("/pos") || pathname?.includes("/admin") || pathname === "/kosher/mapa" || pathname === "/1337") return null;
   const accountLinks = session ? ACCOUNT_USER : ACCOUNT_GUEST;
 
   return (
-    <footer className="relative w-full overflow-hidden bg-bg-primary pt-16 pb-10 md:pt-20 md:pb-12">
+    <footer className="blend-from-primary relative w-full overflow-hidden bg-bg-primary pt-16 pb-nav section-transition md:pt-20">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute bottom-0 left-1/2 h-[280px] w-[min(100%,720px)] -translate-x-1/2 rounded-full bg-gold/[0.03] blur-[120px]" />
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-bg-primary via-bg-primary/70 to-transparent" />
+        <div className="absolute bottom-0 left-1/2 h-[280px] w-[min(100%,720px)] -translate-x-1/2 rounded-full bg-gold/[0.03] blur-[140px]" />
       </div>
 
       <div className="container relative z-10 mx-auto px-4 md:px-6">

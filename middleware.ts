@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import type { NextRequest } from 'next/server';
+import { looksLikeInterceptor } from '@/lib/security/unusual-traffic';
 
 const publicPaths = [
   '/',
@@ -25,16 +26,23 @@ const publicPaths = [
   '/inversores',
   '/feed',
   '/faq',
+  '/1337',
 ];
 
 // Only these Pwn API calls may run without a session (exposure returns a boolean only).
 const pwnPublicApi: Array<{ method: string; path: string }> = [
   { method: 'POST', path: '/api/pwn/exposure' },
+  { method: 'POST', path: '/api/pwn/passwords/range' },
 ];
 
 function isPwnPublicApi(req: NextRequest, pathname: string) {
   const path = pathname.replace(/\/$/, '');
   return pwnPublicApi.some((route) => route.method === req.method && route.path === path);
+}
+
+function isPwnCronPath(pathname: string) {
+  const path = pathname.replace(/\/$/, '');
+  return path === '/api/pwn/internal/cycle' || path === '/api/pwn/internal/forums';
 }
 
 type HitBucket = { count: number; resetAt: number };
@@ -90,7 +98,8 @@ function apiMaySkipSession(req: NextRequest, pathname: string) {
     path.startsWith('/api/auth') ||
     path.startsWith('/api/location') ||
     path === '/api/webhook/stripe' ||
-    path === '/api/pwn/internal/cycle' ||
+    path === '/api/security/unusual' ||
+    isPwnCronPath(path) ||
     isPwnPublicApi(req, pathname)
   );
 }
@@ -99,6 +108,15 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const host = req.headers.get('host')?.split(':')[0]?.toLowerCase();
   let { pathname } = req.nextUrl;
+
+  if (
+    looksLikeInterceptor(req.headers.get('user-agent')) &&
+    pathname !== '/1337' &&
+    !pathname.startsWith('/api/security/unusual') &&
+    !pathname.startsWith('/_next')
+  ) {
+    return NextResponse.redirect(new URL('/1337?src=proxy', req.url));
+  }
 
   if (
     host === 'pwn.mercav.lat' &&
@@ -145,7 +163,7 @@ export async function middleware(req: NextRequest) {
   }
 
   if (pathname === '/api/pwn' || pathname.startsWith('/api/pwn/')) {
-    const cronPath = pathname.replace(/\/$/, '') === '/api/pwn/internal/cycle';
+    const cronPath = isPwnCronPath(pathname);
     if (!token && !cronPath && !isPwnPublicApi(req, pathname)) {
       return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
     }
@@ -161,6 +179,7 @@ export async function middleware(req: NextRequest) {
                        pathname.startsWith('/api/kosher/') ||
                        pathname.startsWith('/api/auth') ||
                        pathname.startsWith('/api/location') ||
+                       pathname === '/api/security/unusual' ||
                        pathname.startsWith('/_next') ||
                        pathname.startsWith('/favicon.ico') ||
                        pathname === '/perfil' ||
@@ -214,6 +233,6 @@ export async function middleware(req: NextRequest) {
 
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|images|uploads|logo.png|404.html|index.html).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|images|uploads|videos|logo.png|404.html|index.html).*)'],
 };
 // creado por pato dev y askforvini

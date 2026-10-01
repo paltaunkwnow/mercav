@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, CheckCircle2, XCircle, Info, Briefcase, Megaphone, Loader2 } from "lucide-react";
+import { Bell, CheckCircle2, XCircle, Info, Briefcase, Megaphone, Loader2, ShieldAlert, Users, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { PWN_NOTIFICATIONS_UPDATED } from "@/components/pwn/events";
 import { Button } from "@/components/ui/button";
 
 export default function NotificationBell() {
@@ -29,8 +30,15 @@ export default function NotificationBell() {
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 60000); // Poll every minute
-    return () => clearInterval(interval);
+    const interval = setInterval(fetchNotifications, 60000);
+    const onPwn = () => {
+      void fetchNotifications();
+    };
+    window.addEventListener(PWN_NOTIFICATIONS_UPDATED, onPwn);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener(PWN_NOTIFICATIONS_UPDATED, onPwn);
+    };
   }, []);
 
   const markAsRead = async (id?: string) => {
@@ -51,6 +59,10 @@ export default function NotificationBell() {
       case "JOB_APPLICATION_STATUS": return <Briefcase size={16} className="text-blue-400" />;
       case "NEW_APPLICATION": return <Users size={16} className="text-gold" />;
       case "NEW_RESERVATION": return <Megaphone size={16} className="text-emerald-400" />;
+      case "PWN_NEW_LEAKS": return <ShieldAlert size={16} className="text-gold" />;
+      case "PWN_MONITOR_AUTH_REQUEST": return <ShieldAlert size={16} className="text-gold" />;
+      case "PWN_MONITOR_AUTH_APPROVED": return <CheckCircle2 size={16} className="text-gold" />;
+      case "PWN_MONITOR_AUTH_DENIED": return <XCircle size={16} className="text-red-300" />;
       default: return <Info size={16} className="text-gray-400" />;
     }
   };
@@ -163,11 +175,4 @@ export default function NotificationBell() {
     </div>
   );
 }
-
-function Users(props: any) {
-  return <UsersIcon {...props} />;
-}
-
-import { Users as UsersIcon } from "lucide-react";
-import { ChevronRight } from "lucide-react";
 // creado por pato dev y askforvini

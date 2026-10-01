@@ -61,10 +61,22 @@ export function verificationMeta(status?: string | null) {
 
 const SIGNAL_KIND: Record<string, { label: string; className: string }> = {
   DATABASE: { label: "Base de datos", className: "border-gold/50 bg-gold/15 text-gold" },
-  MIXED: { label: "DB + credenciales", className: "border-amber-300/40 bg-amber-500/10 text-amber-100" },
+  STEALER: { label: "Stealer logs", className: "border-fuchsia-300/40 bg-fuchsia-500/10 text-fuchsia-100" },
+  CORPORATE: { label: "Robo corporativo", className: "border-sky-300/40 bg-sky-500/10 text-sky-100" },
+  MIXED: { label: "Mixto", className: "border-amber-300/40 bg-amber-500/10 text-amber-100" },
   CREDENTIALS: { label: "Cuentas / logs", className: "border-white/20 bg-white/5 text-gray-300" },
   OTHER: { label: "Filtración", className: "border-white/15 bg-transparent text-gray-400" },
 };
+
+export function BoliviaPriorityBadge({ active }: { active?: boolean }) {
+  if (!active) return null;
+  return (
+    <span className="inline-flex items-center rounded-full border border-gold/50 bg-gold/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-gold">
+      <span className="sr-only">Prioridad: </span>
+      Bolivia
+    </span>
+  );
+}
 
 export function GovernmentPriorityBadge({ active }: { active?: boolean }) {
   if (!active) return null;

@@ -90,7 +90,7 @@ export default function InversoresPage() {
       </section>
 
       {/* The Opportunity */}
-      <section className="py-24 bg-bg-secondary border-y border-gold/10">
+      <section className="blend-from-primary blend-to-primary relative overflow-hidden bg-bg-secondary py-24 section-transition">
         <div className="container mx-auto max-w-5xl px-4">
           <div className="grid gap-8 md:grid-cols-2">
             <motion.div {...fadeUp} transition={{ duration: 0.5 }}>
@@ -118,29 +118,29 @@ El mercado existe, el problema es real y la solución ya está construida. Lo qu
       </section>
 
       {/* Kerem by Mercav - Visionary Project */}
-      <section className="py-32 bg-bg-primary relative overflow-hidden">
+      <section className="blend-from-secondary relative overflow-hidden bg-bg-primary py-32 section-transition">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gold/[0.05] via-transparent to-transparent opacity-50" />
         <div className="container mx-auto max-w-6xl px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div {...fadeUp} className="space-y-8">
               <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-gold/10 border border-gold/20">
                 <span className="w-2 h-2 rounded-full bg-gold animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">Próximamente: Kerem by Mercav</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">Kerem by Mercav · Santa Cruz</span>
               </div>
               
-              <h2 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tighter uppercase">
-                Primer Restaurante <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold via-yellow-200 to-gold">100% Kosher</span> <br />
-                en Bolivia
+              <h2 className="text-4xl font-black uppercase leading-tight tracking-tighter text-white md:text-6xl">
+                Hospitalidad <br />
+                <span className="bg-gradient-to-r from-gold via-yellow-200 to-gold bg-clip-text text-transparent">con kashrut</span> <br />
+                en Santa Cruz
               </h2>
 
-              <p className="text-xl text-gray-400 leading-relaxed font-medium">
-                Mercav no es solo tecnología, es una visión de comunidad. Detectamos una necesidad ignorada: Bolivia cuenta con una comunidad valiosa pero sin acceso a gastronomía Kosher certificada.
+              <p className="text-pretty text-lg font-normal leading-7 tracking-normal text-gray-400">
+                Kerem es un proyecto de hospitalidad en Santa Cruz de la Sierra. El estándar es kashrut. En la ciudad no hay una oferta de ese tipo; el objetivo es construirla con el mismo rigor que un sistema: verificable, usable y sostenible.
               </p>
 
-              <div className="p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/5 backdrop-blur-xl">
-                <p className="text-lg text-gold/90 font-bold italic leading-relaxed">
-                  "Kerem nace con el propósito de ofrecer la primera opción 100% Kosher en Santa Cruz, expandible a toda Latinoamérica."
+              <div className="rounded-[2.5rem] border border-white/5 bg-white/[0.02] p-8 backdrop-blur-xl">
+                <p className="text-pretty text-base font-normal leading-7 tracking-normal text-gray-200 md:text-[17px]">
+                  Mercav Kosher es el directorio que lo acompaña: lugares y servicios con fuente. No emite certificación. La expansión a otros países es una fase posterior, no el punto de partida.
                 </p>
               </div>
             </motion.div>
@@ -151,7 +151,8 @@ El mercado existe, el problema es real y la solución ya está construida. Lo qu
               transition={{ duration: 1 }}
               className="relative aspect-square rounded-[4rem] overflow-hidden group"
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10" />
+              <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-bg-primary via-bg-primary/45 to-transparent" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28 bg-bg-primary/70 blur-2xl" />
               <img 
                 src="https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=1974&auto=format&fit=crop" 
                 alt="Kerem Gastronomy" 
@@ -160,10 +161,10 @@ El mercado existe, el problema es real y la solución ya está construida. Lo qu
               <div className="absolute bottom-10 left-10 right-10 z-20">
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { t: "Certificación", s: "Kosher Estricta" },
-                    { t: "Nutrición", s: "100% Saludable" },
-                    { t: "Pureza", s: "Cero Cerdo" },
-                    { t: "Escala", s: "Regional Latam" }
+                    { t: "Estándar", s: "Kashrut" },
+                    { t: "Sede", s: "Santa Cruz" },
+                    { t: "Alcance", s: "Bolivia" },
+                    { t: "Directorio", s: "Mercav Kosher" }
                   ].map((f, i) => (
                     <div key={i} className="p-4 rounded-2xl bg-black/60 backdrop-blur-md border border-white/10">
                       <p className="text-[8px] font-black uppercase text-gold/60 tracking-widest mb-1">{f.t}</p>
@@ -176,8 +177,8 @@ El mercado existe, el problema es real y la solución ya está construida. Lo qu
           </div>
 
           <motion.div {...fadeUp} transition={{ delay: 0.4 }} className="mt-20 p-10 rounded-[3rem] bg-gold/[0.03] border border-gold/10 text-center">
-            <p className="text-lg text-gray-400 max-w-4xl mx-auto leading-relaxed">
-              No es solo para una comunidad, es para todos. Una propuesta <span className="text-gold font-bold">100% saludable</span>, donde la pureza de los ingredientes es la ley: sin cerdo, sin mezclas prohibidas, solo alimentos en su estado más óptimo y aptos para cualquier persona que busque excelencia nutricional.
+            <p className="mx-auto max-w-4xl text-pretty text-base leading-7 tracking-normal text-gray-400 md:text-lg">
+              Kerem se diseña para quien necesita ese estándar y para quien quiera un servicio claro. Mercav Kosher no certifica: muestra la fuente de cada lugar para que la decisión quede en quien consulta.
             </p>
           </motion.div>
         </div>
@@ -227,21 +228,19 @@ El mercado existe, el problema es real y la solución ya está construida. Lo qu
       </section>
 
       {/* Founder Section */}
-      <section className="py-24 bg-bg-secondary border-y border-gold/10">
+      <section className="blend-from-primary blend-to-primary relative overflow-hidden bg-bg-secondary py-24 section-transition">
         <div className="container mx-auto max-w-5xl px-4">
           <motion.div {...fadeUp} transition={{ duration: 0.5 }}>
             <GoldCard 
               icon={Star} 
               title="Quién está detrás" 
-              text={`Me llamo Vinicius. Tengo 18 años.
+              text={`Me llamo Vinicius. Tengo 19 años y vivo en Santa Cruz de la Sierra.
 
-Construí Mercav porque entendí que el problema no era de tecnología, era de fragmentación. Cada herramienta existía por separado, cara, inaccesible para la mayoría de las empresas pequeñas de la región.
+Soy el fundador de Mercav. Diseño sistemas —backend, autenticación, datos— y trabajo ciberseguridad: pentesting autorizado, defensa, auditoría y respuesta post-incidente. El perfil técnico está en askforvini.pw.
 
-Soy desarrollador autodidacta. Aprendí construyendo cosas reales para negocios reales. Construí sistemas de punto de venta, plataformas de comercio electrónico y herramientas digitales antes de cumplir los 18.
+Aprendí el oficio construyendo software para negocios reales: punto de venta, comercio y herramientas que alguien usaba al día siguiente. Mercav reúne anuncios, servicios, empleo y herramientas en un solo lugar, hecho desde Bolivia.
 
-No tengo un título universitario. Tengo algo más útil: la certeza de que este problema existe, la capacidad técnica de resolverlo y la convicción de que Latinoamérica merece infraestructura digital propia.
-
-Mi misión no es construir una empresa. Es construir el ecosistema que le faltaba a toda una región.`}
+Quiero devolver la generosidad con un sistema que se pueda usar de punta a punta: claro, completo y al alcance. El trabajo, la fe ante el Creador y el servicio van juntos.`}
               fullWidth
             />
           </motion.div>
@@ -282,7 +281,7 @@ Mi misión no es construir una empresa. Es construir el ecosistema que le faltab
       </section>
 
       {/* Contact Form */}
-      <section className="py-24 bg-bg-secondary border-t border-gold/10 relative overflow-hidden">
+      <section className="blend-from-primary relative overflow-hidden bg-bg-secondary py-24 section-transition">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_center,_var(--tw-gradient-stops))] from-gold/8 via-transparent to-transparent pointer-events-none" />
         
         <div className="container mx-auto max-w-3xl px-4 relative z-10">

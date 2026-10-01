@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Outfit, DM_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,13 @@ const dmMono = DM_Mono({ weight: ["400", "500"], subsets: ["latin"], variable: "
 export const metadata: Metadata = {
   title: "Mercav",
   description: "Mercav",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#050505",
 };
 
 export default async function RootLayout({
@@ -80,7 +87,7 @@ export default async function RootLayout({
           `
         }} />
       </head>
-      <body className="antialiased min-h-screen flex flex-col">
+      <body className="flex min-h-dvh flex-col overflow-x-hidden antialiased">
         <Providers>
           <AnnouncementBar />
           <Header />

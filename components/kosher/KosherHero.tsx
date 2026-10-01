@@ -204,9 +204,9 @@ export function KosherHero({
       )}
       </div>
 
-      <dl className="mt-16 grid grid-cols-2 gap-px overflow-hidden rounded-[1.75rem] border border-border bg-border md:grid-cols-4">
+      <dl className="mt-16 grid grid-cols-2 gap-4 md:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.label} className="bg-bg-secondary px-6 py-6">
+          <div key={s.label} className="rounded-[1.75rem] border border-white/5 bg-bg-secondary/70 px-6 py-6 backdrop-blur-xl">
             <dt className="text-xs text-[var(--text-tertiary)]">{s.label}</dt>
             <dd className="mt-1 font-display text-4xl font-semibold tabular-nums text-[var(--text-primary)]">
               <CountUp value={s.value} />

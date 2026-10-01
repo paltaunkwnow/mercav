@@ -94,6 +94,7 @@ model User {
   kosherAlerts        KosherAlert[]
   kosherManaged       KosherPlaceManager[]
   kosherClaims        KosherClaim[]
+  unusualTraffic      UnusualTrafficEvent[]
 }
 
 model Company {
@@ -1285,10 +1286,13 @@ model PwnMonitoringTarget {
   // Domain the owner monitors. Emails stay hash-only and this stays null.
   targetLookup   String?
   active         Boolean          @default(true)
-  // Only a sha256 of the DNS TXT token is stored; the token is shown once.
-  verificationStatus    PwnTargetVerificationStatus @default(PENDING)
-  verificationTokenHash String?
-  verifiedAt            DateTime?
+  // Consultation stays pending until an administrator authorizes it.
+  verificationStatus         PwnTargetVerificationStatus @default(PENDING)
+  verificationTokenHash      String?
+  authorizationRequestedAt   DateTime?
+  authorizationMessage       String?                     @db.VarChar(280)
+  verifiedAt                 DateTime?
+  verifiedByUserId           String?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1303,7 +1307,9 @@ model PwnMonitoringTarget {
 
 enum PwnTargetVerificationStatus {
   PENDING
+  REQUESTED
   VERIFIED
+  DENIED
 }
 
 model PwnAlert {
@@ -1868,4 +1874,22 @@ model KosherInvite {
   createdAt   DateTime  @default(now())
 
   @@index([placeId])
+}
+
+model UnusualTrafficEvent {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  reason      String
+  ip          String
+  userAgent   String?  @db.VarChar(512)
+  fingerprint String?  @db.VarChar(160)
+  path        String?  @db.VarChar(300)
+  userId      String?
+  userEmail   String?  @db.VarChar(190)
+  userName    String?  @db.VarChar(120)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([ip])
+  @@index([userId])
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { SourceBadge } from "@/components/pwn/SourceBadge";
-import { GovernmentPriorityBadge, SignalKindBadge, VerificationBadge } from "@/components/pwn/RiskBadge";
+import { BoliviaPriorityBadge, GovernmentPriorityBadge, SignalKindBadge, VerificationBadge } from "@/components/pwn/RiskBadge";
 import { EmptyState, ErrorState, LoadingState } from "@/components/pwn/EmptyState";
 import { focusRing, formatRelative } from "@/components/pwn/format";
 import type { ForumSignalView, PwnResult } from "@/components/pwn/api";
@@ -26,11 +26,11 @@ export function ForumSignalsPanel({
   if (!items.length) {
     return (
       <EmptyState
-        title="Sin señales de DB todavía"
-        description="El ciclo horario prioriza titulares de volcados SQL/NoSQL y filtraciones masivas. Lanza el ciclo con CRON_SECRET en local si acabas de activar Pwn."
+        title="Sin señales todavía"
+        description="El archivo junta stealer logs, robos a empresas, ransomware y dumps. Se mantiene al día en segundo plano y te avisa si entra una filtración nueva."
         action={
           <Link href="/pwn/signals" className={`text-sm text-gold underline-offset-4 hover:underline ${focusRing}`}>
-            Ver señales
+            Ver ciberpatrullaje
           </Link>
         }
       />
@@ -39,8 +39,8 @@ export function ForumSignalsPanel({
   return (
     <section aria-label="Señales de foros recientes" className="rounded-3xl border border-white/5 bg-bg-secondary/70 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-2xl text-white">Filtraciones de bases de datos</h2>
-        <Link href="/pwn/signals?kind=DATA" className={`text-sm text-gold underline-offset-4 hover:underline ${focusRing}`}>
+        <h2 className="font-display text-2xl text-white">Patrulla de filtraciones</h2>
+        <Link href="/pwn/signals?kind=LEAKS" className={`text-sm text-gold underline-offset-4 hover:underline ${focusRing}`}>
           Ver todas
         </Link>
       </div>
@@ -49,6 +49,7 @@ export function ForumSignalsPanel({
           <li key={item.id} className="flex flex-col gap-2 py-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
+                <BoliviaPriorityBadge active={item.isBolivia} />
                 <GovernmentPriorityBadge active={item.isGovernment} />
                 <SignalKindBadge kind={item.signalKind} />
                 {item.breachName ? (
@@ -60,6 +61,13 @@ export function ForumSignalsPanel({
                 {item.forum ? <span className="text-xs text-gray-500">{item.forum}</span> : null}
               </div>
               <p className="mt-2 text-sm font-medium text-white">{item.title}</p>
+              {item.author ? (
+                <p className="mt-1 text-xs text-gold">
+                  <Link href={`/pwn/signals?author=${encodeURIComponent(item.author)}`} className={`underline-offset-4 hover:underline ${focusRing}`}>
+                    {item.author}
+                  </Link>
+                </p>
+              ) : null}
               <time className="mt-1 block font-mono text-xs text-gray-500" dateTime={item.publishedAt ?? item.lastSeenAt ?? undefined}>
                 {formatRelative(item.publishedAt ?? item.lastSeenAt) ?? "Reciente"}
               </time>

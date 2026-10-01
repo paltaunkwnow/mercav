@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { redactEmail, redactSubject, hashSubject } from "@/lib/pwn/redaction";
+import { redactEmail, hashSubject } from "@/lib/pwn/redaction";
 import { scoreConfidence } from "@/lib/pwn/confidence-engine";
 import { scoreRisk } from "@/lib/pwn/risk-engine";
 import { hibpConnector, type HibpBreach } from "@/lib/integrations/pwn/hibp";
@@ -15,7 +15,6 @@ import {
 import { checkRateLimit, searchLimit } from "../_lib/rate-limit";
 import { ensureSource, safeDate, writeAudit } from "../_lib/persistence";
 import { openAlert } from "../_lib/alerts";
-import { sameEmail } from "../_lib/verification";
 
 const HIBP_RELIABILITY = 90;
 
@@ -46,11 +45,51 @@ function verificationOf(breach: HibpBreach): VerificationStatus {
   return breach.isVerified ? "CORROBORATED" : "UNVERIFIED";
 }
 
+async function enrichDomainBreaches(stubs: HibpBreach[]): Promise<HibpBreach[]> {
+  if (!stubs.length) return stubs;
+  const names = stubs.map((item) => item.name);
+  const rows = await prisma.pwnBreach.findMany({
+    where: { name: { in: names } },
+    orderBy: { updatedAt: "desc" },
+    select: {
+      name: true,
+      description: true,
+      publishedAt: true,
+      firstSeenAt: true,
+      lastSeenAt: true,
+      sourceUrl: true,
+      dataTypes: true,
+      claimedRecordCount: true,
+      verificationStatus: true,
+    },
+  });
+  const byName = new Map<string, (typeof rows)[number]>();
+  for (const row of rows) {
+    if (!byName.has(row.name)) byName.set(row.name, row);
+  }
+  return stubs.map((stub) => {
+    const row = byName.get(stub.name);
+    if (!row) return stub;
+    const verified = row.verificationStatus === "CONFIRMED" || row.verificationStatus === "CORROBORATED";
+    return {
+      ...stub,
+      title: stub.title || stub.name,
+      description: row.description || stub.description,
+      breachDate: row.firstSeenAt?.toISOString() ?? stub.breachDate,
+      addedDate: row.publishedAt?.toISOString() ?? stub.addedDate,
+      modifiedDate: row.lastSeenAt?.toISOString() ?? stub.modifiedDate,
+      pwnCount: row.claimedRecordCount ?? stub.pwnCount,
+      dataClasses: row.dataTypes.length ? row.dataTypes : stub.dataClasses,
+      isVerified: verified || stub.isVerified,
+      sourceUrl: row.sourceUrl ?? stub.sourceUrl,
+    };
+  });
+}
+
 /**
- * Callers without proof of ownership get only `exposed: boolean`, computed from
- * non-sensitive, non-retired, non-fabricated breaches, and nothing is stored.
- * Breach details are returned only for the caller's own account email or an
- * owned, verified monitoring target; only the latter is persisted.
+ * Anyone can consult email or domain findings. Persistence and alerts stay
+ * limited to a followed, verified monitoring target (account email or an
+ * administrator-approved extra mailbox).
  */
 export async function POST(request: NextRequest) {
   const disabled = disabledResponse();
@@ -67,10 +106,6 @@ export async function POST(request: NextRequest) {
   try {
     const parsed = requestSchema.safeParse(await request.json().catch(() => null));
     if (!parsed.success) return validationError(parsed.error.flatten());
-
-    if (!hibpConnector.isConfigured()) {
-      return NextResponse.json({ success: true, configured: false });
-    }
 
     const subject = normalized(parsed.data.type, parsed.data.query);
     const targetType = parsed.data.type.toUpperCase() as "EMAIL" | "DOMAIN";
@@ -89,54 +124,28 @@ export async function POST(request: NextRequest) {
         select: { id: true, targetHash: true },
       });
     }
-    const isAccountEmail = targetType === "EMAIL" && sameEmail(subject, sessionUser?.email);
-    const fullAccess = Boolean(verifiedTarget) || isAccountEmail;
-
-    if (targetType === "DOMAIN" && !verifiedTarget) {
-      if (!sessionUser) {
-        return NextResponse.json(
-          { success: false, error: "Autenticación requerida para consultar dominios" },
-          { status: 401 },
-        );
-      }
-      await writeAudit({
-        actorId: sessionUser.id,
-        action: "EXPOSURE_SEARCH_DENIED",
-        targetType: "DOMAIN",
-        metadata: { provider: "HIBP", resultCategory: "DENIED" },
-      });
-      return NextResponse.json(
-        {
-          success: false,
-          error: "El dominio debe ser un objetivo de monitoreo verificado",
-        },
-        { status: 403 },
-      );
-    }
 
     const result = await hibpConnector.search({ type: parsed.data.type, account: subject });
     if (!result.configured) {
+      if (parsed.data.type === "email") {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "La consulta por correo necesita la integración HIBP. Un dominio sí se puede consultar con el catálogo público, sin demostrar que te pertenece.",
+          },
+          { status: 400 },
+        );
+      }
       return NextResponse.json({ success: true, configured: false });
     }
 
-    const visible = fullAccess
-      ? result.data
-      : result.data.filter((breach) => !breach.isSensitive && !breach.isRetired);
+    const findings =
+      parsed.data.type === "domain" ? await enrichDomainBreaches(result.data) : result.data;
+    const visible = findings;
     const exposed = visible.some((breach) => !breach.isFabricated);
 
-    if (!fullAccess) {
-      if (sessionUser) {
-        await writeAudit({
-          actorId: sessionUser.id,
-          action: "EXPOSURE_SEARCH",
-          targetType,
-          metadata: { provider: "HIBP", scope: "boolean" },
-        });
-      }
-      return NextResponse.json({ success: true, configured: true, scope: "boolean", exposed });
-    }
-
-    const subjectHint = targetType === "EMAIL" ? redactEmail(subject) : redactSubject(subject);
+    const subjectHint = targetType === "EMAIL" ? redactEmail(subject) : subject;
     const source = verifiedTarget
       ? await ensureSource({
           name: "HIBP",
@@ -252,9 +261,11 @@ export async function POST(request: NextRequest) {
           id: breachId,
           name: breach.name,
           title: breach.title,
+          description: breach.description,
           source: "HIBP",
           sourceUrl: breach.sourceUrl,
           dataTypes: breach.dataClasses,
+          claimedRecordCount: breach.pwnCount,
           firstSeenAt: safeDate(breach.breachDate),
           isSensitive: breach.isSensitive,
           isRetired: breach.isRetired,

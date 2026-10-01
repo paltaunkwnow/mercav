@@ -38,6 +38,7 @@ import { BadgesTab } from "@/components/admin/BadgesTab";
 import { FinanceTab } from "@/components/admin/FinanceTab";
 import { UsersAdminTab } from "@/components/admin/UsersAdminTab";
 import { ReportsTab } from "@/components/admin/ReportsTab";
+import { UnusualTrafficTab } from "@/components/admin/UnusualTrafficTab";
 
 export default async function AdminDashboardPage({ searchParams }: { searchParams: { tab?: string } }) {
   const session = await getServerSession(authOptions);
@@ -177,6 +178,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
           <TabLink icon={DollarSign} label="Finanzas" id="finance" active={activeTab === "finance"} />
           <TabLink icon={Handshake} label="Inversores" id="investors" active={activeTab === "investors"} />
           <TabLink icon={AlertTriangle} label="Reportes" id="reports" active={activeTab === "reports"} />
+          <TabLink icon={ShieldAlert} label="Tráfico inusual" id="traffic" active={activeTab === "traffic"} />
           <TabLink icon={Medal} label="Insignias" id="badges" active={activeTab === "badges"} />
           <div className="pt-10">
             <TabLink icon={Settings} label="Configuración" id="settings" active={activeTab === "settings"} />
@@ -210,6 +212,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
               {activeTab === "finance" && "Auditoría Financiera"}
               {activeTab === "investors" && "Registro de Inversores"}
               {activeTab === "reports" && "Centro de Soporte"}
+              {activeTab === "traffic" && "Tráfico inusual"}
               {activeTab === "badges" && "Sistema de Insignias"}
               {activeTab === "settings" && "Ajustes del Sistema"}
               <span className="bg-gold/10 text-gold text-[10px] px-2 py-0.5 rounded-md font-mono border border-gold/20">v2.6.5</span>
@@ -259,6 +262,15 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
             }, 
             orderBy: { createdAt: 'desc' } 
           })))} />}
+          {activeTab === "traffic" && (
+            <UnusualTrafficTab
+              events={JSON.parse(JSON.stringify(await prisma.unusualTrafficEvent.findMany({
+                take: 200,
+                orderBy: { createdAt: "desc" },
+                include: { user: { select: { id: true, email: true, username: true, name: true } } },
+              })))}
+            />
+          )}
           {activeTab === "badges" && <BadgesTab />}
           {activeTab === "settings" && <SettingsTab />}
         </div>

@@ -82,9 +82,9 @@ export default async function KosherHome() {
             Todo lo que necesitás para comer, rezar y encontrarte, en un solo lugar.
           </h2>
         </KosherReveal>
-        <ol className="mt-12 grid gap-px overflow-hidden rounded-[2rem] border border-border bg-border md:grid-cols-2 lg:grid-cols-3">
+        <ol className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {pillars.map((p, i) => (
-            <li key={p.title} className="bg-bg-secondary p-7 md:p-8">
+            <li key={p.title} className="rounded-[2rem] border border-white/5 bg-bg-secondary/70 p-7 backdrop-blur-xl md:p-8">
               <KosherReveal delay={i * 0.05}>
                 <span className="font-mono text-xs text-gold">{String(i + 1).padStart(2, "0")}</span>
                 <h3 className="mt-4 font-display text-xl font-semibold text-[var(--text-primary)]">{p.title}</h3>

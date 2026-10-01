@@ -1,3 +1,5 @@
+import { explainHibpBreach, translateDataClasses } from "@/lib/pwn/breach-copy";
+
 /**
  * Client for the Mercav Pwn routes under app/api/pwn.
  *
@@ -21,6 +23,9 @@ export type BreachView = {
   id: string;
   name: string;
   description: string | null;
+  descriptionDetail: string | null;
+  descriptionImplication: string | null;
+  descriptionLinks: { href: string; label: string }[];
   source: string | null;
   sourceUrl: string | null;
   verificationStatus: string | null;
@@ -52,6 +57,9 @@ export type ExposureFinding = {
   subjectHint: string | null;
   name: string;
   title: string;
+  description: string | null;
+  descriptionDetail: string | null;
+  descriptionImplication: string | null;
   source: string | null;
   sourceUrl: string | null;
   dataTypes: string[];
@@ -80,7 +88,7 @@ export type VulnerabilityView = {
   references: { label: string; href: string }[];
 };
 
-export type ForumSignalKind = "DATABASE" | "CREDENTIALS" | "MIXED" | "OTHER";
+export type ForumSignalKind = "DATABASE" | "STEALER" | "CORPORATE" | "CREDENTIALS" | "MIXED" | "OTHER";
 
 export type ForumSignalStats = {
   total: number;
@@ -88,7 +96,10 @@ export type ForumSignalStats = {
   mixed: number;
   credentials: number;
   other: number;
+  stealer: number;
+  corporate: number;
   government: number;
+  bolivia: number;
   data: number;
 };
 
@@ -102,6 +113,7 @@ export type ForumSignalView = {
   signalKind: ForumSignalKind;
   priorityRank: number;
   isGovernment: boolean;
+  isBolivia: boolean;
   breachName: string | null;
   publishedAt: string | null;
   lastSeenAt: string | null;
@@ -117,13 +129,17 @@ export type MonitoringTarget = {
   targetLookup: string | null;
   active: boolean;
   verificationStatus: string;
+  authorizationRequestedAt: string | null;
+  authorizationMessage: string | null;
   verifiedAt: string | null;
   createdAt: string | null;
 };
 
-export type TargetVerification =
-  | { method: "DNS_TXT"; recordName: string; recordValue: string }
-  | { method: "ACCOUNT_EMAIL_ONLY"; message: string };
+export type TargetVerification = { method: "ADMIN_AUTHORIZATION"; message: string };
+
+export type MonitorAuthRequest = MonitoringTarget & {
+  owner: { id: string | null; name: string | null; email: string | null; username: string | null };
+};
 
 export type ReportView = {
   id: string;
@@ -252,19 +268,33 @@ export function readPagination(body: unknown): Pagination | null {
 
 function mapBreach(item: unknown, index: number): BreachView {
   const record = asRecord(item);
+  const name = asString(record?.name, 160) ?? "Filtración sin nombre";
+  const dataTypesRaw = stringList(record?.dataTypes);
+  const claimedRecordCount = asNumber(record?.claimedRecordCount);
+  const publishedAt = asString(record?.publishedAt, 40);
+  const rawDescription = typeof record?.description === "string" ? record.description.slice(0, 8_000) : null;
+  const copy = explainHibpBreach(rawDescription, {
+    name,
+    recordCount: claimedRecordCount,
+    dataTypes: dataTypesRaw,
+    publishedAt: publishedAt ?? asString(record?.discoveredAt, 40),
+  });
   return {
     id: asString(record?.id, 80) ?? `breach-${index}`,
-    name: asString(record?.name, 160) ?? "Filtración sin nombre",
-    description: asString(record?.description, 500),
+    name,
+    description: copy.summary,
+    descriptionDetail: copy.detail,
+    descriptionImplication: copy.implication,
+    descriptionLinks: copy.links,
     source: sourceName(record?.source),
     sourceUrl: safeHttpUrl(record?.sourceUrl),
     verificationStatus: asString(record?.verificationStatus, 40),
     confidenceScore: asNumber(record?.confidenceScore),
     severity: asString(record?.severity, 40),
-    dataTypes: stringList(record?.dataTypes),
-    claimedRecordCount: asNumber(record?.claimedRecordCount),
+    dataTypes: translateDataClasses(dataTypesRaw),
+    claimedRecordCount,
     discoveredAt: asString(record?.discoveredAt, 40),
-    publishedAt: asString(record?.publishedAt, 40),
+    publishedAt,
     firstSeenAt: asString(record?.firstSeenAt, 40),
   };
 }
@@ -306,15 +336,27 @@ export function readExposure(body: unknown): ExposureResult | null {
     const row = asRecord(item);
     const breach = asRecord(row?.breach);
     const name = asString(breach?.name, 160) ?? "Filtración sin nombre";
+    const dataTypes = translateDataClasses(stringList(breach?.dataTypes));
+    const firstSeenAt = asString(breach?.firstSeenAt, 40);
+    const rawDescription = typeof breach?.description === "string" ? breach.description.slice(0, 8_000) : null;
+    const copy = explainHibpBreach(rawDescription, {
+      name,
+      recordCount: asNumber(breach?.claimedRecordCount),
+      dataTypes: stringList(breach?.dataTypes),
+      publishedAt: firstSeenAt,
+    });
     return {
       key: asString(row?.id, 80) ?? `${name}-${index}`,
       subjectHint: asString(row?.subjectHint, 180),
       name,
       title: asString(breach?.title, 160) ?? name,
+      description: copy.summary,
+      descriptionDetail: copy.detail,
+      descriptionImplication: copy.implication,
       source: sourceName(breach?.source),
       sourceUrl: safeHttpUrl(breach?.sourceUrl),
-      dataTypes: stringList(breach?.dataTypes),
-      firstSeenAt: asString(breach?.firstSeenAt, 40),
+      dataTypes,
+      firstSeenAt,
       isSensitive: breach?.isSensitive === true,
       isRetired: breach?.isRetired === true,
       verificationStatus: asString(breach?.verificationStatus, 40),
@@ -409,6 +451,8 @@ function mapTarget(item: unknown): MonitoringTarget | null {
     targetLookup: asString(record.targetLookup, 253),
     active: record.active === true,
     verificationStatus: asString(record.verificationStatus, 20) ?? "PENDING",
+    authorizationRequestedAt: asString(record.authorizationRequestedAt, 40),
+    authorizationMessage: asString(record.authorizationMessage, 280),
     verifiedAt: asString(record.verifiedAt, 40),
     createdAt: asString(record.createdAt, 40),
   };
@@ -424,14 +468,35 @@ export function readCreatedTarget(body: unknown): { target: MonitoringTarget | n
   const data = asRecord(dataOf(body));
   const raw = asRecord(data?.verification);
   let verification: TargetVerification | null = null;
-  if (raw?.method === "DNS_TXT") {
-    const recordName = typeof raw.recordName === "string" ? raw.recordName : null;
-    const recordValue = typeof raw.recordValue === "string" ? raw.recordValue : null;
-    if (recordName && recordValue) verification = { method: "DNS_TXT", recordName, recordValue };
-  } else if (raw?.method === "ACCOUNT_EMAIL_ONLY") {
-    verification = { method: "ACCOUNT_EMAIL_ONLY", message: asString(raw.message, 300) ?? "" };
+  if (raw?.method === "ADMIN_AUTHORIZATION") {
+    verification = {
+      method: "ADMIN_AUTHORIZATION",
+      message: asString(raw.message, 400) ?? "Queda pendiente de consulta hasta que un administrador lo autorice.",
+    };
   }
   return { target: mapTarget(data), verification };
+}
+
+export function readAuthQueue(body: unknown): MonitorAuthRequest[] {
+  const data = dataOf(body);
+  if (!Array.isArray(data)) return [];
+  return data.flatMap((item) => {
+    const target = mapTarget(item);
+    if (!target) return [];
+    const record = asRecord(item);
+    const owner = asRecord(record?.owner);
+    return [
+      {
+        ...target,
+        owner: {
+          id: asString(owner?.id, 80),
+          name: asString(owner?.name, 120),
+          email: asString(owner?.email, 254),
+          username: asString(owner?.username, 80),
+        },
+      },
+    ];
+  });
 }
 
 export function readVerifiedTarget(body: unknown): { id: string; verificationStatus: string; verifiedAt: string | null } | null {
@@ -485,7 +550,13 @@ export function readForumSignals(body: unknown): {
     if (!id || !title || !link) return [];
     const kindRaw = asString(row?.signalKind, 20)?.toUpperCase();
     const signalKind: ForumSignalKind =
-      kindRaw === "DATABASE" || kindRaw === "CREDENTIALS" || kindRaw === "MIXED" ? kindRaw : "OTHER";
+      kindRaw === "DATABASE" ||
+      kindRaw === "STEALER" ||
+      kindRaw === "CORPORATE" ||
+      kindRaw === "CREDENTIALS" ||
+      kindRaw === "MIXED"
+        ? kindRaw
+        : "OTHER";
     const priorityRank = Number(row?.priorityRank ?? 0) || 0;
     return [
       {
@@ -498,6 +569,7 @@ export function readForumSignals(body: unknown): {
         signalKind,
         priorityRank,
         isGovernment: row?.isGovernment === true,
+        isBolivia: row?.isBolivia === true,
         breachName: asString(row?.breachName, 120),
         publishedAt: asString(row?.publishedAt, 40),
         lastSeenAt: asString(row?.lastSeenAt, 40),
@@ -518,7 +590,10 @@ export function readForumSignals(body: unknown): {
           mixed: Number(statsRaw.mixed ?? 0) || 0,
           credentials: Number(statsRaw.credentials ?? 0) || 0,
           other: Number(statsRaw.other ?? 0) || 0,
+          stealer: Number(statsRaw.stealer ?? 0) || 0,
+          corporate: Number(statsRaw.corporate ?? 0) || 0,
           government: Number(statsRaw.government ?? 0) || 0,
+          bolivia: Number(statsRaw.bolivia ?? 0) || 0,
           data: Number(statsRaw.data ?? 0) || 0,
         }
       : null,
@@ -528,6 +603,37 @@ export function readForumSignals(body: unknown): {
           lastStatus: asString(syncRaw.lastStatus, 40),
         }
       : null,
+  };
+}
+
+export function readForumSync(body: unknown): {
+  skipped: boolean;
+  skipReason: "fresh" | "in_flight" | null;
+  created: number;
+  freshCount: number;
+  freshSamples: { title: string; isBolivia: boolean }[];
+  notified: boolean;
+} | null {
+  const data = asRecord(asRecord(body)?.data) ?? asRecord(body);
+  if (!data) return null;
+  const samplesRaw = Array.isArray(data.freshSamples)
+    ? data.freshSamples
+    : Array.isArray(data.newItems)
+      ? data.newItems
+      : [];
+  const skipReason = data.skipReason === "fresh" || data.skipReason === "in_flight" ? data.skipReason : null;
+  return {
+    skipped: data.skipped === true,
+    skipReason,
+    created: Number(data.created ?? 0) || 0,
+    freshCount: Number(data.freshCount ?? data.created ?? 0) || 0,
+    notified: data.notified === true,
+    freshSamples: samplesRaw.flatMap((item) => {
+      const row = asRecord(item);
+      const title = asString(row?.title, 500);
+      if (!title) return [];
+      return [{ title, isBolivia: row?.isBolivia === true }];
+    }),
   };
 }
 

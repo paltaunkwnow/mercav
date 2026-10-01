@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { scoreConfidence } from "@/lib/pwn/confidence-engine";
 import { scoreRisk } from "@/lib/pwn/risk-engine";
-import { hibpConnector } from "@/lib/integrations/pwn/hibp";
+import { hibpConnector, fetchHibpBreachCatalog } from "@/lib/integrations/pwn/hibp";
 import { fetchKevCatalog } from "@/lib/integrations/pwn/cisa-kev";
 import { ensureSource, safeDate } from "./persistence";
 import { openAlert } from "./alerts";
@@ -9,8 +9,8 @@ import { openAlert } from "./alerts";
 const HIBP_RELIABILITY = 90;
 
 /**
- * Re-checks verified domains the owner registered. Emails are not stored, so
- * they are alerted only when that person searches them, not from this job.
+ * Re-checks verified domains the owner follows. Emails stay hash-only, so
+ * they alert when the owner searches them or when an extra mailbox is authorized.
  */
 export async function runDomainCycle(limit = 20) {
   const targets = await prisma.pwnMonitoringTarget.findMany({
@@ -138,6 +138,64 @@ export async function runDomainCycle(limit = 20) {
   }
 
   return { scanned, alertsCreated, configured: hibpConnector.isConfigured() };
+}
+
+/** Public HIBP catalog — no API key. Fills /pwn/breaches so the list is not empty. */
+export async function syncHibpCatalog(limit = 2500) {
+  const catalog = await fetchHibpBreachCatalog();
+  if (!catalog.configured) return { configured: false, upserted: 0 };
+  const source = await ensureSource({
+    name: "HIBP",
+    sourceType: "BREACH_API",
+    historicalReliability: HIBP_RELIABILITY,
+    verificationMethod: "Catálogo público HIBP",
+  });
+  const ranked = [...catalog.data]
+    .filter((breach) => !breach.isFabricated)
+    .sort((a, b) => {
+      const da = Date.parse(a.addedDate ?? a.breachDate ?? "") || 0;
+      const db = Date.parse(b.addedDate ?? b.breachDate ?? "") || 0;
+      return db - da;
+    })
+    .slice(0, limit);
+  const existing = await prisma.pwnBreach.findMany({
+    where: { sourceId: source.id, name: { in: ranked.map((breach) => breach.name) } },
+    select: { name: true },
+  });
+  const have = new Set(existing.map((row) => row.name));
+  const now = new Date();
+  const fresh = ranked.filter((breach) => !have.has(breach.name)).map((breach) => {
+    const verificationStatus = breach.isVerified ? "CORROBORATED" : "UNVERIFIED";
+    const confidence = scoreConfidence({
+      sourceReliability: source.historicalReliability,
+      verificationStatus,
+      corroboratingSources: 0,
+    });
+    const risk = scoreRisk({
+      severity: "MEDIUM",
+      confidence: confidence.score,
+      exposureKind: "DOMAIN",
+    });
+    return {
+      name: breach.name,
+      description: breach.description ?? breach.title,
+      publishedAt: safeDate(breach.addedDate),
+      firstSeenAt: safeDate(breach.breachDate),
+      lastSeenAt: safeDate(breach.modifiedDate) ?? now,
+      discoveredAt: safeDate(breach.addedDate),
+      sourceUrl: breach.sourceUrl,
+      verificationStatus,
+      confidenceScore: confidence.score,
+      claimedRecordCount: breach.pwnCount == null ? null : Math.min(Math.max(0, breach.pwnCount), 2_147_483_647),
+      dataTypes: breach.dataClasses,
+      severity: risk.level,
+      sourceId: source.id,
+    };
+  });
+  if (fresh.length) {
+    await prisma.pwnBreach.createMany({ data: fresh, skipDuplicates: true });
+  }
+  return { configured: true, upserted: fresh.length };
 }
 
 /** Stores the public CISA KEV catalog so vulnerability lookup does not depend on a live fetch. */

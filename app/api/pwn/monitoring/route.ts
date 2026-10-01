@@ -11,7 +11,8 @@ import {
 } from "../_lib/http";
 import { checkRateLimit } from "../_lib/rate-limit";
 import { writeAudit } from "../_lib/persistence";
-import { DNS_TXT_PREFIX, generateVerificationToken, sameEmail } from "../_lib/verification";
+import { needsAdminAuthorization, pendingConsultationCopy } from "@/lib/pwn/monitor-authorization";
+import { sameEmail } from "../_lib/verification";
 
 const createSchema = z.discriminatedUnion("type", [
   z
@@ -49,6 +50,14 @@ export async function GET(request: NextRequest) {
   if (limited) return limited;
 
   try {
+    await prisma.pwnMonitoringTarget.updateMany({
+      where: { userId: user.id, targetType: "DOMAIN", verifiedAt: null },
+      data: {
+        verificationStatus: "VERIFIED",
+        verifiedAt: new Date(),
+        verificationTokenHash: null,
+      },
+    });
     const data = await prisma.pwnMonitoringTarget.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
@@ -60,6 +69,8 @@ export async function GET(request: NextRequest) {
         targetLookup: true,
         active: true,
         verificationStatus: true,
+        authorizationRequestedAt: true,
+        authorizationMessage: true,
         verifiedAt: true,
         createdAt: true,
         updatedAt: true,
@@ -108,28 +119,27 @@ export async function POST(request: NextRequest) {
     const targetType = parsed.data.type.toUpperCase() as "EMAIL" | "DOMAIN";
     const existing = await prisma.pwnMonitoringTarget.findFirst({
       where: { userId: user.id, targetType, targetHash },
-      select: { id: true, verifiedAt: true },
+      select: { id: true, verifiedAt: true, verificationStatus: true },
     });
 
     const isAccountEmail = targetType === "EMAIL" && sameEmail(query, user.email);
-    const alreadyVerified = Boolean(existing?.verifiedAt);
-    // A fresh token is issued on every (re)registration of an unverified domain
-    // because only its hash is kept.
-    const dnsToken =
-      targetType === "DOMAIN" && !alreadyVerified ? generateVerificationToken() : null;
+    const autoVerify = !needsAdminAuthorization(targetType, isAccountEmail);
+    const alreadyVerified = Boolean(existing?.verifiedAt) || existing?.verificationStatus === "VERIFIED";
     const verification = alreadyVerified
       ? {}
-      : isAccountEmail
+      : autoVerify
         ? {
             verificationStatus: "VERIFIED" as const,
             verifiedAt: new Date(),
             verificationTokenHash: null,
           }
-        : {
-            verificationStatus: "PENDING" as const,
-            verifiedAt: null,
-            verificationTokenHash: dnsToken?.tokenHash ?? null,
-          };
+        : existing
+          ? {}
+          : {
+              verificationStatus: "PENDING" as const,
+              verifiedAt: null,
+              verificationTokenHash: null,
+            };
 
     const target = existing
       ? await prisma.pwnMonitoringTarget.update({
@@ -162,6 +172,7 @@ export async function POST(request: NextRequest) {
       targetId: target.id,
       metadata: { targetHash, verificationStatus: target.verificationStatus },
     });
+    const pending = pendingConsultationCopy(target.targetLookup ?? target.targetDisplay);
     return NextResponse.json(
       {
         success: true,
@@ -173,22 +184,17 @@ export async function POST(request: NextRequest) {
           targetLookup: target.targetLookup,
           active: target.active,
           verificationStatus: target.verificationStatus,
+          authorizationRequestedAt: target.authorizationRequestedAt,
+          authorizationMessage: target.authorizationMessage,
           verifiedAt: target.verifiedAt,
           createdAt: target.createdAt,
           verification:
             target.verificationStatus === "VERIFIED"
               ? null
-              : dnsToken
-                ? {
-                    method: "DNS_TXT",
-                    recordName: query,
-                    recordValue: `${DNS_TXT_PREFIX}${dnsToken.token}`,
-                  }
-                : {
-                    method: "ACCOUNT_EMAIL_ONLY",
-                    message:
-                      "Solo se puede verificar el correo de tu propia cuenta. Este objetivo queda pendiente y no se consultará.",
-                  },
+              : {
+                  method: "ADMIN_AUTHORIZATION",
+                  message: pending.body,
+                },
         },
       },
       { status: existing ? 200 : 201 },

@@ -204,7 +204,7 @@ export default function OrganizationsPage() {
           description="Los objetivos de monitoreo aparecen aquí cuando se registran con una organización."
           action={
             <Button asChild className={`rounded-xl bg-gold font-semibold text-black hover:bg-gold-light ${focusRing}`}>
-              <Link href="/pwn/monitor">Ir a monitoreo</Link>
+              <Link href="/pwn/exposure">Ir a exposición</Link>
             </Button>
           }
         />

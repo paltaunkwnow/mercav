@@ -9,6 +9,7 @@ import {
   validationError,
 } from "../_lib/http";
 import { checkRateLimit } from "../_lib/rate-limit";
+import { syncHibpCatalog } from "../_lib/cycle";
 
 const querySchema = z.object({
   page: z.coerce.number().int().min(1).max(10_000).default(1),
@@ -34,6 +35,10 @@ export async function GET(request: NextRequest) {
     );
     if (!parsed.success) return validationError(parsed.error.flatten());
     const { page, limit } = parsed.data;
+    const existingTotal = await prisma.pwnBreach.count();
+    if (existingTotal < 800) {
+      await syncHibpCatalog().catch(() => ({ configured: false, upserted: 0 }));
+    }
 
     const [data, total] = await Promise.all([
       prisma.pwnBreach.findMany({
@@ -52,7 +57,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data,
-      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+      pagination: { page, limit, total, pages: Math.max(1, Math.ceil(total / limit)) },
     });
   } catch (error) {
     return internalError("breaches list", error);

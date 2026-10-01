@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { PWN_FEED_SOURCE_NAMES } from "@/lib/integrations/pwn/feed-catalog";
-import { isGovernmentRelatedSignal } from "@/lib/integrations/pwn/forum-classifier";
+import { PWN_FEED_SOURCE_NAMES, resolveEnabledFeedSources } from "@/lib/integrations/pwn/feed-catalog";
+import { isBoliviaRelatedSignal, isGovernmentRelatedSignal } from "@/lib/integrations/pwn/forum-classifier";
 import { deriveSignalFields, domainMentionedInText, matchBreachNameInTitle } from "@/lib/integrations/pwn/forum-signal-utils";
 import { openAlert } from "./alerts";
 
@@ -9,8 +9,7 @@ export async function loadEnabledForumSourceNames(): Promise<Set<string>> {
     where: { name: { in: [...PWN_FEED_SOURCE_NAMES] } },
     select: { name: true, enabled: true },
   });
-  if (rows.length === 0) return new Set(PWN_FEED_SOURCE_NAMES);
-  return new Set(rows.filter((r) => r.enabled).map((r) => r.name));
+  return resolveEnabledFeedSources(PWN_FEED_SOURCE_NAMES, rows);
 }
 
 async function breachNameIndex(): Promise<Map<string, string>> {
@@ -19,7 +18,7 @@ async function breachNameIndex(): Promise<Map<string, string>> {
   const breaches = await prisma.pwnBreach.findMany({
     where: { sourceId: hibp.id },
     select: { id: true, name: true },
-    take: 800,
+    take: 5000,
     orderBy: { updatedAt: "desc" },
   });
   const map = new Map<string, string>();
@@ -144,12 +143,14 @@ export async function enrichAfterForumSync(processedSignalIds: string[]): Promis
 }
 
 export async function forumSignalStats(where: Record<string, unknown> = {}) {
-  const [total, database, mixed, credentials, other, rows] = await Promise.all([
+  const [total, database, mixed, credentials, other, stealer, corporate, rows] = await Promise.all([
     prisma.pwnForumSignal.count({ where }),
     prisma.pwnForumSignal.count({ where: { ...where, signalKind: "DATABASE" } }),
     prisma.pwnForumSignal.count({ where: { ...where, signalKind: "MIXED" } }),
     prisma.pwnForumSignal.count({ where: { ...where, signalKind: "CREDENTIALS" } }),
     prisma.pwnForumSignal.count({ where: { ...where, signalKind: "OTHER" } }),
+    prisma.pwnForumSignal.count({ where: { ...where, signalKind: "STEALER" } }),
+    prisma.pwnForumSignal.count({ where: { ...where, signalKind: "CORPORATE" } }),
     prisma.pwnForumSignal.findMany({
       where,
       select: { title: true, category: true, forum: true },
@@ -157,9 +158,22 @@ export async function forumSignalStats(where: Record<string, unknown> = {}) {
     }),
   ]);
   let government = 0;
+  let bolivia = 0;
   for (const row of rows) {
     if (isGovernmentRelatedSignal(row.title, row.category, row.forum)) government += 1;
+    if (isBoliviaRelatedSignal(row.title, row.category, row.forum)) bolivia += 1;
   }
-  return { total, database, mixed, credentials, other, government, data: database + mixed };
+  return {
+    total,
+    database,
+    mixed,
+    credentials,
+    other,
+    stealer,
+    corporate,
+    government,
+    bolivia,
+    data: database + mixed + corporate,
+  };
 }
 // creado por pato dev y askforvini

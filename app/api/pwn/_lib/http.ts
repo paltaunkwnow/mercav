@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { PwnProviderError } from "@/lib/integrations/pwn";
 
 export type PwnSessionUser = {
@@ -18,16 +19,85 @@ export function disabledResponse(): NextResponse | null {
 export async function getPwnSessionUser(): Promise<PwnSessionUser | null> {
   const session = await getServerSession(authOptions);
   const user = session?.user as
-    | { id?: unknown; email?: string | null; roles?: unknown }
+    | { id?: unknown; email?: string | null; name?: string | null; roles?: unknown }
     | undefined;
-  if (!user || typeof user.id !== "string") return null;
+  if (!user) return null;
+  const sessionId = typeof user.id === "string" ? user.id : "";
+  const email = typeof user.email === "string" ? user.email.trim().toLowerCase() : "";
+  const name = typeof user.name === "string" ? user.name : null;
+  if (!sessionId && !email) return null;
+
+  const resolved = await ensureDbUser({ sessionId, email, name });
+  if (!resolved) return null;
+
+  const jwtRoles = Array.isArray(user.roles)
+    ? user.roles.filter((role): role is string => typeof role === "string")
+    : [];
+  const dbRoles = await prisma.userRole.findMany({
+    where: { userId: resolved.id },
+    select: { role: true },
+  });
+  const roles = [...new Set([...jwtRoles, ...dbRoles.map((row) => row.role)])];
+
   return {
-    id: user.id,
-    email: user.email,
-    roles: Array.isArray(user.roles)
-      ? user.roles.filter((role): role is string => typeof role === "string")
-      : [],
+    id: resolved.id,
+    email: resolved.email,
+    roles,
   };
+}
+
+async function ensureDbUser(input: {
+  sessionId: string;
+  email: string;
+  name: string | null;
+}): Promise<{ id: string; email: string } | null> {
+  if (input.email) {
+    const byEmail = await prisma.user.findUnique({
+      where: { email: input.email },
+      select: { id: true, email: true },
+    });
+    if (byEmail) return byEmail;
+  }
+  if (input.sessionId) {
+    const byId = await prisma.user.findUnique({
+      where: { id: input.sessionId },
+      select: { id: true, email: true },
+    });
+    if (byId) return byId;
+  }
+  if (!input.email) return null;
+
+  const base =
+    input.email
+      .split("@")[0]
+      ?.toLowerCase()
+      .replace(/[^a-z0-9]/g, "") || "user";
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const username = `${base}${Math.floor(1000 + Math.random() * 9000)}`;
+    try {
+      return await prisma.user.create({
+        data: {
+          ...(looksLikeUuid(input.sessionId) ? { id: input.sessionId } : {}),
+          email: input.email,
+          name: input.name?.trim() || "Usuario",
+          username,
+          isVerified: true,
+        },
+        select: { id: true, email: true },
+      });
+    } catch {
+      const raced = await prisma.user.findUnique({
+        where: { email: input.email },
+        select: { id: true, email: true },
+      });
+      if (raced) return raced;
+    }
+  }
+  return null;
+}
+
+function looksLikeUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 export function unauthorized(): NextResponse {

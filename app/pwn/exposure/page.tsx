@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   countLocalSuffix,
@@ -16,8 +15,10 @@ import { SourceBadge } from "@/components/pwn/SourceBadge";
 import { RiskBadge, VerificationBadge, verificationMeta } from "@/components/pwn/RiskBadge";
 import { DisabledState, EmptyState, ErrorState, LoadingState } from "@/components/pwn/EmptyState";
 import { FadeIn } from "@/components/pwn/PwnShell";
+import { Button } from "@/components/ui/button";
 import { NextSteps } from "@/components/pwn/NextSteps";
 import { RecentLookups, rememberLookup } from "@/components/pwn/RecentLookups";
+import { WatchTargets } from "@/components/pwn/WatchTargets";
 import { focusRing, formatScore, formatWhen, pwnPanelClass } from "@/components/pwn/format";
 
 type QueryType = "email" | "domain";
@@ -27,8 +28,6 @@ type ExposureState =
   | { kind: "loading" }
   | { kind: "disabled" }
   | { kind: "error"; message: string }
-  | { kind: "domainLocked"; signedIn: boolean; message: string }
-  | { kind: "boolean"; exposed: boolean }
   | { kind: "empty" }
   | { kind: "ready"; exposed: boolean; persisted: boolean; findings: ExposureFinding[] };
 
@@ -60,6 +59,10 @@ export default function ExposurePage() {
   const [exposure, setExposure] = useState<ExposureState>({ kind: "idle" });
   const [password, setPassword] = useState("");
   const [passwordState, setPasswordState] = useState<PasswordState>({ kind: "idle" });
+  const [watchTick, setWatchTick] = useState(0);
+  const [watchSeed, setWatchSeed] = useState<{ type: QueryType; query: string } | null>(null);
+  const [followBusy, setFollowBusy] = useState(false);
+  const [followMessage, setFollowMessage] = useState<string | null>(null);
 
   async function runSearch(nextType: QueryType, raw: string) {
     const value = nextType === "email" ? raw.trim().toLowerCase() : normalizeDomain(raw);
@@ -80,10 +83,7 @@ export default function ExposurePage() {
     if (!response.ok) {
       if (response.reason === "aborted") return;
       if (response.reason === "disabled") setExposure({ kind: "disabled" });
-      else if (nextType === "domain" && (response.reason === "unauthorized" || response.reason === "forbidden")) {
-        rememberLookup(nextType, value);
-        setExposure({ kind: "domainLocked", signedIn: response.reason === "forbidden", message: response.message });
-      } else if (response.reason === "unauthorized") {
+      else if (response.reason === "unauthorized") {
         setExposure({ kind: "error", message: "Inicia sesión para hacer esta consulta." });
       } else setExposure({ kind: "error", message: response.message });
       return;
@@ -94,12 +94,13 @@ export default function ExposurePage() {
       return;
     }
     rememberLookup(nextType, value);
-    if (result.scope === "boolean") {
-      setExposure({ kind: "boolean", exposed: result.exposed });
+    setWatchSeed({ type: nextType, query: value });
+    if (result.scope !== "full") {
+      setExposure(result.exposed ? { kind: "ready", exposed: true, persisted: false, findings: [] } : { kind: "empty" });
       return;
     }
     setExposure(
-      result.findings.length
+      result.findings.length || result.exposed
         ? { kind: "ready", exposed: result.exposed, persisted: result.persisted, findings: result.findings }
         : { kind: "empty" },
     );
@@ -172,12 +173,29 @@ export default function ExposurePage() {
     }
   }
 
+  async function followCurrent() {
+    const value = type === "email" ? query.trim().toLowerCase() : normalizeDomain(query);
+    setFollowMessage(null);
+    setFollowBusy(true);
+    const response = await pwnFetch("/api/pwn/monitoring", {
+      method: "POST",
+      body: JSON.stringify({ type, query: value }),
+    });
+    setFollowBusy(false);
+    if (!response.ok) {
+      setFollowMessage(response.reason === "unauthorized" ? "Inicia sesión para seguir este objetivo." : response.message);
+      return;
+    }
+    setFollowMessage("Añadido a seguimiento.");
+    setWatchTick((current) => current + 1);
+  }
+
   return (
     <FadeIn className="space-y-8">
       <header className="max-w-2xl">
         <h1 className="font-display text-4xl font-black tracking-tight text-white md:text-5xl">Exposición</h1>
         <p className="mt-3 text-sm leading-relaxed text-gray-400">
-          Consulta un correo o un dominio. Los resultados son metadatos atribuidos a la fuente: no incluyen contraseñas ni volcados.
+          Consulta un correo o un dominio y, si quieres alertas, síguelo en esta misma página. No hace falta demostrar que te pertenece para ver los casos. Solo un correo distinto al de tu cuenta pide autorización para el patrullaje.
         </p>
       </header>
 
@@ -220,9 +238,18 @@ export default function ExposurePage() {
         />
       </section>
 
-      <ExposureResults state={exposure} queryType={type} onRetry={() => void runSearch(type, query)} />
+      <ExposureResults
+        state={exposure}
+        queryType={type}
+        onRetry={() => void runSearch(type, query)}
+        onFollow={() => void followCurrent()}
+        followBusy={followBusy}
+        followMessage={followMessage}
+      />
 
       <RecentLookups />
+
+      <WatchTargets refresh={watchTick} seed={watchSeed} />
 
       <section className={pwnPanelClass} aria-labelledby="password-check-title">
         <h2 id="password-check-title" className="font-display text-2xl text-white">
@@ -254,53 +281,38 @@ export default function ExposurePage() {
   );
 }
 
-function ExposureResults({ state, queryType, onRetry }: { state: ExposureState; queryType: QueryType; onRetry: () => void }) {
+function ExposureResults({
+  state,
+  queryType,
+  onRetry,
+  onFollow,
+  followBusy,
+  followMessage,
+}: {
+  state: ExposureState;
+  queryType: QueryType;
+  onRetry: () => void;
+  onFollow: () => void;
+  followBusy: boolean;
+  followMessage: string | null;
+}) {
   if (state.kind === "idle") return null;
   if (state.kind === "loading") return <LoadingState label="Consultando exposición…" />;
   if (state.kind === "disabled") return <DisabledState title="Búsqueda no configurada" />;
   if (state.kind === "error") return <ErrorState message={state.message} onRetry={onRetry} />;
-  if (state.kind === "domainLocked") {
-    return (
-      <div role="alert" className="rounded-3xl border border-gold/20 bg-bg-secondary/80 p-6">
-        <h2 className="font-display text-xl text-white">El dominio necesita verificación</h2>
-        {state.signedIn && state.message ? <p className="mt-2 text-sm text-gray-300">{state.message}</p> : null}
-        <p className="mt-2 max-w-xl text-sm leading-relaxed text-gray-400">
-          {state.signedIn
-            ? "Solo se consultan dominios que hayas añadido en Monitoreo y verificado con un registro DNS TXT."
-            : "Inicia sesión, añade el dominio en Monitoreo y verifícalo con un registro DNS TXT para poder consultarlo."}
-        </p>
-        <Link href={state.signedIn ? "/pwn/monitor" : "/login?callbackUrl=%2Fpwn%2Fmonitor"} className={`mt-4 inline-flex text-sm text-gold underline-offset-4 hover:underline ${focusRing}`}>
-          {state.signedIn ? "Ir a monitoreo" : "Iniciar sesión"}
-        </Link>
-      </div>
-    );
-  }
-  if (state.kind === "boolean") {
-    return (
-      <div role="status" className="rounded-3xl border border-white/10 bg-bg-secondary/70 p-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="font-display text-xl text-white">{state.exposed ? "Aparece en filtraciones públicas" : "No aparece en filtraciones públicas"}</h2>
-          <RiskBadge level={state.exposed ? "high" : "informational"} />
-        </div>
-        <p className="mt-3 max-w-xl text-sm leading-relaxed text-gray-400">
-          Para objetivos que no son tuyos solo se indica si hay exposición. El detalle de las filtraciones está disponible para el correo de tu propia cuenta o para objetivos verificados en Monitoreo.
-        </p>
-        {state.exposed ? (
-          <div className="mt-5">
-            <NextSteps kind={queryType} />
-          </div>
-        ) : null}
-      </div>
-    );
-  }
   if (state.kind === "empty") {
-    return <EmptyState title="Sin exposiciones en esta consulta" description="Las fuentes consultadas no devolvieron exposiciones para este correo o dominio." />;
+    return (
+      <div className="space-y-4">
+        <EmptyState title="Sin exposiciones en esta consulta" description="Las fuentes consultadas no devolvieron exposiciones para este correo o dominio." />
+        <FollowButton busy={followBusy} message={followMessage} onFollow={onFollow} />
+      </div>
+    );
   }
   return (
     <div className="space-y-4">
       <p role="status" className="text-sm text-gray-300">
         {state.exposed ? "Hay exposición confirmada por la fuente." : "La fuente solo devolvió registros en disputa."}
-        {state.persisted ? " Los resultados se guardaron en tu monitoreo." : ""}
+        {state.persisted ? " Los resultados se guardaron en tu seguimiento." : ""}
       </p>
       <ul className="space-y-4">
         {state.findings.map((finding) => {
@@ -315,7 +327,9 @@ function ExposureResults({ state, queryType, onRetry }: { state: ExposureState; 
                 {finding.isSensitive ? <span className="rounded-full border border-white/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-300">Sensible</span> : null}
                 {finding.isRetired ? <span className="rounded-full border border-white/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">Retirada</span> : null}
               </div>
-              {verification?.note ? <p className="mt-3 text-sm text-gray-300">{verification.note}</p> : null}
+              {finding.description ? <p className="mt-3 text-sm leading-relaxed text-gray-300">{finding.description}</p> : null}
+              {finding.descriptionDetail ? <p className="mt-2 text-sm leading-relaxed text-gray-400">{finding.descriptionDetail}</p> : null}
+              {finding.descriptionImplication ? <p className="mt-2 text-sm leading-relaxed text-gray-400">{finding.descriptionImplication}</p> : null}
               {finding.subjectHint ? <p className="mt-4 font-mono text-sm text-gray-300">{finding.subjectHint}</p> : null}
               {finding.dataTypes.length ? (
                 <ul className="mt-4 flex flex-wrap gap-2">
@@ -347,7 +361,34 @@ function ExposureResults({ state, queryType, onRetry }: { state: ExposureState; 
           );
         })}
       </ul>
+      {state.findings.length === 0 && state.exposed ? (
+        <p className="text-sm text-gray-300">La fuente indica exposición, pero no devolvió fichas detalladas en esta consulta.</p>
+      ) : null}
+      <FollowButton busy={followBusy} message={followMessage} onFollow={onFollow} />
       {state.exposed ? <NextSteps kind={queryType} /> : null}
+    </div>
+  );
+}
+
+function FollowButton({
+  busy,
+  message,
+  onFollow,
+}: {
+  busy: boolean;
+  message: string | null;
+  onFollow: () => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <Button type="button" variant="outline" disabled={busy} onClick={onFollow} className={`rounded-xl border-white/10 text-white ${focusRing}`}>
+        {busy ? "Añadiendo…" : "Seguir este objetivo"}
+      </Button>
+      {message ? (
+        <p role="status" className="text-sm text-gold">
+          {message}
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import {
   PwnConnector,
   PwnProviderError,
 } from "./types";
+import { breachesForDomain } from "@/lib/pwn/hibp-domain";
 
 const HIBP_API = "https://haveibeenpwned.com/api/v3";
 const PASSWORDS_API = "https://api.pwnedpasswords.com/range";
@@ -130,6 +131,29 @@ function parseBreachList(payload: unknown): HibpBreach[] {
   });
 }
 
+/** Public catalog of disclosed breaches. Does not require HIBP_API_KEY. */
+export async function fetchHibpBreachCatalog(): Promise<ConnectorResponse<HibpBreach[]>> {
+  if (!isPwnEnabled()) return { configured: false };
+  let response: Response;
+  try {
+    response = await fetch(`${HIBP_API}/breaches`, {
+      headers: { "user-agent": USER_AGENT },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+  } catch {
+    return { configured: false };
+  }
+  if (!response.ok) throw new PwnProviderError("HIBP");
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new PwnProviderError("HIBP");
+  }
+  return { configured: true, data: parseBreachList(payload) };
+}
+
 export const hibpConnector: PwnConnector<HibpQuery, HibpBreach[]> = {
   id: "HIBP",
 
@@ -138,7 +162,14 @@ export const hibpConnector: PwnConnector<HibpQuery, HibpBreach[]> = {
   },
 
   async search(query) {
-    if (!this.isConfigured()) return { configured: false };
+    if (!isPwnEnabled()) return { configured: false };
+
+    if (!this.isConfigured()) {
+      if (query.type !== "domain") return { configured: false };
+      const catalog = await fetchHibpBreachCatalog();
+      if (!catalog.configured) return { configured: false };
+      return { configured: true, data: breachesForDomain(catalog.data, query.account) };
+    }
 
     const path =
       query.type === "email"

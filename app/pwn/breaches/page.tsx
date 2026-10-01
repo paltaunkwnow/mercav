@@ -7,7 +7,7 @@ import { RiskBadge, VerificationBadge, verificationMeta } from "@/components/pwn
 import { DisabledState, EmptyState, ErrorState, LoadingState, UnauthorizedState } from "@/components/pwn/EmptyState";
 import { ListControls } from "@/components/pwn/ListControls";
 import { FadeIn } from "@/components/pwn/PwnShell";
-import { formatCount, formatScore, formatWhen } from "@/components/pwn/format";
+import { focusRing, formatCount, formatScore, formatWhen } from "@/components/pwn/format";
 
 const PAGE_SIZE = 20;
 
@@ -59,7 +59,7 @@ export default function BreachesPage() {
       if (filter === "confirmed" && verification !== "CONFIRMED") return false;
       if (filter === "disputed" && verification !== "DISPUTED") return false;
       if (!q) return true;
-      return [item.name, item.source, item.description].join(" ").toLowerCase().includes(q);
+      return [item.name, item.source, item.description, item.descriptionDetail, item.descriptionImplication].join(" ").toLowerCase().includes(q);
     });
     return [...filtered].sort((a, b) => {
       if (sort === "name") return a.name.localeCompare(b.name, "es");
@@ -128,7 +128,25 @@ export default function BreachesPage() {
                     {item.severity ? <RiskBadge level={item.severity} /> : null}
                   </div>
                   {note ? <p className="mt-3 text-sm text-gray-200">{note}</p> : null}
-                  {item.description ? <p className="mt-3 text-sm leading-relaxed text-gray-400">{item.description}</p> : null}
+                  {item.description ? <p className="mt-3 text-[15px] leading-relaxed text-gray-200">{item.description}</p> : null}
+                  {item.descriptionDetail ? <p className="mt-2 text-sm leading-relaxed text-gray-400">{item.descriptionDetail}</p> : null}
+                  {item.descriptionImplication ? <p className="mt-2 text-sm leading-relaxed text-gray-400">{item.descriptionImplication}</p> : null}
+                  {item.descriptionLinks.length ? (
+                    <ul className="mt-3 flex flex-wrap gap-2">
+                      {item.descriptionLinks.map((link) => (
+                        <li key={link.href}>
+                          <a
+                            href={link.href}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={`inline-flex rounded-lg border border-white/10 px-2.5 py-1 text-xs text-gray-300 transition-colors hover:border-gold/40 hover:text-gold ${focusRing}`}
+                          >
+                            {link.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                   {item.dataTypes.length ? (
                     <ul className="mt-4 flex flex-wrap gap-2">
                       {item.dataTypes.map((type) => (

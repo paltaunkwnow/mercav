@@ -20,9 +20,6 @@ export async function POST(request: NextRequest) {
   const disabled = disabledResponse();
   if (disabled) return disabled;
   const sessionUser = await getPwnSessionUser();
-  if (!sessionUser) {
-    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
-  }
   const limited = await checkRateLimit(request, {
     route: "password-range",
     ...searchLimit(sessionUser?.id),
