@@ -140,3 +140,6 @@ export async function listPublishedPlaces() {
     return toPlaceDTO(p, { rating: r?._avg.rating ?? null, reviews: r?._count._all ?? 0, managed: managedIds.has(p.id) });
   });
 }
+
+// Sistema Mercav Kosher
+

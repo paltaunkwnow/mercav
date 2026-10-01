@@ -152,3 +152,6 @@ export const PAYMENT_METHODS: { id: PaymentMethodId; name: string }[] = [
 export function paymentMethodLabel(id: string) {
   return PAYMENT_METHODS.find((m) => m.id === id)?.name ?? id;
 }
+
+// Sistema Mercav POS
+
