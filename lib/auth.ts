@@ -3,9 +3,10 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
+import { RECAPTCHA_SECRET_KEY } from "./recaptcha";
 
 export async function verifyRecaptchaToken(token?: string) {
-  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  const secret = process.env.RECAPTCHA_SECRET_KEY || RECAPTCHA_SECRET_KEY;
   
   // Skip reCAPTCHA verification if secret is not configured
   const isDev = process.env.NODE_ENV !== "production";
@@ -15,6 +16,7 @@ export async function verifyRecaptchaToken(token?: string) {
   }
 
   if (!token || token === "skip") {
+    if (isDev) return { success: true, score: 1 };
     return { success: false, score: 0 };
   }
 
@@ -31,9 +33,13 @@ export async function verifyRecaptchaToken(token?: string) {
 
     const data = await res.json();
 
+    if (!data.success) {
+      console.warn("reCAPTCHA siteverify failure:", data["error-codes"], data);
+    }
+
     return { 
       success: !!data.success, 
-      score: data.score ?? 0.5, // Default to 0.5 if no score (some v3 configs)
+      score: data.score ?? 0.5, // Default to 0.5 if no score (some v3 / Enterprise configs)
       data 
     };
   } catch (err) {

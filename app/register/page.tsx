@@ -8,11 +8,12 @@ import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthField, FormAlert, PasswordField, SubmitButton } from '@/components/auth/AuthFields';
 import { useCookieConsent } from '@/components/legal/CookieConsentProvider';
+import { RECAPTCHA_SITE_KEY } from '@/lib/recaptcha';
 
 export default function Register() {
   const router = useRouter();
   const { executeRecaptcha } = useGoogleReCaptcha();
-  const { thirdPartyAllowed, openCookieSettings } = useCookieConsent();
+  const { thirdPartyAllowed, openCookieSettings, hasDecided } = useCookieConsent();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -69,7 +70,8 @@ export default function Register() {
     setLoading(true);
     setError('');
 
-    if (process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && !thirdPartyAllowed) {
+    const thirdPartyBlocked = Boolean(RECAPTCHA_SITE_KEY && hasDecided && !thirdPartyAllowed);
+    if (thirdPartyBlocked) {
       setError('Para registrarte debes aceptar cookies de terceros (Google reCAPTCHA).');
       openCookieSettings();
       setLoading(false);
@@ -116,7 +118,7 @@ export default function Register() {
       setError(err.message);
       setLoading(false);
     }
-  }, [executeRecaptcha, formData, router, thirdPartyAllowed, openCookieSettings]);
+  }, [executeRecaptcha, formData, router, thirdPartyAllowed, hasDecided, openCookieSettings]);
 
   const passwordStrength = formData.password.length === 0 ? 0 : formData.password.length < 6 ? 1 : formData.password.length < 10 ? 2 : 3;
   const strengthLabels = ['', 'Débil', 'Aceptable', 'Fuerte'];

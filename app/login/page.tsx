@@ -12,6 +12,7 @@ import { BodyPortal } from '@/components/auth/BodyPortal';
 import { AuthDivider, AuthField, FormAlert, GoogleIcon, PasswordField, SubmitButton } from '@/components/auth/AuthFields';
 import { useCookieConsent } from '@/components/legal/CookieConsentProvider';
 import { safeCallbackPath } from '@/lib/security/safe-url';
+import { RECAPTCHA_SITE_KEY } from '@/lib/recaptcha';
 
 function LoginForm() {
   const router = useRouter();
@@ -29,14 +30,15 @@ function LoginForm() {
 
   const reduce = useReducedMotion();
   const { executeRecaptcha } = useGoogleReCaptcha();
-  const { thirdPartyAllowed, openCookieSettings } = useCookieConsent();
+  const { thirdPartyAllowed, openCookieSettings, hasDecided } = useCookieConsent();
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    if (process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && !thirdPartyAllowed) {
+    const thirdPartyBlocked = Boolean(RECAPTCHA_SITE_KEY && hasDecided && !thirdPartyAllowed);
+    if (thirdPartyBlocked) {
       setError('Para iniciar sesión con correo debes aceptar cookies de terceros (Google reCAPTCHA).');
       openCookieSettings();
       setLoading(false);
@@ -92,7 +94,7 @@ function LoginForm() {
       setError('Error al iniciar sesión. Intenta de nuevo.');
       setLoading(false);
     }
-  }, [executeRecaptcha, email, password, twoFactorCode, show2FA, callbackUrl, router, thirdPartyAllowed, openCookieSettings]);
+  }, [executeRecaptcha, email, password, twoFactorCode, show2FA, callbackUrl, router, thirdPartyAllowed, hasDecided, openCookieSettings]);
 
   return (
     <AuthShell
