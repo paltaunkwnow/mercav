@@ -78,28 +78,46 @@ export default function Register() {
       return;
     }
 
-    if (!executeRecaptcha) {
-      setError('ReCAPTCHA no disponible. Intenta de nuevo.');
-      setLoading(false);
-      return;
-    }
-
     if (formData.password.length < 6) {
       setError('La contraseña debe tener al menos 6 caracteres');
       setLoading(false);
       return;
     }
 
-    try {
-      let token: string;
-      try {
-        token = await executeRecaptcha('register');
-      } catch {
-        setError('Activa cookies de terceros para completar el registro.');
-        openCookieSettings();
+    let token: string | undefined;
+    if (RECAPTCHA_SITE_KEY) {
+      if (executeRecaptcha) {
+        try {
+          token = await executeRecaptcha('register');
+        } catch (err) {
+          console.warn('executeRecaptcha hook error:', err);
+        }
+      }
+
+      if (!token && typeof window !== 'undefined') {
+        const w = window as any;
+        for (let attempt = 0; attempt < 20; attempt++) {
+          const g = w.grecaptcha?.enterprise || w.grecaptcha;
+          if (g && typeof g.execute === 'function') {
+            try {
+              token = await g.execute(RECAPTCHA_SITE_KEY, { action: 'register' });
+              if (token) break;
+            } catch (err) {
+              console.warn('Direct grecaptcha error:', err);
+            }
+          }
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+      }
+
+      if (!token) {
+        setError('No se pudo cargar el servicio de seguridad (reCAPTCHA). Si tienes un bloqueador de anuncios (AdBlock, Brave Shields) o extensiones de privacidad, desactívalos temporalmente o refresca la página.');
         setLoading(false);
         return;
       }
+    }
+
+    try {
       
       const res = await fetch('/api/auth/register', {
         method: 'POST',

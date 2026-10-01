@@ -6,6 +6,10 @@ import { prisma } from "./prisma";
 import { RECAPTCHA_SECRET_KEY } from "./recaptcha";
 
 export async function verifyRecaptchaToken(token?: string) {
+  if (process.env.DISABLE_RECAPTCHA === "true" || process.env.RECAPTCHA_DISABLED === "true") {
+    return { success: true, score: 1 };
+  }
+
   const secret = process.env.RECAPTCHA_SECRET_KEY || RECAPTCHA_SECRET_KEY;
   
   // Skip reCAPTCHA verification if secret is not configured

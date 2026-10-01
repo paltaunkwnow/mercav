@@ -3,3 +3,7 @@ export const RECAPTCHA_SITE_KEY =
 
 export const RECAPTCHA_SECRET_KEY =
   process.env.RECAPTCHA_SECRET_KEY || "6LcNmd4sAAAAAJn3jVcDHj0bUnsPByJF7fJvbCE0";
+
+export const RECAPTCHA_USE_ENTERPRISE =
+  process.env.NEXT_PUBLIC_RECAPTCHA_USE_ENTERPRISE === "false" ? false : true;
+

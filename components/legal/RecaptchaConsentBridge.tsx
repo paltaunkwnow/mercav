@@ -3,7 +3,7 @@
 import { GoogleReCaptchaContext, GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import type { ReactNode } from "react";
 import { useCookieConsentOptional } from "@/components/legal/CookieConsentProvider";
-import { RECAPTCHA_SITE_KEY } from "@/lib/recaptcha";
+import { RECAPTCHA_SITE_KEY, RECAPTCHA_USE_ENTERPRISE } from "@/lib/recaptcha";
 
 export function RecaptchaConsentBridge({ children }: { children: ReactNode }) {
   const consentCtx = useCookieConsentOptional();
@@ -35,9 +35,10 @@ export function RecaptchaConsentBridge({ children }: { children: ReactNode }) {
   return (
     <GoogleReCaptchaProvider
       reCaptchaKey={siteKey}
+      useEnterprise={RECAPTCHA_USE_ENTERPRISE}
       scriptProps={{
-        async: false,
-        defer: false,
+        async: true,
+        defer: true,
         appendTo: "head",
         nonce: undefined,
       }}
