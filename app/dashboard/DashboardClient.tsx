@@ -10,7 +10,6 @@ import {
   Plus,
   ArrowRight,
   Users,
-  Star,
   Clock,
   ChevronRight,
   Settings,
@@ -22,6 +21,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { ButtonLink, Container, PageHero, Section, GlassPanel } from "@/components/site/primitives";
+import { StarOfDavid } from "@/components/site/StarOfDavid";
 
 export default function DashboardClient({
   user,
@@ -100,7 +100,7 @@ export default function DashboardClient({
   const moreModules = [
     { label: "Herramientas", link: "/herramientas", icon: Wrench },
     { label: "Pwn", link: "/pwn", icon: Shield },
-    { label: "Kosher", link: "/kosher", icon: Star },
+    { label: "Kosher", link: "/kosher", icon: StarOfDavid },
     { label: "Ajustes del POS", link: "/dashboard/pos/config", icon: Settings },
     { label: "Premium", link: "/premium", icon: Sparkles },
   ];
