@@ -4,6 +4,21 @@ import { cn } from "@/lib/utils";
 
 const UPDATES = [
   {
+    version: "v1.3.0",
+    date: "1 de Octubre, 2026",
+    title: "Ecosistema Unificado: POS, Kosher, Pwn y Seguridad reCAPTCHA",
+    description: "Sincronización integral de sistemas, optimizaciones de despliegue en Vercel y protección de acceso.",
+    type: "MAJOR",
+    tags: ["POS", "Kosher", "Pwn", "Seguridad", "Vercel"],
+    changes: [
+      { type: "feature", text: "Integración de Punto de Venta (POS) multi-rubro y control de inventario." },
+      { type: "feature", text: "Módulo Mercav Kosher con directorio comunitario y geolocalización." },
+      { type: "improvement", text: "Plataforma Mercav Pwn con monitoreo defensivo y señales de filtraciones." },
+      { type: "fix", text: "Actualización de verificación de seguridad con Google reCAPTCHA v3/Enterprise." },
+      { type: "improvement", text: "Compatibilidad optimizada de compilación y postinstall para Vercel." }
+    ]
+  },
+  {
     version: "v1.2.0",
     date: "7 de Mayo, 2026",
     title: "Ecosistema de Moderación y Feed Inteligente",

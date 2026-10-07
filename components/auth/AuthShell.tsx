@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { Briefcase, Megaphone, MonitorPlay, Shield, Star, Store, Wrench } from "lucide-react";
+import { Briefcase, Megaphone, MonitorPlay, Shield, Store, Wrench } from "lucide-react";
 import { Container } from "@/components/site/primitives";
+import { StarOfDavid } from "@/components/site/StarOfDavid";
 
 /** The seven modules one Mercav account opens. Copy mirrors the home platform tabs. */
 const MODULES = [
@@ -10,7 +11,7 @@ const MODULES = [
   { name: "POS", icon: Store, does: "Caja, inventario y reportes para cualquier rubro." },
   { name: "Tools", icon: Wrench, does: "Contratos, cálculos, SEO y precios en un solo lugar." },
   { name: "Pwn", icon: Shield, does: "Vigilá la exposición de los correos y dominios de tu empresa." },
-  { name: "Kosher", icon: Star, does: "Atlas de lugares kosher, sinagogas y kehilot." },
+  { name: "Kosher", icon: StarOfDavid, does: "Atlas de lugares kosher, sinagogas y kehilot." },
 ] as const;
 
 /**

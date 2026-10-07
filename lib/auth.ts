@@ -3,9 +3,14 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
+import { RECAPTCHA_SECRET_KEY } from "./recaptcha";
 
 export async function verifyRecaptchaToken(token?: string) {
-  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  if (process.env.DISABLE_RECAPTCHA === "true" || process.env.RECAPTCHA_DISABLED === "true") {
+    return { success: true, score: 1 };
+  }
+
+  const secret = process.env.RECAPTCHA_SECRET_KEY || RECAPTCHA_SECRET_KEY;
   
   // Skip reCAPTCHA verification if secret is not configured
   const isDev = process.env.NODE_ENV !== "production";
@@ -15,6 +20,7 @@ export async function verifyRecaptchaToken(token?: string) {
   }
 
   if (!token || token === "skip") {
+    if (isDev) return { success: true, score: 1 };
     return { success: false, score: 0 };
   }
 
@@ -31,9 +37,13 @@ export async function verifyRecaptchaToken(token?: string) {
 
     const data = await res.json();
 
+    if (!data.success) {
+      console.warn("reCAPTCHA siteverify failure:", data["error-codes"], data);
+    }
+
     return { 
       success: !!data.success, 
-      score: data.score ?? 0.5, // Default to 0.5 if no score (some v3 configs)
+      score: data.score ?? 0.5, // Default to 0.5 if no score (some v3 / Enterprise configs)
       data 
     };
   } catch (err) {
@@ -88,18 +98,26 @@ export const authOptions: AuthOptions = {
           throw new Error("reCAPTCHA verification failed");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email.toLowerCase() }
-        });
+        let user: any = null;
+        try {
+          user = await prisma.user.findUnique({
+            where: { email: credentials.email.toLowerCase() }
+          });
+        } catch (dbErr) {
+          console.error("LOGIN DB ERROR:", dbErr);
+          throw new Error("DB_ERROR");
+        }
 
         // Mismo mensaje para usuario inexistente y contraseña incorrecta: evita enumerar emails
         // (el login ya muestra un texto genérico para cualquier otro error).
         if (!user || !user.password) {
+          console.warn(`LOGIN FAILED: User not found for email ${credentials.email.toLowerCase()}`);
           throw new Error("Credenciales inválidas");
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) {
+          console.warn(`LOGIN FAILED: Password mismatch for email ${credentials.email.toLowerCase()}`);
           throw new Error("Credenciales inválidas");
         }
 

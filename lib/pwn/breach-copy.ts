@@ -628,4 +628,4 @@ export function explainHibpBreach(raw: string | null | undefined, input: BreachC
     links,
   };
 }
-// creado por pato dev y askforvini
+// Sistema Mercav Pwn - creado por pato dev y askforvini

@@ -12,4 +12,4 @@ export const metadata: Metadata = {
 export default function HerramientasPage() {
   return <HerramientasClient />;
 }
-// creado por pato dev y askforvini
+// Sistema Mercav Herramientas - creado por pato dev y askforvini

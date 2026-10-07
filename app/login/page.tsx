@@ -12,6 +12,7 @@ import { BodyPortal } from '@/components/auth/BodyPortal';
 import { AuthDivider, AuthField, FormAlert, GoogleIcon, PasswordField, SubmitButton } from '@/components/auth/AuthFields';
 import { useCookieConsent } from '@/components/legal/CookieConsentProvider';
 import { safeCallbackPath } from '@/lib/security/safe-url';
+import { RECAPTCHA_SITE_KEY } from '@/lib/recaptcha';
 
 function LoginForm() {
   const router = useRouter();
@@ -29,36 +30,55 @@ function LoginForm() {
 
   const reduce = useReducedMotion();
   const { executeRecaptcha } = useGoogleReCaptcha();
-  const { thirdPartyAllowed, openCookieSettings } = useCookieConsent();
+  const { thirdPartyAllowed, openCookieSettings, hasDecided } = useCookieConsent();
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    if (process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && !thirdPartyAllowed) {
+    const thirdPartyBlocked = Boolean(RECAPTCHA_SITE_KEY && hasDecided && !thirdPartyAllowed);
+    if (thirdPartyBlocked) {
       setError('Para iniciar sesión con correo debes aceptar cookies de terceros (Google reCAPTCHA).');
       openCookieSettings();
       setLoading(false);
       return;
     }
 
-    if (!executeRecaptcha) {
-      setError('ReCAPTCHA no disponible. Intenta refrescar.');
-      setLoading(false);
-      return;
-    }
+    let token: string | undefined;
+    if (RECAPTCHA_SITE_KEY) {
+      if (executeRecaptcha) {
+        try {
+          token = await executeRecaptcha('login');
+        } catch (err) {
+          console.warn('executeRecaptcha hook error:', err);
+        }
+      }
 
-    try {
-      let token: string;
-      try {
-        token = await executeRecaptcha('login');
-      } catch {
-        setError('Activa cookies de terceros para usar reCAPTCHA o elige otro método.');
-        openCookieSettings();
+      if (!token && typeof window !== 'undefined') {
+        const w = window as any;
+        for (let attempt = 0; attempt < 20; attempt++) {
+          const g = w.grecaptcha?.enterprise || w.grecaptcha;
+          if (g && typeof g.execute === 'function') {
+            try {
+              token = await g.execute(RECAPTCHA_SITE_KEY, { action: 'login' });
+              if (token) break;
+            } catch (err) {
+              console.warn('Direct grecaptcha error:', err);
+            }
+          }
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+      }
+
+      if (!token) {
+        setError('No se pudo cargar el servicio de seguridad (reCAPTCHA). Si tienes un bloqueador de anuncios (AdBlock, Brave Shields) o extensiones de privacidad, desactívalos temporalmente o refresca la página.');
         setLoading(false);
         return;
       }
+    }
+
+    try {
       
       const res = await signIn('credentials', {
         redirect: false,
@@ -92,7 +112,7 @@ function LoginForm() {
       setError('Error al iniciar sesión. Intenta de nuevo.');
       setLoading(false);
     }
-  }, [executeRecaptcha, email, password, twoFactorCode, show2FA, callbackUrl, router, thirdPartyAllowed, openCookieSettings]);
+  }, [executeRecaptcha, email, password, twoFactorCode, show2FA, callbackUrl, router, thirdPartyAllowed, hasDecided, openCookieSettings]);
 
   return (
     <AuthShell

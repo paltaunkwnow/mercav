@@ -3,11 +3,12 @@
 import { GoogleReCaptchaContext, GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import type { ReactNode } from "react";
 import { useCookieConsentOptional } from "@/components/legal/CookieConsentProvider";
+import { RECAPTCHA_SITE_KEY, RECAPTCHA_USE_ENTERPRISE } from "@/lib/recaptcha";
 
 export function RecaptchaConsentBridge({ children }: { children: ReactNode }) {
   const consentCtx = useCookieConsentOptional();
-  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "";
-  const thirdParty = consentCtx?.thirdPartyAllowed ?? false;
+  const siteKey = RECAPTCHA_SITE_KEY;
+  const thirdPartyBlocked = Boolean(consentCtx?.hasDecided && !consentCtx.thirdPartyAllowed);
 
   if (!siteKey) {
     return (
@@ -17,7 +18,7 @@ export function RecaptchaConsentBridge({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!thirdParty) {
+  if (thirdPartyBlocked) {
     return (
       <GoogleReCaptchaContext.Provider
         value={{
@@ -34,9 +35,10 @@ export function RecaptchaConsentBridge({ children }: { children: ReactNode }) {
   return (
     <GoogleReCaptchaProvider
       reCaptchaKey={siteKey}
+      useEnterprise={RECAPTCHA_USE_ENTERPRISE}
       scriptProps={{
-        async: false,
-        defer: false,
+        async: true,
+        defer: true,
         appendTo: "head",
         nonce: undefined,
       }}
