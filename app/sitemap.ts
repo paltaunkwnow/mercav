@@ -24,6 +24,7 @@ const STATIC: Array<[path: string, priority: number, freq: Freq]> = [
   ["/por-que-mercav", 0.7, "monthly"],
   ["/nosotros", 0.7, "monthly"],
   ["/inversores", 0.6, "monthly"],
+  ["/pitch", 0.6, "monthly"],
   ["/explorar", 0.6, "daily"],
   ["/feed", 0.5, "daily"],
   ["/faq", 0.6, "monthly"],

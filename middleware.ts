@@ -25,6 +25,7 @@ const publicPaths = [
   '/login',
   '/register',
   '/inversores',
+  '/pitch',
   '/feed',
   '/faq',
   '/1337',

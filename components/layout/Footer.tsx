@@ -31,6 +31,7 @@ const PWN: FooterLink[] = [
 const PLATFORM: FooterLink[] = [
   { href: "/precios", label: "Planes y precios" },
   { href: "/inversores", label: "Inversores" },
+  { href: "/pitch", label: "Pitch" },
   { href: "/por-que-mercav", label: "Por qué Mercav" },
   { href: "/faq", label: "Preguntas frecuentes" },
   { href: "/nosotros", label: "Quién soy" },
