@@ -34,7 +34,7 @@ const PLATFORM: FooterLink[] = [
   { href: "/pitch", label: "Pitch" },
   { href: "/por-que-mercav", label: "Por qué Mercav" },
   { href: "/faq", label: "Preguntas frecuentes" },
-  { href: "/nosotros", label: "Quién soy" },
+  { href: "/nosotros", label: "Quiénes somos" },
   { href: "/explorar", label: "Explorar" },
   { href: "/feed", label: "Feed" },
   { href: "/buscar", label: "Buscar" },

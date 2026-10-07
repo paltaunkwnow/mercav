@@ -299,7 +299,7 @@ function MobileMenu({ open, onClose, signedIn }: { open: boolean; onClose: () =>
         </ul>
         <div className="mv-divider my-3" />
         <ul className="grid gap-0.5">
-          {[...(signedIn ? [{ href: "/feed", label: "Feed" }] : []), ...COMPANY, { href: "/nosotros", label: "Quién soy" }].map((l) => (
+          {[...(signedIn ? [{ href: "/feed", label: "Feed" }] : []), ...COMPANY, { href: "/nosotros", label: "Quiénes somos" }].map((l) => (
             <li key={l.href}>
               <Link href={l.href} onClick={onClose} className="block rounded-2xl px-3 py-2.5 text-[15px] font-medium text-[var(--text-primary)] outline-none hover:bg-[var(--mv-panel-hover)] focus-visible:bg-[var(--mv-panel-hover)]">
                 {l.label}

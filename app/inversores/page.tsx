@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, BarChart3, CheckCircle2, DollarSign, Globe2, Layers, Rocket, Users } from "lucide-react";
 import { Container, Reveal, Section, SectionHeading, buttonClass } from "@/components/site/primitives";
+import { FounderList } from "@/components/site/FounderList";
 
 const PROBLEMS = [
   "La publicidad offline en Latinoamérica no tiene infraestructura digital. Los dueños dependen de contactos personales y negociaciones informales.",
@@ -67,7 +69,7 @@ export default function InversoresPage() {
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <a href="#contacto-inversores" className={buttonClass("primary", "lg", "w-full sm:w-auto")}>
-                  Contactar al fundador <ArrowRight className="h-4 w-4" aria-hidden />
+                  Contactar al equipo <ArrowRight className="h-4 w-4" aria-hidden />
                 </a>
                 <a href="#tesis" className={buttonClass("secondary", "lg", "w-full sm:w-auto")}>
                   Ver la tesis
@@ -77,6 +79,7 @@ export default function InversoresPage() {
             <dl className="mv-panel divide-y divide-[var(--mv-hairline)] rounded-[1.5rem]">
               {[
                 { k: "Etapa", v: "Búsqueda de capital semilla" },
+                { k: "Equipo", v: "Tres cofundadores" },
                 { k: "Producto", v: "Plataforma construida" },
                 { k: "Sede", v: "Santa Cruz de la Sierra, Bolivia" },
                 { k: "Modelo", v: "Comisiones, suscripciones y herramientas" },
@@ -209,23 +212,30 @@ export default function InversoresPage() {
         <Container>
           <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
             <div>
-              <SectionHeading id="inv-fundador" kicker="Quién está detrás" title="Un fundador que construye desde adentro." />
+              <SectionHeading id="inv-fundador" kicker="Quién está detrás" title="Tres cofundadores que construyen desde adentro." />
               <Reveal className="mt-8 space-y-4">
-                <p className="mv-body text-base">Me llamo Vinicius. Tengo 19 años y vivo en Santa Cruz de la Sierra.</p>
                 <p className="mv-body text-base">
-                  Soy el fundador de Mercav. Diseño sistemas —backend, autenticación, datos— y trabajo ciberseguridad defensiva: pentesting autorizado, defensa, auditoría y respuesta post-incidente. El perfil técnico está en{" "}
-                  <a href="https://askforvini.pw" target="_blank" rel="noopener noreferrer" className="mv-link">
-                    askforvini.pw
-                  </a>
-                  .
+                  Somos tres cofundadores en Santa Cruz de la Sierra: un CEO y dos CTO que diseñan, construyen y operan la plataforma.
                 </p>
                 <p className="mv-body text-base">
-                  Aprendí el oficio construyendo software para negocios reales: punto de venta, comercio y herramientas que alguien usaba al día siguiente. Mercav reúne anuncios, servicios, empleo y herramientas en un solo lugar, hecho desde Bolivia.
+                  Mercav no es una maqueta: anuncios, servicios, empleo, caja, herramientas y ciberinteligencia ya corren con una sola cuenta, hechos desde Bolivia.
                 </p>
                 <p className="mv-body text-base">
-                  Quiero devolver la generosidad con un sistema que se pueda usar de punta a punta: claro, completo y al alcance. El trabajo, la fe ante el Creador y el servicio van juntos.
+                  Queremos devolver la generosidad con un sistema que se pueda usar de punta a punta: claro, completo y al alcance.
                 </p>
               </Reveal>
+              <FounderList className="mt-8" />
+              <p className="mt-4 px-1 text-sm text-[var(--text-tertiary)]">
+                El resumen completo está en el{" "}
+                <Link href="/pitch" className="mv-link">
+                  pitch
+                </Link>
+                . El perfil de Vinicius, en{" "}
+                <Link href="/nosotros#vinicius" className="mv-link">
+                  Quiénes somos
+                </Link>
+                .
+              </p>
             </div>
             <div>
               <h3 className="mv-h3">Lo que buscamos</h3>

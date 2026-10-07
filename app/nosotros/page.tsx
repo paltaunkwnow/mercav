@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowUpRight, BookOpen, Globe2, Heart, MapPin, Shield, Target, Workflow } from "lucide-react";
+import { ArrowRight, BookOpen, Globe2, Heart, MapPin, Shield, Target, Workflow } from "lucide-react";
 import { ButtonLink, CTABand, Container, Reveal, Section, SectionHeading } from "@/components/site/primitives";
+import { FounderList } from "@/components/site/FounderList";
 
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
@@ -83,20 +84,70 @@ const ORDER = [
 export default function Nosotros() {
   return (
     <div className="w-full bg-bg-primary">
-      {/* Hero */}
+      {/* Hero: el equipo */}
       <header className="relative w-full overflow-hidden pb-16 pt-28 md:pb-24 md:pt-36">
         <div className="mv-aura" aria-hidden />
         <Container className="relative">
           <div className="grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-20">
             <Reveal>
-              <p className="mv-kicker">Quién soy</p>
+              <p className="mv-kicker">Quiénes somos</p>
               <h1 className="mv-h1 mt-5">
-                Vinicius, <span className="mv-gold-text">fundador de Mercav.</span>
+                Tres cofundadores, <span className="mv-gold-text">un mismo producto.</span>
               </h1>
               <p className="mv-lead mt-6">
-                19 años. Santa Cruz de la Sierra. Sistemas, ciberseguridad y una plataforma que se pueda usar de verdad.
+                Diseñamos, construimos y operamos Mercav desde Santa Cruz de la Sierra. Sistemas, ciberseguridad y una plataforma que se pueda usar de verdad.
               </p>
-              <ul className="mt-9 flex flex-wrap gap-2" aria-label="Perfiles de Vinicius">
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <ButtonLink href="/pitch" tone="secondary" size="lg" className="w-full sm:w-auto">
+                  Ver el pitch <ArrowRight className="h-4 w-4" aria-hidden />
+                </ButtonLink>
+              </div>
+            </Reveal>
+
+            <Reveal delay={120}>
+              <FounderList />
+            </Reveal>
+          </div>
+        </Container>
+      </header>
+
+      {/* Vinicius */}
+      <Section tone="raised" id="vinicius" labelledBy="vinicius-title">
+        <Container>
+          <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
+            <div className="lg:sticky lg:top-28 lg:self-start">
+              <p className="mv-kicker">Vinicius Salazar · CEO</p>
+              <h2 id="vinicius-title" className="sr-only">
+                Vinicius Salazar, cofundador y CEO
+              </h2>
+              <Reveal className="mx-auto mt-6 w-full max-w-sm lg:mx-0">
+                <figure className="liquid-glass liquid-glass-lens overflow-hidden rounded-[2rem] p-2">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[1.6rem] bg-bg-tertiary">
+                    <img
+                      src="/images/vinicius.jpg"
+                      alt="Vinicius Salazar, cofundador y CEO de Mercav, en Santa Cruz de la Sierra"
+                      width={960}
+                      height={1280}
+                      decoding="async"
+                      className="h-full w-full object-cover object-[center_30%]"
+                    />
+                    <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent" />
+                    <span className="absolute left-3 top-3 inline-flex h-8 items-center gap-1.5 rounded-full bg-black/65 px-3 text-xs font-medium text-white">
+                      <MapPin className="h-3.5 w-3.5" aria-hidden /> Santa Cruz, Bolivia
+                    </span>
+                  </div>
+                  <figcaption className="flex items-center justify-between gap-3 px-4 pb-3 pt-4">
+                    <span>
+                      <span className="block font-display text-lg font-semibold text-[var(--text-primary)]">Vinicius Salazar</span>
+                      <span className="block text-sm text-[var(--text-secondary)]">Cofundador y CEO</span>
+                    </span>
+                    <span className="grid h-10 w-10 place-items-center rounded-full border border-[var(--color-border-gold)] text-gold">
+                      <StarOfDavid className="h-5 w-5" />
+                    </span>
+                  </figcaption>
+                </figure>
+              </Reveal>
+              <ul className="mt-6 flex flex-wrap gap-2" aria-label="Perfiles de Vinicius">
                 {SOCIALS.map(({ name, icon: Icon, href }) => (
                   <li key={name}>
                     <a
@@ -112,60 +163,18 @@ export default function Nosotros() {
                   </li>
                 ))}
               </ul>
-            </Reveal>
+            </div>
 
-            <Reveal delay={120} className="mx-auto w-full max-w-sm lg:max-w-none">
-              <figure className="liquid-glass liquid-glass-lens overflow-hidden rounded-[2rem] p-2">
-                <div className="relative aspect-[4/5] overflow-hidden rounded-[1.6rem] bg-bg-tertiary">
-                  <img
-                    src="/images/vinicius.jpg"
-                    alt="Vinicius, fundador de Mercav, en Santa Cruz de la Sierra"
-                    width={960}
-                    height={1280}
-                    decoding="async"
-                    className="h-full w-full object-cover object-[center_30%]"
-                  />
-                  <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent" />
-                  <span className="absolute left-3 top-3 inline-flex h-8 items-center gap-1.5 rounded-full bg-black/65 px-3 text-xs font-medium text-white">
-                    <MapPin className="h-3.5 w-3.5" aria-hidden /> Santa Cruz, Bolivia
-                  </span>
-                </div>
-                <figcaption className="flex items-center justify-between gap-3 px-4 pb-3 pt-4">
-                  <span>
-                    <span className="block font-display text-lg font-semibold text-[var(--text-primary)]">Vinicius</span>
-                    <span className="block text-sm text-[var(--text-secondary)]">Fundador de Mercav</span>
-                  </span>
-                  <span className="grid h-10 w-10 place-items-center rounded-full border border-[var(--color-border-gold)] text-gold">
-                    <StarOfDavid className="h-5 w-5" />
-                  </span>
-                </figcaption>
-              </figure>
-            </Reveal>
-          </div>
-        </Container>
-      </header>
-
-      {/* Presentación */}
-      <Section tone="raised" labelledBy="presentacion">
-        <Container>
-          <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
-            <div className="lg:sticky lg:top-28 lg:self-start">
-              <p className="mv-kicker">Presentación</p>
-              <h2 id="presentacion" className="sr-only">
-                Presentación
-              </h2>
-              <Reveal className="mt-6">
+            <div className="max-w-[65ch] space-y-6 text-[1.0625rem] leading-[1.75] text-[var(--text-secondary)]">
+              <Reveal>
                 <p lang="he" dir="rtl" className="font-display text-3xl font-medium leading-snug text-[var(--text-primary)] md:text-4xl">
                   בעזרת השם, כל עכבה לטובה.
                 </p>
                 <p className="mt-4 text-[0.9375rem] text-[var(--text-secondary)]">Con la ayuda del Creador, cada demora es para bien.</p>
                 <div className="mt-6 h-px w-24 bg-gradient-to-r from-gold to-transparent" aria-hidden />
               </Reveal>
-            </div>
-
-            <div className="max-w-[65ch] space-y-6 text-[1.0625rem] leading-[1.75] text-[var(--text-secondary)]">
               <p>
-                Me llamo <span className="font-semibold text-[var(--text-primary)]">Vinicius</span>. Tengo 19 años y vivo en Santa Cruz de la Sierra, Bolivia. Soy el fundador de Mercav: diseño la lógica de los sistemas —APIs, autenticación, datos, reglas de negocio— y trabajo ciberseguridad defensiva de alto nivel: pentesting autorizado, defensa, auditoría y respuesta post-incidente. El perfil técnico está en{" "}
+                Me llamo <span className="font-semibold text-[var(--text-primary)]">Vinicius</span>. Tengo 19 años y vivo en Santa Cruz de la Sierra, Bolivia. Soy cofundador y CEO de Mercav: diseño la lógica de los sistemas —APIs, autenticación, datos, reglas de negocio— y trabajo ciberseguridad defensiva de alto nivel: pentesting autorizado, defensa, auditoría y respuesta post-incidente. El perfil técnico está en{" "}
                 <a href="https://askforvini.pw" target="_blank" rel="noopener noreferrer" className="mv-link">
                   askforvini.pw
                 </a>
@@ -301,15 +310,15 @@ export default function Nosotros() {
 
       <CTABand
         title="Si querés hablar"
-        lead="Podés usar Mercav, leer el oficio en askforvini.pw o escribirme. El trabajo se toma en serio."
+        lead="Podés usar Mercav, leer el pitch o escribirnos. El trabajo se toma en serio."
         action={
           <>
             <ButtonLink href="/register" size="lg" className="w-full sm:w-auto">
               Crear cuenta
             </ButtonLink>
-            <a href="https://askforvini.pw" target="_blank" rel="noopener noreferrer" className="mv-btn mv-btn-ghost mv-btn-lg w-full sm:w-auto">
-              askforvini.pw <ArrowUpRight className="h-4 w-4" aria-hidden />
-            </a>
+            <ButtonLink href="/contacto" tone="ghost" size="lg" className="w-full sm:w-auto">
+              Escribirnos
+            </ButtonLink>
           </>
         }
       />

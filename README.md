@@ -183,7 +183,7 @@ Proyecto de hospitalidad en Santa Cruz: mesa física, estándar de kashrut, el m
       <sub>Cofundador · CEO</sub>
       <br>
       <br>
-      <a href="https://mercav.lat/nosotros">Quién soy</a>
+      <a href="https://mercav.lat/nosotros#vinicius">Perfil</a>
       <br>
       <br>
     </td>
@@ -216,7 +216,7 @@ El resumen para inversores (problema, producto, modelo de negocio y equipo) est�
 | :--- | :--- |
 | `/` | Landing: problema, siete módulos, Pwn, Kosher, actividad |
 | `/por-que-mercav` | Por qué existe la plataforma |
-| `/nosotros` | Quién la construye |
+| `/nosotros` | Quiénes somos: el equipo y el perfil de Vinicius |
 | `/pitch` | Pitch: problema, producto, modelo de negocio y equipo |
 | `/inversores` | Contacto de inversores (SMTP si está configurado) |
 | `/precios`, `/premium` | Planes (Free, Professional, …) y herramientas por plan |
