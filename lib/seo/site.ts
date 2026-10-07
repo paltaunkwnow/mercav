@@ -2,9 +2,11 @@
 // the same pages are also reachable under mercav.lat/pwn and mercav.lat/kosher,
 // so every URL resolves to exactly one canonical address.
 
-export const SITE_URL = "https://mercav.lat";
-export const PWN_URL = "https://pwn.mercav.lat";
-export const KOSHER_URL = "https://kosher.mercav.lat";
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : "https://mercav.lat");
+export const PWN_URL = process.env.NEXT_PUBLIC_PWN_URL || "https://pwn.mercav.lat";
+export const KOSHER_URL = process.env.NEXT_PUBLIC_KOSHER_URL || "https://kosher.mercav.lat";
 
 export const SITE_NAME = "Mercav";
 export const SITE_DESCRIPTION =
