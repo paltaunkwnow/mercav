@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 140" width="1280" height="140" role="img" aria-label="Mercav. Hecho en Latinoamérica.">
+  <defs>
+    <linearGradient id="shine" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="360" y2="0">
+      <stop offset="0" stop-color="#B8922A"/>
+      <stop offset="0.5" stop-color="#FFF1BF"/>
+      <stop offset="1" stop-color="#B8922A"/>
+      <animateTransform attributeName="gradientTransform" type="translate" values="280 0; 1000 0; 1000 0" keyTimes="0; 0.6; 1" dur="5s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    .brand { fill: url(#shine); font-size: 40px; font-weight: 700; letter-spacing: -1px; }
+    .tag { fill: #8E887D; font-size: 16px; }
+    .star { animation: turn 12s linear infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes turn { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+  <text class="brand" x="640" y="66" text-anchor="middle">Mercav</text>
+  <g transform="translate(531 92)">
+    <g class="star">
+      <path d="M12 3.2 20.2 17.4H3.8Z M12 20.8 3.8 6.6h16.4Z" fill="none" stroke="#D4AF37" stroke-width="1.6" stroke-linejoin="round"/>
+    </g>
+  </g>
+  <text class="tag" x="562" y="110">Hecho en Latinoamérica.</text>
+</svg>

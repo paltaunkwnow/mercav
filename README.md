@@ -1,141 +1,324 @@
-# 🌌 Mercav | Ecosistema Digital Latinoamericano
+<div align="center">
 
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38bdf8?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
-[![Prisma](https://img.shields.io/badge/Prisma-ORM-123a50?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![License](https://img.shields.io/badge/License-Proprietary-gold?style=for-the-badge)](#)
+<img src=".github/readme/hero.svg" alt="Mercav. Una sola cuenta para publicidad, talento, empleo, caja y ciberinteligencia en Latinoamérica." width="100%">
 
-> **Mercav** es una plataforma integral de última generación diseñada para digitalizar, conectar y potenciar profesionales, empresas y anunciantes en toda Latinoamérica. Unifica un marketplace de publicidad exterior, un directorio de servicios freelance con sistema de escrow, una bolsa de empleo avanzada y una red social corporativa bajo una experiencia de usuario cinematográfica premium.
+<br>
+<br>
 
----
+[![Next.js](https://img.shields.io/badge/Next.js-14.2-D4AF37?style=for-the-badge&logo=next.js&logoColor=white&labelColor=0C0C0C)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-18-D4AF37?style=for-the-badge&logo=react&logoColor=white&labelColor=0C0C0C)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-D4AF37?style=for-the-badge&logo=typescript&logoColor=white&labelColor=0C0C0C)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-D4AF37?style=for-the-badge&logo=tailwind-css&logoColor=white&labelColor=0C0C0C)](https://tailwindcss.com/)
+<br>
+[![Prisma](https://img.shields.io/badge/Prisma-5-D4AF37?style=for-the-badge&logo=prisma&logoColor=white&labelColor=0C0C0C)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-D4AF37?style=for-the-badge&logo=postgresql&logoColor=white&labelColor=0C0C0C)](https://www.postgresql.org/)
+[![Stripe](https://img.shields.io/badge/Stripe-pagos-D4AF37?style=for-the-badge&logo=stripe&logoColor=white&labelColor=0C0C0C)](https://stripe.com/)
+[![License](https://img.shields.io/badge/Licencia-propietaria-D4AF37?style=for-the-badge&labelColor=0C0C0C)](#)
 
-## 🎨 Filosofía de Diseño: "Seamless Cinematic Experience"
+**[mercav.lat](https://mercav.lat)** &nbsp;·&nbsp; **[pwn.mercav.lat](https://pwn.mercav.lat)** &nbsp;·&nbsp; **[kosher.mercav.lat](https://kosher.mercav.lat)** &nbsp;·&nbsp; **[Pitch](https://mercav.lat/pitch)**
 
-Mercav no es solo una herramienta, es una experiencia visual. La paleta es **crema y oro en modo claro** y **negro y oro en modo oscuro**. El tema se guarda en el navegador.
-- **Liquid Glass**: el header, la barra inferior, la búsqueda, los menús y las hojas flotantes usan desenfoque, saturación y un borde luminoso. En Chrome el borde también refracta el fondo; Safari y Firefox quedan en el vidrio esmerilado. Si el sistema pide menos transparencia, esas piezas pasan a un fondo sólido.
-- **Transiciones de sección**: el cambio de color entre bloques del inicio es un degradado, sin línea de corte.
-- **Confirmar deslizando**: borrar y «Crear cuenta gratis» se confirman arrastrando el control hasta el final.
-- **Interacciones**: búsqueda que se abre en una cápsula, tarjetas que se hunden bajo el puntero, gráfica que se recorre con el dedo y listas de comunidad que se reordenan.
-- **Legal**: aviso legal, términos, privacidad, cookies, uso aceptable, reembolsos y derechos. El aviso de cookies bloquea reCAPTCHA y Google hasta que la persona acepta terceros.
+</div>
 
----
+<br>
 
-## 🚀 Módulos Principales de la Plataforma
+**Mercav** es una plataforma con una sola cuenta para Latinoamérica: publicidad física, talento con pago por Stripe, empleo, feed, caja POS, herramientas de negocio, ciberinteligencia defensiva y un atlas de lugares kosher, sinagogas y kehilot.
 
-| Módulo | Descripción | Características Clave |
+La construyen sus tres cofundadores desde Santa Cruz de la Sierra, Bolivia.
+
+> [!NOTE]
+> En local el servidor de desarrollo escucha en el puerto **1337**. Usá `http://127.0.0.1:1337`, no `localhost`.
+
+<details>
+<summary><b>Contenido</b></summary>
+
+<br>
+
+| | | |
 | :--- | :--- | :--- |
-| **📢 Mercav Ads (Spaces)** | Marketplace digital para publicidad exterior (Vallas, Pantallas LED, Totems). | • Búsqueda geográfica y filtros.<br>• Reserva en tiempo real.<br>• Visualización de impacto y alcance métrico. |
-| **🛠️ Mercav Services** | Directorio de talentos freelance y agencias verificadas en Latinoamérica. | • Portafolios interactivos.<br>• Contratación directa segura.<br>• Calificaciones y reseñas auditadas. |
-| **💼 Mercav Jobs** | Bolsa de trabajo moderna optimizada para reclutadores y aplicantes. | • Postulación ágil en un clic.<br>• Perfiles de empresas interactivos.<br>• Seguimiento de candidaturas en tiempo real. |
-| **🤝 Mercav Comunidad** | Red social corporativa para networking y el movimiento *Build in Public*. | • Feed interactivo con soporte multimedia.<br>• Reacciones personalizadas.<br>• Mensajería directa fluida. |
-| **🧰 Mercav Tools** | Suite de herramientas empresariales y utilidades premium para profesionales y negocios. | • Herramientas de productividad integradas.<br>• Plantillas y utilidades para empresas.<br>• Automatizaciones y soporte para flujos de trabajo. |
-| **🛡️ Mercav Pwn** | Inteligencia defensiva y monitoreo de exposición en [pwn.mercav.lat](https://pwn.mercav.lat). | • Búsqueda de exposición con HIBP, sin guardar contraseñas ni correos ajenos.<br>• Contraseñas solo por k-anonimato (el hash se calcula en el navegador).<br>• Vulnerabilidades de NVD y CISA KEV, alertas in-app y verificación DNS de dominios. |
-| **✡️ Mercav Kosher** | Espacio premium para la comunidad judía en [kosher.mercav.lat](https://kosher.mercav.lat), portado desde Makom. | • Mapa MapLibre con clusters de restaurantes, tiendas, sinagogas, mikvaot y kehilot.<br>• Stock por sucursal, valoraciones y sugerencias de edición con moderación.<br>• Chat propio por ciudad y por lugar, modo Shabat y la misma cuenta Mercav.<br>• Calendario con zmanim y jaguim por ciudad, modo viaje y alertas por ciudad.<br>• Comunidad: agenda, minián con confirmaciones, mesa de Shabat, jésed, empleos de Mercav Jobs y directorio de agencias.<br>• Fichas oficiales: instituciones que administran su lugar y cargan su certificado con vencimiento. |
+| [Módulos](#módulos) | [Equipo](#equipo) | [El resto de la app](#el-resto-de-la-app) |
+| [Hosts](#hosts) | [Stack](#stack) | [Estructura del repo](#estructura-del-repo) |
+| [Arranque local](#arranque-local) | [Admin](#admin) | [Roadmap](#roadmap) |
+| [Notas de desarrollo](#notas-de-desarrollo) | | |
 
+</details>
 
----
+<img src=".github/readme/divider.svg" width="100%" alt="">
 
-## 🗂️ Estructura y Arquitectura del Proyecto
+## Módulos
 
-El proyecto sigue las directrices del **App Router de Next.js**, separando de forma clara la lógica de servidor de la interactividad del cliente:
+<img src=".github/readme/modules.svg" alt="Siete módulos con una sola cuenta: Ads, Services, Jobs, POS, Tools, Pwn y Kosher." width="100%">
 
-```bash
-Mercav/
-├── app/                    # Directorio raíz del App Router
-│   ├── (auth)/             # Flujos de login, registro y recuperación de contraseña
-│   ├── admin/              # Panel de administración, moderación y soporte
-│   ├── anuncios/           # Vistas y flujos para el marketplace de publicidad exterior
-│   ├── api/                # Endpoints de API REST (Backend en Next.js)
-│   ├── buscar/             # Motor de búsqueda global unificado
-│   ├── checkout/           # Integración y flujo de pasarela de pagos
-│   ├── comunidad/          # Red social (Feeds, posts, interacciones)
-│   ├── dashboard/          # Dashboards del cliente, pedidos y ventas
-│   ├── empleos/            # Módulo de bolsa de empleo y postulaciones
-│   ├── herramientas/       # Herramientas internas y utilidades premium
-│   ├── pwn/                # Mercav Pwn (pwn.mercav.lat): exposición, monitoreo y alertas
-│   ├── kosher/             # Mercav Kosher (kosher.mercav.lat): mapa, lugares, chat y moderación
-│   ├── mensajes/           # Módulo de chat en tiempo real y mensajería
-│   ├── perfil/             # Configuración y visualización de perfiles
-│   └── servicios/          # Directorio de profesionales freelance
-├── components/             # Componentes de React reutilizables
-│   ├── checkout/           # Componentes específicos de Stripe/pagos
-│   ├── ui/                 # Componentes base y primitivas de UI (Shadcn modificados)
-│   ├── pwn/                # Pantallas y cliente de Mercav Pwn
-│   ├── kosher/             # Mapa, ficha de lugar, chat y formularios de Mercav Kosher
-│   └── ...                 # Componentes organizados por dominio
-├── lib/                    # Lógica común, clientes y utilidades
-│   ├── pwn/                # Motores de riesgo, confianza y redacción
-│   ├── integrations/pwn/   # Conectores HIBP, NVD y CISA KEV
-│   ├── kosher/             # Etiquetas, geo, horarios de Shabat y helpers de servidor de Kosher
-│   ├── prisma.ts           # Inicialización y cliente de Prisma ORM
-│   ├── stripe.ts           # Integración con Stripe API
-│   └── utils.ts            # Helper functions globales
-├── prisma/                 # Modelos de base de datos
-│   └── schema.prisma       # Esquema principal de la base de datos
-├── public/                 # Recursos estáticos (Logotipos, imágenes, HTMLs estáticos)
-└── package.json            # Dependencias del proyecto y scripts de ejecución
+Siete módulos de producto, más el feed, los mensajes y el panel. Todo comparte el mismo login (correo/contraseña o Google, 2FA TOTP opcional). Roles: `ADMIN`, `ANUNCIANTE`, `DUENO_ESPACIO`, `FREELANCER`, `CANDIDATO`.
+
+| Módulo | Ruta | Para qué |
+| :--- | :--- | :--- |
+| **Ads** | `/anuncios` | Vallas, pantallas y vidrieras para alquilar por fechas |
+| **Services** | `/servicios` | Talento digital con paquetes y pago por Stripe |
+| **Jobs** | `/empleos` | Vacantes, postulaciones y seguimiento |
+| **POS** | `/dashboard/pos` | Caja para cualquier rubro, con cola offline |
+| **Tools** | `/herramientas` | Calculadoras, contratos, SEO y prompts en el navegador |
+| **Pwn** | `/pwn` · [pwn.mercav.lat](https://pwn.mercav.lat) | Ciberinteligencia defensiva |
+| **Kosher** | `/kosher` · [kosher.mercav.lat](https://kosher.mercav.lat) | Atlas de lugares, sinagogas y kehilot |
+
+### Mercav Ads — `/anuncios`
+
+Catálogo de vallas, pantallas y vidrieras para alquilar con reserva por fechas. El primer alquiler de cada espacio no paga comisión de plataforma. El pago va por Stripe. Publicar, editar y ver «mis espacios» está en `/anuncios/publicar`, `/anuncios/editar/[id]` y `/anuncios/mis-espacios`.
+
+### Mercav Services — `/servicios`
+
+Mercado de talento digital con paquetes y precio claro. El cliente paga con tarjeta; el pedido pasa de `PENDING` a `IN_PROGRESS` cuando Stripe confirma. Hay disputas, archivos del proyecto y reseñas.
+
+> [!IMPORTANT]
+> El modelo `Milestone` existe, pero **la liberación por hito todavía no se crea en código**: la custodia que ve admin es el pedido no completado ni cancelado, no un escrow de Stripe Connect.
+
+Pedidos: `/dashboard/pedidos`. Publicar: `/servicios/publicar`.
+
+### Mercav Jobs — `/empleos`
+
+Vacantes, postulaciones y seguimiento. El empleador ve postulantes en `/dashboard/postulantes`. El salario puede mostrarse u ocultarse. La misma cuenta sirve para postular y para publicar.
+
+### Feed y mensajes — `/feed`, `/mensajes`
+
+El feed es la comunidad de la plataforma: publicaciones, reacciones, comentarios y actividad de espacios, servicios y vacantes. Sin sesión hay un teaser; con sesión, el feed completo. Los mensajes directos viven en `/mensajes` (Socket.io).
+
+### Mercav POS — `/dashboard/pos`
+
+Caja en el navegador para cualquier rubro: carrito, medios de pago, abrir/cerrar turno, anular venta, inventario, reportes y personal con PIN. Hay cola offline si se corta la red. La config puede vincular un local de Mercav Kosher para **avisar disponibilidad**; Mercav no emite hechsher ni certifica productos.
+
+Pantallas: `/dashboard/pos`, `/dashboard/pos/inventory`, `/dashboard/pos/reports`, `/dashboard/pos/config`.
+
+### Mercav Tools — `/herramientas`
+
+Se abren en el navegador, sin instalar nada. Incluidas según el plan (`/precios`). El POS no está en este catálogo: vive en `/dashboard/pos`.
+
+<details>
+<summary><b>Rutas de Tools</b> (6)</summary>
+
+<br>
+
+| Ruta | Qué hace |
+| :--- | :--- |
+| `/herramientas/roi` | Calculadora de ROI de una campaña |
+| `/herramientas/contratos` | Modelo de contrato freelancer–cliente por país (opcional: `ANTHROPIC_API_KEY`) |
+| `/herramientas/seo` | Analizador SEO y PDF (opcional: `GOOGLE_PAGESPEED_API_KEY`) |
+| `/herramientas/precios` | Simulador de tarifa por hora y por proyecto |
+| `/herramientas/paletas` | Paleta de cinco colores, contraste y export CSS/Tailwind/SCSS/JSON |
+| `/herramientas/prompts` | Prompts para anuncios, producto y atención (opcional: Anthropic) |
+
+</details>
+
+### Mercav Pwn — `/pwn` y [pwn.mercav.lat](https://pwn.mercav.lat)
+
+Ciberinteligencia **defensiva**. Sin `PWN_ENABLED=true` las rutas responden 404. No guarda contraseñas ni correos ajenos en claro. Los identificadores se hashean con `PWN_IDENTIFIER_PEPPER`.
+
+<details>
+<summary><b>Rutas de Pwn</b> (12)</summary>
+
+<br>
+
+| Ruta | Qué hace |
+| :--- | :--- |
+| `/pwn` | Hub: consulta y capacidades |
+| `/pwn/exposure` | Correo o dominio contra Have I Been Pwned (consulta abierta) |
+| `/pwn/breaches` | Catálogo de filtraciones y estado de verificación |
+| `/pwn/vulnerabilities` | CVE en NVD, marcado si está en CISA KEV |
+| `/pwn/signals` | Titulares de foros/RSS permitidos (solo metadatos: título, autor, enlace) |
+| `/pwn/alerts` | Alertas de objetivos que seguís y verificaste |
+| `/pwn/reports` | Informe de exposición para un equipo o un cliente |
+| `/pwn/actors` | Agregado de actores de foro |
+| `/pwn/organizations` | Organización, objetivos y alertas |
+| `/pwn/autorizaciones` | Cola de autorización de monitoreo |
+| `/pwn/sources` | Salud de conectores; admin puede apagar un feed |
+| `/pwn/terminos` | Términos del módulo |
+
+</details>
+
+Contraseñas: k-anonimato en el navegador (`POST /api/pwn/passwords/range`). Crons en `vercel.json`: `POST /api/pwn/internal/cycle` (horario) y `/api/pwn/internal/forums` (cada 10 min), con `CRON_SECRET`. Detalle de migraciones y operación: [migrate.md](migrate.md). Tests de motores (sin base): `npm run test:pwn`.
+
+### Mercav Kosher — `/kosher` y [kosher.mercav.lat](https://kosher.mercav.lat)
+
+Atlas de lugares kosher, sinagogas, mikvaot y kehilot. Mapa MapLibre (OpenFreeMap / CARTO, sin clave). Zmanim, velas, Havdalá y jaguim con `@hebcal/core` y la zona de cada ciudad. Modo Shabat: solo lectura desde velas hasta Havdalá (también en iom tov).
+
+> [!NOTE]
+> Mercav Kosher **no emite hechsher, certificación ni psak**: muestra la fuente y la fecha.
+
+<details>
+<summary><b>Rutas de Kosher</b> (12)</summary>
+
+<br>
+
+| Ruta | Qué hace |
+| :--- | :--- |
+| `/kosher` | Inicio del atlas |
+| `/kosher/mapa` | Mapa con clusters y filtros |
+| `/kosher/viaje` | Dónde comer, rezar y la sala local al llegar a una ciudad |
+| `/kosher/calendario` | Zmanim y jaguim |
+| `/kosher/chat` | Conversación por ciudad o por lugar (cuenta Mercav) |
+| `/kosher/sugerir` | Alta de un lugar, con fuente, a moderación |
+| `/kosher/lugar/[slug]` | Ficha; instituciones pueden administrarla y cargar certificado con vencimiento |
+| `/kosher/comunidad` | Hub: agenda, minián, mesa de Shabat, jésed, empleos, agencias, kehilot |
+| `/kosher/comunidades` | Ciudades con kehilá en Mercav Kosher |
+| `/kosher/perfil` | Ciudad, corriente, modo Shabat (misma cuenta) |
+| `/kosher/moderacion` | Cola: `ADMIN` de Mercav, o rol `local_moderator` / `agency` en Kosher |
+| `/kosher/terminos` | Términos del módulo |
+
+</details>
+
+Seed del atlas: `npm run seed:kosher`.
+
+### Kerem by Mercav — todavía no está vivo
+
+Proyecto de hospitalidad en Santa Cruz: mesa física, estándar de kashrut, el mismo criterio de verificabilidad que el software. No es un eslogan ni un módulo de esta app. La capa digital de lugares es Mercav Kosher.
+
+<img src=".github/readme/divider.svg" width="100%" alt="">
+
+## Equipo
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <br>
+      <b>Vinicius Salazar</b>
+      <br>
+      <sub>Cofundador · CEO</sub>
+      <br>
+      <br>
+      <a href="https://mercav.lat/nosotros">Quién soy</a>
+      <br>
+      <br>
+    </td>
+    <td align="center" width="33%">
+      <br>
+      <b>Sebastian Rojas Cespedes</b>
+      <br>
+      <sub>Cofundador · CTO</sub>
+      <br>
+      <br>
+    </td>
+    <td align="center" width="33%">
+      <br>
+      <b>Alejandro Ismael Mendoza Diaz</b>
+      <br>
+      <sub>Cofundador · CTO</sub>
+      <br>
+      <br>
+    </td>
+  </tr>
+</table>
+
+El resumen para inversores (problema, producto, modelo de negocio y equipo) está en [`/pitch`](https://mercav.lat/pitch).
+
+<img src=".github/readme/divider.svg" width="100%" alt="">
+
+## El resto de la app
+
+| Ruta | Qué es |
+| :--- | :--- |
+| `/` | Landing: problema, siete módulos, Pwn, Kosher, actividad |
+| `/por-que-mercav` | Por qué existe la plataforma |
+| `/nosotros` | Quién la construye |
+| `/pitch` | Pitch: problema, producto, modelo de negocio y equipo |
+| `/inversores` | Contacto de inversores (SMTP si está configurado) |
+| `/precios`, `/premium` | Planes (Free, Professional, …) y herramientas por plan |
+| `/explorar`, `/buscar` | Descubrimiento y búsqueda unificada |
+| `/login`, `/register` | Auth; reCAPTCHA v3 si hay claves y cookies de terceros aceptadas |
+| `/perfil`, `/perfil/editar` | Perfil público y edición (incluido 2FA) |
+| `/dashboard` | Panel: pedidos, clientes, postulantes, POS |
+| `/admin/dashboard` | Solo `ADMIN`. Pestañas: resumen, usuarios, empresas, inversores, servicios, espacios, insignias, finanzas, reportes, tráfico inusual, configuración |
+| `/checkout` | Stripe: servicios, reservas de espacios, upgrade de plan |
+| `/soporte`, `/contacto` | Tickets y contacto |
+| `/changelog` | Cambios |
+| `/sancion` | Cuenta suspendida |
+| `/offline`, `/maintenance`, `/forbidden` | Utilidad |
+
+**Legal:** `/aviso-legal`, `/terminos`, `/privacidad`, `/cookies`, `/legal/uso-aceptable`, `/legal/reembolsos`, `/legal/derechos`, más `/pwn/terminos` y `/kosher/terminos`. El aviso de cookies bloquea reCAPTCHA y Google hasta que la persona acepta terceros.
+
+**`/1337`:** no es un producto. Si el user-agent parece interceptor (Burp, ZAP, …) el middleware redirige acá. En escritorio, InspectGuard registra inspección (F12) y también lleva a `/1337`. Admin ve esos eventos en la pestaña **Tráfico inusual**. El video está en `public/videos/1337.webm`. No indexar: está en `PRIVATE_PREFIXES`.
+
+<img src=".github/readme/divider.svg" width="100%" alt="">
+
+## Hosts
+
+El mismo despliegue de Next sirve los tres hosts (`lib/seo/site.ts`, `middleware.ts`):
+
+| Host | Qué sirve |
+| :--- | :--- |
+| `mercav.lat` | App principal |
+| `pwn.mercav.lat` | Reescribe a `/pwn` |
+| `kosher.mercav.lat` | Reescribe a `/kosher`; `/empleos` y `/mensajes` en ese host redirigen a `mercav.lat` |
+
+En producción, `AUTH_COOKIE_DOMAIN=.mercav.lat` comparte la sesión. En local dejalo vacío.
+
+## Stack
+
+| Capa | Qué usa |
+| :--- | :--- |
+| **App** | Next.js 14 App Router, React 18, TypeScript, Tailwind, Framer Motion |
+| **Datos** | PostgreSQL + Prisma 5 |
+| **Auth** | NextAuth JWT (Credentials + Google), 2FA con `otplib` |
+| **Pagos** | Stripe (`PaymentIntent` + webhook) |
+| **Pwn** | Have I Been Pwned, NVD 2.0, CISA KEV, RSS/foros allowlisted |
+| **Kosher** | MapLibre GL, OpenFreeMap/CARTO, OSM (seed), `@hebcal/core`, `sonner` |
+| **POS / Tools** | Cámara para códigos, `jspdf` / `xlsx`, Anthropic opcional en contratos y prompts |
+| **Tiempo real** | Socket.io en mensajes |
+
+Diseño: crema y oro en claro, negro y oro en oscuro. Liquid glass en header, nav inferior, búsqueda y hojas. En iOS, `viewport-fit=cover` y `env(safe-area-inset-*)`.
+
+## Estructura del repo
+
+```
+app/                 App Router
+  anuncios/          Ads
+  servicios/         Services
+  empleos/           Jobs
+  feed/              Comunidad de la plataforma
+  dashboard/         Pedidos, postulantes, POS
+  herramientas/      Tools
+  pwn/               Mercav Pwn
+  kosher/            Mercav Kosher (mapa, comunidad, viaje, …)
+  pitch/             Pitch para inversores
+  admin/             Panel admin
+  1337/              Página de inspección
+  api/               Route handlers
+components/          UI por dominio (home, pos, pwn, kosher, admin, layout, feed)
+lib/                 Auth, Prisma, Stripe, SEO, Pwn, Kosher, POS, billing
+prisma/              schema.prisma + migrations + seeds
+public/              Estáticos; /images/logo.png; /videos/1337.webm
+.github/readme/      SVG animados de este README
+middleware.ts        Auth, subdominios, rate limit, /1337, SEO
+vercel.json          Crons de Pwn
+migrate.md           Cómo aplicar Pwn/Kosher sin borrar datos
 ```
 
----
+No hay grupo `(auth)/` ni carpeta `comunidad/`: login y registro están en `/login` y `/register`; la red social es `/feed`.
 
-## 🛠️ Stack Tecnológico Completo
+> [!WARNING]
+> **Qué no es el runtime.** Estas carpetas pueden existir en una máquina local y **no se sirven**:
+>
+> - `Implementacion Nueva Kosher/makom-main`: copia de referencia de Makom; Kosher ya está portado a `app/kosher`
+> - `logo default/`: original de `1337.webm`; la app usa `public/videos/1337.webm`
+> - `obsidian/`, `CONTEXTO.md`: notas locales; ya están en `.gitignore`
+> - `.env`: secretos; nunca al git
+>
+> No copies recetas de ataque ni vendorees herramientas ofensivas. Pwn es defensivo: metadatos, fuentes citadas, nada de volcados ni exploits.
 
-*   **Frontend**: React 18, Next.js 14, Framer Motion, Tailwind CSS, Lucide React (Iconos).
-*   **Backend & APIs**: Next.js Server Actions, Route Handlers, Node.js.
-*   **Base de Datos**: PostgreSQL, persistencia gestionada mediante **Prisma ORM**. El procedimiento de Pwn está en [migrate.md](migrate.md).
-*   **Autenticación**: NextAuth.js con soporte para correo/contraseña y OAuth.
-*   **Pagos**: Stripe API (Soporte para tarjetas globales y flujos de cobro).
-*   **Mercav Pwn**: Have I Been Pwned, NVD API 2.0 y el catálogo CISA KEV. El host `pwn.mercav.lat` sirve el mismo despliegue y reescribe la raíz a `/pwn`.
-*   **Mercav Kosher**: MapLibre GL con teselas de OpenFreeMap y CARTO (sin clave), datos de OpenStreetMap y `sonner` para avisos. `@hebcal/core` calcula zmanim, velas, Havdalá y jaguim con la zona horaria de cada comunidad. El host `kosher.mercav.lat` reescribe la raíz a `/kosher` y manda `/empleos` y `/mensajes` a `mercav.lat`.
+<img src=".github/readme/divider.svg" width="100%" alt="">
 
----
+## Arranque local
 
-## 🚀 Guía de Configuración e Instalación Local
+**Requisitos:** Node 18+, npm, Docker (o PostgreSQL 16). El contenedor que usa este proyecto se llama `mercav-postgres`.
 
-Sigue estos pasos para desplegar el entorno de desarrollo en tu máquina local:
+### 1. Instalar
 
-### 1. Requisitos Previos
-*   Node.js (versión 18 o superior recomendada)
-*   NPM, Yarn o PNPM
-*   Una instancia activa de base de datos (PostgreSQL o compatible)
-
-### 2. Clonar el repositorio e instalar dependencias
 ```bash
 git clone https://github.com/invertilo/mercav.git
 cd mercav
 npm install
 ```
 
-### 3. Configuración de Variables de Entorno
-Crea un archivo `.env` en la raíz del proyecto basándote en la siguiente plantilla:
-```env
-# Configuración de Base de Datos (Prisma)
-DATABASE_URL="postgresql://usuario:contraseña@localhost:5432/mercav_db?schema=public"
+Hay un segundo remoto (`paltaunkwnow/mercav`) en algunas máquinas. El remoto `origin` es `invertilo/mercav`.
 
-# Configuración de Autenticación (NextAuth)
-NEXTAUTH_URL="http://localhost:1337"
-NEXTAUTH_SECRET="tu_secreto_super_seguro_aqui"
-# Solo en producción: comparte la sesión entre mercav.lat, kosher.mercav.lat y pwn.mercav.lat
-AUTH_COOKIE_DOMAIN=".mercav.lat"
-
-# Pasarela de Pagos (Stripe)
-STRIPE_SECRET_KEY="sk_test_..."
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
-
-# Mercav Pwn (apagado hasta que PWN_ENABLED sea "true")
-PWN_ENABLED="false"
-PWN_IDENTIFIER_PEPPER="un_secreto_largo_y_aleatorio"
-HIBP_API_KEY=""
-NVD_API_KEY=""
-CRON_SECRET=""
-PWN_FORUM_SCRAPE="true"
-```
-
-`PWN_IDENTIFIER_PEPPER` es obligatorio para buscar con sesión o crear objetivos. `HIBP_API_KEY` habilita las filtraciones. `CRON_SECRET` autoriza `POST /api/pwn/internal/cycle`, que revisa dominios verificados, abre alertas y guarda el catálogo público de CISA KEV. NVD y CISA KEV no exigen clave; `NVD_API_KEY` solo sube el cupo del proveedor.
-
-### 4. Configurar la Base de Datos
-Si no tienes PostgreSQL instalado, un contenedor desechable basta:
+### 2. Base de datos
 
 ```bash
 docker run -d --name mercav-postgres \
@@ -145,76 +328,132 @@ docker run -d --name mercav-postgres \
   -p 5432:5432 postgres:16
 ```
 
-Esa contraseña es solo para la máquina local. En local, con esa base vacía:
+Esa contraseña es solo para la máquina local. Con la base **vacía**:
 
 ```bash
 npx prisma generate
 npx prisma db push
 ```
 
-En un entorno que ya tiene datos, no uses `db push` ni `migrate dev`. Sigue [migrate.md](migrate.md): backup y `npx prisma migrate deploy`. Kosher agrega las migraciones `20260929120000_kosher` y `20260929180000_kosher_community`, que solo crean tablas, enums y columnas nuevas.
+> [!CAUTION]
+> En un entorno **con datos**, no uses `db push` ni `migrate dev`. Seguí [migrate.md](migrate.md): backup y `npx prisma migrate deploy`. El historial de Prisma no cubre todo el esquema (POS, tickets, etc. se añadieron al `schema.prisma` sin migración vieja); `migrate dev` puede ofrecer un reset.
 
-Para cargar el atlas inicial de Kosher. Cada lugar trae la fuente pública donde se verificó (`sourceUrl`, `verifiedAt`); la kashrut solo se marca «Certificado» si figura en la lista de la agencia:
+Admin inicial: `npm run seed` (`SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`). Atlas Kosher: `npm run seed:kosher`.
 
-```bash
-npm run seed:kosher
+### 3. Variables (`.env` en la raíz)
+
+No commitees este archivo. Nombres, no valores de producción.
+
+<details>
+<summary><b>Ver el <code>.env</code> de ejemplo</b></summary>
+
+<br>
+
+```env
+DATABASE_URL="postgresql://mercav:mercav@localhost:5432/mercav_db?schema=public"
+
+NEXTAUTH_URL="http://127.0.0.1:1337"
+NEXTAUTH_SECRET="un_secreto_largo"
+# En local vacío. En producción: .mercav.lat
+AUTH_COOKIE_DOMAIN=""
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+
+RECAPTCHA_SECRET_KEY=""
+NEXT_PUBLIC_RECAPTCHA_SITE_KEY=""
+
+STRIPE_SECRET_KEY="sk_test_..."
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+STRIPE_WEBHOOK_SECRET=""
+
+PWN_ENABLED="false"
+PWN_IDENTIFIER_PEPPER="un_secreto_largo_y_aleatorio"
+HIBP_API_KEY=""
+NVD_API_KEY=""
+CRON_SECRET=""
+PWN_FORUM_SCRAPE="true"
+
+ANTHROPIC_API_KEY=""
+ANTHROPIC_MODEL=""
+GOOGLE_PAGESPEED_API_KEY=""
+
+SMTP_HOST=""
+SMTP_PORT="587"
+SMTP_USER=""
+SMTP_PASS=""
+SMTP_FROM=""
+INVESTOR_CONTACT_EMAIL=""
+
+SEED_ADMIN_EMAIL=""
+SEED_ADMIN_PASSWORD=""
+
+NEXT_PUBLIC_LEGAL_ENTITY_NAME=""
+NEXT_PUBLIC_LEGAL_TAX_ID=""
+NEXT_PUBLIC_LEGAL_ADDRESS=""
 ```
 
-`AUTH_COOKIE_DOMAIN` hace que la cookie de sesión valga para todos los subdominios, así el login de Mercav sirve en Kosher y Pwn. En local déjala vacía. Para moderar Kosher, un usuario necesita rol `ADMIN` en Mercav o el rol `local_moderator` o `agency` en su perfil de Kosher.
+</details>
 
-### 5. Iniciar el Servidor de Desarrollo
+- `PWN_IDENTIFIER_PEPPER` hace falta para buscar con sesión o crear objetivos. Si cambia, los objetivos viejos dejan de coincidir.
+- `HIBP_API_KEY` habilita filtraciones. NVD/CISA no exigen clave; `NVD_API_KEY` solo sube el cupo.
+- `PWN_ENABLED` tiene que ser exactamente `"true"` para encender Pwn.
+- Contratos y prompts funcionan sin Anthropic; con clave, el texto lo genera el modelo.
+
+### 4. Servidor
+
 ```bash
 npm run dev
 ```
-Accede a [http://localhost:1337](http://localhost:1337) en tu navegador. Mercav Pwn está en [http://localhost:1337/pwn](http://localhost:1337/pwn) y Mercav Kosher en [http://localhost:1337/kosher](http://localhost:1337/kosher). En producción responden en [https://pwn.mercav.lat](https://pwn.mercav.lat) y [https://kosher.mercav.lat](https://kosher.mercav.lat).
 
-Los tests de los motores de Pwn (redacción, confianza y riesgo) no necesitan la base:
+Abre [http://127.0.0.1:1337](http://127.0.0.1:1337). Pwn: `/pwn`. Kosher: `/kosher`.
 
-```bash
-npm run test:pwn
-```
+`next.config.mjs` declara `allowedDevOrigins: ["127.0.0.1"]` y, en desarrollo, ignora el watch de `node_modules`, `.git`, `.next`, `Implementacion Nueva Kosher`, `.cursor`, `.claude` y `obsidian`.
 
-### Errores al arrancar esta rama
+> [!TIP]
+> Si Next responde 404 en **todas** las rutas HTML (incluido `/` y `/1337`) pero `/videos/1337.webm` da 200, el watcher se quedó sin archivos (`EMFILE`): cortá el proceso en el puerto 1337, borrá `.next` y volvé a `npm run dev`.
 
-El push de Pwn dejó el chequeo de GitHub Actions en `startup_failure` (run `35821748515`): cero jobs y el aviso de que el archivo de workflow no es válido. El bloque `on` declaraba `push` y `pull_request` sin valor, y YAML lo lee como `null`. El workflow ahora usa `on: [push, pull_request]` y `permissions: contents: read`. Ese arreglo entra en GitHub cuando se vuelva a pushear la rama `pwn`.
+Producción: `npm run build` (corre `prisma generate`) y `npm start`. `postinstall` también genera el cliente Prisma (Vercel).
 
-En el editor, TypeScript marcaba el código nuevo de Pwn con `TS2802` (no se puede iterar un `Map`, un `Set` ni `URLSearchParams`). `tsconfig.json` no tenía `target`, así que el compilador usa ES5. Quedó en `ES2017`, que es el valor que usa Next.js. La ruta `POST /api/pwn/ingest` además infería `verificationStatus` como `string` y Prisma no lo acepta en el enum `PwnVerificationStatus`; ahora el valor está anotado con ese enum.
+<img src=".github/readme/divider.svg" width="100%" alt="">
 
-`prisma.config.ts` importa `prisma/config`, módulo que Prisma 5.14 no publica (aparece en Prisma 6.13). El archivo se excluyó del `tsconfig` para que el editor no lo marque. `npx prisma generate` de esta versión no lo necesita.
+## Admin
 
-El middleware mandaba `/logo.png` a `/login` porque el `matcher` no excluía ese archivo público. El navegador guardaba esa respuesta y el header mostraba el icono roto junto al texto alternativo «MERCAV». El logo del header, el footer y el icono de la pestaña salen de `/images/logo.png`, una ruta que el middleware no intercepta. El matcher también deja pasar `uploads`, `404.html` e `index.html`.
+`/admin/dashboard?tab=…` exige rol `ADMIN`.
 
-### Qué se tomó de LeakGuard
+| Grupo | Pestaña | Para qué |
+| :--- | :--- | :--- |
+| General | Resumen | Actividad, ingresos, altas |
+| Personas | Usuarios, empresas, inversores | Cuentas, planes, sanciones, solicitudes de empresa, formulario de inversores |
+| Contenido | Servicios, espacios, insignias | Moderación y badges |
+| Operación | Finanzas, reportes, tráfico inusual | Comisiones, disputas, custodia, tickets, eventos de `/1337` |
+| Sistema | Configuración | Anuncios, acceso, comisiones, auditoría |
 
-Se revisó [LeakGuard](https://github.com/paltaunkwnow/LEAKGUARD) en una carpeta temporal, fuera del repositorio. Pasaron tres piezas que encajan con Pwn y se reescribieron al estilo negro y oro:
+## Roadmap
 
-- Guía «Qué hacer para protegerte» en el resumen.
-- Pasos siguientes cuando un correo, un dominio o una contraseña aparecen expuestos.
-- Historial de la sesión con botón para borrarlo. El correo se guarda solo como `j***@g***` y no sale del navegador.
+Honesto respecto del código.
 
-No se copiaron el chat, el mapa de incidentes ni la búsqueda por teléfono. Sí se adaptó el **scrape defensivo de foros/RSS**: DarkNetArmy, Hackread y **23 feeds RSS** de medios y labs (ver `lib/integrations/pwn/feed-catalog.ts`) → `PwnForumSignal` con `signalKind`, `priorityRank` (filtraciones **gubernamentales** arriba del resto), deduplicación por titular, correlación opcional con brechas **HIBP** (`breachId`) y alertas in-app si el titular menciona un **dominio verificado** en monitoreo. Filtros: `GET /api/pwn/forum-signals?kind=DATA`, `?gov=true`. Admins pueden apagar feeds en `/pwn/sources`. Ciclo horario: `POST /api/pwn/internal/cycle` (`vercel.json`, `CRON_SECRET`). Sin cuerpos de hilo ni volcados. `PWN_FORUM_SCRAPE=false` desactiva el scrape.
+- [x] Stripe en anuncios y servicios
+- [x] POS, Tools, Pwn y Kosher
+- [x] Feed, 2FA, admin y `/1337`
+- [ ] Liberación de fondos por hito (el modelo `Milestone` está; no se crean hitos al contratar)
+- [ ] Facturación PDF del lado plataforma (el POS sí emite ticket)
+- [ ] Push web para mensajes y compras
+- [ ] Kerem (hospitalidad física; no es un módulo de esta app todavía)
+- [ ] PWA nativa más allá de `/offline`
 
----
+## Notas de desarrollo
 
-## 🗺️ Plan de Desarrollo y Roadmap de Funcionalidades
+- Tests de Pwn: `npm run test:pwn`. Workflow: `.github/workflows/pwn-tests.yml`.
+- `prisma.config.ts` importa un módulo de Prisma 6; esta app usa Prisma 5.14. Está fuera del `tsconfig`. `prisma generate` no lo necesita.
+- El matcher del middleware deja pasar estáticos, `uploads`, `robots.txt`, `sitemap.xml`, `videos`, etc. El logo público es `/images/logo.png`.
+- De LeakGuard se tomó la guía de protección, el historial de sesión ofuscado y el scrape defensivo de foros/RSS (solo titulares). No se copió el chat ofensivo, el mapa de incidentes ni la búsqueda por teléfono. Catálogo: `lib/integrations/pwn/feed-catalog.ts`. `PWN_FORUM_SCRAPE=false` lo apaga.
+- Los SVG animados de este README están en `.github/readme/`. Respetan `prefers-reduced-motion`.
 
-### 💳 Fase 1: Transacciones y Flujo Monetario
-*   [x] Integración base de la pasarela Stripe.
-*   [ ] Desarrollo del sistema de **Escrow** (Garantía de fondos para proyectos freelance).
-*   [ ] Panel de facturación automatizada con exportación a PDF premium.
+<br>
 
-### 🔔 Fase 2: Interactividad & Experiencia Pro
-*   [ ] Notificaciones push web en tiempo real para mensajes y compras.
-*   [ ] Panel de control administrativo avanzado (KPIs, moderación rápida, suspensión de cuentas).
-*   [ ] Optimización de SEO dinámico y velocidad con Server Side Rendering avanzado.
+<div align="center">
+<img src=".github/readme/footer.svg" alt="Mercav. Hecho en Latinoamérica." width="60%">
+</div>
 
-### 🤖 Fase 3: Ecosistema Inteligente e Integración
-*   [ ] Algoritmo de recomendación IA para empleos y freelancing.
-*   [ ] Integración del módulo de reservas y delivery gastronómico *Kerem by Mercav*.
-*   [ ] Optimización como Progressive Web App (PWA) e inicio de app nativa.
-
----
-
-Desarrollado con pasión para transformar el ecosistema profesional de Latinoamérica. 🚀
 <! -->
 <!-- creado por pato dev y askforvini -->

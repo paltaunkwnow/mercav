@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 24" width="1280" height="24" aria-hidden="true">
+  <defs>
+    <linearGradient id="base" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#D4AF37" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#D4AF37" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#D4AF37" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="spark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#E8CC6A" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#FFF1BF" stop-opacity="1"/>
+      <stop offset="1" stop-color="#E8CC6A" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <style>
+    .spark { animation: run 5s cubic-bezier(.45,0,.2,1) infinite; }
+    .gem { animation: spin 5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes run { 0% { transform: translateX(-260px); } 70%, 100% { transform: translateX(1280px); } }
+    @keyframes spin { 0%, 100% { transform: rotate(45deg) scale(1); } 50% { transform: rotate(225deg) scale(1.25); } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+  <rect x="0" y="11.5" width="1280" height="1" fill="url(#base)"/>
+  <rect class="spark" x="0" y="11" width="240" height="2" rx="1" fill="url(#spark)"/>
+  <rect class="gem" x="634" y="6" width="12" height="12" fill="#050505" stroke="#D4AF37" stroke-width="1.5" transform="rotate(45 640 12)"/>
+</svg>

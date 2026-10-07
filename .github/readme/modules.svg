@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 240" width="1280" height="240" role="img" aria-label="Siete módulos con una sola cuenta: Ads, Services, Jobs, POS, Tools, Pwn y Kosher.">
+  <defs>
+    <linearGradient id="wash" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D4AF37" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#D4AF37" stop-opacity="0.02"/>
+    </linearGradient>
+  </defs>
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    .num { fill: #D4AF37; font-size: 15px; font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .name { fill: #F5F1E8; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+    .cat { fill: #B9B3A7; font-size: 14px; }
+    .route { fill: #77726A; font-size: 13px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .tile { animation: rise .9s cubic-bezier(.2,.8,.2,1) both; }
+    .glow { opacity: 0; animation: glow 7s ease-in-out infinite; }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes glow { 0% { opacity: 0; } 5.00% { opacity: 1; } 20.00% { opacity: 0; } 100% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+  <g class="tile" style="animation-delay:0.00s">
+    <rect x="24" y="22" width="164" height="196" rx="22" fill="#0C0C0C" stroke="#D4AF37" stroke-opacity="0.18"/>
+    <rect class="glow" x="24" y="22" width="164" height="196" rx="22" fill="url(#wash)" stroke="#E8CC6A" stroke-width="1.5" style="animation-delay:0.0s"/>
+    <text class="num" x="44" y="64">01</text>
+    <text class="name" x="44" y="140">Ads</text>
+    <text class="cat" x="44" y="168">Publicidad física</text>
+    <text class="route" x="44" y="196">/anuncios</text>
+  </g>
+  <g class="tile" style="animation-delay:0.08s">
+    <rect x="202" y="22" width="164" height="196" rx="22" fill="#0C0C0C" stroke="#D4AF37" stroke-opacity="0.18"/>
+    <rect class="glow" x="202" y="22" width="164" height="196" rx="22" fill="url(#wash)" stroke="#E8CC6A" stroke-width="1.5" style="animation-delay:1.0s"/>
+    <text class="num" x="222" y="64">02</text>
+    <text class="name" x="222" y="140">Services</text>
+    <text class="cat" x="222" y="168">Talento digital</text>
+    <text class="route" x="222" y="196">/servicios</text>
+  </g>
+  <g class="tile" style="animation-delay:0.16s">
+    <rect x="380" y="22" width="164" height="196" rx="22" fill="#0C0C0C" stroke="#D4AF37" stroke-opacity="0.18"/>
+    <rect class="glow" x="380" y="22" width="164" height="196" rx="22" fill="url(#wash)" stroke="#E8CC6A" stroke-width="1.5" style="animation-delay:2.0s"/>
+    <text class="num" x="400" y="64">03</text>
+    <text class="name" x="400" y="140">Jobs</text>
+    <text class="cat" x="400" y="168">Empleo</text>
+    <text class="route" x="400" y="196">/empleos</text>
+  </g>
+  <g class="tile" style="animation-delay:0.24s">
+    <rect x="558" y="22" width="164" height="196" rx="22" fill="#0C0C0C" stroke="#D4AF37" stroke-opacity="0.18"/>
+    <rect class="glow" x="558" y="22" width="164" height="196" rx="22" fill="url(#wash)" stroke="#E8CC6A" stroke-width="1.5" style="animation-delay:3.0s"/>
+    <text class="num" x="578" y="64">04</text>
+    <text class="name" x="578" y="140">POS</text>
+    <text class="cat" x="578" y="168">Caja y stock</text>
+    <text class="route" x="578" y="196">/dashboard/pos</text>
+  </g>
+  <g class="tile" style="animation-delay:0.32s">
+    <rect x="736" y="22" width="164" height="196" rx="22" fill="#0C0C0C" stroke="#D4AF37" stroke-opacity="0.18"/>
+    <rect class="glow" x="736" y="22" width="164" height="196" rx="22" fill="url(#wash)" stroke="#E8CC6A" stroke-width="1.5" style="animation-delay:4.0s"/>
+    <text class="num" x="756" y="64">05</text>
+    <text class="name" x="756" y="140">Tools</text>
+    <text class="cat" x="756" y="168">Herramientas</text>
+    <text class="route" x="756" y="196">/herramientas</text>
+  </g>
+  <g class="tile" style="animation-delay:0.40s">
+    <rect x="914" y="22" width="164" height="196" rx="22" fill="#0C0C0C" stroke="#D4AF37" stroke-opacity="0.18"/>
+    <rect class="glow" x="914" y="22" width="164" height="196" rx="22" fill="url(#wash)" stroke="#E8CC6A" stroke-width="1.5" style="animation-delay:5.0s"/>
+    <text class="num" x="934" y="64">06</text>
+    <text class="name" x="934" y="140">Pwn</text>
+    <text class="cat" x="934" y="168">Ciberseguridad</text>
+    <text class="route" x="934" y="196">/pwn</text>
+  </g>
+  <g class="tile" style="animation-delay:0.48s">
+    <rect x="1092" y="22" width="164" height="196" rx="22" fill="#0C0C0C" stroke="#D4AF37" stroke-opacity="0.18"/>
+    <rect class="glow" x="1092" y="22" width="164" height="196" rx="22" fill="url(#wash)" stroke="#E8CC6A" stroke-width="1.5" style="animation-delay:6.0s"/>
+    <text class="num" x="1112" y="64">07</text>
+    <text class="name" x="1112" y="140">Kosher</text>
+    <text class="cat" x="1112" y="168">Atlas y kehilot</text>
+    <text class="route" x="1112" y="196">/kosher</text>
+  </g>
+</svg>
