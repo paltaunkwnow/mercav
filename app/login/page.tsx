@@ -13,6 +13,7 @@ import { AuthDivider, AuthField, FormAlert, GoogleIcon, PasswordField, SubmitBut
 import { useCookieConsent } from '@/components/legal/CookieConsentProvider';
 import { safeCallbackPath } from '@/lib/security/safe-url';
 import { getRecaptchaToken } from '@/lib/recaptcha-client';
+import { RecaptchaNotice } from '@/components/legal/RecaptchaNotice';
 
 function LoginForm() {
   const router = useRouter();
@@ -178,6 +179,7 @@ function LoginForm() {
         <SubmitButton loading={loading} loadingLabel={show2FA ? "Verificando…" : "Ingresando…"}>
           {show2FA ? "Verificar e ingresar" : "Iniciar sesión"} <ArrowRight className="h-4 w-4" aria-hidden />
         </SubmitButton>
+        <RecaptchaNotice />
       </form>
 
       <AuthDivider label="o continuá con" />

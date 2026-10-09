@@ -211,6 +211,12 @@
   }
 }
 
+/* reCAPTCHA sin el ícono flotante: Google lo permite si el formulario muestra su aviso (components/legal/RecaptchaNotice).
+   visibility y no display, para que siga funcionando. */
+.grecaptcha-badge {
+  visibility: hidden !important;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

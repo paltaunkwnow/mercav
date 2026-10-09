@@ -10,6 +10,7 @@ import { Loader2, ArrowRight, CheckCircle2, XCircle } from '@/components/icons';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthField, FormAlert, PasswordField, SubmitButton } from '@/components/auth/AuthFields';
 import { getRecaptchaToken } from '@/lib/recaptcha-client';
+import { RecaptchaNotice } from '@/components/legal/RecaptchaNotice';
 
 export default function Register() {
   return (
@@ -234,6 +235,7 @@ function RegisterForm() {
           <Link href="/privacidad" className="mv-link font-medium">Política de privacidad</Link> y la{' '}
           <Link href="/cookies" className="mv-link font-medium">Política de cookies</Link>.
         </p>
+        <RecaptchaNotice />
       </form>
 
       <p className="mt-8 text-sm text-[var(--text-secondary)]">
