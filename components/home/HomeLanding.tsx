@@ -444,7 +444,9 @@ function BusinessPillar({ data }: { data: LandingData }) {
 }
 
 function PwnPillar({ data }: { data: LandingData }) {
-  const sources = data.pwnSources.slice(0, 6);
+  // Fuentes reales a la vista y una celda con las demás: 11 en la grilla de 3 × 4 (compu) o 2 × 6 (tablet), 6 en el celular.
+  const shown = data.pwnSources.slice(0, 11);
+  const PHONE = 6;
   const date = (iso: string | null) => (iso ? new Intl.DateTimeFormat("es", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(iso)) : "");
   return (
     <section id="pilar-pwn" aria-labelledby="pwn-title" className="c-pwn scroll-mt-[var(--c-nav-h)]">
@@ -463,53 +465,81 @@ function PwnPillar({ data }: { data: LandingData }) {
           cta="Abrir Pwn"
           button="[--btn-bg:#2ee06f]"
         />
-        <div className={cn("mt-14 grid gap-6 lg:mt-20", data.kevs.length > 0 ? "lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start" : "max-w-[40rem]")}>
-          <div className="rounded-[1.5rem] bg-[var(--c-raised)] p-6 shadow-[inset_0_0_0_1px_var(--c-line-strong)] md:p-8">
-            <p className="c-label text-[1.05rem] text-[var(--c-muted)]">Consulta de exposición</p>
-            <div className="mt-4 flex items-center gap-3 rounded-full bg-[var(--c-ground)] px-5 py-3 shadow-[inset_0_0_0_1.5px_var(--c-line-strong)]">
-              <Search className="h-5 w-5 text-[var(--c-green-text)]" aria-hidden />
-              <span className="c-typed font-mono text-[1rem]">tuempresa.com</span>
+
+        <figure className="mt-14 lg:mt-20">
+          <div className="overflow-hidden rounded-[1.75rem] bg-[var(--c-raised)] shadow-[inset_0_0_0_1px_var(--c-line-strong),0_40px_80px_-48px_rgba(46,224,111,0.35)]">
+            <div className="flex flex-col gap-4 border-b border-[var(--c-line)] p-5 sm:p-6 md:flex-row md:items-center md:gap-8 md:px-8">
+              <p className="c-label shrink-0 text-[1.05rem] text-[var(--c-muted)]">Consulta de exposición</p>
+              <div className="flex flex-1 items-center gap-3 rounded-full bg-[var(--c-ground)] px-5 py-3 shadow-[inset_0_0_0_1.5px_var(--c-line-strong)]">
+                <Search className="h-5 w-5 shrink-0 text-[var(--c-green-text)]" aria-hidden />
+                <span className="c-typed font-mono text-[1rem]">tuempresa.com</span>
+              </div>
             </div>
-            <ul className="mt-5 grid gap-2.5">
-              {sources.map((s, i) => (
-                <li key={s} className="c-scan-row flex items-center justify-between gap-3 border-b border-[var(--c-line)] pb-2.5 text-[0.95rem]" style={{ "--d": i } as CSSProperties}>
-                  <span>{s}</span>
-                  <span className="flex items-center gap-1.5 text-[0.85rem] text-[var(--c-green-text)]">
+            <ul className="grid gap-x-8 px-5 pb-2 pt-3 sm:grid-cols-2 sm:px-6 md:px-8 lg:grid-cols-3 lg:gap-x-10">
+              {shown.map((s, i) => (
+                <li
+                  key={s}
+                  className={cn("c-scan-row flex min-w-0 items-center justify-between gap-3 border-b border-[var(--c-line)] py-3 text-[0.95rem]", i >= PHONE && "max-sm:hidden")}
+                  style={{ "--d": i % 3 } as CSSProperties}
+                >
+                  <span className="min-w-0 truncate">{s}</span>
+                  <span className="flex shrink-0 items-center gap-1.5 text-[0.85rem] text-[var(--c-green-text)]">
                     <Check className="h-4 w-4" strokeWidth={3} aria-hidden />
                     Revisada
                   </span>
                 </li>
               ))}
+              {data.pwnSources.length > PHONE ? (
+                <li
+                  className={cn("c-scan-row flex items-center border-b border-[var(--c-line)] py-3 text-[0.95rem] text-[var(--c-muted)]", data.pwnSources.length <= shown.length && "sm:hidden")}
+                  style={{ "--d": 2 } as CSSProperties}
+                >
+                  <span className="sm:hidden">y {data.pwnSources.length - PHONE} fuentes más</span>
+                  {data.pwnSources.length > shown.length ? <span className="max-sm:hidden">y {data.pwnSources.length - shown.length} fuentes más</span> : null}
+                </li>
+              ) : null}
             </ul>
-            <div className="c-scan-row mt-5 flex items-center justify-between gap-3 rounded-[1rem] bg-[#2ee06f] px-4 py-3 text-[#0b0a09]" style={{ "--d": sources.length } as CSSProperties}>
-              <span className="c-label text-[1.1rem]">Sin filtraciones nuevas</span>
-              <ShieldCheck className="h-5 w-5" aria-hidden />
+            <div
+              className="c-scan-row m-5 flex flex-wrap items-center justify-between gap-x-6 gap-y-1 rounded-[1.1rem] bg-[#2ee06f] px-5 py-4 text-[#0b0a09] sm:m-6 md:mx-8 md:mb-8"
+              style={{ "--d": 3 } as CSSProperties}
+            >
+              <p className="c-label flex items-center gap-3 text-[1.35rem] md:text-[1.7rem]">
+                <ShieldCheck className="h-6 w-6 shrink-0" aria-hidden />
+                Sin filtraciones nuevas
+              </p>
+              <p className="c-label text-[1rem]">{data.pwnSources.length} fuentes revisadas</p>
             </div>
-            <p className="mt-3 text-[0.8rem] text-[var(--c-muted)]">
-              Ejemplo de una consulta con las fuentes que Pwn revisa de verdad. El detalle solo lo ve quien verificó que el correo o el dominio es suyo.
-            </p>
           </div>
-          {data.kevs.length > 0 ? (
-            <div className="rounded-[1.5rem] p-6 shadow-[inset_0_0_0_1px_var(--c-line-strong)] md:p-8">
-              <p className="c-label text-[1.05rem] text-[var(--c-magenta-text)]">Explotadas ahora, según CISA KEV</p>
-              <ul className="mt-4 divide-y divide-[var(--c-line)]">
-                {data.kevs.map((k) => (
-                  <li key={k.cveId}>
-                    <a href={k.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-4 py-3 transition-colors hover:text-[var(--c-green-text)]">
-                      <span className="font-mono text-[0.98rem]">{k.cveId}</span>
-                      <span className="flex items-center gap-3 text-[0.85rem] text-[var(--c-soft)]">
-                        {k.cvss != null ? <span className="c-num rounded-full px-2 py-0.5 shadow-[inset_0_0_0_1.5px_var(--c-line-strong)]">CVSS {k.cvss.toFixed(1)}</span> : null}
-                        {date(k.published)}
-                        <ArrowRight className="h-4 w-4" aria-hidden />
-                      </span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-3 text-[0.8rem] text-[var(--c-muted)]">Datos públicos del catálogo de vulnerabilidades explotadas de CISA, tal como los guarda Pwn.</p>
-            </div>
-          ) : null}
-        </div>
+          <figcaption className="mt-3 text-[0.8rem] text-[var(--c-muted)]">
+            Ejemplo de una consulta con las fuentes que Pwn revisa de verdad. El detalle solo lo ve quien verificó que el correo o el dominio es suyo.
+          </figcaption>
+        </figure>
+
+        {data.kevs.length > 0 ? (
+          <div className="mt-14">
+            <p className="c-label text-[1.05rem] text-[var(--c-magenta-text)]">Explotadas ahora, según CISA KEV</p>
+            <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {data.kevs.map((k) => (
+                <li key={k.cveId}>
+                  <a
+                    href={k.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-full flex-col gap-4 rounded-[1.1rem] p-5 shadow-[inset_0_0_0_1px_var(--c-line-strong)] transition-[box-shadow,color] duration-200 hover:text-[var(--c-green-text)] hover:shadow-[inset_0_0_0_1.5px_var(--c-green-text)]"
+                  >
+                    <span className="font-mono text-[1rem]">{k.cveId}</span>
+                    <span className="mt-auto flex items-center gap-3 text-[0.85rem] text-[var(--c-soft)]">
+                      {k.cvss != null ? <span className="c-num rounded-full px-2 py-0.5 shadow-[inset_0_0_0_1.5px_var(--c-line-strong)]">CVSS {k.cvss.toFixed(1)}</span> : null}
+                      {date(k.published)}
+                      <ArrowRight className="ml-auto h-4 w-4" aria-hidden />
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-[0.8rem] text-[var(--c-muted)]">Datos públicos del catálogo de vulnerabilidades explotadas de CISA, tal como los guarda Pwn.</p>
+          </div>
+        ) : null}
       </div>
     </section>
   );
