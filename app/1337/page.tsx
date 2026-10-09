@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Mervi } from "@/components/mervi/Mervi";
 
 type Dossier = {
   ip?: string;
@@ -153,7 +154,9 @@ function UnusualTrafficNotice() {
 
       <VideoBackdrop />
 
-      <section className="relative z-10 ml-auto mt-auto w-[min(100%,16.25rem)]">
+      <section className="relative z-10 ml-auto mt-auto w-[min(100%,16.25rem)] pt-[88px] md:pt-0">
+        {/* Mervi de guardia, sentado sobre el expediente (el video sigue de fondo). */}
+        <Mervi pose="cool" scale={1} className="pointer-events-none absolute right-3 top-0 md:-top-[88px]" label="Mervi, la mascota de Mercav, de guardia" />
         <dl className="overflow-hidden rounded-[14px] bg-[#2C2C2E]/92 backdrop-blur-md" aria-label="Datos del registro">
           <Row label="Caso" value={caseCode(file.caseId, file.ip)} />
           <div className="mx-3 h-px bg-white/10 md:mx-4" />

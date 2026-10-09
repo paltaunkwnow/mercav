@@ -1,3 +1,5 @@
+import path from "node:path";
+
 const pwnSecurityHeaders = [
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -37,6 +39,14 @@ const nextConfig = {
           "**/obsidian/**",
         ],
       };
+      // Los paquetes (framer-motion y otros) traen `//# sourceMappingURL=` relativos a su carpeta; dentro del chunk
+      // apuntan a /_next/static/chunks/... y DevTools recibía 404. Se quitan solo en desarrollo.
+      config.module.rules.unshift({
+        test: /\.m?js$/,
+        include: /node_modules/,
+        enforce: "pre",
+        use: [{ loader: path.resolve(process.cwd(), "scripts/webpack/strip-source-map-url.cjs") }],
+      });
     }
     return config;
   },
