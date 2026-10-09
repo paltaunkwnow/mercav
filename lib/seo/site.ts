@@ -4,10 +4,15 @@
 // - kosher.mercav.lat: Mercav Kosher, served from /kosher.
 // pwn.mercav.lat now redirects to app.mercav.lat/pwn. Every URL resolves to exactly one canonical address.
 
-export const SITE_URL = "https://mercav.lat";
-export const APP_URL = "https://app.mercav.lat";
-export const PWN_URL = `${APP_URL}/pwn`;
-export const KOSHER_URL = "https://kosher.mercav.lat";
+// Each URL can be overridden with NEXT_PUBLIC_* env vars. On a Vercel preview the public site points at the preview
+// itself (so OpenGraph images resolve there); production never uses the deployment URL as canonical.
+const VERCEL_PREVIEW_URL =
+  process.env.NEXT_PUBLIC_VERCEL_ENV === "preview" && process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : null;
+
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || VERCEL_PREVIEW_URL || "https://mercav.lat";
+export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.mercav.lat";
+export const PWN_URL = process.env.NEXT_PUBLIC_PWN_URL || `${APP_URL}/pwn`;
+export const KOSHER_URL = process.env.NEXT_PUBLIC_KOSHER_URL || "https://kosher.mercav.lat";
 
 export const SITE_HOST = "mercav.lat";
 export const APP_HOST = "app.mercav.lat";
