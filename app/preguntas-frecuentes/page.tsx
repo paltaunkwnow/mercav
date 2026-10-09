@@ -26,7 +26,8 @@ const SECTIONS: FaqSection[] = [
         a: `No. La cuenta es gratis, con límites: ${L.workspaces} empresa con hasta ${L.employeesPerWorkspace} trabajadores activos y ${L.loyaltyProgramsPerWorkspace} programa de fidelización; en el Mercado, ${L.spaces} espacio, ${L.services} servicio, ${L.jobsPerMonth} vacante por mes y ${L.applicationsPerMonth} postulaciones por mes. Mercav Pro saca esos límites por ${usd(PRO_MONTHLY_USD)} USD por mes o ${usd(PRO_ANNUAL_USD)} USD por año.`,
       },
       { q: "¿Cómo paso a Mercav Pro?", a: "Desde Precios elegís pago mensual o anual y pagás con tarjeta. Si renovás antes de que venza, el período nuevo empieza cuando termina el actual." },
-      { q: "¿Tengo que instalar algo?", a: "No. Mercav funciona en el navegador, desde el celular o la compu." },
+      { q: "¿Dónde está la app?", a: "En app.mercav.lat: ahí iniciás sesión y usás Business, el Mercado, Pwn, el Calendario y el resto. mercav.lat es el sitio público." },
+      { q: "¿Tengo que instalar algo?", a: "No. Mercav funciona en el navegador, desde el celular o la compu, en app.mercav.lat." },
       { q: "¿Cómo protejo mi cuenta?", a: "Activá la verificación en dos pasos (2FA) en Perfil, en Editar perfil, sección Seguridad." },
       {
         q: "Olvidé mi contraseña o perdí el acceso. ¿Qué hago?",

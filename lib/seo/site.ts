@@ -1,20 +1,35 @@
 // Dominios canónicos para los buscadores.
-// - mercav.lat: el sitio público y la app en el mismo dominio (el header y el footer cambian según la página).
+// - mercav.lat: el sitio público (portada, quiénes somos, pitch, inversores, legales, feriados y páginas de producto).
+// - app.mercav.lat: la app. Todo lo demás, incluidos Herramientas, Pwn, Business y Calendario.
 // - kosher.mercav.lat: Mercav Kosher, servido desde /kosher.
-// - api.mercav.lat: la API (lib/api/origins.ts). pwn.mercav.lat lleva a la app.
-// www.mercav.lat ya no existe: ninguna URL lo usa, aunque una variable de entorno vieja lo traiga.
-
-const withoutWww = (url: string) => url.replace(/^(https?:\/\/)www\./i, "$1").replace(/\/+$/, "");
-
-export const SITE_URL = withoutWww(process.env.NEXT_PUBLIC_SITE_URL || "https://mercav.lat");
-export const APP_URL = withoutWww(process.env.NEXT_PUBLIC_APP_URL || SITE_URL);
-export const PWN_URL = `${SITE_URL}/pwn`;
-export const KOSHER_URL =
-  process.env.NEXT_PUBLIC_KOSHER_URL || "https://kosher.mercav.lat";
+// - api.mercav.lat: la API (lib/api/origins.ts). pwn.mercav.lat sirve Pwn.
+// www.mercav.lat ya no existe.
 
 export const SITE_HOST = "mercav.lat";
+export const APP_HOST = "app.mercav.lat";
 export const PWN_HOST = "pwn.mercav.lat";
 export const KOSHER_HOST = "kosher.mercav.lat";
+
+/**
+ * Origen de una variable de entorno, o el dominio fijo de Mercav. Una variable vieja con www, un *.vercel.app
+ * (antes mandaba la portada a Vercel) o, para la app, el dominio del sitio (armaría un bucle de redirecciones) se ignora.
+ */
+function originFrom(value: string | undefined, fallback: string, notHost?: string) {
+  if (!value) return fallback;
+  try {
+    const url = new URL(value.replace(/^(https?:\/\/)www\./i, "$1"));
+    if (url.hostname.endsWith(".vercel.app") || (notHost && url.hostname === notHost)) return fallback;
+    return url.origin;
+  } catch {
+    return fallback;
+  }
+}
+
+export const SITE_URL = originFrom(process.env.NEXT_PUBLIC_SITE_URL, `https://${SITE_HOST}`);
+export const APP_URL = originFrom(process.env.NEXT_PUBLIC_APP_URL, `https://${APP_HOST}`, SITE_HOST);
+export const PWN_URL = `${APP_URL}/pwn`;
+export const KOSHER_URL =
+  process.env.NEXT_PUBLIC_KOSHER_URL || "https://kosher.mercav.lat";
 
 export const SITE_NAME = "Mercav";
 export const SITE_DESCRIPTION =
@@ -144,7 +159,7 @@ export type HostKind = "site" | "app" | "kosher" | "dev";
 export function hostKindFor(host: string | null | undefined): HostKind {
   const name = host?.split(":")[0]?.trim().toLowerCase();
   if (name === SITE_HOST) return "site";
-  if (name === PWN_HOST) return "app";
+  if (name === APP_HOST || name === PWN_HOST) return "app";
   if (name === KOSHER_HOST) return "kosher";
   return "dev";
 }
@@ -170,9 +185,11 @@ export function hostHref(href: string, hostKind: HostKind): string {
     // Here /x already means /kosher/x, so every other app path lives on the main host.
     if (kosher) return `${path.slice(7) || "/"}${suffix}`;
     if (kosherHostPassthrough(path)) return href;
-    return `${SITE_URL}${href}`;
+    return `${isMarketingPath(path) ? SITE_URL : APP_URL}${href}`;
   }
   if (kosher) return `${KOSHER_URL}${path.slice(7) || "/"}${suffix}`;
+  if (hostKind === "site" && !isMarketingPath(path)) return `${APP_URL}${href}`;
+  if (hostKind === "app" && isMarketingPath(path)) return `${SITE_URL}${href}`;
   return href;
 }
 // creado por pato dev y askforvini

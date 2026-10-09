@@ -331,10 +331,10 @@ function MobileMenu({ open, onClose, signedIn }: { open: boolean; onClose: () =>
  * Public-site header (mercav.lat) or app header. The host decides in production; in dev (one origin for every
  * route) the path does. kosher.mercav.lat always gets the app header.
  */
-/** Header y footer del sitio público o de la app. mercav.lat sirve los dos, así que decide la página, como en local. */
+/** Header y footer del sitio público (mercav.lat) o de la app (app.mercav.lat). En local y en las previews decide la página. */
 export function isSiteChrome(hostKind: HostKind, pathname: string | null) {
-  if (hostKind === "dev" || hostKind === "site") return isMarketingPath(pathname ?? "/");
-  return false;
+  if (hostKind === "dev") return isMarketingPath(pathname ?? "/");
+  return hostKind === "site";
 }
 
 export function Header() {

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import {
   APP_HOME,
+  APP_HOST,
+  APP_URL,
   KOSHER_HOST,
   KOSHER_URL,
   PWN_HOST,
@@ -8,6 +10,7 @@ import {
   SITE_URL,
   appPathFor,
   isKosherHostPath,
+  isMarketingPath,
   isNoindexPath,
   isSharedPath,
 } from '@/lib/seo/site';
@@ -163,7 +166,7 @@ function moved(target: URL) {
 /**
  * Splits the product across hosts. Only applies to the production hostnames, so 127.0.0.1:1337
  * and Vercel previews keep serving every route from one origin.
- * - pwn.mercav.lat/x        → app.mercav.lat/pwn/x
+ * - pwn.mercav.lat/x        → sirve /pwn/x en su propio dominio (ver el rewrite de PWN más abajo)
  * - mercav.lat/<app route>  → app.mercav.lat/<app route>   (only the public site stays)
  * - app.mercav.lat/         → app.mercav.lat/inicio
  * - app.mercav.lat/<public> → mercav.lat/<public>
@@ -175,9 +178,18 @@ function productHostRedirect(req: NextRequest, host: string | undefined, pathnam
   const search = req.nextUrl.search;
   const kosherPath = pathname === '/kosher' || pathname.startsWith('/kosher/');
 
-  if (host === SITE_HOST) {
+  // El sitio público vive en mercav.lat y la app en app.mercav.lat: cada uno manda al otro lo que no le toca.
+  // Los destinos son dominios fijos (lib/seo/site.ts), así que una variable vieja no puede armar un bucle.
+  if (host === SITE_HOST && new URL(APP_URL).host !== SITE_HOST) {
     if (kosherPath) return moved(new URL(`${pathname.slice(7) || '/'}${search}`, KOSHER_URL));
-    return null;
+    if (isMarketingPath(pathname)) return null;
+    return moved(new URL(`${pathname}${search}`, APP_URL));
+  }
+
+  if (host === APP_HOST) {
+    if (pathname === '/') return NextResponse.redirect(new URL(`${APP_HOME}${search}`, APP_URL));
+    if (kosherPath) return moved(new URL(`${pathname.slice(7) || '/'}${search}`, KOSHER_URL));
+    if (isMarketingPath(pathname)) return moved(new URL(`${pathname}${search}`, SITE_URL));
   }
 
   return null;
@@ -234,9 +246,10 @@ async function handle(req: NextRequest): Promise<NextResponse> {
   if (hostRedirect) return hostRedirect;
 
   // On kosher.mercav.lat only Kosher's own sections stay (isKosherHostPath, shared with the chrome's hostHref).
-  // Public-site pages go straight to mercav.lat.
+  // Public-site pages go to mercav.lat and the rest to the app: one redirect, not two.
   if (host === KOSHER_HOST && !isKosherHostPath(pathname)) {
-    return NextResponse.redirect(new URL(`${pathname}${req.nextUrl.search}`, SITE_URL));
+    const target = isMarketingPath(pathname) ? SITE_URL : APP_URL;
+    return NextResponse.redirect(new URL(`${pathname}${req.nextUrl.search}`, target));
   }
 
   // Shared utility pages (/1337, /maintenance…) are served as they are: /kosher/1337 doesn't exist.

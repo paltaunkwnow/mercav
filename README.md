@@ -273,7 +273,7 @@ El mismo despliegue de Next sirve todos los hosts. Las reglas están en `middlew
 | `pwn.mercav.lat` | Redirige a `app.mercav.lat/pwn` (307 por ahora; pasa a 308 cuando el split esté estable) |
 | `kosher.mercav.lat` | Reescribe a `/kosher`. Lo que no es de Kosher redirige a `app.mercav.lat` |
 
-- `/kosher/…` en cualquier otro host lleva a `kosher.mercav.lat`. `www.mercav.lat` ya no existe: todo vive en `mercav.lat`.
+- `/kosher/…` en cualquier otro host lleva a `kosher.mercav.lat`. `www.mercav.lat` ya no existe. Los dominios son fijos en `lib/seo/site.ts`: una variable de entorno con `www`, un `*.vercel.app` o, para la app, el dominio del sitio se ignora.
 - `/api`, `/_next` y las páginas utilitarias (`/1337`, `/offline`, `/maintenance`, `/forbidden`) responden en todos los hosts. Por eso los webhooks y los callbacks de OAuth siguen andando (por ejemplo, `mercav.lat/api/webhook/stripe`).
 - En local (`127.0.0.1:1337`) y en los previews de Vercel no hay reglas de host: un solo origen sirve todas las rutas.
 - Header, barra inferior y footer cambian solos según la ruta: modo sitio público o modo app. Los apartados de la app salen de una sola lista, `lib/app/sections.ts`.
