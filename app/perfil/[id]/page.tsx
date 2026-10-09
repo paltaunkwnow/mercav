@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { MapPin, MessageSquare, ShieldCheck, ArrowLeft, Mail, Crown, Settings, CalendarDays } from "@/components/icons";
+import { MapPin, MessageSquare, ShieldCheck, Mail, Crown, Settings, CalendarDays } from "@/components/icons";
 import { Container, buttonClass } from "@/components/site/primitives";
 
 import { FollowButton } from "@/components/ui/FollowButton";
@@ -10,6 +10,7 @@ import { LinkIcon } from "@/components/icons";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import ProfileTabs from "./ProfileTabs";
+import { AppBack } from "@/components/app-shell/AppPage";
 
 export default async function PerfilPublicoPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
@@ -118,12 +119,11 @@ export default async function PerfilPublicoPage({ params }: { params: { id: stri
   const isCompany = user.profile?.profileType === "EMPRESA";
 
   return (
-    <div className="relative w-full overflow-hidden bg-bg-primary pb-16 pt-24 md:pb-24 md:pt-28">
-      <div className="mv-aura" aria-hidden />
-      <Container className="relative max-w-[64rem]">
-        <Link href="/" className="mv-focus mb-5 inline-flex items-center gap-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
-          <ArrowLeft className="h-4 w-4" aria-hidden /> Volver al inicio
-        </Link>
+    <div className="w-full pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
+      <Container className="max-w-[64rem]">
+        <div className="mb-5">
+          <AppBack href="/inicio" label="Volver al inicio" />
+        </div>
 
         {/* Profile header */}
         <section aria-labelledby="perfil-nombre" className="mv-panel mb-10 overflow-hidden md:mb-12">

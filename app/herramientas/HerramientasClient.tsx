@@ -46,7 +46,8 @@ import { toolAllowedForPlan, toolPlanLabel, toolTier } from "@/lib/toolPlanCatal
 import { effectivePlan, planDisplayName } from "@/lib/billing/plans";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { Toast } from "@/components/ui/toast";
-import { ButtonLink, Container, PageHero, Section, SectionHeading, buttonClass } from "@/components/site/primitives";
+import { ButtonLink, Container, Section, SectionHeading, buttonClass } from "@/components/site/primitives";
+import { AppHeader } from "@/components/app-shell/AppPage";
 import { cn } from "@/lib/utils";
 
 const TOOLS = [
@@ -188,49 +189,37 @@ export default function HerramientasClient() {
 
   return (
     <div className="relative w-full bg-bg-primary">
-      <PageHero
-        kicker="Mercav Herramientas"
+      <AppHeader
         title={
           <>
             Herramientas para el trabajo <span className="mv-gold-text">de todos los días.</span>
           </>
         }
-        lead="Proyectá una campaña, armá un contrato, revisá tu sitio, poné precio a tu trabajo y cobrá en tu local. Todo se abre acá mismo, sin instalar nada."
+        lead="Proyectá una campaña, armá un contrato, revisá tu sitio y poné precio a tu trabajo. Todo se abre acá mismo, sin instalar nada."
         actions={
-          <>
-            <a href="#catalogo" className={buttonClass("primary", "lg", "w-full sm:w-auto")}>
-              Elegir una herramienta
-            </a>
-            <ButtonLink href="/calendario" tone="secondary" size="lg" className="w-full sm:w-auto">
-              Abrir el calendario
-            </ButtonLink>
-          </>
-        }
-        aside={
-          <div className="liquid-glass rounded-[1.75rem] p-6 md:p-7">
+          <Link href="/precios" className="mv-panel mv-focus flex flex-col gap-0.5 rounded-2xl px-4 py-3 transition-colors hover:bg-[var(--mv-panel-hover)]">
             {userPlan ? (
               <>
-                <p className="text-sm text-[var(--text-secondary)]">Tu plan</p>
-                <p className="mt-1 font-display text-3xl font-semibold tracking-tight text-[var(--text-primary)]">{planDisplayName(userPlan)}</p>
-                <p className="mt-3 text-sm text-[var(--text-secondary)]">
+                <span className="text-sm text-[var(--text-secondary)]">
+                  Tu plan: <span className="font-semibold text-[var(--text-primary)]">{planDisplayName(userPlan)}</span>
+                </span>
+                <span className="text-sm text-[var(--text-secondary)]">
                   <span className="mv-data font-semibold text-[var(--text-primary)]">
                     {availableCount} de {TOOLS.length}
                   </span>{" "}
-                  herramientas disponibles con tu cuenta.
-                </p>
+                  herramientas disponibles
+                </span>
               </>
             ) : (
               <>
-                <p className="text-sm font-semibold text-[var(--text-primary)]">Qué incluye cada plan</p>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
-                  La calculadora de ROI, las paletas y el calendario de feriados son gratis. Las demás vienen con Mercav Pro.
-                </p>
+                <span className="text-sm font-semibold text-[var(--text-primary)]">ROI, paletas y feriados son gratis</span>
+                <span className="text-sm text-[var(--text-secondary)]">Las demás vienen con Mercav Pro</span>
               </>
             )}
-            <Link href="/precios" className="mv-link mt-5 inline-flex items-center gap-1.5 text-sm">
+            <span className="mv-link mt-1 inline-flex items-center gap-1.5 text-sm">
               Comparar planes <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-          </div>
+            </span>
+          </Link>
         }
       />
 

@@ -43,15 +43,20 @@ export default async function ConfirmationPage({
 
   const piMeta = (paymentIntent.metadata || {}) as Record<string, string>;
   const retryHref = piMeta.type && piMeta.id ? `/checkout/${piMeta.type}/${piMeta.id}` : '/precios';
+  // La compra de Mercav Pro no deja un pedido: se confirma el plan y se vuelve a la app.
+  const isPlan = !!piMeta.plan;
+  const ordersOrApp = isPlan ? { href: '/inicio', label: 'Ir a la app' } : { href: '/dashboard/pedidos', label: 'Ver mis pedidos' };
 
   const statusConfig = {
     succeeded: {
       icon: <CheckCircle2 className="h-7 w-7" aria-hidden />,
       tone: 'bg-[var(--mv-gold-wash)] text-gold border-[var(--color-border-gold)]',
       kicker: 'Pago confirmado',
-      title: 'Listo, recibimos tu pago',
-      description: 'Tu pago se procesó correctamente. Ya podés ver el pedido y su estado en tu panel.',
-      next: { href: '/dashboard/pedidos', label: 'Ver mis pedidos' },
+      title: isPlan ? 'Ya tenés Mercav Pro' : 'Listo, recibimos tu pago',
+      description: isPlan
+        ? 'Tu plan está activo: los límites del plan Gratis ya no se aplican a tu cuenta.'
+        : 'Tu pago se procesó correctamente. Ya podés ver el pedido y su estado en Pedidos.',
+      next: ordersOrApp,
     },
     processing: {
       icon: <Clock className="h-7 w-7" aria-hidden />,
@@ -59,7 +64,7 @@ export default async function ConfirmationPage({
       kicker: 'En proceso',
       title: 'Estamos confirmando tu pago',
       description: 'Stripe todavía está procesando el pago. Te avisamos apenas se complete; no hace falta que pagues de nuevo.',
-      next: { href: '/dashboard/pedidos', label: 'Ver mis pedidos' },
+      next: ordersOrApp,
     },
     requires_payment_method: {
       icon: <XCircle className="h-7 w-7" aria-hidden />,
@@ -74,8 +79,8 @@ export default async function ConfirmationPage({
       tone: 'bg-[var(--mv-panel-hover)] text-[var(--text-secondary)] border-[var(--mv-hairline-strong)]',
       kicker: 'Estado desconocido',
       title: 'No pudimos confirmar el estado del pago',
-      description: 'Revisá tus pedidos en unos minutos. Si el problema sigue, escribinos a soporte.',
-      next: { href: '/dashboard/pedidos', label: 'Ver mis pedidos' },
+      description: isPlan ? 'Revisá tu plan en unos minutos. Si el problema sigue, escribinos a soporte.' : 'Revisá tus pedidos en unos minutos. Si el problema sigue, escribinos a soporte.',
+      next: ordersOrApp,
     },
   };
 
@@ -87,7 +92,6 @@ export default async function ConfirmationPage({
 
   return (
     <div className="relative flex min-h-[85svh] w-full items-center justify-center overflow-hidden bg-bg-primary px-4 pb-16 pt-28">
-      <div className="mv-aura" aria-hidden />
       <section aria-labelledby="confirm-title" className="mv-panel relative w-full max-w-lg p-6 text-center sm:p-10">
         <span className={`mx-auto grid h-14 w-14 place-items-center rounded-2xl border ${currentStatus.tone}`}>
           {currentStatus.icon}
@@ -114,7 +118,7 @@ export default async function ConfirmationPage({
             {currentStatus.next.label}
             <ArrowRight className="h-5 w-5" aria-hidden />
           </Link>
-          <Link href="/" className={buttonClass('ghost', 'md', 'w-full')}>
+          <Link href="/inicio" className={buttonClass('ghost', 'md', 'w-full')}>
             Volver al inicio
           </Link>
         </div>

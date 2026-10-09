@@ -2,9 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
-  ArrowLeft,
   Loader2,
   Save,
   AlertCircle,
@@ -29,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { ExperienceForm, EducationForm, SkillsForm } from "@/components/profile/ProfileForms";
 import { TwoFactorSetup } from "@/components/profile/TwoFactorSetup";
+import { AppHeading } from "@/components/app-shell/AppPage";
 
 type FormState = {
   name: string;
@@ -185,19 +184,14 @@ export default function EditarPerfilPage() {
   }
 
   return (
-    <div className="relative w-full bg-bg-primary pb-16 pt-24 md:pb-24 md:pt-28">
-      <div className="mv-aura" aria-hidden />
-      <Container width="wide" className="relative">
-        <Link href="/perfil" className="mv-focus mb-5 inline-flex items-center gap-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
-          <ArrowLeft className="h-4 w-4" aria-hidden /> Volver a mi perfil
-        </Link>
-
-        <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="mv-kicker">Tu cuenta</p>
-            <h1 className="mv-h2 mt-3">Editar perfil</h1>
-            <p className="mv-body mt-2 max-w-xl">Lo que completes acá es lo que ven clientes, empresas y postulantes en todos los módulos.</p>
-          </div>
+    <div className="w-full pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
+      <Container width="wide">
+        <div className="mb-8">
+          <AppHeading
+            back={{ href: "/perfil", label: "Volver a mi perfil" }}
+            title="Editar perfil"
+            lead="Lo que completes acá es lo que ven clientes, empresas y postulantes en todos los módulos."
+            actions={
           <div className="mv-panel flex min-w-[15rem] flex-col gap-2 rounded-2xl px-4 py-3">
             <div className="flex items-center justify-between text-sm">
               <span className="text-[var(--text-secondary)]">Perfil completo</span>
@@ -207,6 +201,8 @@ export default function EditarPerfilPage() {
               <div className="h-full rounded-full bg-gold transition-[width] duration-500" style={{ width: `${completeness}%` }} />
             </div>
           </div>
+            }
+          />
         </div>
 
         {/* Section nav — chips on mobile, sticky list on desktop */}

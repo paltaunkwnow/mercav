@@ -7,8 +7,9 @@ import StripeWrapper from '@/components/checkout/StripeWrapper';
 import { Metadata } from 'next';
 import { PRO_ANNUAL_MONTHLY_USD, PRO_PLAN, billingInterval, planChargeUsd } from '@/lib/billing/plans';
 import Link from 'next/link';
-import { AlertCircle, ArrowLeft, Lock } from '@/components/icons';
+import { AlertCircle, Lock } from '@/components/icons';
 import { Container, buttonClass } from '@/components/site/primitives';
+import { AppHeading } from "@/components/app-shell/AppPage";
 
 export const metadata: Metadata = {
   title: 'Checkout | Mercav',
@@ -97,18 +98,11 @@ export default async function CheckoutPage({
     const formattedAmount = usd(amount);
 
     return (
-      <div className="relative w-full bg-bg-primary pb-16 pt-24 md:pb-24 md:pt-28">
-        <div className="mv-aura" aria-hidden />
-        <Container className="relative max-w-[64rem]">
-          <Link href="/precios" className="mv-focus mb-5 inline-flex items-center gap-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
-            <ArrowLeft className="h-4 w-4" aria-hidden /> Volver a precios
-          </Link>
-
-          <header className="mb-8 md:mb-10">
-            <p className="mv-kicker">Pago seguro</p>
-            <h1 className="mv-h2 mt-3">Completá tu pago</h1>
-            <p className="mv-body mt-2 max-w-xl">Revisá el resumen y pagá con tarjeta. El cobro lo procesa Stripe.</p>
-          </header>
+      <div className="w-full pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
+        <Container className="max-w-[64rem]">
+          <div className="mb-8">
+            <AppHeading back={{ href: "/precios", label: "Volver a precios" }} title="Completá tu pago" lead="Pago seguro: revisá el resumen y pagá con tarjeta. El cobro lo procesa Stripe." />
+          </div>
 
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-8">
             <section aria-labelledby="pago-titulo" className="order-2 lg:order-1">

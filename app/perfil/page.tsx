@@ -39,9 +39,8 @@ export default async function PerfilPage() {
   ];
 
   return (
-    <div className="relative w-full overflow-hidden bg-bg-primary pb-16 pt-24 md:pb-24 md:pt-28">
-      <div className="mv-aura" aria-hidden />
-      <Container className="relative max-w-[60rem]">
+    <div className="w-full pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
+      <Container className="max-w-[60rem]">
         {/* Profile header */}
         <section aria-label="Mi perfil" className="mv-panel overflow-hidden">
           <div className="relative h-36 w-full bg-bg-tertiary sm:h-48">

@@ -2,12 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { 
   CheckCircle2, 
   ShieldCheck, 
   CreditCard, 
-  ArrowLeft, 
   ArrowRight,
   Loader2, 
   Package, 
@@ -20,6 +18,7 @@ import { CustomSelect } from "@/components/ui/CustomSelect";
 import { Toast } from "@/components/ui/toast";
 import StripeWrapper from "@/components/checkout/StripeWrapper";
 import StripePaymentForm from "@/components/checkout/StripePaymentForm";
+import { AppHeading } from "@/components/app-shell/AppPage";
 
 export default function CheckoutPage({ params }: { params: { type: string, id: string } }) {
   const router = useRouter();
@@ -218,17 +217,14 @@ export default function CheckoutPage({ params }: { params: { type: string, id: s
   const steps = ["Detalles", "Facturación", "Pago"];
 
   return (
-    <div className="relative w-full bg-bg-primary pb-16 pt-24 md:pb-24 md:pt-28">
-      <div className="mv-aura" aria-hidden />
-      <Container className="relative">
-        <Link href={`/${isAnuncio ? "anuncios" : "servicios"}/${params.id}`} className="mv-focus mb-5 inline-flex items-center gap-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
-          <ArrowLeft className="h-4 w-4" aria-hidden /> Volver al detalle
-        </Link>
-        
-        <header className="mb-8 md:mb-10">
-          <p className="mv-kicker">{isAnuncio ? "Reserva de espacio" : "Contratación de servicio"}</p>
-          <h1 className="mv-h2 mt-3">Completar solicitud</h1>
-          <p className="mv-body mt-2 max-w-xl">Contanos qué necesitás, confirmá los datos de facturación y pagá con tarjeta.</p>
+    <div className="w-full pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
+      <Container>
+        <div className="mb-8 md:mb-10">
+          <AppHeading
+            back={{ href: `/${isAnuncio ? "anuncios" : "servicios"}/${params.id}`, label: "Volver al detalle" }}
+            title={isAnuncio ? "Reservar el espacio" : "Contratar el servicio"}
+            lead="Contanos qué necesitás, confirmá los datos de facturación y pagá con tarjeta."
+          />
           <ol className="mt-6 flex flex-wrap items-center gap-2" aria-label="Pasos">
             {steps.map((label, idx) => {
               const n = idx + 1;
@@ -247,7 +243,7 @@ export default function CheckoutPage({ params }: { params: { type: string, id: s
               );
             })}
           </ol>
-        </header>
+        </div>
         
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-8">
           <div className="min-w-0 space-y-6">
