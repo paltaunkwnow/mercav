@@ -26,7 +26,8 @@ import {
   ChevronDown
 } from "@/components/icons";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ButtonLink, Container, PageHero, Section, buttonClass } from "@/components/site/primitives";
+import { ButtonLink, Container, Section, buttonClass } from "@/components/site/primitives";
+import { AppHeader } from "@/components/app-shell/AppPage";
 import { ReceiptTemplate } from "@/components/checkout/ReceiptTemplate";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -287,16 +288,10 @@ export default function PedidosClient({
 
   return (
     <div className="w-full min-h-screen bg-bg-primary">
-      <PageHero
-        kicker={
-          <>
-            <Link href="/inicio" className="-my-2 rounded py-2 hover:underline mv-focus">Inicio</Link>
-            <span aria-hidden>/</span>
-            <span>Pedidos</span>
-          </>
-        }
+      <AppHeader
         title="Pedidos y pagos"
         lead="Tus compras, tus ventas, los pagos registrados y los reportes que abriste, en un mismo lugar."
+        back={{ href: "/inicio#actividad", label: "Tu actividad" }}
       />
 
       <Section tight labelledBy="pedidos-lista" className="pt-0 md:pt-0">

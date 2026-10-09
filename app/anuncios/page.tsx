@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { Search, MapPin, Lightbulb, Megaphone, CalendarRange, CreditCard, BadgePercent, SlidersHorizontal, X, Eye } from "@/components/icons";
-import { Container, PageHero, ButtonLink, buttonClass } from "@/components/site/primitives";
+import { Search, MapPin, Lightbulb, Megaphone, BadgePercent, SlidersHorizontal, X, Eye } from "@/components/icons";
+import { Container, ButtonLink, buttonClass } from "@/components/site/primitives";
+import { AppHeader } from "@/components/app-shell/AppPage";
+import { MarketTabs } from "@/components/app-shell/MarketTabs";
 import { ChoiceMenu } from "@/components/anuncios/ChoiceMenu";
 import { CardSkeletonGrid, EmptyState, MediaFrame, SPACE_TYPE_LABEL, formatMoney, labelFor } from "@/components/anuncios/market-ui";
 import { cn } from "@/lib/utils";
@@ -48,11 +50,6 @@ const SORTS = [
   { value: "Más Vistos", label: "Más tránsito estimado" },
 ];
 
-const HOW = [
-  { icon: Search, title: "Elegí el espacio", body: "Filtrá por ciudad, tipo de soporte y presupuesto." },
-  { icon: CalendarRange, title: "Reservá fechas libres", body: "Cada espacio muestra su calendario de ocupación." },
-  { icon: CreditCard, title: "Pagá con Stripe", body: "Tu primer alquiler no paga comisión de plataforma." },
-];
 
 export default function AnunciosPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -183,8 +180,7 @@ export default function AnunciosPage() {
 
   return (
     <div className="w-full bg-bg-primary">
-      <PageHero
-        kicker="Mercav Publicidad"
+      <AppHeader
         title={
           <>
             Publicidad física, <span className="mv-gold-text">con fechas a la vista.</span>
@@ -193,32 +189,15 @@ export default function AnunciosPage() {
         lead="Vallas, pantallas, letreros y vidrieras en Latinoamérica. Mirá el calendario de cada espacio, reservá las fechas libres y pagá con Stripe."
         actions={
           <>
-            <ButtonLink href="/anuncios/publicar" size="lg" className="w-full sm:w-auto">
+            <ButtonLink href="/anuncios/publicar" className="w-full sm:w-auto">
               Publicar un espacio
             </ButtonLink>
-            <ButtonLink href="/anuncios/mis-espacios" tone="secondary" size="lg" className="w-full sm:w-auto">
+            <ButtonLink href="/anuncios/mis-espacios" tone="secondary" className="w-full sm:w-auto">
               Mis espacios
             </ButtonLink>
           </>
         }
-        aside={
-          <ol className="mv-panel flex flex-col gap-5 p-6 md:p-7" aria-label="Cómo funciona">
-            {HOW.map(({ icon: Icon, title, body }, i) => (
-              <li key={title} className="flex items-start gap-4">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-[var(--mv-hairline)] text-gold">
-                  <Icon className="h-[18px] w-[18px]" aria-hidden />
-                </span>
-                <div className="flex flex-col gap-0.5">
-                  <p className="text-sm font-semibold text-[var(--text-primary)]">
-                    <span className="mv-data mr-2 text-[var(--text-tertiary)]">0{i + 1}</span>
-                    {title}
-                  </p>
-                  <p className="text-sm text-[var(--text-secondary)]">{body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        }
+        tabs={<MarketTabs active="anuncios" />}
       />
 
       <section aria-labelledby="ads-results" className="pb-14 md:pb-24">

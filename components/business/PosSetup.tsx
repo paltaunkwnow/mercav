@@ -58,7 +58,7 @@ export function PosSetup({
           <div className="flex flex-col gap-3">
             {legacy ? (
               <div className="mv-panel flex flex-col gap-3 p-5">
-                <p className="mv-kicker">Tu caja de Mercav POS</p>
+                <p className="mv-kicker">Tu caja anterior</p>
                 <p className="text-[0.95rem] text-[var(--text-primary)]">
                   Tenés una caja anterior{legacy.shopName ? ` (${legacy.shopName})` : ""} con {legacy.products} {legacy.products === 1 ? "producto" : "productos"} y{" "}
                   {legacy.sales} {legacy.sales === 1 ? "venta" : "ventas"}. Traela a {workspaceName} y tu equipo la usa con sus cuentas.

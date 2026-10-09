@@ -1,10 +1,8 @@
 import {
-  Briefcase,
   Building2,
+  Store,
   CalendarDays,
-  Megaphone,
   MessageSquare,
-  MonitorPlay,
   PlusSquare,
   Rss,
   Shield,
@@ -25,6 +23,8 @@ export type AppSection = {
   icon: LucideIcon | typeof StarOfDavid;
   /** Necesita sesión para usarse (el resto también tiene vista pública). */
   needsAccount?: boolean;
+  /** Otras rutas que son parte del apartado y lo resaltan en la navegación (el Mercado abarca tres catálogos). */
+  also?: string[];
   isNew?: boolean;
 };
 
@@ -45,7 +45,6 @@ export const APP_SECTION_GROUPS: AppSectionGroup[] = [
         needsAccount: true,
         isNew: true,
       },
-      { key: "jobs", label: "Empleos", product: "Mercav Empleos", desc: "Vacantes y postulaciones", href: "/empleos", icon: Briefcase },
     ],
   },
   {
@@ -69,8 +68,14 @@ export const APP_SECTION_GROUPS: AppSectionGroup[] = [
     key: "mercado",
     title: "Mercado",
     sections: [
-      { key: "ads", label: "Publicidad", product: "Mercav Publicidad", desc: "Vallas, pantallas y vidrieras por fechas", href: "/anuncios", icon: Megaphone },
-      { key: "services", label: "Servicios", product: "Mercav Servicios", desc: "Talento digital con pago por hitos", href: "/servicios", icon: MonitorPlay },
+      {
+        key: "mercado",
+        label: "Mercado",
+        desc: "Publicidad, servicios y empleos",
+        href: "/anuncios",
+        icon: Store,
+        also: ["/servicios", "/empleos"],
+      },
     ],
   },
   {
@@ -114,7 +119,7 @@ export function activeSectionKey(pathname: string | null | undefined): string | 
   if (pathname === "/inicio" || pathname.startsWith("/dashboard/")) return "inicio";
   let best: AppSection | null = null;
   for (const section of APP_SECTIONS) {
-    const on = pathname === section.href || pathname.startsWith(`${section.href}/`);
+    const on = [section.href, ...(section.also ?? [])].some((href) => pathname === href || pathname.startsWith(`${href}/`));
     if (on && (!best || section.href.length > best.href.length)) best = section;
   }
   return best?.key ?? null;

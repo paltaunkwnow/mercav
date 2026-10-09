@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Code, PenTool, TrendingUp, Video, Camera, Cpu, Star, Clock, Package, Lock, CheckCheck, MonitorPlay, X } from "@/components/icons";
-import { Container, PageHero, ButtonLink, buttonClass } from "@/components/site/primitives";
+import { Search, Code, PenTool, TrendingUp, Video, Camera, Cpu, Star, Clock, MonitorPlay, X } from "@/components/icons";
+import { Container, ButtonLink, buttonClass } from "@/components/site/primitives";
+import { AppHeader } from "@/components/app-shell/AppPage";
+import { MarketTabs } from "@/components/app-shell/MarketTabs";
 import { CardSkeletonGrid, EmptyState, MediaFrame, SERVICE_CATEGORY_LABEL, formatMoney, labelFor } from "@/components/anuncios/market-ui";
 import { cn } from "@/lib/utils";
 
@@ -16,11 +18,6 @@ const CATEGORIES_BASE = [
   { icon: Cpu, name: "Inteligencia Artificial", key: "IA" },
 ];
 
-const HOW = [
-  { icon: Package, title: "Elegí un paquete", body: "Precio, plazo de entrega y revisiones definidos de antemano." },
-  { icon: Lock, title: "Pagá con Stripe", body: "El pago queda en custodia mientras se hace el trabajo." },
-  { icon: CheckCheck, title: "Aprobá cada hito", body: "Los fondos se liberan al profesional cuando entrega." },
-];
 
 export default function ServiciosPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,8 +51,7 @@ export default function ServiciosPage() {
 
   return (
     <div className="w-full bg-bg-primary">
-      <PageHero
-        kicker="Mercav Servicios"
+      <AppHeader
         title={
           <>
             Talento digital, <span className="mv-gold-text">pagado por hitos.</span>
@@ -64,32 +60,15 @@ export default function ServiciosPage() {
         lead="Desarrollo, diseño, marketing y video con paquetes de precio cerrado. Tu pago queda en custodia y se libera hito por hito, cuando el trabajo se entrega."
         actions={
           <>
-            <ButtonLink href="/servicios/publicar" size="lg" className="w-full sm:w-auto">
+            <ButtonLink href="/servicios/publicar" className="w-full sm:w-auto">
               Ofrecer un servicio
             </ButtonLink>
-            <ButtonLink href="/servicios/mis-servicios" tone="secondary" size="lg" className="w-full sm:w-auto">
+            <ButtonLink href="/servicios/mis-servicios" tone="secondary" className="w-full sm:w-auto">
               Mis servicios
             </ButtonLink>
           </>
         }
-        aside={
-          <ol className="mv-panel flex flex-col gap-5 p-6 md:p-7" aria-label="Cómo funciona el pago por hitos">
-            {HOW.map(({ icon: Icon, title, body }, i) => (
-              <li key={title} className="flex items-start gap-4">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-[var(--mv-hairline)] text-gold">
-                  <Icon className="h-[18px] w-[18px]" aria-hidden />
-                </span>
-                <div className="flex flex-col gap-0.5">
-                  <p className="text-sm font-semibold text-[var(--text-primary)]">
-                    <span className="mv-data mr-2 text-[var(--text-tertiary)]">0{i + 1}</span>
-                    {title}
-                  </p>
-                  <p className="text-sm text-[var(--text-secondary)]">{body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        }
+        tabs={<MarketTabs active="servicios" />}
       />
 
       <section aria-labelledby="svc-results" className="pb-14 md:pb-24">

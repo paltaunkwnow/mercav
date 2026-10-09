@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { MonitorPlay, Plus, Search, Clock } from "@/components/icons";
 import { useSession } from "next-auth/react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
-import { Container, PageHero, ButtonLink } from "@/components/site/primitives";
+import { Container, ButtonLink } from "@/components/site/primitives";
+import { AppHeader } from "@/components/app-shell/AppPage";
+import { MyListingsTabs } from "@/components/app-shell/MarketTabs";
 import { EmptyState, ManageItem, MediaFrame, PageLoading, SERVICE_CATEGORY_LABEL, formatMoney, labelFor } from "@/components/anuncios/market-ui";
 
 export default function MisServiciosPage() {
@@ -57,21 +59,21 @@ export default function MisServiciosPage() {
 
   return (
     <div className="w-full bg-bg-primary">
-      <PageHero
-        kicker="Mercav Servicios"
+      <AppHeader
         title="Mis servicios"
         lead="Tus ofertas publicadas: editá la propuesta, revisá cómo se ven o dalas de baja."
         actions={
           <>
-            <ButtonLink href="/servicios/publicar" size="lg" className="w-full sm:w-auto">
+            <ButtonLink href="/servicios/publicar" className="w-full sm:w-auto">
               <Plus className="h-5 w-5" aria-hidden />
               Ofrecer un servicio
             </ButtonLink>
-            <ButtonLink href="/inicio#actividad" tone="ghost" size="lg" className="w-full sm:w-auto">
+            <ButtonLink href="/inicio#actividad" tone="ghost" className="w-full sm:w-auto">
               Ir a tu actividad
             </ButtonLink>
           </>
         }
+        tabs={<MyListingsTabs active="servicios" />}
       />
 
       <section aria-label="Listado de servicios" className="pb-14 md:pb-24">

@@ -1,6 +1,7 @@
 import { ArrowRight, Briefcase, Megaphone, MonitorPlay } from "@/components/icons";
 import Link from "next/link";
-import { Container, PageHero } from "@/components/site/primitives";
+import { Container } from "@/components/site/primitives";
+import { AppHeader } from "@/components/app-shell/AppPage";
 
 const PUBLISH_OPTIONS = [
   {
@@ -35,8 +36,7 @@ const PUBLISH_OPTIONS = [
 export default function PublicarPage() {
   return (
     <div className="w-full bg-bg-primary">
-      <PageHero
-        kicker="Publicar"
+      <AppHeader
         title="¿Qué querés publicar?"
         lead="Elegí el tipo de publicación. Cada una tiene su propio formulario y aparece en el catálogo de su módulo."
       />

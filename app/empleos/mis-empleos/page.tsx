@@ -5,7 +5,9 @@ import Link from "next/link";
 import { Briefcase, Plus, Search, MapPin, Users, Eye } from "@/components/icons";
 import { useSession } from "next-auth/react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
-import { Container, PageHero, ButtonLink } from "@/components/site/primitives";
+import { Container, ButtonLink } from "@/components/site/primitives";
+import { AppHeader } from "@/components/app-shell/AppPage";
+import { MyListingsTabs } from "@/components/app-shell/MarketTabs";
 import { EmptyState, ManageItem, PageLoading, EMPLOYMENT_LABEL, labelFor } from "@/components/anuncios/market-ui";
 
 export default function MisEmpleosPage() {
@@ -58,21 +60,21 @@ export default function MisEmpleosPage() {
 
   return (
     <div className="w-full bg-bg-primary">
-      <PageHero
-        kicker="Mercav Empleos"
+      <AppHeader
         title="Mis vacantes"
         lead="Seguí tus búsquedas abiertas: revisá postulantes, editá la oferta o cerrala."
         actions={
           <>
-            <ButtonLink href="/empleos/publicar" size="lg" className="w-full sm:w-auto">
+            <ButtonLink href="/empleos/publicar" className="w-full sm:w-auto">
               <Plus className="h-5 w-5" aria-hidden />
               Publicar una vacante
             </ButtonLink>
-            <ButtonLink href="/inicio#actividad" tone="ghost" size="lg" className="w-full sm:w-auto">
+            <ButtonLink href="/inicio#actividad" tone="ghost" className="w-full sm:w-auto">
               Ir a tu actividad
             </ButtonLink>
           </>
         }
+        tabs={<MyListingsTabs active="empleos" />}
       />
 
       <section aria-label="Listado de vacantes" className="pb-14 md:pb-24">

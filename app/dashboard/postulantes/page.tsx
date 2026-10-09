@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { User, FileText, Calendar, Mail, MessageSquare, Loader2 } from "@/components/icons";
-import { ButtonLink, Container, PageHero, Section, buttonClass } from "@/components/site/primitives";
+import { ButtonLink, Container, Section, buttonClass } from "@/components/site/primitives";
+import { AppHeader } from "@/components/app-shell/AppPage";
 import { Toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
 
@@ -88,16 +88,10 @@ export default function PostulantesPage() {
     'border-yellow-500/25 bg-yellow-500/10 text-yellow-400';
 
   const hero = (
-    <PageHero
-      kicker={
-        <>
-          <Link href="/inicio" className="-my-2 rounded py-2 hover:underline mv-focus">Inicio</Link>
-          <span aria-hidden>/</span>
-          <span>Postulantes</span>
-        </>
-      }
+    <AppHeader
       title="Postulantes"
       lead="Las personas que se postularon a tus vacantes. Revisá su carta, contactalas o actualizá el estado de cada postulación."
+      back={{ href: "/inicio#actividad", label: "Tu actividad" }}
     />
   );
 

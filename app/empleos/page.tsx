@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { Search, MapPin, Briefcase, ArrowRight, EyeOff, ListChecks, FileText, X } from "@/components/icons";
-import { Container, PageHero, ButtonLink, buttonClass } from "@/components/site/primitives";
+import { Search, MapPin, Briefcase, ArrowRight, X } from "@/components/icons";
+import { Container, ButtonLink, buttonClass } from "@/components/site/primitives";
+import { AppHeader } from "@/components/app-shell/AppPage";
+import { MarketTabs } from "@/components/app-shell/MarketTabs";
 import { ChoiceMenu } from "@/components/anuncios/ChoiceMenu";
 import { CardSkeletonGrid, EmptyState, EMPLOYMENT_LABEL, WORK_MODE_LABEL, labelFor } from "@/components/anuncios/market-ui";
 
@@ -32,11 +34,6 @@ const LATAM_LOCATIONS: Record<string, string[]> = {
   "Venezuela": ["Caracas", "Maracaibo", "Valencia", "Barquisimeto", "Maracay", "Ciudad Guayana", "San Cristóbal", "Barcelona"]
 };
 
-const HOW = [
-  { icon: EyeOff, title: "Salario visible u oculto", body: "Cada empresa decide si publica el rango salarial." },
-  { icon: ListChecks, title: "Preguntas de filtro", body: "Algunas vacantes suman preguntas cortas para postular." },
-  { icon: FileText, title: "Postulación en un paso", body: "Carta de presentación y respuestas desde tu cuenta." },
-];
 
 function salaryText(job: any) {
   if (!job.salaryVisible || (job.salaryMin == null && job.salaryMax == null)) return null;
@@ -144,8 +141,7 @@ export default function EmpleosPage() {
 
   return (
     <div className="w-full bg-bg-primary">
-      <PageHero
-        kicker="Mercav Empleos"
+      <AppHeader
         title={
           <>
             Vacantes claras, <span className="mv-gold-text">postulación directa.</span>
@@ -154,29 +150,15 @@ export default function EmpleosPage() {
         lead="Empresas de Latinoamérica publican sus puestos con modalidad, nivel y, cuando lo deciden, el rango salarial. Postulá con tu perfil de Mercav."
         actions={
           <>
-            <ButtonLink href="/empleos/publicar" size="lg" className="w-full sm:w-auto">
+            <ButtonLink href="/empleos/publicar" className="w-full sm:w-auto">
               Publicar una vacante
             </ButtonLink>
-            <ButtonLink href="/empleos/mis-empleos" tone="secondary" size="lg" className="w-full sm:w-auto">
+            <ButtonLink href="/empleos/mis-empleos" tone="secondary" className="w-full sm:w-auto">
               Mis vacantes
             </ButtonLink>
           </>
         }
-        aside={
-          <ul className="mv-panel flex flex-col gap-5 p-6 md:p-7" aria-label="Cómo funciona">
-            {HOW.map(({ icon: Icon, title, body }) => (
-              <li key={title} className="flex items-start gap-4">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-[var(--mv-hairline)] text-gold">
-                  <Icon className="h-[18px] w-[18px]" aria-hidden />
-                </span>
-                <div className="flex flex-col gap-0.5">
-                  <p className="text-sm font-semibold text-[var(--text-primary)]">{title}</p>
-                  <p className="text-sm text-[var(--text-secondary)]">{body}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        }
+        tabs={<MarketTabs active="empleos" />}
       />
 
       <section aria-labelledby="jobs-results" className="pb-14 md:pb-24">

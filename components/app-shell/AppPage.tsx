@@ -4,28 +4,52 @@ import { ChevronLeft } from "@/components/icons";
 import { Container } from "@/components/site/primitives";
 import { cn } from "@/lib/utils";
 
-/**
- * Página interna de app.mercav.lat. Deja el aire para el header flotante arriba y la barra de
- * apartados abajo en el celular, y pone un encabezado compacto de app (no el hero de marketing).
- */
-export function AppPage({
-  title,
-  kicker,
-  lead,
-  actions,
-  back,
-  tabs,
-  children,
-  width = "default",
-  className,
-}: {
+type HeadingProps = {
   title: ReactNode;
   kicker?: ReactNode;
   lead?: ReactNode;
   actions?: ReactNode;
   back?: { href: string; label: string };
-  /** Navegación secundaria del apartado (por ejemplo, las pestañas de Business). */
+  /** Navegación secundaria del apartado (por ejemplo, las pestañas de Business o del Mercado). */
   tabs?: ReactNode;
+};
+
+/** El encabezado compacto de la app: volver, título, bajada, acciones y pestañas. */
+function AppHeading({ title, kicker, lead, actions, back, tabs }: HeadingProps) {
+  return (
+    <header className="flex flex-col gap-4">
+      {back ? (
+        <Link
+          href={back.href}
+          className="mv-focus -ml-1 inline-flex w-fit items-center gap-1 rounded-full py-1 pl-1 pr-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+        >
+          <ChevronLeft className="h-4 w-4" aria-hidden />
+          {back.label}
+        </Link>
+      ) : null}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex min-w-0 flex-col gap-2">
+          {kicker ? <p className="mv-kicker">{kicker}</p> : null}
+          <h1 className="font-display text-[1.9rem] font-semibold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:text-[2.4rem]">{title}</h1>
+          {lead ? <p className="max-w-2xl text-[15px] leading-relaxed text-[var(--text-secondary)]">{lead}</p> : null}
+        </div>
+        {actions ? <div className="flex shrink-0 flex-wrap gap-2">{actions}</div> : null}
+      </div>
+      {tabs ? <div className="-mx-1 overflow-x-auto px-1 pb-1">{tabs}</div> : null}
+    </header>
+  );
+}
+
+/**
+ * Página interna de la app. Deja el aire para el header flotante arriba y la barra de
+ * apartados abajo en el celular, y pone un encabezado compacto de app (no el hero de marketing).
+ */
+export function AppPage({
+  children,
+  width = "default",
+  className,
+  ...heading
+}: HeadingProps & {
   children: ReactNode;
   width?: "default" | "wide" | "narrow";
   className?: string;
@@ -33,29 +57,22 @@ export function AppPage({
   return (
     <div className={cn("w-full pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32", className)}>
       <Container width={width}>
-        <header className="flex flex-col gap-4">
-          {back ? (
-            <Link
-              href={back.href}
-              className="mv-focus -ml-1 inline-flex w-fit items-center gap-1 rounded-full py-1 pl-1 pr-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-            >
-              <ChevronLeft className="h-4 w-4" aria-hidden />
-              {back.label}
-            </Link>
-          ) : null}
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex min-w-0 flex-col gap-2">
-              {kicker ? <p className="mv-kicker">{kicker}</p> : null}
-              <h1 className="font-display text-[1.9rem] font-semibold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:text-[2.4rem]">
-                {title}
-              </h1>
-              {lead ? <p className="max-w-2xl text-[15px] leading-relaxed text-[var(--text-secondary)]">{lead}</p> : null}
-            </div>
-            {actions ? <div className="flex shrink-0 flex-wrap gap-2">{actions}</div> : null}
-          </div>
-          {tabs ? <div className="-mx-1 overflow-x-auto px-1 pb-1">{tabs}</div> : null}
-        </header>
+        <AppHeading {...heading} />
         <div className="mt-8">{children}</div>
+      </Container>
+    </div>
+  );
+}
+
+/**
+ * Solo el encabezado de la app, para páginas que arman su propio cuerpo debajo (catálogos, listas).
+ * Reemplaza al hero de marketing (PageHero) dentro de la app.
+ */
+export function AppHeader({ width = "default", className, ...heading }: HeadingProps & { width?: "default" | "wide" | "narrow"; className?: string }) {
+  return (
+    <div className={cn("w-full pb-8 pt-24 sm:pt-28 md:pt-32", className)}>
+      <Container width={width}>
+        <AppHeading {...heading} />
       </Container>
     </div>
   );

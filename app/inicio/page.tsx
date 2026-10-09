@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Briefcase, Clock, LifeBuoy, Megaphone, MonitorPlay, ShoppingCart, UserCheck } from "@/components/icons";
+import { ArrowRight, Clock, LifeBuoy, Megaphone, ShoppingCart, UserCheck } from "@/components/icons";
 import { ModuleGlyph, type ModuleGlyphKey } from "@/components/icons/ModuleGlyph";
 import { Mervi } from "@/components/mervi/Mervi";
 import { StarOfDavid } from "@/components/site/StarOfDavid";
@@ -264,12 +264,17 @@ export default async function AppHome() {
               ) : null}
               <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {[
-                  { href: "/anuncios/mis-espacios", icon: Megaphone, label: "Mis espacios", sub: plural(activity.spaces, "espacio publicado", "espacios publicados") },
-                  { href: "/servicios/mis-servicios", icon: MonitorPlay, label: "Mis servicios", sub: plural(activity.services, "servicio publicado", "servicios publicados") },
-                  { href: "/empleos/mis-empleos", icon: Briefcase, label: "Mis vacantes", sub: plural(activity.jobs, "vacante", "vacantes") },
+                  {
+                    // Abre la pestaña del tipo que tenés publicado; adentro se cambia entre espacios, servicios y vacantes.
+                    href: activity.spaces ? "/anuncios/mis-espacios" : activity.services ? "/servicios/mis-servicios" : activity.jobs ? "/empleos/mis-empleos" : "/anuncios/mis-espacios",
+                    icon: Megaphone,
+                    label: "Mis publicaciones",
+                    sub: `${plural(activity.spaces, "espacio", "espacios")} · ${plural(activity.services, "servicio", "servicios")} · ${plural(activity.jobs, "vacante", "vacantes")}`,
+                  },
                   { href: "/dashboard/pedidos", icon: Clock, label: "Pedidos y ventas", sub: "Compras, ventas, pagos y reportes" },
                   { href: "/dashboard/postulantes", icon: UserCheck, label: "Postulantes", sub: "Candidatos de tus vacantes" },
-                  ...(activity.oldCaja ? [{ href: "/dashboard/pos", icon: ShoppingCart, label: "Tu caja anterior", sub: "Pasala a tu empresa en Business" }] : []),
+                  // Una sola caja: la anterior se trae a la empresa desde Business, con todas sus ventas (/dashboard/pos sigue andando para quien la tenga guardada).
+                  ...(activity.oldCaja ? [{ href: "/business", icon: ShoppingCart, label: "Traé tu caja anterior", sub: "Pasa a tu empresa con todas sus ventas" }] : []),
                   { href: "/soporte", icon: LifeBuoy, label: "Soporte", sub: "Escribinos si algo no anda" },
                 ].map(({ href, icon: Icon, label, sub }) => (
                   <li key={href}>
