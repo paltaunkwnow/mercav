@@ -354,6 +354,6 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|images|mervi|uploads|videos|icons|logo.png|404.html|index.html|robots.txt|sitemap.xml|manifest.webmanifest|icon.png|apple-icon.png|opengraph-image|twitter-image).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|images|mervi|uploads|videos|icons|logo.png|robots.txt|sitemap.xml|manifest.webmanifest|icon.png|apple-icon.png|opengraph-image|twitter-image).*)'],
 };
 // creado por pato dev y askforvini
