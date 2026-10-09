@@ -9,9 +9,12 @@ export default function robots(): MetadataRoute.Robots {
   const isKosher = host === KOSHER_HOST;
   const sub = "/kosher";
 
-  const disallow = isKosher
-    ? ["/api/", ...PRIVATE_PREFIXES.filter((p) => p.startsWith(`${sub}/`)).map((p) => p.slice(sub.length))]
-    : PRIVATE_PREFIXES.map((p) => (p === "/api" ? "/api/" : p));
+  const prefixes = isKosher
+    ? ["/api", ...PRIVATE_PREFIXES.filter((p) => p.startsWith(`${sub}/`)).map((p) => p.slice(sub.length))]
+    : PRIVATE_PREFIXES;
+  // robots.txt compara por prefijo de texto: "Disallow: /c" también bloqueaba /caja, /cookies, /contacto y /changelog.
+  // Cada ruta privada va como la ruta exacta ($), con parámetros (?) y lo que cuelga de ella (/), igual que isPrivatePath.
+  const disallow = prefixes.flatMap((p) => [`${p}$`, `${p}?`, `${p}/`]);
 
   return {
     rules: [
