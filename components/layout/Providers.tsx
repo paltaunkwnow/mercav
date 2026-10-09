@@ -3,6 +3,7 @@
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import { CookieConsentProvider } from "@/components/legal/CookieConsentProvider";
+import { RecaptchaConsentBridge } from "@/components/legal/RecaptchaConsentBridge";
 import { LiquidGlassRoot } from "@/components/ui/LiquidGlassRoot";
 import { InspectGuard } from "@/components/security/InspectGuard";
 
@@ -13,7 +14,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <CookieConsentProvider>
           <LiquidGlassRoot />
           <InspectGuard />
-          {children}
+          <RecaptchaConsentBridge>{children}</RecaptchaConsentBridge>
         </CookieConsentProvider>
       </ThemeProvider>
     </SessionProvider>

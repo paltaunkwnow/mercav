@@ -3,10 +3,18 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
+import { verifyRecaptchaToken } from "./recaptcha";
 
 const secureCookies = process.env.NEXTAUTH_URL?.startsWith("https://") ?? false;
 // Set AUTH_COOKIE_DOMAIN=.mercav.lat so one session covers mercav.lat, app.mercav.lat and kosher.mercav.lat.
 const cookieDomain = process.env.AUTH_COOKIE_DOMAIN?.trim() || undefined;
+
+const hasValidGoogleCredentials = Boolean(
+  process.env.GOOGLE_CLIENT_ID &&
+  process.env.GOOGLE_CLIENT_ID !== "pending" &&
+  process.env.GOOGLE_CLIENT_SECRET &&
+  process.env.GOOGLE_CLIENT_SECRET !== "pending"
+);
 
 export const authOptions: AuthOptions = {
   session: {
@@ -27,20 +35,33 @@ export const authOptions: AuthOptions = {
     error: "/login",
   },
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "pending",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "pending",
-    }),
+    ...(hasValidGoogleCredentials
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID as string,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+          }),
+        ]
+      : []),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        recaptchaToken: { label: "reCAPTCHA Token", type: "text" },
         twoFactorCode: { label: "2FA Code", type: "text" }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Faltan credenciales");
+        }
+
+        if ((credentials as any)?.recaptchaToken) {
+          const recaptchaResult = await verifyRecaptchaToken((credentials as any).recaptchaToken);
+          if (!recaptchaResult.success) {
+            console.warn("reCAPTCHA check failed on login for:", credentials.email);
+            throw new Error("RECAPTCHA_FAILED");
+          }
         }
 
         let user: any = null;

@@ -2,12 +2,14 @@
 
 import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { safeCallbackPath } from '@/lib/security/safe-url';
 import { REAL_DATA_NOTICE_CUSTOMER } from '@/lib/business/loyalty/notice';
 import Link from 'next/link';
 import { Loader2, ArrowRight, CheckCircle2, XCircle } from '@/components/icons';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthField, FormAlert, PasswordField, SubmitButton } from '@/components/auth/AuthFields';
+import { getRecaptchaToken } from '@/lib/recaptcha-client';
 
 export default function Register() {
   return (
@@ -20,6 +22,7 @@ export default function Register() {
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { executeRecaptcha } = useGoogleReCaptcha();
   // Vuelta después de crear la cuenta (por ejemplo, a la tarjeta de fidelización para guardarla).
   const rawCallback = searchParams?.get('callbackUrl') ?? null;
   const callbackUrl = rawCallback ? safeCallbackPath(rawCallback) : null;
@@ -88,11 +91,15 @@ function RegisterForm() {
     }
 
     try {
-      
+      const recaptchaToken = await getRecaptchaToken('register', executeRecaptcha);
+
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          recaptchaToken: recaptchaToken || undefined,
+        }),
       });
       const data = await res.json();
       
@@ -103,7 +110,7 @@ function RegisterForm() {
       setError(err.message);
       setLoading(false);
     }
-  }, [formData, router, callbackUrl]);
+  }, [formData, router, callbackUrl, executeRecaptcha]);
 
   const passwordStrength = formData.password.length === 0 ? 0 : formData.password.length < 6 ? 1 : formData.password.length < 10 ? 2 : 3;
   const strengthLabels = ['', 'Débil', 'Aceptable', 'Fuerte'];

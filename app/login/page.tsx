@@ -1,22 +1,25 @@
 "use client";
 
-import { useState, Suspense, useCallback } from 'react';
+import { useState, Suspense, useCallback, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { Mail, Loader2, ArrowLeft, ArrowRight, ShieldCheck } from '@/components/icons';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { BodyPortal } from '@/components/auth/BodyPortal';
 import { AuthDivider, AuthField, FormAlert, GoogleIcon, PasswordField, SubmitButton } from '@/components/auth/AuthFields';
 import { useCookieConsent } from '@/components/legal/CookieConsentProvider';
 import { safeCallbackPath } from '@/lib/security/safe-url';
+import { getRecaptchaToken } from '@/lib/recaptcha-client';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = safeCallbackPath(searchParams?.get('callbackUrl') ?? null);
   const registered = searchParams?.get('registered');
+  const urlError = searchParams?.get('error');
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,8 +30,21 @@ function LoginForm() {
   const [showForgotModal, setShowForgotModal] = useState(false);
 
   const reduce = useReducedMotion();
-  // Las cookies de terceros solo hacen falta para entrar con Google.
+  const { executeRecaptcha } = useGoogleReCaptcha();
+  // Las cookies de terceros solo hacen falta para entrar con Google y reCAPTCHA.
   const { thirdPartyAllowed, openCookieSettings } = useCookieConsent();
+
+  useEffect(() => {
+    if (urlError) {
+      if (urlError === 'OAuthSignin' || urlError === 'OAuthCallback' || urlError === 'Configuration') {
+        setError('El acceso con Google no está disponible o requiere configuración de credenciales OAuth.');
+      } else if (urlError === 'AccessDenied') {
+        setError('Acceso denegado con Google.');
+      } else {
+        setError('Ocurrió un error al autenticar. Intenta con tu correo y contraseña.');
+      }
+    }
+  }, [urlError]);
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,22 +52,26 @@ function LoginForm() {
     setError('');
 
     try {
-      
+      const recaptchaToken = await getRecaptchaToken('login', executeRecaptcha);
+
       const res = await signIn('credentials', {
         redirect: false,
         email,
         password,
+        recaptchaToken: recaptchaToken || undefined,
         twoFactorCode: show2FA ? twoFactorCode : undefined,
       });
 
       if (res?.error) {
-        // NextAuth sometimes prepends the error or uses a generic one
         if (res.error === '2FA_REQUIRED' || res.error.includes('2FA_REQUIRED')) {
           setShow2FA(true);
           setLoading(false);
           setError(''); // Clear any previous errors
         } else if (res.error === '2FA_INVALID' || res.error.includes('2FA_INVALID')) {
           setError('Código 2FA incorrecto. Verifica tu aplicación.');
+          setLoading(false);
+        } else if (res.error === 'RECAPTCHA_FAILED' || res.error.includes('RECAPTCHA_FAILED')) {
+          setError('Verificación de seguridad (reCAPTCHA) fallida. Intenta nuevamente.');
           setLoading(false);
         } else {
           setError('Credenciales inválidas. Revisa tu email y contraseña.');
@@ -65,7 +85,7 @@ function LoginForm() {
       setError('Error al iniciar sesión. Intenta de nuevo.');
       setLoading(false);
     }
-  }, [email, password, twoFactorCode, show2FA, callbackUrl, router]);
+  }, [email, password, twoFactorCode, show2FA, callbackUrl, router, executeRecaptcha]);
 
   return (
     <AuthShell
