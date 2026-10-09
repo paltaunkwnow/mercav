@@ -322,7 +322,7 @@ export default function SearchPage() {
       <div className="mv-aura" aria-hidden />
       <Container className="relative">
         <div className="mb-8">
-          <BackLink href="/dashboard">Volver al panel</BackLink>
+          <BackLink href="/inicio">Volver al inicio</BackLink>
         </div>
         <Suspense fallback={<CardSkeletonGrid count={3} />}>
           <SearchContent />

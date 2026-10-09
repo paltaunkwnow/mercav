@@ -2,13 +2,11 @@ import {
   Briefcase,
   Building2,
   CalendarDays,
-  LayoutDashboard,
   Megaphone,
   MessageSquare,
   MonitorPlay,
   PlusSquare,
   Rss,
-  Settings,
   Shield,
   User,
   Wrench,
@@ -88,10 +86,8 @@ export const APP_SECTION_GROUPS: AppSectionGroup[] = [
     key: "cuenta",
     title: "Tu cuenta",
     sections: [
-      { key: "panel", label: "Mi panel", desc: "Tus publicaciones, pedidos y postulantes", href: "/dashboard", icon: LayoutDashboard, needsAccount: true },
       { key: "publicar", label: "Publicar", desc: "Un espacio, un servicio o una vacante", href: "/publicar", icon: PlusSquare, needsAccount: true },
-      { key: "perfil", label: "Perfil", desc: "Cómo te ven los demás", href: "/perfil", icon: User, needsAccount: true },
-      { key: "ajustes", label: "Ajustes", desc: "Seguridad, 2FA y preferencias", href: "/perfil/configuracion", icon: Settings, needsAccount: true },
+      { key: "perfil", label: "Perfil", desc: "Tu perfil, seguridad, tema y plan", href: "/perfil", icon: User, needsAccount: true },
     ],
   },
 ];
@@ -114,7 +110,8 @@ export type AppPrimaryKey = (typeof APP_PRIMARY_KEYS)[number];
 /** El apartado activo para una ruta, para resaltarlo en la navegación. */
 export function activeSectionKey(pathname: string | null | undefined): string | null {
   if (!pathname) return null;
-  if (pathname === "/inicio") return "inicio";
+  // Pedidos, ventas y postulantes se abren desde "Tu actividad", en Inicio.
+  if (pathname === "/inicio" || pathname.startsWith("/dashboard/")) return "inicio";
   let best: AppSection | null = null;
   for (const section of APP_SECTIONS) {
     const on = pathname === section.href || pathname.startsWith(`${section.href}/`);

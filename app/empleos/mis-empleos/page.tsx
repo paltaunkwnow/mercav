@@ -68,8 +68,8 @@ export default function MisEmpleosPage() {
               <Plus className="h-5 w-5" aria-hidden />
               Publicar una vacante
             </ButtonLink>
-            <ButtonLink href="/dashboard" tone="ghost" size="lg" className="w-full sm:w-auto">
-              Ir al panel
+            <ButtonLink href="/inicio#actividad" tone="ghost" size="lg" className="w-full sm:w-auto">
+              Ir a tu actividad
             </ButtonLink>
           </>
         }

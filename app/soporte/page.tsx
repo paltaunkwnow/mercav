@@ -110,8 +110,8 @@ Saludos.`);
                 Ver todos los canales
               </Link>
             </p>
-            <Link href="/dashboard" className={buttonClass("ghost", "sm", "w-full sm:w-auto")}>
-              Volver al panel <ArrowRight className="h-4 w-4" aria-hidden />
+            <Link href="/inicio" className={buttonClass("ghost", "sm", "w-full sm:w-auto")}>
+              Volver al inicio <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </div>
         </Container>

@@ -55,6 +55,13 @@ const nextConfig = {
     return [
       { source: '/premium', destination: '/precios', permanent: true },
       { source: '/explorar', destination: '/buscar', permanent: true },
+      // Un solo inicio, una sola forma de publicar, las ventas en un lugar y el perfil con sus ajustes.
+      // /dashboard va exacto: /dashboard/pedidos, /postulantes y /pos siguen existiendo.
+      { source: '/dashboard', destination: '/inicio', permanent: true },
+      { source: '/dashboard/crear', destination: '/publicar', permanent: true },
+      { source: '/dashboard/clientes', destination: '/dashboard/pedidos?tab=sales', permanent: true },
+      { source: '/perfil/configuracion', destination: '/perfil', permanent: true },
+      { source: '/notificaciones-settings', destination: '/perfil', permanent: true },
     ];
   },
   async headers() {

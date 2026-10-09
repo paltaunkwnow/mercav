@@ -182,8 +182,8 @@ export default function NotificationBell() {
               </div>
 
               <div className="p-4 bg-white/[0.02] border-t border-white/5 text-center">
-                 <HostLink href="/dashboard" onClick={() => setIsOpen(false)} className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-white transition-colors">
-                    Ver todo en el Dashboard
+                 <HostLink href="/inicio#actividad" onClick={() => setIsOpen(false)} className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-white transition-colors">
+                    Ver tu actividad
                  </HostLink>
               </div>
             </motion.div>

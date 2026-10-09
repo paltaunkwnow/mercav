@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "@/components/icons";
+import { ArrowRight, Briefcase, Clock, LifeBuoy, Megaphone, MonitorPlay, ShoppingCart, UserCheck } from "@/components/icons";
 import { ModuleGlyph, type ModuleGlyphKey } from "@/components/icons/ModuleGlyph";
 import { Mervi } from "@/components/mervi/Mervi";
 import { StarOfDavid } from "@/components/site/StarOfDavid";
@@ -59,6 +59,45 @@ function currencySymbol(country: string, currency: string) {
   }
 }
 
+/** Lo que antes estaba en "Mi panel": tus publicaciones, sus números y los accesos a pedidos y postulantes. */
+async function activityOf(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      posConfig: { select: { id: true } },
+      jobPosts: { select: { viewCount: true, _count: { select: { applications: true, savedBy: true } } } },
+      spaces: {
+        select: {
+          _count: { select: { savedBy: true } },
+          reservations: { where: { status: { in: ["CONFIRMED", "ACTIVE", "COMPLETED"] } }, select: { ownerFee: true } },
+        },
+      },
+      services: {
+        select: {
+          _count: { select: { savedBy: true } },
+          orders: { where: { status: { in: ["COMPLETED", "IN_PROGRESS", "IN_REVIEW"] } }, select: { providerPayout: true } },
+        },
+      },
+    },
+  });
+  if (!user) return null;
+  const sum = (values: number[]) => values.reduce((a, b) => a + b, 0);
+  return {
+    spaces: user.spaces.length,
+    services: user.services.length,
+    jobs: user.jobPosts.length,
+    oldCaja: !!user.posConfig,
+    applicants: sum(user.jobPosts.map((j) => j._count.applications)),
+    views: sum(user.jobPosts.map((j) => j.viewCount || 0)),
+    // Pagos de servicios en curso o terminados y reservas confirmadas de tus espacios.
+    earnings:
+      sum(user.services.flatMap((s) => s.orders.map((o) => Number(o.providerPayout)))) + sum(user.spaces.flatMap((s) => s.reservations.map((r) => Number(r.ownerFee)))),
+    saved: sum([...user.jobPosts, ...user.spaces, ...user.services].map((x) => x._count.savedBy)),
+  };
+}
+
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
 /** Las seis tarjetas del inicio, las mismas del celular de la portada. */
 const MAIN_KEYS = new Set(["business", "tools", "pwn", "calendario", "kosher"]);
 
@@ -70,8 +109,9 @@ export default async function AppHome() {
   let today = todayIn(latamCountry(null).timezone);
   let upcoming: ReturnType<typeof upcomingGroups> = [];
   let companies: { slug: string; name: string; country: string; currency: string }[] = [];
+  let activity: Awaited<ReturnType<typeof activityOf>> = null;
   if (userId) {
-    const [locale, prefs, memberships] = await Promise.all([
+    const [locale, prefs, memberships, mine] = await Promise.all([
       userLocale(userId),
       getCalendarPrefs(userId),
       prisma.businessMember.findMany({
@@ -80,7 +120,9 @@ export default async function AppHome() {
         orderBy: { createdAt: "asc" },
         take: 3,
       }),
+      activityOf(userId),
     ]);
+    activity = mine;
     today = locale.today;
     // Los días seguidos de una misma fecha (Pésaj, Carnaval) van en una sola fila.
     upcoming = upcomingGroups(prefs, today, 3);
@@ -194,6 +236,57 @@ export default async function AppHome() {
               </li>
             ))}
           </ul>
+
+          {activity ? (
+            <section id="actividad" aria-labelledby="inicio-actividad" className="mt-10 scroll-mt-28">
+              <h2 id="inicio-actividad" className="mv-kicker !text-[var(--text-tertiary)]">
+                Tu actividad
+              </h2>
+              {activity.spaces + activity.services + activity.jobs > 0 ? (
+                <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {[
+                    { label: "Postulantes", value: String(activity.applicants), sub: "En tus vacantes" },
+                    { label: "Visitas", value: activity.views >= 1000 ? `${(activity.views / 1000).toFixed(1)}k` : String(activity.views), sub: "De tus vacantes" },
+                    {
+                      label: "Ingresos",
+                      value: new Intl.NumberFormat("es-AR", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(activity.earnings),
+                      sub: "Servicios y reservas",
+                    },
+                    { label: "Guardados", value: String(activity.saved), sub: "Personas interesadas" },
+                  ].map((stat) => (
+                    <div key={stat.label} className="mv-panel p-4">
+                      <dt className="text-[0.85rem] text-[var(--text-secondary)]">{stat.label}</dt>
+                      <dd className="mt-1 text-[1.35rem] font-semibold tabular-nums leading-tight text-[var(--text-primary)]">{stat.value}</dd>
+                      <dd className="text-[0.8rem] text-[var(--text-tertiary)]">{stat.sub}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
+              <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  { href: "/anuncios/mis-espacios", icon: Megaphone, label: "Mis espacios", sub: plural(activity.spaces, "espacio publicado", "espacios publicados") },
+                  { href: "/servicios/mis-servicios", icon: MonitorPlay, label: "Mis servicios", sub: plural(activity.services, "servicio publicado", "servicios publicados") },
+                  { href: "/empleos/mis-empleos", icon: Briefcase, label: "Mis vacantes", sub: plural(activity.jobs, "vacante", "vacantes") },
+                  { href: "/dashboard/pedidos", icon: Clock, label: "Pedidos y ventas", sub: "Compras, ventas, pagos y reportes" },
+                  { href: "/dashboard/postulantes", icon: UserCheck, label: "Postulantes", sub: "Candidatos de tus vacantes" },
+                  ...(activity.oldCaja ? [{ href: "/dashboard/pos", icon: ShoppingCart, label: "Tu caja anterior", sub: "Pasala a tu empresa en Business" }] : []),
+                  { href: "/soporte", icon: LifeBuoy, label: "Soporte", sub: "Escribinos si algo no anda" },
+                ].map(({ href, icon: Icon, label, sub }) => (
+                  <li key={href}>
+                    <Link href={href} className="mv-panel mv-panel-interactive mv-focus flex h-full items-center gap-3 p-3">
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--mv-gold-wash)] text-[var(--mv-gold-ink)]">
+                        <Icon className="h-5 w-5" aria-hidden />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-[0.95rem] font-semibold text-[var(--text-primary)]">{label}</span>
+                        <span className="block truncate text-[0.8rem] text-[var(--text-secondary)]">{sub}</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           {more.length ? (
             <section aria-labelledby="mas-en-mercav" className="mt-10">

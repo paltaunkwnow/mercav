@@ -60,7 +60,7 @@ export async function POST(req: Request) {
         "MANUAL_REFUND_PROCESSED",
         "Reembolso Procesado por Soporte",
         `Se ha procesado un reembolso manual de $${transaction.amount} USD a tu favor. Justificación: ${reason}`,
-        `/dashboard`
+        `/dashboard/pedidos?tab=transactions`
       )
     }
 

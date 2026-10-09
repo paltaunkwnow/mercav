@@ -91,7 +91,7 @@ export default function PostulantesPage() {
     <PageHero
       kicker={
         <>
-          <Link href="/dashboard" className="-my-2 rounded py-2 hover:underline mv-focus">Panel</Link>
+          <Link href="/inicio" className="-my-2 rounded py-2 hover:underline mv-focus">Inicio</Link>
           <span aria-hidden>/</span>
           <span>Postulantes</span>
         </>
@@ -137,7 +137,7 @@ export default function PostulantesPage() {
                 Cuando alguien se postule a una de tus vacantes, vas a ver acá su perfil, su carta de presentación y el estado de la postulación.
               </p>
               <div className="mt-2 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-                <ButtonLink href="/dashboard/crear" className="w-full sm:w-auto">Publicar una vacante</ButtonLink>
+                <ButtonLink href="/empleos/publicar" className="w-full sm:w-auto">Publicar una vacante</ButtonLink>
                 <ButtonLink href="/empleos/mis-empleos" tone="secondary" className="w-full sm:w-auto">Ver mis vacantes</ButtonLink>
               </div>
             </div>

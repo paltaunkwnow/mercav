@@ -62,7 +62,7 @@ export async function POST(
         "DISPUTE_RELEASED",
         "Disputa Resuelta: Fondos Liberados",
         `El administrador de Mercav resolvió la disputa a tu favor. Los fondos de la orden por $${order.totalPrice} USD han sido liberados.`,
-        `/dashboard`
+        `/dashboard/pedidos`
       )
 
       await createNotification(
@@ -70,7 +70,7 @@ export async function POST(
         "DISPUTE_RELEASED",
         "Disputa Cerrada Administrativamente",
         `La disputa de la orden de servicio por $${order.totalPrice} USD ha sido resuelta y cerrada por el administrador.`,
-        `/dashboard`
+        `/dashboard/pedidos`
       )
 
       // Audit Log
@@ -108,7 +108,7 @@ export async function POST(
         "DISPUTE_REFUNDED",
         "Disputa Resuelta: Reembolso Aprobado",
         `El administrador de Mercav resolvió la disputa a tu favor. Se ha procesado un reembolso por $${order.totalPrice} USD para tu orden.`,
-        `/dashboard`
+        `/dashboard/pedidos`
       )
 
       await createNotification(
@@ -116,7 +116,7 @@ export async function POST(
         "DISPUTE_REFUNDED",
         "Disputa Resuelta: Reembolso a Cliente",
         `La disputa de la orden por $${order.totalPrice} USD ha sido resuelta a favor del cliente. La orden ha sido cancelada.`,
-        `/dashboard`
+        `/dashboard/pedidos`
       )
 
       // Audit Log

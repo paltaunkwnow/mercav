@@ -12,7 +12,7 @@ export default async function SanctionPage() {
     where: { email: session.user.email }
   });
 
-  if (!user?.isSanctioned) redirect("/dashboard");
+  if (!user?.isSanctioned) redirect("/inicio");
 
   const timeLeft = user.sanctionExpiresAt 
     ? Math.max(0, new Date(user.sanctionExpiresAt).getTime() - new Date().getTime())

@@ -1,4 +1,4 @@
-import { Settings, Shield, Bell, ChevronRight, Pencil, MapPin, Globe2, Briefcase, KeyRound, BadgeCheck, ArrowUpRight, CreditCard } from "@/components/icons";
+import { Shield, ChevronRight, Pencil, MapPin, Globe2, Briefcase, KeyRound, BadgeCheck, ArrowUpRight, CreditCard, Sparkles } from "@/components/icons";
 import Link from "next/link";
 import { Container, buttonClass } from "@/components/site/primitives";
 import { getServerSession } from "next-auth/next";
@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { LogoutButton } from "@/components/auth/LogoutButton";
+import { ThemeChoice } from "./ThemeChoice";
 
 export const dynamic = 'force-dynamic';
 
@@ -30,12 +31,11 @@ export default async function PerfilPage() {
   const publicHref = `/perfil/${user.username || user.id}`;
 
   const accountLinks = [
-    { icon: Settings, label: "Configuración", desc: "Apariencia y accesos a cada ajuste de tu cuenta", href: "/perfil/configuracion" },
     { icon: KeyRound, label: "Seguridad y 2FA", desc: "Verificación en dos pasos para iniciar sesión", href: "/perfil/editar#security" },
-    { icon: Bell, label: "Notificaciones", desc: "Alertas de mensajes y actividad", href: "/notificaciones-settings" },
-    { icon: Shield, label: "Privacidad", desc: "Cómo tratamos tus datos en Mercav", href: "/privacidad" },
-    { icon: Briefcase, label: "Mis publicaciones", desc: "Tus anuncios, servicios y vacantes", href: "/dashboard" },
+    { icon: Briefcase, label: "Mis publicaciones", desc: "Tus anuncios, servicios y vacantes", href: "/inicio#actividad" },
     { icon: CreditCard, label: "Mis tarjetas", desc: "Tus tarjetas de cliente y tu código MercavClub", href: "/perfil/tarjetas" },
+    { icon: Sparkles, label: "Plan y pagos", desc: "Tu plan y cómo pasar a otro", href: "/precios" },
+    { icon: Shield, label: "Privacidad", desc: "Cómo tratamos tus datos en Mercav", href: "/privacidad" },
   ];
 
   return (
@@ -126,6 +126,12 @@ export default async function PerfilPage() {
               </li>
             ))}
           </ul>
+        </section>
+
+        {/* Appearance */}
+        <section aria-labelledby="perfil-apariencia" className="mt-10">
+          <h2 id="perfil-apariencia" className="mv-h3">Apariencia</h2>
+          <ThemeChoice labelledBy="perfil-apariencia" />
         </section>
 
         {/* Session */}

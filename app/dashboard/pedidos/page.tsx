@@ -48,7 +48,8 @@ export default async function PedidosPage({
     },
     include: {
       service: true,
-      client: { select: { name: true, avatar: true } },
+      // id y email: la fila de Ventas enlaza al perfil del cliente y muestra su correo (antes estaba en /dashboard/clientes).
+      client: { select: { id: true, name: true, email: true, avatar: true } },
       package: true,
     },
     orderBy: { createdAt: 'desc' },
@@ -76,7 +77,7 @@ export default async function PedidosPage({
     },
     include: {
       space: true,
-      advertiser: { select: { name: true, avatar: true } }
+      advertiser: { select: { id: true, name: true, email: true, avatar: true } }
     },
     orderBy: { createdAt: 'desc' },
   });

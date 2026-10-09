@@ -45,7 +45,7 @@ export function usePos() {
     inBusiness: !!slug,
     href: (section: PosSection = "") => posHrefFor(slug, section),
     /** A dónde vuelve "Salir": la empresa en Business o el panel. */
-    exitHref: slug ? `/business/${slug}` : "/dashboard",
+    exitHref: slug ? `/business/${slug}` : "/inicio",
     allowed: (section: PosSection) => !allowed || allowed.includes(section),
   };
 }

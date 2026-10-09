@@ -7,7 +7,6 @@ import {
   User,
   LayoutDashboard,
   ShieldAlert,
-  Settings,
   LogOut,
   Edit3,
   ChevronDown,
@@ -94,8 +93,7 @@ function ProfileMenu({ name, email }: { name?: string | null; email?: string | n
   const items = [
     { href: "/perfil", label: "Mi perfil", icon: User },
     { href: "/perfil/editar", label: "Editar perfil", icon: Edit3 },
-    { href: "/perfil/configuracion", label: "Configuración y ajustes", icon: Settings },
-    { href: "/dashboard", label: "Mi panel", icon: LayoutDashboard },
+    { href: "/inicio#actividad", label: "Tu actividad", icon: LayoutDashboard },
   ];
 
   return (
@@ -418,7 +416,7 @@ export function Header() {
               className="shrink-0 xl:hidden"
             />
 
-            {/* En el celular con sesión, el lugar es de Mensajes: el tema se cambia en Ajustes. */}
+            {/* En el celular con sesión, el lugar es de Mensajes: el tema se cambia en Perfil. */}
             <span className={cn("contents", session && "max-sm:hidden")}>
               <ThemeSwitch />
             </span>

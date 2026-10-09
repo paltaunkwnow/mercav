@@ -92,7 +92,7 @@ export async function POST(req: Request) {
       }
       packages.push({
         name: text(p.name, 100) || "Paquete Base",
-        // description y type son obligatorios en el schema; /dashboard/crear no los mandaba y fallaba
+        // description y type son obligatorios en el schema; el formulario viejo de /dashboard/crear no los mandaba y fallaba
         description: text(p.description, 2000) || "Servicio estándar",
         price: Math.round(price * 100) / 100,
         deliveryDays: intIn(p.deliveryDays, 1, 365, 5),

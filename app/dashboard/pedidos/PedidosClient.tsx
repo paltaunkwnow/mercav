@@ -259,7 +259,7 @@ export default function PedidosClient({
     sales: {
       title: "Todavía no tenés ventas",
       body: "Los pedidos de tus servicios y las reservas de tus espacios se listan acá. Publicá algo para empezar a recibirlos.",
-      href: "/dashboard/crear",
+      href: "/publicar",
       cta: "Nueva publicación",
     },
     transactions: {
@@ -290,7 +290,7 @@ export default function PedidosClient({
       <PageHero
         kicker={
           <>
-            <Link href="/dashboard" className="-my-2 rounded py-2 hover:underline mv-focus">Panel</Link>
+            <Link href="/inicio" className="-my-2 rounded py-2 hover:underline mv-focus">Inicio</Link>
             <span aria-hidden>/</span>
             <span>Pedidos</span>
           </>
@@ -390,7 +390,17 @@ export default function PedidosClient({
                                 {activeTab === 'purchases' ? (
                                   <>Proveedor: <span className="font-medium text-[var(--text-primary)]">{item.service?.provider?.name || item.space?.owner?.name || "Proveedor"}</span></>
                                 ) : activeTab === 'sales' ? (
-                                  <>Cliente: <span className="font-medium text-[var(--text-primary)]">{item.client?.name || item.advertiser?.name || "Cliente"}</span></>
+                                  <>
+                                    Cliente:{" "}
+                                    {(item.client ?? item.advertiser)?.id ? (
+                                      <Link href={`/perfil/${(item.client ?? item.advertiser).id}`} className="font-medium text-[var(--text-primary)] hover:underline mv-focus">
+                                        {item.client?.name || item.advertiser?.name || "Cliente"}
+                                      </Link>
+                                    ) : (
+                                      <span className="font-medium text-[var(--text-primary)]">{item.client?.name || item.advertiser?.name || "Cliente"}</span>
+                                    )}
+                                    {(item.client ?? item.advertiser)?.email ? <span className="text-[var(--text-tertiary)]"> · {(item.client ?? item.advertiser).email}</span> : null}
+                                  </>
                                 ) : activeTab === 'tickets' ? (
                                   <>Categoría: <span className="font-medium text-[var(--text-primary)]">{ticketCategoryLabel(item.category)}</span></>
                                 ) : (

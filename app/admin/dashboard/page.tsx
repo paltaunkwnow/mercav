@@ -20,7 +20,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
   const activeTab = searchParams.tab || "overview";
 
   if (!session?.user || !(session.user as any).roles?.includes("ADMIN")) {
-    redirect("/dashboard");
+    redirect("/inicio");
   }
 
   // Time range for charts (last 6 months)

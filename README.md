@@ -248,7 +248,7 @@ El resumen para inversores (problema, producto, modelo de negocio y equipo) est�
 | `/explorar`, `/buscar` | Descubrimiento y búsqueda unificada |
 | `/login`, `/register` | Auth; reCAPTCHA v3 si hay claves y cookies de terceros aceptadas |
 | `/perfil`, `/perfil/editar` | Perfil público y edición (incluido 2FA) |
-| `/dashboard` | Panel: pedidos, clientes, postulantes y el POS retirado |
+| `/dashboard/*` | Pedidos y ventas, postulantes y el POS retirado. `/dashboard` redirige a `/inicio`, donde está tu actividad |
 | `/admin/dashboard` | Solo `ADMIN`. Pestañas: resumen, usuarios, empresas, inversores, servicios, espacios, insignias, finanzas, reportes, tráfico inusual, configuración |
 | `/checkout` | Stripe: servicios, reservas de espacios, upgrade de plan |
 | `/soporte`, `/contacto` | Tickets y contacto |
