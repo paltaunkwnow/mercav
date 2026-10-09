@@ -96,6 +96,19 @@ async function activityOf(userId: string) {
   };
 }
 
+/**
+ * Con sesión, cada bloque del inicio lee su parte por separado: si una tabla todavía no existe en la base
+ * (una migración sin aplicar) o una consulta falla, ese bloque queda vacío y el error va al log, pero el inicio carga.
+ */
+async function safe<T>(label: string, run: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await run();
+  } catch (error) {
+    console.error(`[inicio] No se pudo cargar ${label}:`, error);
+    return fallback;
+  }
+}
+
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 /** Las seis tarjetas del inicio, las mismas del celular de la portada. */
@@ -112,20 +125,23 @@ export default async function AppHome() {
   let activity: Awaited<ReturnType<typeof activityOf>> = null;
   if (userId) {
     const [locale, prefs, memberships, mine] = await Promise.all([
-      userLocale(userId),
-      getCalendarPrefs(userId),
-      prisma.businessMember.findMany({
-        where: { userId },
-        include: { workspace: { select: { slug: true, name: true, country: true, currency: true } } },
-        orderBy: { createdAt: "asc" },
-        take: 3,
-      }),
-      activityOf(userId),
+      safe("la zona horaria", () => userLocale(userId), null),
+      safe("el calendario", () => getCalendarPrefs(userId), null),
+      safe("las empresas", () =>
+        prisma.businessMember.findMany({
+          where: { userId },
+          include: { workspace: { select: { slug: true, name: true, country: true, currency: true } } },
+          orderBy: { createdAt: "asc" },
+          take: 3,
+        }),
+        [],
+      ),
+      safe("la actividad", () => activityOf(userId), null),
     ]);
     activity = mine;
-    today = locale.today;
+    if (locale) today = locale.today;
     // Los días seguidos de una misma fecha (Pésaj, Carnaval) van en una sola fila.
-    upcoming = upcomingGroups(prefs, today, 3);
+    upcoming = prefs ? upcomingGroups(prefs, today, 3) : [];
     companies = memberships.map((m) => m.workspace);
   }
   const firstName = (session?.user?.name ?? "").split(" ")[0];
