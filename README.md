@@ -280,6 +280,8 @@ El mismo despliegue de Next sirve todos los hosts. Las reglas están en `middlew
 
 En producción, `AUTH_COOKIE_DOMAIN=.mercav.lat` comparte la sesión entre hosts. En local dejalo vacío.
 
+**api.mercav.lat.** Responde todos los endpoints sin el prefijo: `api.mercav.lat/jobs` es `/api/jobs` (también acepta `/api/jobs`), con los mismos controles del middleware (límite de pedidos, guarda de Pwn y sesión) y CORS con credenciales solo para los dominios de Mercav (`lib/api/origins.ts`). Con `NEXT_PUBLIC_API_URL=https://api.mercav.lat`, el navegador manda ahí cada `fetch` a `/api/…` (`lib/api/client.ts`); quedan en el dominio de la app `/api/auth` (login y callbacks de Google) y `/api/socket`. Cargá esa variable solo en Production: en las previews y en `*.vercel.app` todo sigue por el mismo origen. Para volver atrás alcanza con quitarla y volver a deployar.
+
 > [!IMPORTANT]
 > **Deploy del split de hosts.**
 > 1. Sumá `app.mercav.lat` al proyecto de Vercel.
@@ -402,6 +404,8 @@ NEXTAUTH_URL="http://127.0.0.1:1337"
 NEXTAUTH_SECRET="un_secreto_largo"
 # En local vacío. En producción: .mercav.lat
 AUTH_COOKIE_DOMAIN=""
+# En local vacío. En producción: https://api.mercav.lat (las llamadas del navegador a /api salen por ahí)
+NEXT_PUBLIC_API_URL=""
 GOOGLE_CLIENT_ID=""
 GOOGLE_CLIENT_SECRET=""
 

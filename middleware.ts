@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import {
   APP_HOME,
-  APP_HOST,
-  APP_URL,
   KOSHER_HOST,
   KOSHER_URL,
   PWN_HOST,
@@ -11,13 +9,13 @@ import {
   appPathFor,
   canonicalFor,
   isKosherHostPath,
-  isMarketingPath,
   isNoindexPath,
   isSharedPath,
 } from '@/lib/seo/site';
 import { getToken } from 'next-auth/jwt';
 import type { NextRequest } from 'next/server';
 import { looksLikeInterceptor } from '@/lib/security/unusual-traffic';
+import { API_HOST, isMercavOrigin } from '@/lib/api/origins';
 import { apiRouteGroup, evictHitBuckets, pwnCsrfBlockReason, type HitBucket } from '@/lib/pwn/request-guard';
 
 const publicPaths = [
@@ -128,6 +126,7 @@ function pwnCsrfBlocked(req: NextRequest, pathname: string) {
     contentLength: req.headers.get('content-length'),
     transferEncoding: req.headers.get('transfer-encoding'),
     authorization: req.headers.get('authorization'),
+    origin: req.headers.get('origin'),
   });
 }
 
@@ -182,10 +181,39 @@ function productHostRedirect(req: NextRequest, host: string | undefined, pathnam
   return null;
 }
 
+/**
+ * api.mercav.lat: cada ruta es la misma de /api (api.mercav.lat/jobs = /api/jobs; /api/jobs también anda).
+ * Pasa por los mismos controles que /api y responde con CORS a los dominios de Mercav (ver lib/api/client.ts).
+ */
+function withApiHeaders(res: NextResponse, req: NextRequest) {
+  const origin = req.headers.get('origin');
+  if (origin && isMercavOrigin(origin)) {
+    res.headers.set('Access-Control-Allow-Origin', origin);
+    res.headers.set('Access-Control-Allow-Credentials', 'true');
+    res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.headers.set('Access-Control-Allow-Headers', req.headers.get('access-control-request-headers') || 'Content-Type, Authorization');
+    res.headers.set('Access-Control-Expose-Headers', 'Content-Disposition, Retry-After');
+    res.headers.set('Access-Control-Max-Age', '600');
+  }
+  res.headers.append('Vary', 'Origin');
+  res.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  return res;
+}
+
 async function handle(req: NextRequest): Promise<NextResponse> {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const host = req.headers.get('host')?.split(':')[0]?.toLowerCase();
   let { pathname } = req.nextUrl;
+
+  const apiHost = host === API_HOST;
+  if (apiHost) {
+    // El preflight de CORS no lleva cookies: se contesta acá y withApiHeaders le pone los permisos.
+    if (req.method === 'OPTIONS') return new NextResponse(null, { status: 204 });
+    if (pathname === '/') return NextResponse.json({ name: 'Mercav API', status: 'ok' }, { headers: { 'Cache-Control': 'no-store' } });
+    if (pathname !== '/api' && !pathname.startsWith('/api/')) pathname = `/api${pathname}`;
+  }
+  // En api.mercav.lat la respuesta que sigue es la ruta de /api; en el resto de los dominios, la misma URL.
+  const pass = () => (apiHost ? NextResponse.rewrite(new URL(`${pathname}${req.nextUrl.search}`, req.url)) : NextResponse.next());
 
   if (
     looksLikeInterceptor(req.headers.get('user-agent')) &&
@@ -261,7 +289,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
     if (!token && !cronPath && !isPwnPublicApi(req, pathname)) {
       return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
     }
-    if (!token) return NextResponse.next();
+    if (!token) return pass();
   }
 
   const isPublicPath = publicPaths.includes(pathname) ||
@@ -298,6 +326,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
 
   // Sanction check - redirect ANY path except /sancion and public/auth assets
   if (isSanctioned && pathname !== '/sancion' && !pathname.startsWith('/api/auth') && !pathname.startsWith('/_next')) {
+     if (apiHost) return NextResponse.json({ success: false, error: 'Tu cuenta está sancionada.' }, { status: 403, headers: { 'Cache-Control': 'private, no-store' } });
      return NextResponse.redirect(new URL('/sancion', req.url));
   }
 
@@ -331,17 +360,18 @@ async function handle(req: NextRequest): Promise<NextResponse> {
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+  return pass();
 }
 
 
 // Search engines: every HTML response says which URL is canonical (pwn.* and kosher.* own their
 // sections) and private areas are marked noindex.
 export async function middleware(req: NextRequest) {
+  const host = req.headers.get('host')?.split(':')[0]?.toLowerCase();
+  if (host === API_HOST) return withApiHeaders(await handle(req), req);
   const res = await handle(req);
   const { pathname } = req.nextUrl;
   if (req.method === 'GET' && !pathname.startsWith('/api/') && !pathname.startsWith('/_next') && res.status < 300) {
-    const host = req.headers.get('host')?.split(':')[0]?.toLowerCase();
     const appPath = appPathFor(host, pathname);
     if (isNoindexPath(appPath)) {
       res.headers.set('X-Robots-Tag', 'noindex, nofollow');

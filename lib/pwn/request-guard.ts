@@ -3,6 +3,8 @@
  * y bloquear escrituras de otro origen hacia /api/pwn. Sin imports de Next para poder testearlas.
  */
 
+import { isMercavOrigin } from "../api/origins";
+
 const AUTH_SESSION_READS = new Set(["session", "csrf", "providers"]);
 const AUTH_ROUTES = new Set(["signin", "signout", "callback", "error", "verify-request", "register", "check-username", "_log"]);
 const PWN_ROUTES = new Set([
@@ -75,6 +77,8 @@ export type PwnCsrfInput = {
   contentLength: string | null;
   transferEncoding: string | null;
   authorization: string | null;
+  /** Encabezado Origin. app.mercav.lat → api.mercav.lat llega como "same-site" y pasa solo si es un dominio de Mercav. */
+  origin?: string | null;
 };
 
 function isCronPath(pathname: string): boolean {
@@ -90,7 +94,8 @@ function hasBody(input: PwnCsrfInput): boolean {
 
 /**
  * Motivo para rechazar una escritura a /api/pwn, o null si pasa.
- * - Sec-Fetch-Site presente y distinto de same-origin: bloqueado. "none" solo vale para el cron con Bearer.
+ * - Sec-Fetch-Site presente y distinto de same-origin: bloqueado. "same-site" vale desde un dominio de Mercav hacia
+ *   api.mercav.lat, y "none" solo para el cron con Bearer.
  * - Con cuerpo, el Content-Type tiene que ser application/json (un formulario de otro sitio no lo puede mandar sin preflight).
  */
 export function pwnCsrfBlockReason(input: PwnCsrfInput): string | null {
@@ -100,8 +105,9 @@ export function pwnCsrfBlockReason(input: PwnCsrfInput): string | null {
 
   const site = input.secFetchSite?.trim().toLowerCase() || null;
   if (site && site !== "same-origin") {
+    const mercavSite = site === "same-site" && isMercavOrigin(input.origin);
     const cronCall = site === "none" && isCronPath(path) && /^Bearer\s+\S+/i.test(input.authorization ?? "");
-    if (!cronCall) return "cross-site";
+    if (!mercavSite && !cronCall) return "cross-site";
   }
 
   const type = input.contentType?.split(";")[0]?.trim().toLowerCase() || null;

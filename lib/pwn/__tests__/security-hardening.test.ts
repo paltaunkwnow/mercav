@@ -61,6 +61,16 @@ test("pwn writes must be same-origin JSON", () => {
   assert.equal(csrf({ secFetchSite: null }), null, "server-to-server calls without the header still work");
 });
 
+test("pwn writes from a Mercav domain to api.mercav.lat pass, other same-site origins don't", () => {
+  assert.equal(csrf({ secFetchSite: "same-site", origin: "https://www.mercav.lat" }), null);
+  assert.equal(csrf({ secFetchSite: "same-site", origin: "https://app.mercav.lat" }), null);
+  assert.equal(csrf({ secFetchSite: "same-site", origin: "https://kosher.mercav.lat" }), null);
+  assert.equal(csrf({ secFetchSite: "same-site", origin: "https://evil.mercav.lat" }), "cross-site");
+  assert.equal(csrf({ secFetchSite: "same-site", origin: "https://www.mercav.lat.attacker.io" }), "cross-site");
+  assert.equal(csrf({ secFetchSite: "same-site", origin: null }), "cross-site");
+  assert.equal(csrf({ secFetchSite: "cross-site", origin: "https://www.mercav.lat" }), "cross-site", "only same-site is trusted");
+});
+
 test("pwn CSRF guard leaves reads, bodiless patrol, cron and other APIs alone", () => {
   assert.equal(csrf({ method: "GET", secFetchSite: "cross-site", contentType: null }), null);
   assert.equal(csrf({ pathname: "/api/pwn/forum-signals", contentType: null, contentLength: null }), null);
