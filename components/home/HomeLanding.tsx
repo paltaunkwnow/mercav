@@ -330,8 +330,18 @@ function BusinessPillar({ data }: { data: LandingData }) {
               <p className="mt-2 text-[0.98rem] text-[var(--c-soft)]">Tarjetas de sellos o puntos con tu logo. Tus clientes se suman con un QR y las guardan en su cuenta.</p>
               <p className="c-label mt-3 text-[1.05rem]">19 rubros listos · MercavClub</p>
             </div>
-            <div className="w-[15rem] shrink-0 rotate-[-4deg] motion-reduce:rotate-0">
-              <LoyaltyCard design={CAFE_DESIGN} type="STAMPS" stampsGoal={10} rewardName={cafe.rewardName} balance={7} customerName="Lucía" side="flip" size="sm" className="w-full" />
+            <div className="flex shrink-0 flex-col items-center gap-3">
+              <div className="w-[15rem] rotate-[-4deg] motion-reduce:rotate-0">
+                <LoyaltyCard design={CAFE_DESIGN} type="STAMPS" stampsGoal={10} rewardName={cafe.rewardName} balance={7} customerName="Lucía" side="flip" size="sm" className="w-full" />
+              </div>
+              {/* La tarjeta ya dice "Tocá para ver el reverso" en su aria-label; esta pista es solo visual. */}
+              <p aria-hidden className="c-label flex items-center gap-1.5 text-[1rem]">
+                <svg viewBox="0 0 40 32" className="c-nudge h-7 w-9" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 27c9 1 20-3 26-17" />
+                  <path d="M24 11.5 31.5 8l2.5 8" />
+                </svg>
+                Tocala para darla vuelta
+              </p>
             </div>
           </article>
 

@@ -571,6 +571,15 @@ button.c-btn { background-color: var(--btn-bg); }
   50% { translate: 0 var(--float-amp, -9px); }
 }
 
+/* Flecha que señala algo tocable: un empujón hacia arriba y a la derecha, y descansa. */
+@media (prefers-reduced-motion: no-preference) {
+  .c-nudge { animation: c-nudge 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+}
+@keyframes c-nudge {
+  0%, 45%, 100% { translate: 0 0; }
+  20% { translate: 3px -4px; }
+}
+
 /* Cintas cruzadas */
 .c-tape { box-shadow: 0 14px 30px -18px rgba(0, 0, 0, 0.6); }
 .c-marquee-reverse .c-marquee-track { animation-direction: reverse; }
