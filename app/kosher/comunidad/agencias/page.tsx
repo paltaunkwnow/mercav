@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ExternalLink, MapPin, Phone } from "lucide-react";
+import { ExternalLink, MapPin, Phone } from "@/components/icons";
 import { AGENCIES, AGENCIES_VERIFIED_AT, type Agency } from "@/lib/kosher/agencies";
 import { BackLink, PageIntro, primaryButton, secondaryButton } from "@/components/kosher/ui";
 

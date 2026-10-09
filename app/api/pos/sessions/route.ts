@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getPosContext, posError, summarizeSales } from "@/lib/pos/server";
+import { actorFields, getPosContext, posError, summarizeSales } from "@/lib/pos/server";
 import { currencyDecimals, roundMoney } from "@/lib/pos/money";
 import { checkPin, publicStaffSelect } from "@/lib/pos/staff";
 
@@ -15,8 +15,8 @@ async function findOpenSession(posConfigId: string) {
   });
 }
 
-export async function GET() {
-  const ctx = await getPosContext();
+export async function GET(req: Request) {
+  const ctx = await getPosContext(req, "pos.sell");
   if (!ctx.ok) return ctx.response;
 
   const session = await findOpenSession(ctx.config.id);
@@ -37,7 +37,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const ctx = await getPosContext();
+  const ctx = await getPosContext(req, "pos.sell");
   if (!ctx.ok) return ctx.response;
   const { config } = ctx;
 
@@ -56,11 +56,17 @@ export async function POST(req: Request) {
       if (!check.ok) return check.response;
       staffId = check.staff.id;
     }
-    const openSession = await prisma.pOSCashSession.create({
-      data: { posConfigId: config.id, openingAmount: amount, status: "OPEN", staffId },
-      include: { staff: { select: publicStaffSelect } },
-    });
-    return NextResponse.json({ success: true, data: openSession });
+    try {
+      const openSession = await prisma.pOSCashSession.create({
+        data: { posConfigId: config.id, openingAmount: amount, status: "OPEN", staffId, openedByUserId: actorFields(ctx) },
+        include: { staff: { select: publicStaffSelect } },
+      });
+      return NextResponse.json({ success: true, data: openSession });
+    } catch (error) {
+      // Dos personas abriendo a la vez: el índice parcial deja una sola caja abierta.
+      if ((error as { code?: string })?.code === "P2002") return posError("Ya hay una caja abierta", 409);
+      throw error;
+    }
   }
 
   if (action === "CLOSE") {
@@ -78,6 +84,7 @@ export async function POST(req: Request) {
         expectedAmount: expected,
         difference: roundMoney(amount - expected, decimals),
         salesByMethod: summary.byMethod,
+        closedByUserId: actorFields(ctx),
         status: "CLOSED",
         closedAt: new Date(),
       },

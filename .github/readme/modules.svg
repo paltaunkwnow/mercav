@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 240" width="1280" height="240" role="img" aria-label="Siete módulos con una sola cuenta: Ads, Services, Jobs, POS, Tools, Pwn y Kosher.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 240" width="1280" height="240" role="img" aria-label="Siete módulos con una sola cuenta: Ads, Services, Jobs, Business, Tools, Pwn y Kosher.">
   <defs>
     <linearGradient id="wash" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#D4AF37" stop-opacity="0.22"/>
@@ -45,9 +45,9 @@
     <rect x="558" y="22" width="164" height="196" rx="22" fill="#0C0C0C" stroke="#D4AF37" stroke-opacity="0.18"/>
     <rect class="glow" x="558" y="22" width="164" height="196" rx="22" fill="url(#wash)" stroke="#E8CC6A" stroke-width="1.5" style="animation-delay:3.0s"/>
     <text class="num" x="578" y="64">04</text>
-    <text class="name" x="578" y="140">POS</text>
-    <text class="cat" x="578" y="168">Caja y stock</text>
-    <text class="route" x="578" y="196">/dashboard/pos</text>
+    <text class="name" x="578" y="140">Business</text>
+    <text class="cat" x="578" y="168">Equipo y planillas</text>
+    <text class="route" x="578" y="196">/business</text>
   </g>
   <g class="tile" style="animation-delay:0.32s">
     <rect x="736" y="22" width="164" height="196" rx="22" fill="#0C0C0C" stroke="#D4AF37" stroke-opacity="0.18"/>

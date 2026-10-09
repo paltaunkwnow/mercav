@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, User2, Briefcase, Zap, MapPin, Building2, Loader2, ArrowRight } from "lucide-react";
+import { Search, User2, Briefcase, Zap, MapPin, Building2, Loader2, ArrowRight } from "@/components/icons";
 
 type TabKey = "all" | "users" | "jobs" | "services" | "spaces";
 

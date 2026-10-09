@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, type ReactNode } from "react";
-import { Plus } from "lucide-react";
+import { Plus } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 /** One accessible disclosure row. Parent owns the open state. */

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { LocateFixed } from "lucide-react";
+import { LocateFixed } from "@/components/icons";
 import { toast } from "sonner";
 import type { KosherFood, KosherPlaceType } from "@prisma/client";
 import { FOOD, PLACE_TYPES } from "@/lib/kosher/labels";

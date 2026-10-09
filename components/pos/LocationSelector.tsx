@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { LATAM_LOCATIONS } from '@/lib/data/pos-data';
-import { MapPin, ChevronRight, Search, Globe2, Map as MapIcon, X } from 'lucide-react';
+import { MapPin, ChevronRight, Search, Globe2, Map as MapIcon, X } from '@/components/icons';
 
 interface LocationSelectorProps {
   country: string;

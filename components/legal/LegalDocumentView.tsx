@@ -1,9 +1,10 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowLeft, ArrowUp } from "lucide-react";
+import { ArrowLeft, ArrowUp } from "@/components/icons";
 import type { LegalDocument } from "@/lib/legal/documents";
 import { Container } from "@/components/site/primitives";
 import { ManageCookiesLink } from "@/components/legal/ManageCookiesLink";
+import { HostLink } from "@/components/layout/HostContext";
 
 function slugify(text: string) {
   return text
@@ -14,13 +15,14 @@ function slugify(text: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-/** "4 bis. Mercav Kosher" → { num: "4 bis", label: "Mercav Kosher" } */
+/** "4 bis. Mercav Kosher" → { num: "4 bis", label: "Mercav Kosher" } (también "ter"). */
 function splitTitle(title: string) {
-  const match = title.match(/^(\d+(?:\s*bis)?)\.\s+(.*)$/i);
+  const match = title.match(/^(\d+(?:\s*(?:bis|ter|quater))?)\.\s+(.*)$/i);
   return match ? { num: match[1], label: match[2] } : { num: null, label: title };
 }
 
-const RELATED = [
+/** Los documentos legales de mercav.lat, para los links "Otros documentos". */
+export const LEGAL_RELATED = [
   { href: "/terminos", label: "Términos y condiciones" },
   { href: "/privacidad", label: "Política de privacidad" },
   { href: "/cookies", label: "Política de cookies" },
@@ -34,20 +36,26 @@ function Plain({ children, className }: { children: ReactNode; className?: strin
   return <div className={className}>{children}</div>;
 }
 
-/**
- * `embedded` renders the document inside another layout (e.g. the Pwn shell):
- * no full-page hero padding, no aura, no own background and no extra container gutters.
- */
-export function LegalDocumentView({ doc, embedded = false }: { doc: LegalDocument; embedded?: boolean }) {
-  const Wrap = embedded ? Plain : Container;
+/** Secciones con su ancla estable (slug del título) y el número separado del nombre. */
+export function legalSections(doc: LegalDocument) {
   const seen = new Map<string, number>();
-  const sections = doc.sections.map((section) => {
+  return doc.sections.map((section) => {
     const base = slugify(section.title) || "seccion";
     const count = seen.get(base) ?? 0;
     seen.set(base, count + 1);
     return { ...section, id: count ? `${base}-${count + 1}` : base, ...splitTitle(section.title) };
   });
-  const related = RELATED.filter((r) => r.href !== `/${doc.slug}`);
+}
+
+/**
+ * Vista legal del mundo de la app: Términos de Pwn y de Kosher. Las páginas legales de mercav.lat usan LegalCartelDocument.
+ * `embedded` renders the document inside another layout (e.g. the Pwn shell):
+ * no full-page hero padding, no aura, no own background and no extra container gutters.
+ */
+export function LegalDocumentView({ doc, embedded = false }: { doc: LegalDocument; embedded?: boolean }) {
+  const Wrap = embedded ? Plain : Container;
+  const sections = legalSections(doc);
+  const related = LEGAL_RELATED.filter((r) => r.href !== `/${doc.slug}`);
   const isCookies = doc.slug === "cookies";
 
   return (
@@ -139,9 +147,10 @@ export function LegalDocumentView({ doc, embedded = false }: { doc: LegalDocumen
               ) : null}
               <p className="text-sm leading-relaxed text-[var(--text-tertiary)]">
                 Este texto es informativo. Revisalo con asesoría legal antes de operaciones reguladas. ¿Dudas sobre este documento?{" "}
-                <Link href="/contacto" className="mv-link">
+                {/* Legal pages are on mercav.lat; /contacto is on app.mercav.lat. */}
+                <HostLink href="/contacto" className="mv-link">
                   Escribinos
-                </Link>
+                </HostLink>
                 .
               </p>
               <div>

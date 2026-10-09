@@ -1,7 +1,7 @@
 "use client";
 
 import { Reorder, useDragControls, useMotionValue, useTransform } from "framer-motion";
-import { GripVertical } from "lucide-react";
+import { GripVertical } from "@/components/icons";
 import type { ReactNode } from "react";
 
 export function LiquidArrange<T extends { id: string }>({

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Loader2, Plus, UserRound } from 'lucide-react';
+import { Loader2, Plus, UserRound } from '@/components/icons';
+import { posFetch } from '@/lib/pos/client';
 
 interface StaffMember {
   id: string;
@@ -26,7 +27,7 @@ export default function StaffManager({ pinFetch, onMessage }: { pinFetch: PinFet
   const [pinEdit, setPinEdit] = useState<{ id: string; pin: string } | null>(null);
 
   useEffect(() => {
-    fetch('/api/pos/staff')
+    posFetch('/api/pos/staff')
       .then((r) => r.json())
       .then((d) => { if (d.success) setStaff(d.data); })
       .catch(() => {})

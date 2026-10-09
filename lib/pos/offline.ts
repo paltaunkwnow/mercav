@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { posFetch } from '@/lib/pos/client';
 
 /**
  * Offline sales queue. When the sale POST fails because there is no network, the sale is stored in
@@ -102,7 +103,7 @@ export function syncQueue() {
     for (const entry of [...list]) {
       let res: Response;
       try {
-        res = await fetch("/api/pos/sales", {
+        res = await posFetch("/api/pos/sales", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...entry.payload, clientRef: entry.clientRef }),

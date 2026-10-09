@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { AlertTriangle, BadgeCheck, CalendarDays, Clock, ExternalLink, Globe, MapPin, MessagesSquare, Navigation, PencilLine, Phone, Share2, ShieldCheck } from "lucide-react";
+import { AlertTriangle, BadgeCheck, CalendarDays, Clock, ExternalLink, Globe, MapPin, MessagesSquare, Navigation, PencilLine, Phone, Share2, ShieldCheck } from "@/components/icons";
 import { toast } from "sonner";
 import type { KosherEventKind, KosherStockCategory } from "@prisma/client";
 import type { PlaceDTO } from "@/lib/kosher/server";

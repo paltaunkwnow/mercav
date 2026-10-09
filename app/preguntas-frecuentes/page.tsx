@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { ButtonLink, CTABand, Container, PageHero, Section } from "@/components/site/primitives";
 import { FaqItem, FaqSearch } from "@/app/faq/FaqAccordion";

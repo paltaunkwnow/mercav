@@ -1,4 +1,4 @@
-import { Wrench } from "lucide-react";
+import { Wrench } from "@/components/icons";
 import { Container } from "@/components/site/primitives";
 
 export default function Maintenance() {

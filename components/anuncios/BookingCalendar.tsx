@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { ChevronLeft, ChevronRight, CalendarRange } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarRange } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 interface BookingCalendarProps {

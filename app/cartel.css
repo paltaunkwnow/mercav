@@ -1,0 +1,600 @@
+/*
+ * El cartel: mundo visual del sitio público (mercav.lat).
+ * Fondo noche o papel de afiche (según el tema), cuatro tintas fluorescentes de cartel y el dorado de Mercav solo
+ * para el logo y detalles metálicos. Titulares en mayúsculas condensadas que llenan el renglón; texto en la letra
+ * del sistema. Las tintas marcan anuncios (titulares, carteles de módulo, la acción principal); el resto va en
+ * blanco y negro.
+ */
+
+.cartel {
+  --c-ground: #0b0a09;
+  --c-raised: #171512;
+  --c-line: #2b2824;
+  --c-line-strong: #3f3a34;
+  --c-muted: #8f8980;
+  --c-soft: #d2cbc0;
+  --c-text: #fffdf8;
+  --c-on-ink: #0b0a09;
+  --c-on-ink-soft: #2a2118;
+
+  --c-magenta: #ff3d8b;
+  --c-yellow: #ffe11a;
+  --c-green: #2ee06f;
+  --c-orange: #ff7b1c;
+  --c-gold: #d4af37;
+
+  /* Tintas usadas como texto sobre el fondo. */
+  --c-magenta-text: #ff5c9e;
+  --c-yellow-text: #ffe11a;
+  --c-green-text: #3be57a;
+  --c-orange-text: #ff8a33;
+  --c-gold-text: #e0bd4f;
+
+  --c-nav-fill: rgba(11, 10, 9, 0.64);
+  --c-nav-edge: rgba(255, 253, 248, 0.08);
+  --c-shadow: 0 34px 70px -28px rgba(0, 0, 0, 0.75), 0 8px 18px -10px rgba(0, 0, 0, 0.5);
+
+  --c-font-display: var(--font-cartel), "Arial Narrow", sans-serif;
+  --c-font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --c-gutter: 1rem;
+  --c-nav-h: 4.5rem;
+
+  background-color: var(--c-ground);
+  color: var(--c-text);
+  font-family: var(--c-font-body);
+  font-feature-settings: "kern";
+  caret-color: var(--c-magenta);
+  accent-color: var(--c-magenta);
+}
+
+.light .cartel {
+  --c-ground: #fffdf8;
+  --c-raised: #f4efe6;
+  --c-line: #e3dcd0;
+  --c-line-strong: #cbc1b1;
+  --c-muted: #6a645c;
+  --c-soft: #3f3a34;
+  --c-text: #0b0a09;
+
+  --c-magenta-text: #c8005e;
+  --c-yellow-text: #7a5f00;
+  --c-green-text: #00773f;
+  --c-orange-text: #b44700;
+  --c-gold-text: #8a6810;
+
+  --c-nav-fill: rgba(255, 253, 248, 0.72);
+  --c-nav-edge: rgba(11, 10, 9, 0.08);
+  --c-shadow: 0 34px 70px -30px rgba(43, 33, 24, 0.38), 0 8px 18px -12px rgba(43, 33, 24, 0.25);
+}
+
+@media (min-width: 640px) { .cartel { --c-gutter: 1.5rem; } }
+@media (min-width: 1024px) { .cartel { --c-gutter: 2.5rem; } }
+
+.cartel ::selection { background: var(--c-yellow); color: var(--c-on-ink); }
+
+/* Superficies del navegador: foco, subrayados, barras de scroll. */
+.cartel :where(a, button, select, input, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--c-magenta);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+.cartel :where(.c-scroll) { scrollbar-width: thin; scrollbar-color: var(--c-line-strong) transparent; }
+
+.c-container {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: var(--c-gutter);
+}
+.c-container-narrow { max-width: 46rem; }
+
+/* Tipografía */
+.c-display {
+  font-family: var(--c-font-display);
+  font-weight: 850;
+  text-transform: uppercase;
+  line-height: 0.86;
+  letter-spacing: -0.005em;
+  font-variation-settings: "wght" 850;
+}
+.c-h2 {
+  font-family: var(--c-font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(2.6rem, 1.6rem + 4.6vw, 6rem);
+  line-height: 0.88;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+.c-h3 {
+  font-family: var(--c-font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem);
+  line-height: 0.92;
+  text-wrap: balance;
+}
+.c-label {
+  font-family: var(--c-font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 1rem;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+}
+.c-lead {
+  font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+  color: var(--c-soft);
+  max-width: 40rem;
+  text-wrap: pretty;
+}
+.c-body {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--c-soft);
+  max-width: 68ch;
+  text-wrap: pretty;
+}
+.c-num { font-variant-numeric: tabular-nums lining-nums; }
+
+/*
+ * Renglones que llenan el ancho, como en un cartel: cada línea lleva --fit, su tamaño en cqi
+ * (100 / ancho de la línea a 1em), así todas miden lo mismo que el bloque.
+ */
+.c-fit { container-type: inline-size; width: 100%; overflow-x: clip; }
+.c-fit > .c-fit-line { display: block; white-space: nowrap; font-size: calc(var(--fit) * 1cqi); }
+
+/* En el papel, el renglón amarillo de un titular se imprime como franja de tinta con letras negras. */
+.light .cartel .c-fit-line.c-text-yellow,
+.light .cartel .c-display.c-text-yellow {
+  color: var(--c-on-ink);
+  background-color: var(--c-yellow);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Tintas */
+.c-ink-magenta { --ink: var(--c-magenta); }
+.c-ink-yellow { --ink: var(--c-yellow); }
+.c-ink-green { --ink: var(--c-green); }
+.c-ink-orange { --ink: var(--c-orange); }
+.c-text-magenta { color: var(--c-magenta-text); }
+.c-text-yellow { color: var(--c-yellow-text); }
+.c-text-green { color: var(--c-green-text); }
+.c-text-orange { color: var(--c-orange-text); }
+.c-text-gold { color: var(--c-gold-text); }
+.c-text-muted { color: var(--c-muted); }
+.c-text-soft { color: var(--c-soft); }
+
+/* Campo de tinta: letras negras sobre la tinta. Texto secundario teñido del negro, nunca gris. */
+.c-band {
+  background-color: var(--ink, var(--c-yellow));
+  color: var(--c-on-ink);
+  --c-text: var(--c-on-ink);
+  --c-soft: var(--c-on-ink-soft);
+  --c-muted: var(--c-on-ink-soft);
+  --c-line: rgba(11, 10, 9, 0.22);
+  --c-line-strong: rgba(11, 10, 9, 0.5);
+}
+
+/* Cartel invertido: blanco sobre la noche, negro sobre el papel. */
+.cartel .c-inverse {
+  background-color: #fffdf8;
+  color: #0b0a09;
+  --c-ground: #fffdf8;
+  --c-raised: #f4efe6;
+  --c-text: #0b0a09;
+  --c-soft: #3f3a34;
+  --c-muted: #6a645c;
+  --c-line: #e3dcd0;
+  --c-line-strong: #cbc1b1;
+  --c-magenta-text: #c8005e;
+  --c-yellow-text: #7a5f00;
+  --c-green-text: #00773f;
+  --c-orange-text: #b44700;
+  --c-gold-text: #8a6810;
+}
+
+/* Noche fija (el pie y los carteles invertidos en el tema claro). */
+.light .cartel .c-inverse,
+.cartel .c-night,
+.light .cartel .c-night,
+.light .cartel.c-night {
+  background-color: #0b0a09;
+  color: #fffdf8;
+  --c-ground: #0b0a09;
+  --c-raised: #171512;
+  --c-text: #fffdf8;
+  --c-soft: #d2cbc0;
+  --c-muted: #8f8980;
+  --c-line: #2b2824;
+  --c-line-strong: #3f3a34;
+  --c-magenta-text: #ff5c9e;
+  --c-yellow-text: #ffe11a;
+  --c-green-text: #3be57a;
+  --c-orange-text: #ff8a33;
+  --c-gold-text: #e0bd4f;
+}
+.c-band ::selection { background: var(--c-on-ink); color: var(--ink, var(--c-yellow)); }
+.cartel .c-band :where(a, button, select, input, summary, [tabindex]):focus-visible { outline-color: var(--c-on-ink); }
+
+/* Acciones */
+/* display va sin especificidad para que hidden / sm:inline-flex de Tailwind manden. */
+:where(.c-btn) { display: inline-flex; }
+/* El preflight de Tailwind deja transparente el fondo de [type="button"] (misma especificidad y carga después). */
+button.c-btn { background-color: var(--btn-bg); }
+.c-btn {
+  --btn-bg: var(--c-yellow);
+  --btn-fg: var(--c-on-ink);
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 3.5rem;
+  padding: 0 1.6rem;
+  border-radius: 2px;
+  background-color: var(--btn-bg);
+  color: var(--btn-fg);
+  font-family: var(--c-font-display);
+  font-weight: 800;
+  font-size: 1.3rem;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.55);
+  transition:
+    background-color 160ms ease-out,
+    color 160ms ease-out,
+    box-shadow 260ms var(--mv-spring, ease-out),
+    translate 260ms var(--mv-spring, ease-out),
+    scale 120ms ease-out;
+}
+@media (hover: hover) {
+  .c-btn:hover { translate: 0 -2px; box-shadow: 0 18px 30px -16px rgba(0, 0, 0, 0.6); }
+}
+.c-btn:active { scale: 0.97; translate: 0 0; transition-duration: 80ms; }
+.c-btn-sm { min-height: 2.5rem; padding: 0 1rem; font-size: 1.05rem; }
+.c-btn-lg { min-height: 4rem; padding: 0 2rem; font-size: 1.55rem; }
+.c-btn-ink { --btn-bg: var(--c-on-ink); --btn-fg: var(--ink, var(--c-yellow)); }
+.c-btn-ghost {
+  --btn-bg: transparent;
+  --btn-fg: currentColor;
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+@media (hover: hover) {
+  .c-btn-ghost:hover { box-shadow: inset 0 0 0 2px currentColor; background-color: color-mix(in srgb, currentColor 8%, transparent); }
+}
+
+.c-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.22em;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  transition: text-decoration-color 160ms ease-out, color 160ms ease-out;
+}
+@media (hover: hover) {
+  .c-link:hover { text-decoration-color: currentColor; }
+}
+
+.c-rule { border: 0; border-top: 2px solid var(--c-line); margin: 0; }
+
+/* Barra de navegación: material translúcido (la única superficie de vidrio del cartel). */
+.c-nav {
+  background: var(--c-nav-fill);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+  backdrop-filter: blur(22px) saturate(170%);
+  box-shadow: inset 0 -1px 0 var(--c-nav-edge);
+}
+
+/* Carteles de módulo: se pegan uno sobre otro al bajar. */
+.c-poster {
+  position: relative;
+  rotate: var(--tilt, 0deg);
+  box-shadow: var(--c-shadow);
+  transform-origin: 50% 0;
+}
+@media (min-width: 1024px) {
+  .c-stack > .c-poster {
+    position: sticky;
+    top: calc(var(--c-nav-h) + 1rem + var(--i, 0) * 0.85rem);
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .c-paste {
+      animation: c-paste linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 75%;
+    }
+  }
+}
+@keyframes c-paste {
+  from { translate: 0 72px; rotate: calc(var(--tilt, 0deg) * 4); scale: 0.965; }
+  to { translate: 0 0; rotate: var(--tilt, 0deg); scale: 1; }
+}
+
+/* Estrella de cartel */
+.c-star { display: inline-block; flex: none; width: 0.7em; height: 0.7em; vertical-align: -0.05em; }
+
+/*
+ * Lectura larga (páginas legales): letra del sistema, renglón de unos 70 caracteres e interlineado amplio.
+ * El ancho va en em y no en ch: ch mide el cero, más ancho que la letra promedio, y 70ch dan unos 90 caracteres.
+ * El texto corrido va en blanco y negro; la selección toma la tinta del documento (--ink) si la tiene.
+ */
+.c-read {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--c-soft);
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+}
+.c-read > :where(p, ul, ol, blockquote) { max-width: 34em; }
+@media (min-width: 768px) { .c-read { font-size: 1.0625rem; } }
+.c-read > * + * { margin-top: 1em; }
+.c-read strong { color: var(--c-text); font-weight: 650; }
+.c-read .c-link { color: var(--c-text); overflow-wrap: anywhere; }
+.c-read :where(ul, ol) { padding-left: 1.25em; }
+.c-read ul { list-style: square; }
+.c-read ol { list-style: decimal; }
+.c-read li + li { margin-top: 0.5em; }
+.c-read li::marker { color: var(--c-muted); }
+.c-read ::selection { background: var(--ink, var(--c-yellow)); color: var(--c-on-ink); }
+
+/* Tabla de cartel: reglas de 2px, cifras tabulares. En el teléfono cada fila se apila con su etiqueta. */
+.c-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.c-table th {
+  font-family: var(--c-font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 1rem;
+  line-height: 1.1;
+  text-align: left;
+  vertical-align: bottom;
+  color: var(--c-text);
+  padding: 0 1rem 0.75rem 0;
+  border-bottom: 2px solid var(--c-line-strong);
+}
+.c-table td { padding: 0.875rem 1rem 0.875rem 0; vertical-align: top; border-bottom: 2px solid var(--c-line); }
+.c-table :where(th, td):last-child { padding-right: 0; }
+.c-table td:first-child { color: var(--c-text); font-weight: 600; }
+.c-table .c-link { overflow-wrap: break-word; }
+@media (max-width: 639.98px) {
+  .c-table, .c-table tbody, .c-table tr, .c-table td { display: block; }
+  .c-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .c-table tr { padding: 0.875rem 0; border-bottom: 2px solid var(--c-line); }
+  .c-table tr:first-child { border-top: 2px solid var(--c-line-strong); }
+  .c-table td { padding: 0; border: 0; }
+  .c-table td + td { margin-top: 0.5rem; }
+  .c-table td[data-label]:not(:first-child)::before {
+    content: attr(data-label);
+    content: attr(data-label) / "";
+    display: block;
+    font-family: var(--c-font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.875rem;
+    line-height: 1.2;
+    color: var(--c-muted);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .c-poster { rotate: none; }
+  .c-btn, .c-btn:hover, .c-btn:active { translate: none; scale: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .c-nav { background: var(--c-ground); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .cartel { --c-muted: var(--c-soft); --c-line: var(--c-line-strong); }
+  .c-nav { background: var(--c-ground); box-shadow: inset 0 -2px 0 var(--c-text); }
+}
+@media print {
+  .c-paste { animation: none !important; }
+  .c-poster { rotate: none; box-shadow: none; }
+}
+/* ------------------------------------------------------------------ */
+/* Portada v2: producto al frente, bento, pilares y franjas en movimiento */
+/* ------------------------------------------------------------------ */
+
+/* Tiles del bento: tinta plena, esquina redondeada de sticker. */
+.c-tile {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  box-shadow: 0 24px 48px -32px rgba(0, 0, 0, 0.55);
+  isolation: isolate;
+}
+.c-tile-line { box-shadow: inset 0 0 0 2px var(--c-line-strong), 0 24px 48px -32px rgba(0, 0, 0, 0.45); }
+
+/* Sticker: algo pegado encima, levemente torcido. */
+.c-sticker {
+  border-radius: 1rem;
+  box-shadow: 0 0 0 3px #fffdf8, 0 18px 36px -18px rgba(0, 0, 0, 0.6);
+  rotate: var(--tilt, 0deg);
+}
+
+/* Celular */
+.c-phone {
+  position: relative;
+  width: 17.5rem;
+  aspect-ratio: 9 / 19;
+  padding: 0.55rem;
+  border-radius: 2.9rem;
+  background: #0b0a09;
+  box-shadow: inset 0 0 0 2px #3f3a34, inset 0 0 0 5px #0b0a09, 0 50px 90px -40px rgba(0, 0, 0, 0.7), 0 12px 24px -12px rgba(0, 0, 0, 0.5);
+}
+.c-phone-screen {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 2.35rem;
+  background: var(--screen, #111216);
+  color: #f5f0e8;
+  font-size: 0.75rem;
+}
+.c-phone-island {
+  position: absolute;
+  top: 0.55rem;
+  left: 50%;
+  translate: -50% 0;
+  width: 5.5rem;
+  height: 1.45rem;
+  border-radius: 999px;
+  background: #050505;
+  z-index: 2;
+}
+
+/* Escena del hero: los stickers se abren al bajar. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .c-drift-l, .c-drift-r, .c-drift-up {
+      animation: linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 80%;
+    }
+    .c-drift-l { animation-name: c-drift-l; }
+    .c-drift-r { animation-name: c-drift-r; }
+    .c-drift-up { animation-name: c-drift-up; }
+    .c-rise {
+      animation: c-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+  }
+}
+@keyframes c-drift-l { to { translate: -3rem -2.5rem; rotate: calc(var(--tilt, 0deg) - 6deg); } }
+@keyframes c-drift-r { to { translate: 3rem -2.5rem; rotate: calc(var(--tilt, 0deg) + 6deg); } }
+@keyframes c-drift-up { to { translate: 0 -2rem; } }
+@keyframes c-rise { from { translate: 0 3rem; opacity: 0.35; } to { translate: 0 0; opacity: 1; } }
+
+/* Franja que corre, como un cartel luminoso. */
+.c-marquee { overflow: hidden; }
+.c-marquee-track { display: flex; width: max-content; }
+@media (prefers-reduced-motion: no-preference) {
+  .c-marquee-track { animation: c-marquee var(--marquee-s, 38s) linear infinite; }
+  .c-marquee:hover .c-marquee-track { animation-play-state: paused; }
+}
+@keyframes c-marquee { to { transform: translateX(-50%); } }
+
+/* Pwn: noche con fósforo verde; magenta solo para la alerta. */
+.cartel .c-pwn {
+  background-color: #070807;
+  color: #effbf1;
+  --c-ground: #070807;
+  --c-raised: #0f1410;
+  --c-text: #effbf1;
+  --c-soft: #b8cfbd;
+  --c-muted: #7f9886;
+  --c-line: #1d2a20;
+  --c-line-strong: #2c3f31;
+  --c-green-text: #3be57a;
+  --c-yellow-text: #ffe11a;
+  --c-magenta-text: #ff5c9e;
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .c-scan-row {
+      animation: c-scan-row linear both;
+      animation-timeline: view();
+      animation-range: entry calc(30% + var(--d, 0) * 6%) entry calc(45% + var(--d, 0) * 6%);
+    }
+    .c-typed {
+      animation: c-typed linear both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 40%;
+    }
+  }
+}
+@keyframes c-scan-row { from { opacity: 0; translate: -0.75rem 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes c-typed { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+
+/* Kosher: noche de tejelet con dorado. */
+.cartel .c-kosher {
+  background-color: #0a1626;
+  color: #f2f6fc;
+  --c-ground: #0a1626;
+  --c-raised: #122440;
+  --c-text: #f2f6fc;
+  --c-soft: #bccbe0;
+  --c-muted: #8ea2bf;
+  --c-line: #1c3150;
+  --c-line-strong: #2b4670;
+  --k-ink: #8db4ec;
+  --k-ink-deep: #3d6fb3;
+  --c-yellow-text: #e6bd55;
+}
+
+/* Barra de pilares: aparece mientras se recorren Business, Pwn y Kosher. */
+.c-pillnav {
+  background: rgba(11, 10, 9, 0.78);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: inset 0 0 0 1px rgba(255, 253, 248, 0.1), 0 12px 30px -16px rgba(0, 0, 0, 0.6);
+}
+
+/* Preguntas frecuentes */
+.c-faq summary { list-style: none; cursor: pointer; }
+.c-faq summary::-webkit-details-marker { display: none; }
+.c-faq .c-faq-icon { transition: rotate 320ms var(--mv-spring-bounce, ease-out); }
+.c-faq[open] .c-faq-icon { rotate: 45deg; }
+
+/* Mapa en pixel art (mismo lenguaje que Mervi). */
+.c-pixel { image-rendering: pixelated; shape-rendering: crispEdges; }
+
+@media (prefers-reduced-motion: reduce) {
+  .c-sticker { rotate: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .c-pillnav { background: #0b0a09; -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+/* Flotar: el celular y los stickers suben y bajan apenas, cada uno a su ritmo. */
+@media (prefers-reduced-motion: no-preference) {
+  .c-float {
+    animation: c-float var(--float-s, 6s) ease-in-out var(--float-d, 0s) infinite;
+    will-change: translate;
+  }
+}
+@keyframes c-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 var(--float-amp, -9px); }
+}
+
+/* Cintas cruzadas */
+.c-tape { box-shadow: 0 14px 30px -18px rgba(0, 0, 0, 0.6); }
+.c-marquee-reverse .c-marquee-track { animation-direction: reverse; }
+
+/* Punto activo del mapa */
+@media (prefers-reduced-motion: no-preference) {
+  .c-pin-halo { animation: c-pin 1.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+}
+@keyframes c-pin {
+  0% { opacity: 0.6; scale: 0.6; }
+  100% { opacity: 0; scale: 1.8; }
+}
+
+/* Hoja de cookies: el cartel se pega desde abajo con un resorte sin rebote. */
+@media (prefers-reduced-motion: no-preference) {
+  .c-sheet { animation: c-sheet-in var(--mv-spring-ms, 550ms) var(--mv-spring, ease-out) both; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .c-sheet { animation: c-sheet-fade 180ms ease-out both; }
+}
+@keyframes c-sheet-in {
+  from { opacity: 0; translate: 0 32px; rotate: -1.2deg; }
+  to { opacity: 1; translate: 0 0; rotate: 0deg; }
+}
+@keyframes c-sheet-fade { from { opacity: 0; } to { opacity: 1; } }
+/* creado por pato dev y askforvini */

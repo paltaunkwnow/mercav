@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -19,7 +20,6 @@ import {
   Loader2,
   Shield,
   ArrowRight,
-  Store,
   Unlock,
   RefreshCw,
   Eye,
@@ -29,12 +29,13 @@ import {
   Type,
   Check,
   Contrast,
-  Image as ImageIcon,
   FileDown,
   X,
   Megaphone,
   Info,
-} from "lucide-react";
+  Image as ImageIcon,
+  CalendarDays,
+} from "@/components/icons";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { CATALOG_PATH, documentTitleFor, routeByToolId, toolIdFromPathname, toolPath } from "./toolRoutes";
@@ -103,13 +104,13 @@ const TOOLS = [
     plan: toolPlanLabel("prompt-generator"),
   },
   {
-    id: "pos-system",
-    title: "Punto de venta (POS)",
-    area: "Caja",
-    desc: "Cobrá en tu local con carrito, escáner de códigos por cámara, inventario, reportes y factura.",
-    benefit: "Sirve para cualquier rubro, con moneda y sucursal configurables.",
-    icon: Store,
-    plan: toolPlanLabel("pos-system"),
+    id: "holiday-calendar",
+    title: "Calendario de feriados",
+    area: "Calendario",
+    desc: "Feriados nacionales de toda Latinoamérica, los de tu región donde hay datos (como en Bolivia o Brasil) y fechas del calendario hebreo. Elegís qué ver y ocultás lo que no te sirve.",
+    benefit: "Descargalo en .ics y sumalo a tu calendario de siempre.",
+    icon: CalendarDays,
+    plan: toolPlanLabel("holiday-calendar"),
   },
 ];
 
@@ -151,23 +152,26 @@ export default function HerramientasClient() {
     if (!activeTool) openedHere.current = false;
   }, [activeTool]);
 
+  // El plan solo existe con sesión: sin ella, /api/profile responde 401 y ensucia la consola.
+  const { status: sessionStatus } = useSession();
   useEffect(() => {
+    if (sessionStatus !== "authenticated") return;
     fetch("/api/profile")
       .then((res) => res.json())
       .then((json) => {
         if (json?.success) setUserPlan(json.data?.plan || null);
       })
       .catch(() => {});
-  }, []);
+  }, [sessionStatus]);
 
   const selectedTool = useMemo(() => TOOLS.find((tool) => tool.id === activeTool) || null, [activeTool]);
-  const workTools = TOOLS.filter((tool) => tool.id !== "pos-system");
-  const pos = TOOLS.find((tool) => tool.id === "pos-system")!;
+  const workTools = TOOLS.filter((tool) => tool.id !== "holiday-calendar");
+  const calendar = TOOLS.find((tool) => tool.id === "holiday-calendar")!;
   const availableCount = userPlan ? TOOLS.filter((tool) => matchesPlan(tool.id as ToolId, userPlan)).length : null;
 
   const open = (id: ToolId) => {
-    if (id === "pos-system") {
-      router.push("/dashboard/pos");
+    if (id === "holiday-calendar") {
+      router.push("/calendario");
       return;
     }
     // history.pushState is synced with the App Router (usePathname updates) without remounting the
@@ -200,8 +204,8 @@ export default function HerramientasClient() {
             <a href="#catalogo" className={buttonClass("primary", "lg", "w-full sm:w-auto")}>
               Elegir una herramienta
             </a>
-            <ButtonLink href="/dashboard/pos" tone="secondary" size="lg" className="w-full sm:w-auto">
-              Abrir la caja POS
+            <ButtonLink href="/calendario" tone="secondary" size="lg" className="w-full sm:w-auto">
+              Abrir el calendario
             </ButtonLink>
           </>
         }
@@ -222,7 +226,7 @@ export default function HerramientasClient() {
               <>
                 <p className="text-sm font-semibold text-[var(--text-primary)]">Qué incluye cada plan</p>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
-                  La calculadora de ROI, las paletas y la caja POS están en el plan Free. Cada tarjeta indica qué plan necesitás.
+                  La calculadora de ROI, las paletas y el calendario de feriados están en el plan Free. Cada tarjeta indica qué plan necesitás.
                 </p>
               </>
             )}
@@ -252,26 +256,26 @@ export default function HerramientasClient() {
             ))}
           </ul>
 
-          <div className="liquid-glass mt-4 rounded-[1.75rem] p-6 md:mt-6 md:rounded-[2rem] md:p-8">
+          <div className="liquid-glass mt-4 rounded-[1.25rem] p-6 md:mt-6 md:p-8">
             <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
               <div className="flex items-start gap-4 md:gap-5">
                 <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold">
-                  <Store className="h-5 w-5" aria-hidden />
+                  <CalendarDays className="h-5 w-5" aria-hidden />
                 </span>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="mv-h3">{pos.title}</h3>
-                    <span className="mv-chip mv-chip-gold">{planChipLabel(pos.id)}</span>
+                    <h3 className="mv-h3">{calendar.title}</h3>
+                    <span className="mv-chip mv-chip-gold">{planChipLabel(calendar.id)}</span>
                   </div>
-                  <p className="mv-body mt-2 max-w-2xl">{pos.desc}</p>
+                  <p className="mv-body mt-2 max-w-2xl">{calendar.desc}</p>
                   <p className="mt-3 flex items-start gap-2 text-sm font-medium text-[var(--text-primary)]">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden />
-                    {pos.benefit}
+                    {calendar.benefit}
                   </p>
                 </div>
               </div>
-              <ButtonLink href="/dashboard/pos" tone="primary" className="w-full md:w-auto">
-                Abrir la caja <ArrowRight className="h-4 w-4" aria-hidden />
+              <ButtonLink href="/calendario" tone="primary" className="w-full md:w-auto">
+                Abrir el calendario <ArrowRight className="h-4 w-4" aria-hidden />
               </ButtonLink>
             </div>
           </div>
@@ -331,7 +335,7 @@ function matchesPlan(toolId: ToolId, plan: string) {
     "price-simulator": ["PROFESSIONAL", "EMPRESA", "ELITE"],
     "palette-generator": ["FREE", "PROFESSIONAL", "EMPRESA", "ELITE"],
     "prompt-generator": ["ELITE"],
-    "pos-system": ["FREE", "PROFESSIONAL", "EMPRESA", "ELITE"],
+    "holiday-calendar": ["FREE", "PROFESSIONAL", "EMPRESA", "ELITE"],
   };
   return access[toolId]?.includes(plan);
 }

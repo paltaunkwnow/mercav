@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Users, ExternalLink } from "lucide-react";
+import { Users, ExternalLink } from "@/components/icons";
 import { ButtonLink, Container, PageHero, Section, buttonClass } from "@/components/site/primitives";
 
 export default async function ClientesPage() {

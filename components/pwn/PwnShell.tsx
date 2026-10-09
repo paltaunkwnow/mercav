@@ -2,16 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { BellRing, X } from "lucide-react";
+import { BellRing, ShieldCheck, X } from "@/components/icons";
 import { pwnFetch, readForumSync } from "@/components/pwn/api";
 import { PWN_FEEDS_UPDATED, PWN_NOTIFICATIONS_UPDATED } from "@/components/pwn/events";
 import { focusRing } from "@/components/pwn/format";
 import { formatLeakNotice } from "@/lib/pwn/new-leak-notice";
 import { FORUM_SYNC_INTERVAL_MS } from "@/lib/pwn/forum-sync-policy";
-import { isAdmin } from "@/lib/pwn/permissions";
+import { usePwnSession } from "@/components/pwn/session";
 
 export { PWN_FEEDS_UPDATED, PWN_NOTIFICATIONS_UPDATED };
 
@@ -50,7 +49,6 @@ function PwnPresencePatrol({
   useEffect(() => {
     let stopped = false;
     let lastAttempt = 0;
-    let timer: number | undefined;
 
     async function tick() {
       if (stopped || presenceBusy) return;
@@ -83,7 +81,7 @@ function PwnPresencePatrol({
     }
 
     void tick();
-    timer = window.setInterval(() => void tick(), FORUM_SYNC_INTERVAL_MS);
+    const timer = window.setInterval(() => void tick(), FORUM_SYNC_INTERVAL_MS);
     const onVisibility = () => {
       if (document.visibilityState === "visible") void tick();
     };
@@ -91,7 +89,7 @@ function PwnPresencePatrol({
 
     return () => {
       stopped = true;
-      if (timer) window.clearInterval(timer);
+      window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [onNotice]);
@@ -99,9 +97,11 @@ function PwnPresencePatrol({
   return null;
 }
 
-const NAV = [
+// Fuentes y Autorizaciones son de administración: no se muestran a nadie más (la API igual lo exige).
+const NAV: { href: string; label: string; adminOnly?: boolean }[] = [
   { href: "/pwn", label: "Resumen" },
   { href: "/pwn/exposure", label: "Exposición" },
+  { href: "/pwn/autorizaciones", label: "Autorizaciones", adminOnly: true },
   { href: "/pwn/breaches", label: "Filtraciones" },
   { href: "/pwn/vulnerabilities", label: "Vulnerabilidades" },
   { href: "/pwn/signals", label: "Señales" },
@@ -109,7 +109,7 @@ const NAV = [
   { href: "/pwn/organizations", label: "Organizaciones" },
   { href: "/pwn/alerts", label: "Alertas" },
   { href: "/pwn/reports", label: "Informes" },
-  { href: "/pwn/sources", label: "Fuentes" },
+  { href: "/pwn/sources", label: "Fuentes", adminOnly: true },
 ];
 
 export function FadeIn({ children, className }: { children: ReactNode; className?: string }) {
@@ -128,16 +128,9 @@ export function FadeIn({ children, className }: { children: ReactNode; className
 
 export function PwnShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { status, isAdmin } = usePwnSession();
   const [notice, setNotice] = useState<{ title: string; body: string } | null>(null);
-  const roles = Array.isArray((session?.user as { roles?: unknown } | undefined)?.roles)
-    ? ((session?.user as { roles: string[] }).roles)
-    : [];
-  const navItems = isAdmin(roles)
-    ? NAV.flatMap((item) =>
-        item.href === "/pwn/exposure" ? [item, { href: "/pwn/autorizaciones", label: "Autorizaciones" }] : [item],
-      )
-    : NAV;
+  const navItems = NAV.filter((item) => !item.adminOnly || isAdmin);
 
   const onNotice = useCallback((next: { title: string; body: string }) => {
     setNotice(next);
@@ -160,23 +153,23 @@ export function PwnShell({ children }: { children: ReactNode }) {
   }, [pathname, navItems.length]);
 
   return (
-    <div className="relative min-h-screen w-full bg-bg-primary pb-28">
-      <PwnPresencePatrol onNotice={onNotice} />
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[44rem] overflow-hidden" aria-hidden>
-        <div className="mv-aura" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--mv-hairline)_1px,transparent_1px),linear-gradient(to_bottom,var(--mv-hairline)_1px,transparent_1px)] bg-[size:48px_48px] opacity-70 [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,#000_30%,transparent_100%)]" />
-      </div>
+    <div className="p-world p-page relative min-h-screen w-full pb-28">
+      {/* El patrullaje solo corre con sesión: sin ella, el POST respondía 401 en cada página. */}
+      {status === "authenticated" ? <PwnPresencePatrol onNotice={onNotice} /> : null}
 
       <div className="relative z-10 pt-24 md:pt-28">
         <div className="mv-container">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span className="mv-kicker">Mercav Pwn</span>
+              <span className="inline-flex items-center gap-2 font-semibold tracking-[-0.012em] text-[var(--text-primary)]">
+                <ShieldCheck className="h-5 w-5 text-gold" aria-hidden />
+                Mercav <span className="text-gold">Pwn</span>
+              </span>
               <span className="text-sm text-[var(--text-secondary)]">Ciberinteligencia defensiva: exposición, filtraciones y alertas.</span>
             </p>
             <Link
               href="/pwn/terminos"
-              className={`self-start text-xs text-[var(--text-tertiary)] underline-offset-4 transition-colors hover:text-gold hover:underline sm:self-auto ${focusRing} rounded`}
+              className={`inline-flex min-h-11 items-center self-start text-xs text-[var(--text-tertiary)] underline-offset-4 transition-colors hover:text-gold hover:underline sm:self-auto ${focusRing} rounded`}
             >
               Términos de uso de Pwn
             </Link>
@@ -185,25 +178,25 @@ export function PwnShell({ children }: { children: ReactNode }) {
 
         <nav
           aria-label="Secciones de Mercav Pwn"
-          className="sticky top-[5.25rem] z-40 mt-4 sm:top-[5.75rem]"
+          className="sticky top-[calc(var(--c-nav-h)+env(safe-area-inset-top,0px))] z-40 mt-4 bg-[var(--color-bg-primary)] py-2"
         >
           <div className="mv-container">
-            <div className="mv-menu relative rounded-full p-1">
+            <div className="relative">
               <ul
                 ref={railRef}
-                className="scrollbar-hide flex gap-1 overflow-x-auto scroll-smooth [mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] lg:[mask-image:none]"
+                className="scrollbar-hide flex gap-1.5 overflow-x-auto scroll-smooth [mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] lg:flex-wrap lg:overflow-visible lg:[mask-image:none]"
               >
                 {navItems.map((item) => {
                   const active = item.href === "/pwn" ? pathname === "/pwn" : pathname === item.href || (pathname ?? "").startsWith(`${item.href}/`);
                   return (
-                    <li key={item.href} className="shrink-0 first:pl-1 last:pr-6 lg:flex-1 lg:first:pl-0 lg:last:pr-0">
+                    <li key={item.href} className="shrink-0 last:pr-6 lg:last:pr-0">
                       <Link
                         href={item.href}
                         aria-current={active ? "page" : undefined}
-                        className={`relative flex h-10 items-center justify-center whitespace-nowrap rounded-full px-4 text-sm font-medium outline-none transition-[background-color,color,box-shadow] duration-200 focus-visible:shadow-[inset_0_0_0_2px_var(--color-gold)] ${
+                        className={`relative flex h-11 items-center justify-center whitespace-nowrap rounded-[0.875rem] px-4 text-[0.9rem] font-semibold outline-none transition-[background-color,color,box-shadow] duration-150 focus-visible:shadow-[0_0_0_2px_var(--color-bg-primary),0_0_0_4px_var(--color-gold)] ${
                           active
-                            ? "bg-[var(--mv-gold-wash)] font-semibold text-gold shadow-[inset_0_0_0_1px_var(--color-border-gold)]"
-                            : "text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]"
+                            ? "bg-gold text-[var(--mv-on-gold)]"
+                            : "bg-[var(--mv-panel)] text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)]"
                         }`}
                       >
                         {item.label}
@@ -221,10 +214,10 @@ export function PwnShell({ children }: { children: ReactNode }) {
             <div
               role="status"
               aria-live="polite"
-              className="mv-pop mv-menu mb-8 flex flex-col gap-4 rounded-[1.5rem] border border-[var(--color-border-gold)] p-4 sm:flex-row sm:items-center sm:justify-between md:p-5"
+              className="mv-pop mb-8 flex flex-col gap-4 rounded-[1.25rem] bg-[var(--mv-panel)] p-4 shadow-[inset_0_0_0_1.5px_var(--p-alert)] sm:flex-row sm:items-center sm:justify-between md:p-5"
             >
               <div className="flex items-start gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[var(--mv-gold-wash)] text-gold">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[0.875rem] bg-[var(--p-alert-wash)] text-[var(--p-alert)]">
                   <BellRing className="h-[18px] w-[18px]" aria-hidden />
                 </span>
                 <div className="min-w-0">
@@ -233,14 +226,14 @@ export function PwnShell({ children }: { children: ReactNode }) {
                 </div>
               </div>
               <div className="flex items-center gap-2 sm:shrink-0">
-                <Link href="/pwn/signals?kind=LEAKS" className="mv-btn mv-btn-primary mv-btn-sm flex-1 sm:flex-none">
+                <Link href="/pwn/signals?kind=LEAKS" className="mv-btn mv-btn-primary flex-1 sm:flex-none">
                   Ver señales
                 </Link>
                 <button
                   type="button"
                   onClick={() => setNotice(null)}
                   aria-label="Cerrar aviso"
-                  className="mv-btn mv-btn-ghost mv-btn-sm w-10 px-0"
+                  className="mv-btn mv-btn-ghost h-11 w-11 px-0"
                 >
                   <X className="h-4 w-4" aria-hidden />
                 </button>

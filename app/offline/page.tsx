@@ -1,4 +1,4 @@
-import { WifiOff } from "lucide-react";
+import { WifiOff } from "@/components/icons";
 import { Container, buttonClass } from "@/components/site/primitives";
 
 export default function Offline() {

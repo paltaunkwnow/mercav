@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/components/icons";
 import { SourceBadge } from "@/components/pwn/SourceBadge";
 import { BoliviaPriorityBadge, GovernmentPriorityBadge, SignalKindBadge, VerificationBadge } from "@/components/pwn/RiskBadge";
 import { EmptyState, ErrorState, LoadingState, UnauthorizedState } from "@/components/pwn/EmptyState";
-import { focusRing, formatRelative } from "@/components/pwn/format";
+import { focusRing, formatRelative, pwnHitAreaClass } from "@/components/pwn/format";
 import type { ForumSignalView, PwnResult } from "@/components/pwn/api";
 
 export function ForumSignalsPanel({
@@ -33,7 +33,7 @@ export function ForumSignalsPanel({
         title="Sin señales todavía"
         description="El archivo junta stealer logs, robos a empresas, ransomware y dumps. Se mantiene al día en segundo plano y te avisa si entra una filtración nueva."
         action={
-          <Link href="/pwn/signals" className={`mv-link text-sm ${focusRing}`}>
+          <Link href="/pwn/signals" className={`mv-link inline-flex min-h-11 items-center text-sm ${focusRing}`}>
             Ver ciberpatrullaje
           </Link>
         }
@@ -41,7 +41,7 @@ export function ForumSignalsPanel({
     );
   }
   return (
-    <section aria-labelledby="pwn-forum-title" className="mv-panel flex h-full flex-col rounded-[1.75rem] p-5 md:p-6">
+    <section aria-labelledby="pwn-forum-title" className="mv-panel flex h-full flex-col p-5 md:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 id="pwn-forum-title" className="mv-h3 text-lg">
@@ -49,7 +49,7 @@ export function ForumSignalsPanel({
           </h3>
           <p className="mt-1 text-xs text-[var(--text-tertiary)]">Titulares de foros y RSS. Solo metadatos.</p>
         </div>
-        <Link href="/pwn/signals?kind=LEAKS" className={`mv-link inline-flex items-center gap-1 text-sm ${focusRing}`}>
+        <Link href="/pwn/signals?kind=LEAKS" className={`mv-link inline-flex min-h-11 items-center gap-1 text-sm ${focusRing}`}>
           Ver todas <ArrowRight className="h-3.5 w-3.5" aria-hidden />
         </Link>
       </div>
@@ -72,7 +72,8 @@ export function ForumSignalsPanel({
               {item.author ? (
                 <Link
                   href={`/pwn/signals?author=${encodeURIComponent(item.author)}`}
-                  className={`font-medium text-gold underline-offset-4 hover:underline ${focusRing}`}
+                  aria-label={`Ver señales de ${item.author}`}
+                  className={`font-medium text-gold underline-offset-4 hover:underline ${pwnHitAreaClass} ${focusRing}`}
                 >
                   {item.author}
                 </Link>

@@ -4,7 +4,7 @@ import { normalizeAuthor } from "./author";
 import type { ForumThreadSignal } from "./forum-scraper";
 import { fetchAllowlistedText } from "./safe-fetch";
 
-const SCRAPE_UA = "Mercav-Pwn/1.0 (+https://pwn.mercav.lat; defensive threat monitoring)";
+const SCRAPE_UA = "Mercav-Pwn/1.0 (+https://app.mercav.lat/pwn; defensive threat monitoring)";
 const VICTIMS_URL = "https://api.ransomware.live/v2/recentvictims";
 const ATTACKS_URL = "https://api.ransomware.live/v2/recentcyberattacks";
 const SEARCH_BOLIVIA_URL = "https://api.ransomware.live/v2/searchvictims/bolivia";

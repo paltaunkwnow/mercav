@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Lock } from "lucide-react";
+import { Loader2, Lock } from "@/components/icons";
 import Link from "next/link";
 import { Toast } from "@/components/ui/toast";
 import { Container, buttonClass } from "@/components/site/primitives";

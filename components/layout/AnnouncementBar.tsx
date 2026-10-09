@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Bell } from "lucide-react";
+import { Bell } from "@/components/icons";
 
 export async function AnnouncementBar() {
   let config: any = null;

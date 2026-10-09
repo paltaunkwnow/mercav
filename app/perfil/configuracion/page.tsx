@@ -12,7 +12,7 @@ import {
   Sun,
   Moon,
   Check,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useTheme } from "@/components/ui/ThemeProvider";

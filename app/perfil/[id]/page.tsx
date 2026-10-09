@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { MapPin, MessageSquare, ShieldCheck, ArrowLeft, Mail, Crown, Settings, CalendarDays } from "lucide-react";
+import { MapPin, MessageSquare, ShieldCheck, ArrowLeft, Mail, Crown, Settings, CalendarDays } from "@/components/icons";
 import { Container, buttonClass } from "@/components/site/primitives";
 
 import { FollowButton } from "@/components/ui/FollowButton";
-import { LinkIcon } from "lucide-react";
+import { LinkIcon } from "@/components/icons";
 
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";

@@ -3,57 +3,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
-import { RECAPTCHA_SECRET_KEY } from "./recaptcha";
-
-export async function verifyRecaptchaToken(token?: string) {
-  if (process.env.DISABLE_RECAPTCHA === "true" || process.env.RECAPTCHA_DISABLED === "true") {
-    return { success: true, score: 1 };
-  }
-
-  const secret = process.env.RECAPTCHA_SECRET_KEY || RECAPTCHA_SECRET_KEY;
-  
-  // Skip reCAPTCHA verification if secret is not configured
-  const isDev = process.env.NODE_ENV !== "production";
-  if (!secret) {
-    if (isDev) return { success: true, score: 1 };
-    return { success: false, score: 0 };
-  }
-
-  if (!token || token === "skip") {
-    if (isDev) return { success: true, score: 1 };
-    return { success: false, score: 0 };
-  }
-
-  try {
-    const params = new URLSearchParams();
-    params.append("secret", secret);
-    params.append("response", token);
-
-    const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString()
-    });
-
-    const data = await res.json();
-
-    if (!data.success) {
-      console.warn("reCAPTCHA siteverify failure:", data["error-codes"], data);
-    }
-
-    return { 
-      success: !!data.success, 
-      score: data.score ?? 0.5, // Default to 0.5 if no score (some v3 / Enterprise configs)
-      data 
-    };
-  } catch (err) {
-    console.error("RECAPTCHA ERROR:", err);
-    return { success: false, error: String(err) };
-  }
-}
 
 const secureCookies = process.env.NEXTAUTH_URL?.startsWith("https://") ?? false;
-// Set AUTH_COOKIE_DOMAIN=.mercav.lat so one session covers mercav.lat, kosher.mercav.lat and pwn.mercav.lat.
+// Set AUTH_COOKIE_DOMAIN=.mercav.lat so one session covers mercav.lat, app.mercav.lat and kosher.mercav.lat.
 const cookieDomain = process.env.AUTH_COOKIE_DOMAIN?.trim() || undefined;
 
 export const authOptions: AuthOptions = {
@@ -84,18 +36,11 @@ export const authOptions: AuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
-        recaptchaToken: { label: "reCAPTCHA Token", type: "text" },
         twoFactorCode: { label: "2FA Code", type: "text" }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Faltan credenciales");
-        }
-
-        // Verify reCAPTCHA token (v3)
-        const verify = await verifyRecaptchaToken((credentials as any).recaptchaToken);
-        if (!verify.success) {
-          throw new Error("reCAPTCHA verification failed");
         }
 
         let user: any = null;

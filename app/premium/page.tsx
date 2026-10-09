@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Check, Rocket, Star, Target } from "lucide-react";
+import { ArrowRight, Check, Rocket, Star, Target } from "@/components/icons";
 import { ButtonLink, CTABand, Container, PageHero, Section, buttonClass } from "@/components/site/primitives";
 import { cn } from "@/lib/utils";
 

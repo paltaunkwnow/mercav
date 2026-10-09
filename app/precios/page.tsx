@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Check, Minus } from 'lucide-react';
+import { Check, Minus } from '@/components/icons';
 import { AuthHeroButton } from '@/components/ui/AuthHeroButton';
 import { cn } from '@/lib/utils';
 import { TOOL_REQUIREMENTS } from '@/lib/toolPlanCatalog';
@@ -9,7 +9,7 @@ import { CTABand, Container, PageHero, Section, SectionHeading, buttonClass } fr
 
 /** Display names for the tools gated in lib/toolPlanCatalog.ts (same labels as /herramientas). */
 const TOOL_LABELS: Record<string, string> = {
-  "pos-system": "Punto de venta (POS)",
+  "holiday-calendar": "Calendario de feriados",
   "roi-calculator": "Calculadora de ROI",
   "palette-generator": "Generador de paletas",
   "seo-analyzer": "Analizador SEO",

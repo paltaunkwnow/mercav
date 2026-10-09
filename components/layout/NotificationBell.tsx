@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Bell, CheckCircle2, XCircle, Info, Briefcase, Megaphone, Loader2, ShieldAlert, Users, ChevronRight } from "lucide-react";
+import { Bell, CheckCircle2, XCircle, Info, Briefcase, Megaphone, Loader2, ShieldAlert, Users, ChevronRight } from "@/components/icons";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
+import { HostLink } from "@/components/layout/HostContext";
 import { PWN_NOTIFICATIONS_UPDATED } from "@/components/pwn/events";
 import { Button } from "@/components/ui/button";
 
@@ -162,8 +162,8 @@ export default function NotificationBell() {
                             </div>
                             <p className="text-[11px] text-gray-500 leading-relaxed mb-3">{n.body}</p>
                             {n.link && (
-                              <Link 
-                                href={n.link} 
+                              <HostLink
+                                href={n.link}
                                 onClick={() => {
                                   markAsRead(n.id);
                                   setIsOpen(false);
@@ -171,7 +171,7 @@ export default function NotificationBell() {
                                 className="inline-flex items-center text-[9px] font-black uppercase tracking-widest text-gold hover:text-gold-light transition-colors"
                               >
                                 Revisar <ChevronRight size={12} className="ml-1" />
-                              </Link>
+                              </HostLink>
                             )}
                           </div>
                         </div>
@@ -182,9 +182,9 @@ export default function NotificationBell() {
               </div>
 
               <div className="p-4 bg-white/[0.02] border-t border-white/5 text-center">
-                 <Link href="/dashboard" onClick={() => setIsOpen(false)} className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-white transition-colors">
+                 <HostLink href="/dashboard" onClick={() => setIsOpen(false)} className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-white transition-colors">
                     Ver todo en el Dashboard
-                 </Link>
+                 </HostLink>
               </div>
             </motion.div>
           </>

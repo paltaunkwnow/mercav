@@ -18,7 +18,7 @@ import {
   Users as UsersIcon,
   Trash2,
   Hammer
-} from "lucide-react";
+} from "@/components/icons";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ButtonLink, Container, buttonClass } from "@/components/site/primitives";
 

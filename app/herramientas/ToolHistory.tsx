@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Check, FolderOpen, History, Loader2, Save, Trash2 } from "lucide-react";
+import { Check, FolderOpen, History, Loader2, Save, Trash2 } from "@/components/icons";
 import { ButtonLink, buttonClass } from "@/components/site/primitives";
 import { cn } from "@/lib/utils";
 

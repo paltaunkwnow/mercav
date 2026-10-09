@@ -9,7 +9,7 @@ import { normalizeAuthor } from "./author";
 import { titleKeyFromTitle } from "./forum-signal-utils";
 import { fetchAllowlistedText } from "./safe-fetch";
 
-const SCRAPE_UA = "Mercav-Pwn/1.0 (+https://pwn.mercav.lat; defensive threat monitoring)";
+const SCRAPE_UA = "Mercav-Pwn/1.0 (+https://app.mercav.lat/pwn; defensive threat monitoring)";
 const RSS_ITEMS_PER_FEED = 25;
 const RSS_FETCH_CONCURRENCY = 8;
 

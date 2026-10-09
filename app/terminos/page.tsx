@@ -1,7 +1,7 @@
-import { LegalDocumentView } from "@/components/legal/LegalDocumentView";
+import { LegalCartelDocument } from "@/components/legal/LegalCartelDocument";
 import { TERMS } from "@/lib/legal/documents";
 
 export default function TermsPage() {
-  return <LegalDocumentView doc={TERMS} />;
+  return <LegalCartelDocument doc={TERMS} />;
 }
 // creado por pato dev y askforvini

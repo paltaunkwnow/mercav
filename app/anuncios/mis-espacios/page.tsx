@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Megaphone, Plus, Search, MapPin, CalendarDays } from "lucide-react";
+import { Megaphone, Plus, Search, MapPin, CalendarDays } from "@/components/icons";
 import { useSession } from "next-auth/react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Container, PageHero, ButtonLink } from "@/components/site/primitives";

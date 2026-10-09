@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Clock, FileText, LogOut, Mail, OctagonAlert, Scale } from "lucide-react";
+import { ArrowLeft, Clock, FileText, LogOut, Mail, OctagonAlert, Scale } from "@/components/icons";
 import { signOut } from "next-auth/react";
 import { Container, buttonClass } from "@/components/site/primitives";
 

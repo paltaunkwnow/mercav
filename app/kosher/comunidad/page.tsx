@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookOpenCheck, Briefcase, CalendarDays, HandHeart, Landmark, PlusCircle, UsersRound, UtensilsCrossed } from "lucide-react";
+import { ArrowRight, BookOpenCheck, Briefcase, CalendarDays, HandHeart, Landmark, PlusCircle, UsersRound, UtensilsCrossed } from "@/components/icons";
 import { prisma } from "@/lib/prisma";
 import { getKosherViewer } from "@/lib/kosher/server";
 import { listCities, pickCity } from "@/lib/kosher/cities";

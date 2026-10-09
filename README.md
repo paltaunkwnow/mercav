@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src=".github/readme/hero.svg" alt="Mercav. Una sola cuenta para publicidad, talento, empleo, caja y ciberinteligencia en Latinoamérica." width="100%">
+<img src=".github/readme/hero.svg" alt="Mercav. Una sola cuenta para publicidad, talento, empleo, planillas y ciberinteligencia en Latinoamérica." width="100%">
 
 <br>
 <br>
@@ -15,18 +15,18 @@
 [![Stripe](https://img.shields.io/badge/Stripe-pagos-D4AF37?style=for-the-badge&logo=stripe&logoColor=white&labelColor=0C0C0C)](https://stripe.com/)
 [![License](https://img.shields.io/badge/Licencia-propietaria-D4AF37?style=for-the-badge&labelColor=0C0C0C)](#)
 
-**[mercav.lat](https://mercav.lat)** &nbsp;·&nbsp; **[pwn.mercav.lat](https://pwn.mercav.lat)** &nbsp;·&nbsp; **[kosher.mercav.lat](https://kosher.mercav.lat)** &nbsp;·&nbsp; **[Pitch](https://mercav.lat/pitch)**
+**[mercav.lat](https://mercav.lat)** &nbsp;·&nbsp; **[app.mercav.lat](https://app.mercav.lat)** &nbsp;·&nbsp; **[kosher.mercav.lat](https://kosher.mercav.lat)** &nbsp;·&nbsp; **[Pitch](https://mercav.lat/pitch)**
 
 </div>
 
 <br>
 
-**Mercav** es una plataforma con una sola cuenta para Latinoamérica: publicidad física, talento con pago por Stripe, empleo, feed, caja POS, herramientas de negocio, ciberinteligencia defensiva y un atlas de lugares kosher, sinagogas y kehilot.
+**Mercav** es una plataforma con una sola cuenta para toda Latinoamérica: publicidad física, talento con pago por Stripe, empleo, feed, RR.HH. y planillas para empresas, herramientas de negocio, un calendario de feriados, ciberinteligencia defensiva y un atlas de lugares kosher, sinagogas y kehilot.
 
 La construyen sus tres cofundadores desde Santa Cruz de la Sierra, Bolivia.
 
 > [!NOTE]
-> En local el servidor de desarrollo escucha en el puerto **1337**. Usá `http://127.0.0.1:1337`, no `localhost`.
+> En local el servidor de desarrollo escucha en el puerto **1337**. Usá `http://127.0.0.1:1337`, no `localhost`. En local no hay reglas de host: `/` es la landing y `/inicio` el inicio de la app.
 
 <details>
 <summary><b>Contenido</b></summary>
@@ -46,19 +46,21 @@ La construyen sus tres cofundadores desde Santa Cruz de la Sierra, Bolivia.
 
 ## Módulos
 
-<img src=".github/readme/modules.svg" alt="Siete módulos con una sola cuenta: Ads, Services, Jobs, POS, Tools, Pwn y Kosher." width="100%">
+<img src=".github/readme/modules.svg" alt="Siete módulos con una sola cuenta: Ads, Services, Jobs, Business, Tools, Pwn y Kosher." width="100%">
 
-Siete módulos de producto, más el feed, los mensajes y el panel. Todo comparte el mismo login (correo/contraseña o Google, 2FA TOTP opcional). Roles: `ADMIN`, `ANUNCIANTE`, `DUENO_ESPACIO`, `FREELANCER`, `CANDIDATO`.
+Siete módulos de producto, más el inicio, el calendario, el feed, los mensajes y el panel. Todo comparte el mismo login (correo/contraseña o Google, 2FA TOTP opcional). Roles globales: `ADMIN`, `ANUNCIANTE`, `DUENO_ESPACIO`, `FREELANCER`, `CANDIDATO`. Business tiene sus propios roles por empresa.
 
 | Módulo | Ruta | Para qué |
 | :--- | :--- | :--- |
 | **Ads** | `/anuncios` | Vallas, pantallas y vidrieras para alquilar por fechas |
 | **Services** | `/servicios` | Talento digital con paquetes y pago por Stripe |
 | **Jobs** | `/empleos` | Vacantes, postulaciones y seguimiento |
-| **POS** | `/dashboard/pos` | Caja para cualquier rubro, con cola offline |
+| **Business** | `/business` | Empresas, legajos y planillas de sueldo |
 | **Tools** | `/herramientas` | Calculadoras, contratos, SEO y prompts en el navegador |
-| **Pwn** | `/pwn` · [pwn.mercav.lat](https://pwn.mercav.lat) | Ciberinteligencia defensiva |
+| **Pwn** | `/pwn` | Ciberinteligencia defensiva |
 | **Kosher** | `/kosher` · [kosher.mercav.lat](https://kosher.mercav.lat) | Atlas de lugares, sinagogas y kehilot |
+
+Además, dentro de la app: **Inicio** (`/inicio`) y **Calendario** (`/calendario`).
 
 ### Mercav Ads — `/anuncios`
 
@@ -81,15 +83,37 @@ Vacantes, postulaciones y seguimiento. El empleador ve postulantes en `/dashboar
 
 El feed es la comunidad de la plataforma: publicaciones, reacciones, comentarios y actividad de espacios, servicios y vacantes. Sin sesión hay un teaser; con sesión, el feed completo. Los mensajes directos viven en `/mensajes` (Socket.io).
 
-### Mercav POS — `/dashboard/pos`
+### Mercav Business — `/business`
 
-Caja en el navegador para cualquier rubro: carrito, medios de pago, abrir/cerrar turno, anular venta, inventario, reportes y personal con PIN. Hay cola offline si se corta la red. La config puede vincular un local de Mercav Kosher para **avisar disponibilidad**; Mercav no emite hechsher ni certifica productos.
+RR.HH. para empresas de toda Latinoamérica. Reemplaza al POS.
 
-Pantallas: `/dashboard/pos`, `/dashboard/pos/inventory`, `/dashboard/pos/reports`, `/dashboard/pos/config`.
+- **Empresas:** cada una tiene slug, país, moneda y región, y vive en `/business/<slug>`. Una cuenta puede estar en varias.
+- **Roles por empresa:** `OWNER`, `HR_ADMIN`, `MANAGER`, `EMPLOYEE`, `ACCOUNTANT`. La matriz está en `lib/business/permissions.ts`. Salario, CI y cuenta bancaria del equipo solo los ven dueño, RR.HH. y contador.
+- **Legajos:** sirven para cualquier país de Latinoamérica, con los nombres locales de cada documento (CI, DNI, CPF, RUT…). CI y cuenta bancaria se guardan cifrados con AES-256-GCM (`BUSINESS_DATA_KEY`, `lib/business/crypto.ts`).
+- **Invitaciones:** link de un solo uso que vence a los 7 días. En la base solo queda el hash.
+- **Planilla mensual:** automática solo para Bolivia por ahora (`lib/business/countries.ts`). El motor está en `lib/business/bolivia/`: parámetros 2026 con sus fuentes y una lista `verify` de valores que tiene que confirmar un contador. Export a Excel con las columnas de la planilla del Ministerio de Trabajo y boleta de pago en PDF.
+- **Auditoría:** los cambios quedan en `BusinessAuditLog`.
+
+Pantallas: `/business`, `/business/<slug>`, `…/trabajadores`, `…/planillas`, `…/mis-boletas`, `…/ajustes` y `/business/unirse/<token>`.
+
+> [!IMPORTANT]
+> La planilla es una **pre-planilla**: la tiene que revisar el contador de la empresa antes de pagar o declarar.
+
+El POS se retiró como producto. Quien ya lo usaba sigue teniendo `/dashboard/pos`, pero no recibe funciones nuevas.
+
+### Calendario — `/calendario`
+
+Feriados de 20 países de Latinoamérica y el calendario hebreo. Necesita sesión.
+
+- **Bolivia:** reglas propias con los decretos DS 2750, 5019, 5483 y 5521 (`lib/calendar/bolivia.ts`).
+- **Resto de Latinoamérica:** paquete `date-holidays` (datos CC-BY 3.0).
+- **Calendario hebreo:** `@hebcal/core` (GPL-2.0), solo del lado servidor.
+
+Cada persona elige país, región y fuentes, oculta las fechas que no le sirven y exporta un `.ics`. Las preferencias van en `CalendarPreference`. Business usa los mismos datos para mostrar los próximos feriados del país y la región de cada empresa, y `/inicio` muestra tus próximas fechas.
 
 ### Mercav Tools — `/herramientas`
 
-Se abren en el navegador, sin instalar nada. Incluidas según el plan (`/precios`). El POS no está en este catálogo: vive en `/dashboard/pos`.
+Se abren en el navegador, sin instalar nada. Incluidas según el plan (`/precios`). Business no está en este catálogo: vive en `/business`.
 
 <details>
 <summary><b>Rutas de Tools</b> (6)</summary>
@@ -107,9 +131,9 @@ Se abren en el navegador, sin instalar nada. Incluidas según el plan (`/precios
 
 </details>
 
-### Mercav Pwn — `/pwn` y [pwn.mercav.lat](https://pwn.mercav.lat)
+### Mercav Pwn — `/pwn`
 
-Ciberinteligencia **defensiva**. Sin `PWN_ENABLED=true` las rutas responden 404. No guarda contraseñas ni correos ajenos en claro. Los identificadores se hashean con `PWN_IDENTIFIER_PEPPER`.
+Ciberinteligencia **defensiva**. Vive en `app.mercav.lat/pwn`; `pwn.mercav.lat` redirige ahí. Sin `PWN_ENABLED=true` las rutas responden 404. No guarda contraseñas ni correos ajenos en claro. Los identificadores se hashean con `PWN_IDENTIFIER_PEPPER`.
 
 <details>
 <summary><b>Rutas de Pwn</b> (12)</summary>
@@ -214,7 +238,8 @@ El resumen para inversores (problema, producto, modelo de negocio y equipo) est�
 
 | Ruta | Qué es |
 | :--- | :--- |
-| `/` | Landing: problema, siete módulos, Pwn, Kosher, actividad |
+| `/` | Landing del sitio público: problema, siete módulos y confianza |
+| `/inicio` | Inicio de la app: saludo, próximas fechas, tu empresa y todos los apartados agrupados |
 | `/por-que-mercav` | Por qué existe la plataforma |
 | `/nosotros` | Quiénes somos: el equipo y el perfil de Vinicius |
 | `/pitch` | Pitch: problema, producto, modelo de negocio y equipo |
@@ -223,7 +248,7 @@ El resumen para inversores (problema, producto, modelo de negocio y equipo) est�
 | `/explorar`, `/buscar` | Descubrimiento y búsqueda unificada |
 | `/login`, `/register` | Auth; reCAPTCHA v3 si hay claves y cookies de terceros aceptadas |
 | `/perfil`, `/perfil/editar` | Perfil público y edición (incluido 2FA) |
-| `/dashboard` | Panel: pedidos, clientes, postulantes, POS |
+| `/dashboard` | Panel: pedidos, clientes, postulantes y el POS retirado |
 | `/admin/dashboard` | Solo `ADMIN`. Pestañas: resumen, usuarios, empresas, inversores, servicios, espacios, insignias, finanzas, reportes, tráfico inusual, configuración |
 | `/checkout` | Stripe: servicios, reservas de espacios, upgrade de plan |
 | `/soporte`, `/contacto` | Tickets y contacto |
@@ -239,15 +264,29 @@ El resumen para inversores (problema, producto, modelo de negocio y equipo) est�
 
 ## Hosts
 
-El mismo despliegue de Next sirve los tres hosts (`lib/seo/site.ts`, `middleware.ts`):
+El mismo despliegue de Next sirve todos los hosts. Las reglas están en `middleware.ts` (`productHostRedirect`, `isKosherHostPath`) y `lib/seo/site.ts` (`APP_URL`, `isMarketingPath`, `canonicalFor`).
 
 | Host | Qué sirve |
 | :--- | :--- |
-| `mercav.lat` | App principal |
-| `pwn.mercav.lat` | Reescribe a `/pwn` |
-| `kosher.mercav.lat` | Reescribe a `/kosher`; `/empleos` y `/mensajes` en ese host redirigen a `mercav.lat` |
+| `mercav.lat` | Solo el sitio público: `/`, `/nosotros`, `/pitch`, `/inversores` y las páginas legales. Cualquier otra ruta redirige a `app.mercav.lat` |
+| `app.mercav.lat` | El producto: todas las demás rutas. `/` lleva a `/inicio`. Las páginas del sitio público redirigen a `mercav.lat` |
+| `pwn.mercav.lat` | Redirige a `app.mercav.lat/pwn` (307 por ahora; pasa a 308 cuando el split esté estable) |
+| `kosher.mercav.lat` | Reescribe a `/kosher`. Lo que no es de Kosher redirige a `app.mercav.lat` |
 
-En producción, `AUTH_COOKIE_DOMAIN=.mercav.lat` comparte la sesión. En local dejalo vacío.
+- `/kosher/…` en cualquier otro host lleva a `kosher.mercav.lat`. `www.mercav.lat` lleva a `mercav.lat`.
+- `/api`, `/_next` y las páginas utilitarias (`/1337`, `/offline`, `/maintenance`, `/forbidden`) responden en todos los hosts. Por eso los webhooks y los callbacks de OAuth siguen andando (por ejemplo, `mercav.lat/api/webhook/stripe`).
+- En local (`127.0.0.1:1337`) y en los previews de Vercel no hay reglas de host: un solo origen sirve todas las rutas.
+- Header, barra inferior y footer cambian solos según la ruta: modo sitio público o modo app. Los apartados de la app salen de una sola lista, `lib/app/sections.ts`.
+
+En producción, `AUTH_COOKIE_DOMAIN=.mercav.lat` comparte la sesión entre hosts. En local dejalo vacío.
+
+> [!IMPORTANT]
+> **Deploy del split de hosts.**
+> 1. Sumá `app.mercav.lat` al proyecto de Vercel.
+> 2. `NEXTAUTH_URL=https://app.mercav.lat`.
+> 3. Dejá `AUTH_COOKIE_DOMAIN=.mercav.lat`.
+> 4. En Google Cloud, agregá `https://app.mercav.lat/api/auth/callback/google` como URI de redirección autorizada.
+> 5. El webhook de Stripe no cambia: `/api` responde en todos los hosts.
 
 ## Stack
 
@@ -259,7 +298,8 @@ En producción, `AUTH_COOKIE_DOMAIN=.mercav.lat` comparte la sesión. En local d
 | **Pagos** | Stripe (`PaymentIntent` + webhook) |
 | **Pwn** | Have I Been Pwned, NVD 2.0, CISA KEV, RSS/foros allowlisted |
 | **Kosher** | MapLibre GL, OpenFreeMap/CARTO, OSM (seed), `@hebcal/core`, `sonner` |
-| **POS / Tools** | Cámara para códigos, `jspdf` / `xlsx`, Anthropic opcional en contratos y prompts |
+| **Business / Tools** | `jspdf` (boletas y PDF de Tools), `xlsx` (planillas), cifrado AES-256-GCM de `node:crypto`, Anthropic opcional en contratos y prompts |
+| **Calendario** | `date-holidays` 3.37.0 (versión fija), `@hebcal/core` solo en servidor |
 | **Tiempo real** | Socket.io en mensajes |
 
 Diseño: crema y oro en claro, negro y oro en oscuro. Liquid glass en header, nav inferior, búsqueda y hojas. En iOS, `viewport-fit=cover` y `env(safe-area-inset-*)`.
@@ -268,26 +308,31 @@ Diseño: crema y oro en claro, negro y oro en oscuro. Liquid glass en header, na
 
 ```
 app/                 App Router
+  inicio/            Inicio de la app (/inicio)
   anuncios/          Ads
   servicios/         Services
   empleos/           Jobs
+  business/          Mercav Business (empresas, trabajadores, planillas)
+  calendario/        Feriados y calendario hebreo
   feed/              Comunidad de la plataforma
-  dashboard/         Pedidos, postulantes, POS
+  dashboard/         Pedidos, postulantes, POS retirado
   herramientas/      Tools
   pwn/               Mercav Pwn
   kosher/            Mercav Kosher (mapa, comunidad, viaje, …)
   pitch/             Pitch para inversores
   admin/             Panel admin
   1337/              Página de inspección
-  api/               Route handlers
-components/          UI por dominio (home, pos, pwn, kosher, admin, layout, feed)
-lib/                 Auth, Prisma, Stripe, SEO, Pwn, Kosher, POS, billing
+  api/               Route handlers (incluye api/business y api/calendar)
+components/          UI por dominio (home, app-shell, business, calendar, pwn, kosher, admin, layout, feed)
+lib/                 Auth, Prisma, Stripe, SEO, Pwn, Kosher, Business, Calendario, billing
+  app/sections.ts    Lista única de apartados de la app
+  geo/latam.ts       Países, monedas y zonas horarias de Latinoamérica
 prisma/              schema.prisma + migrations + seeds
 public/              Estáticos; /images/logo.png; /videos/1337.webm
 .github/readme/      SVG animados de este README
-middleware.ts        Auth, subdominios, rate limit, /1337, SEO
+middleware.ts        Auth, hosts, rate limit, /1337, SEO
 vercel.json          Crons de Pwn
-migrate.md           Cómo aplicar Pwn/Kosher sin borrar datos
+migrate.md           Cómo aplicar las migraciones sin borrar datos
 ```
 
 No hay grupo `(auth)/` ni carpeta `comunidad/`: login y registro están en `/login` y `/register`; la red social es `/feed`.
@@ -336,7 +381,7 @@ npx prisma db push
 ```
 
 > [!CAUTION]
-> En un entorno **con datos**, no uses `db push` ni `migrate dev`. Seguí [migrate.md](migrate.md): backup y `npx prisma migrate deploy`. El historial de Prisma no cubre todo el esquema (POS, tickets, etc. se añadieron al `schema.prisma` sin migración vieja); `migrate dev` puede ofrecer un reset.
+> En un entorno **con datos**, no uses `db push` ni `migrate dev`. Seguí [migrate.md](migrate.md): backup y `npx prisma migrate deploy`. La última migración es `20261008120000_business_calendar` (Business y Calendario, solo agrega). El historial de Prisma no cubre todo el esquema (POS, tickets, etc. se añadieron al `schema.prisma` sin migración vieja); `migrate dev` puede ofrecer un reset.
 
 Admin inicial: `npm run seed` (`SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`). Atlas Kosher: `npm run seed:kosher`.
 
@@ -352,6 +397,7 @@ No commitees este archivo. Nombres, no valores de producción.
 ```env
 DATABASE_URL="postgresql://mercav:mercav@localhost:5432/mercav_db?schema=public"
 
+# En producción: https://app.mercav.lat
 NEXTAUTH_URL="http://127.0.0.1:1337"
 NEXTAUTH_SECRET="un_secreto_largo"
 # En local vacío. En producción: .mercav.lat
@@ -377,6 +423,9 @@ ANTHROPIC_API_KEY=""
 ANTHROPIC_MODEL=""
 GOOGLE_PAGESPEED_API_KEY=""
 
+# Business: 32 bytes al azar en base64 (openssl rand -base64 32)
+BUSINESS_DATA_KEY=""
+
 SMTP_HOST=""
 SMTP_PORT="587"
 SMTP_USER=""
@@ -398,6 +447,7 @@ NEXT_PUBLIC_LEGAL_ADDRESS=""
 - `HIBP_API_KEY` habilita filtraciones. NVD/CISA no exigen clave; `NVD_API_KEY` solo sube el cupo.
 - `PWN_ENABLED` tiene que ser exactamente `"true"` para encender Pwn.
 - Contratos y prompts funcionan sin Anthropic; con clave, el texto lo genera el modelo.
+- `BUSINESS_DATA_KEY` cifra el CI y la cuenta bancaria de los legajos. En producción es obligatoria. En local, si falta, se deriva de `NEXTAUTH_SECRET`. Si la clave cambia o se pierde, los datos ya cifrados quedan ilegibles.
 
 ### 4. Servidor
 
@@ -405,7 +455,7 @@ NEXT_PUBLIC_LEGAL_ADDRESS=""
 npm run dev
 ```
 
-Abre [http://127.0.0.1:1337](http://127.0.0.1:1337). Pwn: `/pwn`. Kosher: `/kosher`.
+Abre [http://127.0.0.1:1337](http://127.0.0.1:1337). En local un solo origen sirve todo: `/` es la landing y `/inicio` el inicio de la app. Business: `/business`. Calendario: `/calendario`. Pwn: `/pwn`. Kosher: `/kosher`.
 
 `next.config.mjs` declara `allowedDevOrigins: ["127.0.0.1"]` y, en desarrollo, ignora el watch de `node_modules`, `.git`, `.next`, `Implementacion Nueva Kosher`, `.cursor`, `.claude` y `obsidian`.
 
@@ -433,17 +483,23 @@ Producción: `npm run build` (corre `prisma generate`) y `npm start`. `postinsta
 Honesto respecto del código.
 
 - [x] Stripe en anuncios y servicios
-- [x] POS, Tools, Pwn y Kosher
+- [x] Tools, Pwn y Kosher
 - [x] Feed, 2FA, admin y `/1337`
+- [x] Mercav Business: empresas, legajos y planilla de Bolivia (reemplaza al POS)
+- [x] Calendario: feriados de 20 países y calendario hebreo
+- [x] Split de hosts: `mercav.lat` (sitio público) y `app.mercav.lat` (producto)
+- [ ] Business: fichaje, turnos, vacaciones y comunicados
+- [ ] Planilla automática para otros países (hoy solo Bolivia)
 - [ ] Liberación de fondos por hito (el modelo `Milestone` está; no se crean hitos al contratar)
-- [ ] Facturación PDF del lado plataforma (el POS sí emite ticket)
-- [ ] Push web para mensajes y compras
+- [ ] Facturación PDF del lado plataforma
+- [ ] Push web para mensajes, compras y Business
 - [ ] Kerem (hospitalidad física; no es un módulo de esta app todavía)
 - [ ] PWA nativa más allá de `/offline`
 
 ## Notas de desarrollo
 
-- Tests de Pwn: `npm run test:pwn`. Workflow: `.github/workflows/pwn-tests.yml`.
+- Tests sin base: `npm run test:pwn`, `npm run test:calendar` y `npm run test:business`. En CI solo corre el de Pwn (`.github/workflows/pwn-tests.yml`).
+- `@hebcal/core` es GPL-2.0: solo se importa en el servidor, nunca desde un componente `"use client"`. Las páginas calculan las fechas y le pasan JSON al cliente.
 - `prisma.config.ts` importa un módulo de Prisma 6; esta app usa Prisma 5.14. Está fuera del `tsconfig`. `prisma generate` no lo necesita.
 - El matcher del middleware deja pasar estáticos, `uploads`, `robots.txt`, `sitemap.xml`, `videos`, etc. El logo público es `/images/logo.png`.
 - De LeakGuard se tomó la guía de protección, el historial de sesión ofuscado y el scrape defensivo de foros/RSS (solo titulares). No se copió el chat ofensivo, el mapa de incidentes ni la búsqueda por teléfono. Catálogo: `lib/integrations/pwn/feed-catalog.ts`. `PWN_FORUM_SCRAPE=false` lo apaga.

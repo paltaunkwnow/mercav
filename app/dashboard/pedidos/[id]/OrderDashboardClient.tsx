@@ -22,7 +22,7 @@ import {
   ArrowLeft,
   Loader2,
   Printer
-} from "lucide-react";
+} from "@/components/icons";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Container, buttonClass } from "@/components/site/primitives";
 import Link from "next/link";

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { User, FileText, Calendar, Mail, MessageSquare, Loader2 } from "lucide-react";
+import { User, FileText, Calendar, Mail, MessageSquare, Loader2 } from "@/components/icons";
 import { ButtonLink, Container, PageHero, Section, buttonClass } from "@/components/site/primitives";
 import { Toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";

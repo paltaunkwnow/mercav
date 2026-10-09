@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Clock, Mail } from "lucide-react";
+import { ArrowRight, BookOpen, Clock, Mail } from "@/components/icons";
 import { Container, PageHero, Section, buttonClass } from "@/components/site/primitives";
 
 export default function SupportPage() {
@@ -68,7 +68,7 @@ Saludos.`);
                 <BookOpen className="h-5 w-5" aria-hidden />
               </span>
               <h3 className="mv-h3 mt-6">Preguntas frecuentes</h3>
-              <p className="mv-body mt-2 flex-1">Respuestas a lo más consultado sobre pagos, POS, verificación, publicidad y cuenta.</p>
+              <p className="mv-body mt-2 flex-1">Respuestas a lo más consultado sobre pagos, Business, verificación, publicidad y cuenta.</p>
               <Link href="/faq" className={buttonClass("secondary", "md", "mt-6 w-full sm:w-auto sm:self-start")}>
                 Ver preguntas frecuentes <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>

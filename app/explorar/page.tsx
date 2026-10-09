@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Briefcase, Megaphone, MonitorPlay, Search } from "lucide-react";
+import { ArrowRight, Briefcase, Megaphone, MonitorPlay, Search } from "@/components/icons";
 import { Container, PageHero, ButtonLink, buttonClass } from "@/components/site/primitives";
 
 const MODULES = [

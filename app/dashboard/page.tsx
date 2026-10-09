@@ -37,7 +37,9 @@ export default async function Dashboard() {
           }
         }
       },
-      posConfig: true,
+      // Solo para mostrar el acceso discreto a la caja POS anterior.
+      posConfig: { select: { id: true } },
+      businessMemberships: { select: { id: true } },
       badges: true
     }
   });

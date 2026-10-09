@@ -1,4 +1,4 @@
-import { Settings, Shield, Bell, ChevronRight, Pencil, MapPin, Globe2, Briefcase, KeyRound, BadgeCheck, ArrowUpRight } from "lucide-react";
+import { Settings, Shield, Bell, ChevronRight, Pencil, MapPin, Globe2, Briefcase, KeyRound, BadgeCheck, ArrowUpRight, CreditCard } from "@/components/icons";
 import Link from "next/link";
 import { Container, buttonClass } from "@/components/site/primitives";
 import { getServerSession } from "next-auth/next";
@@ -35,6 +35,7 @@ export default async function PerfilPage() {
     { icon: Bell, label: "Notificaciones", desc: "Alertas de mensajes y actividad", href: "/notificaciones-settings" },
     { icon: Shield, label: "Privacidad", desc: "Cómo tratamos tus datos en Mercav", href: "/privacidad" },
     { icon: Briefcase, label: "Mis publicaciones", desc: "Tus anuncios, servicios y vacantes", href: "/dashboard" },
+    { icon: CreditCard, label: "Mis tarjetas", desc: "Tus tarjetas de cliente y tu código MercavClub", href: "/perfil/tarjetas" },
   ];
 
   return (

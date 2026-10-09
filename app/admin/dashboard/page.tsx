@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { Building2, FileText, ImageOff, Inbox, Mail, UserPlus } from "lucide-react";
+import { Building2, FileText, ImageOff, Inbox, Mail, UserPlus } from "@/components/icons";
 import Link from "next/link";
 
 import { AdminUserActions, AdminPostActions, AdminCompanyActions, GlobalSettingsForm } from "@/components/admin/AdminControls";

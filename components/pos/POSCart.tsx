@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { ShoppingCart, Trash2, Minus, Plus, Receipt, Tag, Truck, UserCheck, UtensilsCrossed, ShoppingBag, Store, Home, Bike } from 'lucide-react';
+import { ShoppingCart, Trash2, Minus, Plus, Receipt, Tag, Truck, UserCheck, UtensilsCrossed, ShoppingBag, Store, Home, Bike } from '@/components/icons';
 import { ORDER_TYPE_LABELS, ORDER_TYPES_WITH_CHANNEL, getUnit, type BusinessType, type OrderTypeId } from '@/lib/pos/business';
 import { computeSale, type DiscountType } from '@/lib/pos/pricing';
 import { currencyDecimals, formatMoney } from '@/lib/pos/money';

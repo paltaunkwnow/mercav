@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/components/icons";
 
 export function FollowButton({ userId, username, initialFollowed = false }: { userId: string, username?: string, initialFollowed?: boolean }) {
   const [isFollowing, setIsFollowing] = useState(initialFollowed);

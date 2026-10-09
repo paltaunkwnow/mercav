@@ -18,7 +18,7 @@ import {
   ShieldCheck,
   MapPin,
   Image as ImageIcon,
-} from "lucide-react";
+} from "@/components/icons";
 import { Container } from "@/components/site/primitives";
 import { 
   Select, 

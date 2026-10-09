@@ -54,6 +54,8 @@ export type AlertView = {
 
 export type ExposureFinding = {
   key: string;
+  /** Clases de HIBP tal cual (en inglés), para elegir los próximos pasos. */
+  rawDataTypes: string[];
   subjectHint: string | null;
   name: string;
   title: string;
@@ -71,12 +73,29 @@ export type ExposureFinding = {
   riskScore: number | null;
 };
 
+/**
+ * - summary: correo ajeno o sin verificar. Solo sí/no y cuántas (sin contar las sensibles).
+ * - full + owner: objetivo propio verificado, con todo el detalle.
+ * - full + catalog: dominio contra el catálogo público de HIBP (filtraciones del servicio del dominio).
+ */
 export type ExposureResult =
-  | { scope: "boolean"; exposed: boolean }
-  | { scope: "full"; exposed: boolean; persisted: boolean; findings: ExposureFinding[] };
+  | { scope: "summary"; exposed: boolean; count: number }
+  | {
+      scope: "full";
+      access: "owner" | "catalog";
+      domainMode: "catalog" | "accounts" | null;
+      exposed: boolean;
+      count: number;
+      hiddenSensitive: number;
+      persisted: boolean;
+      findings: ExposureFinding[];
+    };
 
 export type VulnerabilityView = {
   id: string;
+  /** NVD no respondió y se muestra el último dato guardado. */
+  stale: boolean;
+  checkedAt: string | null;
   cve: string;
   description: string | null;
   cvss: number | null;
@@ -121,6 +140,8 @@ export type ForumSignalView = {
   source: string | null;
 };
 
+export type ConfirmationMethod = "ACCOUNT" | "EMAIL_LINK" | "ADMIN_AUTHORIZATION" | "DNS_TXT";
+
 export type MonitoringTarget = {
   id: string;
   organizationId: string | null;
@@ -129,16 +150,54 @@ export type MonitoringTarget = {
   targetLookup: string | null;
   active: boolean;
   verificationStatus: string;
+  /** Cómo se prueba que es tuyo, si todavía no está probado. */
+  confirmationMethod: ConfirmationMethod | null;
+  /** Hay un enlace o un registro DNS emitido esperando confirmación. */
+  awaitingConfirmation: boolean;
+  isAccountEmail: boolean;
   authorizationRequestedAt: string | null;
   authorizationMessage: string | null;
   verifiedAt: string | null;
   createdAt: string | null;
 };
 
-export type TargetVerification = { method: "ADMIN_AUTHORIZATION"; message: string };
+export type TargetVerification =
+  | { method: "DNS_TXT"; host: string; record: string; message: string }
+  | { method: "EMAIL_LINK"; sent: boolean; message: string }
+  | { method: "ADMIN_AUTHORIZATION"; message: string };
+
+export type TargetsMeta = { mailerReady: boolean; accountEmailConfirmed: boolean; accountEmailFollowed: boolean };
 
 export type MonitorAuthRequest = MonitoringTarget & {
-  owner: { id: string | null; name: string | null; email: string | null; username: string | null };
+  owner: { id: string | null; name: string | null; email: string | null; username: string | null; emailConfirmed: boolean };
+  /** El correo pedido es el de la cuenta del solicitante (el admin no ve el correo, solo esto). */
+  isOwnerAccountEmail: boolean;
+};
+
+export type OrganizationView = { id: string; name: string; domain: string | null; targetCount: number; createdAt: string | null };
+
+export type ReportHistoryItem = {
+  id: string;
+  title: string;
+  summary: string | null;
+  createdAt: string | null;
+  organization: { id: string; name: string } | null;
+};
+
+export type SummaryView = {
+  verdict: { tone: "clean" | "exposed" | "idle"; unreadAlerts: number; provenTargets: number };
+  counts: {
+    targets: number;
+    provenTargets: number;
+    activeProvenTargets: number;
+    pendingTargets: number;
+    exposures: number;
+    alerts: number;
+    unreadAlerts: number;
+  };
+  recentAlerts: AlertView[];
+  signals: ForumSignalView[];
+  verifiedIntel: { id: string; name: string; sourceUrl: string | null; publishedAt: string | null; source: string | null }[];
 };
 
 export type ReportView = {
@@ -168,6 +227,18 @@ export function asNumber(value: unknown): number | null {
 function asString(value: unknown, max = 500): string | null {
   if (typeof value !== "string") return null;
   const clean = value.replace(/\s+/g, " ").trim();
+  if (!clean) return null;
+  return clean.length > max ? `${clean.slice(0, max).trim()}…` : clean;
+}
+
+/** Como asString, pero conserva los saltos de línea (cuerpo de una alerta). */
+function asMultiline(value: unknown, max = 4_000): string | null {
+  if (typeof value !== "string") return null;
+  const clean = value
+    .split(/\r?\n/)
+    .map((line) => line.replace(/[^\S\n]+/g, " ").trim())
+    .filter(Boolean)
+    .join("\n");
   if (!clean) return null;
   return clean.length > max ? `${clean.slice(0, max).trim()}…` : clean;
 }
@@ -233,16 +304,16 @@ export async function pwnFetch(url: string, init?: RequestInit): Promise<PwnResu
       return { ok: false, reason: "unauthorized", message: errorMessage(body, ""), status };
     }
     if (status === 403) {
-      return { ok: false, reason: "forbidden", message: errorMessage(body, "No tienes permiso para esta acción."), status };
+      return { ok: false, reason: "forbidden", message: errorMessage(body, "No tenés permiso para esta acción."), status };
     }
     if (asRecord(body)?.configured === false) return { ok: false, reason: "disabled", message: "", status };
 
     if (!response.ok || asRecord(body)?.success === false) {
       const fallback =
         status === 429
-          ? "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo."
+          ? "Demasiadas solicitudes. Esperá un momento y probá de nuevo."
           : status === 502
-            ? "El proveedor externo no está disponible."
+            ? "El proveedor externo no respondió. Probá de nuevo en unos minutos."
             : "No se pudo completar la solicitud.";
       return { ok: false, reason: "error", message: errorMessage(body, fallback), status };
     }
@@ -252,7 +323,7 @@ export async function pwnFetch(url: string, init?: RequestInit): Promise<PwnResu
     if (error instanceof DOMException && error.name === "AbortError") {
       return { ok: false, reason: "aborted", message: "" };
     }
-    return { ok: false, reason: "error", message: "No hay conexión con Mercav Pwn. Inténtalo de nuevo." };
+    return { ok: false, reason: "error", message: "No hay conexión con Mercav Pwn. Probá de nuevo." };
   }
 }
 
@@ -311,7 +382,7 @@ function mapAlert(item: unknown, index: number): AlertView {
     id: asString(record?.id, 80) ?? `alert-${index}`,
     targetId: asString(record?.targetId, 80),
     title: asString(record?.title, 180) ?? "Alerta sin título",
-    body: asString(record?.body, 500),
+    body: asMultiline(record?.body),
     severity: asString(record?.severity, 40),
     status: asString(record?.status, 40),
     read: typeof record?.readAt === "string" && record.readAt.length > 0,
@@ -327,26 +398,33 @@ export function readAlerts(body: unknown): Paged<AlertView> {
   return { items: Array.isArray(data) ? data.map(mapAlert) : [], pagination: readPagination(body) };
 }
 
+export function readAlertList(value: unknown): AlertView[] {
+  return Array.isArray(value) ? value.map(mapAlert) : [];
+}
+
 export function readExposure(body: unknown): ExposureResult | null {
   const record = asRecord(body);
   if (typeof record?.exposed !== "boolean") return null;
-  if (record.scope !== "full") return { scope: "boolean", exposed: record.exposed };
+  const count = asNumber(record.count) ?? 0;
+  if (record.scope !== "full") return { scope: "summary", exposed: record.exposed, count };
   const rows = Array.isArray(record.data) ? record.data : [];
   const findings = rows.map((item, index): ExposureFinding => {
     const row = asRecord(item);
     const breach = asRecord(row?.breach);
     const name = asString(breach?.name, 160) ?? "Filtración sin nombre";
-    const dataTypes = translateDataClasses(stringList(breach?.dataTypes));
+    const rawDataTypes = stringList(breach?.dataTypes);
+    const dataTypes = translateDataClasses(rawDataTypes);
     const firstSeenAt = asString(breach?.firstSeenAt, 40);
     const rawDescription = typeof breach?.description === "string" ? breach.description.slice(0, 8_000) : null;
     const copy = explainHibpBreach(rawDescription, {
       name,
       recordCount: asNumber(breach?.claimedRecordCount),
-      dataTypes: stringList(breach?.dataTypes),
+      dataTypes: rawDataTypes,
       publishedAt: firstSeenAt,
     });
     return {
       key: asString(row?.id, 80) ?? `${name}-${index}`,
+      rawDataTypes,
       subjectHint: asString(row?.subjectHint, 180),
       name,
       title: asString(breach?.title, 160) ?? name,
@@ -364,7 +442,17 @@ export function readExposure(body: unknown): ExposureResult | null {
       riskScore: asNumber(breach?.riskScore),
     };
   });
-  return { scope: "full", exposed: record.exposed, persisted: record.persisted === true, findings };
+  const domainMode = record.domainMode === "catalog" || record.domainMode === "accounts" ? record.domainMode : null;
+  return {
+    scope: "full",
+    access: record.access === "owner" ? "owner" : "catalog",
+    domainMode,
+    exposed: record.exposed,
+    count,
+    hiddenSensitive: asNumber(record.hiddenSensitive) ?? 0,
+    persisted: record.persisted === true,
+    findings,
+  };
 }
 
 export type PasswordRangeEntry = { suffix: string; count: number };
@@ -426,6 +514,8 @@ export function readVulnerability(body: unknown): VulnerabilityView | null {
   const known = record.knownExploitedVulnerability ?? record.kev;
   return {
     id: asString(record.id, 80) ?? cve,
+    stale: outer.stale === true,
+    checkedAt: asString(record.updatedAt, 40),
     cve: cve.toUpperCase(),
     description: asString(record.description, 700),
     cvss: asNumber(record.cvssScore),
@@ -436,6 +526,10 @@ export function readVulnerability(body: unknown): VulnerabilityView | null {
     publishedAt: asString(record.publishedAt, 40),
     references: referenceList(record.references, record.attribution),
   };
+}
+
+function readMethod(value: unknown): ConfirmationMethod | null {
+  return value === "ACCOUNT" || value === "EMAIL_LINK" || value === "ADMIN_AUTHORIZATION" || value === "DNS_TXT" ? value : null;
 }
 
 function mapTarget(item: unknown): MonitoringTarget | null {
@@ -451,6 +545,9 @@ function mapTarget(item: unknown): MonitoringTarget | null {
     targetLookup: asString(record.targetLookup, 253),
     active: record.active === true,
     verificationStatus: asString(record.verificationStatus, 20) ?? "PENDING",
+    confirmationMethod: readMethod(record.confirmationMethod),
+    awaitingConfirmation: record.awaitingConfirmation === true,
+    isAccountEmail: record.isAccountEmail === true,
     authorizationRequestedAt: asString(record.authorizationRequestedAt, 40),
     authorizationMessage: asString(record.authorizationMessage, 280),
     verifiedAt: asString(record.verifiedAt, 40),
@@ -464,14 +561,31 @@ export function readTargets(body: unknown): MonitoringTarget[] {
   return data.map(mapTarget).filter((item): item is MonitoringTarget => Boolean(item));
 }
 
+export function readTargetsMeta(body: unknown): TargetsMeta {
+  const meta = asRecord(asRecord(body)?.meta);
+  return {
+    mailerReady: meta?.mailerReady === true,
+    accountEmailConfirmed: meta?.accountEmailConfirmed === true,
+    accountEmailFollowed: meta?.accountEmailFollowed === true,
+  };
+}
+
+/** Objetivo devuelto al crear, reactivar o verificar, con la instrucción de verificación si la hay. */
 export function readCreatedTarget(body: unknown): { target: MonitoringTarget | null; verification: TargetVerification | null } {
   const data = asRecord(dataOf(body));
   const raw = asRecord(data?.verification);
   let verification: TargetVerification | null = null;
-  if (raw?.method === "ADMIN_AUTHORIZATION") {
+  const message = asString(raw?.message, 400) ?? "";
+  if (raw?.method === "DNS_TXT") {
+    const record = typeof raw.record === "string" && /^mercav-pwn=[A-Za-z0-9_-]{20,}$/.test(raw.record) ? raw.record : null;
+    const host = asString(raw.host, 253);
+    if (record && host) verification = { method: "DNS_TXT", host, record, message };
+  } else if (raw?.method === "EMAIL_LINK") {
+    verification = { method: "EMAIL_LINK", sent: raw.sent === true, message };
+  } else if (raw?.method === "ADMIN_AUTHORIZATION") {
     verification = {
       method: "ADMIN_AUTHORIZATION",
-      message: asString(raw.message, 400) ?? "Queda pendiente de consulta hasta que un administrador lo autorice.",
+      message: message || "Queda pendiente hasta que un administrador lo autorice.",
     };
   }
   return { target: mapTarget(data), verification };
@@ -493,10 +607,60 @@ export function readAuthQueue(body: unknown): MonitorAuthRequest[] {
           name: asString(owner?.name, 120),
           email: asString(owner?.email, 254),
           username: asString(owner?.username, 80),
+          emailConfirmed: owner?.emailConfirmed === true,
         },
+        isOwnerAccountEmail: record?.isOwnerAccountEmail === true,
       },
     ];
   });
+}
+
+export function readAuthQueueMeta(body: unknown): { mailerReady: boolean } {
+  return { mailerReady: asRecord(asRecord(body)?.meta)?.mailerReady === true };
+}
+
+export function readOrganizations(body: unknown): OrganizationView[] {
+  const data = dataOf(body);
+  if (!Array.isArray(data)) return [];
+  return data.flatMap((item) => {
+    const row = asRecord(item);
+    const id = asString(row?.id, 80);
+    const name = asString(row?.name, 120);
+    if (!row || !id || !name) return [];
+    return [
+      {
+        id,
+        name,
+        domain: asString(row.domain, 253),
+        targetCount: asNumber(row.targetCount) ?? 0,
+        createdAt: asString(row.createdAt, 40),
+      },
+    ];
+  });
+}
+
+export function readReportHistory(body: unknown): Paged<ReportHistoryItem> {
+  const data = dataOf(body);
+  const items = Array.isArray(data)
+    ? data.flatMap((item): ReportHistoryItem[] => {
+        const row = asRecord(item);
+        const id = asString(row?.id, 80);
+        if (!row || !id) return [];
+        const organization = asRecord(row.organization);
+        const orgId = asString(organization?.id, 80);
+        const orgName = asString(organization?.name, 120);
+        return [
+          {
+            id,
+            title: asString(row.title, 180) ?? "Informe sin título",
+            summary: asString(row.summary, 2000),
+            createdAt: asString(row.createdAt, 40),
+            organization: orgId && orgName ? { id: orgId, name: orgName } : null,
+          },
+        ];
+      })
+    : [];
+  return { items, pagination: readPagination(body) };
 }
 
 export function readVerifiedTarget(body: unknown): { id: string; verificationStatus: string; verifiedAt: string | null } | null {
@@ -541,8 +705,38 @@ export function readForumSignals(body: unknown): {
   const envelope = asRecord(body);
   const data = asRecord(envelope?.data);
   if (!data) return null;
-  const itemsRaw = Array.isArray(data.items) ? data.items : [];
-  const items = itemsRaw.flatMap((item, index): ForumSignalView[] => {
+  const items = readSignalList(data.items);
+  const statsRaw = asRecord(data.stats);
+  const syncRaw = asRecord(data.sync);
+  return {
+    items,
+    pagination: readPagination({ pagination: data.pagination }),
+    stats: statsRaw
+      ? {
+          total: Number(statsRaw.total ?? 0) || 0,
+          database: Number(statsRaw.database ?? 0) || 0,
+          mixed: Number(statsRaw.mixed ?? 0) || 0,
+          credentials: Number(statsRaw.credentials ?? 0) || 0,
+          other: Number(statsRaw.other ?? 0) || 0,
+          stealer: Number(statsRaw.stealer ?? 0) || 0,
+          corporate: Number(statsRaw.corporate ?? 0) || 0,
+          government: Number(statsRaw.government ?? 0) || 0,
+          bolivia: Number(statsRaw.bolivia ?? 0) || 0,
+          data: Number(statsRaw.data ?? 0) || 0,
+        }
+      : null,
+    sync: syncRaw
+      ? {
+          lastFinishedAt: asString(syncRaw.lastFinishedAt, 40),
+          lastStatus: asString(syncRaw.lastStatus, 40),
+        }
+      : null,
+  };
+}
+
+function readSignalList(value: unknown): ForumSignalView[] {
+  const itemsRaw = Array.isArray(value) ? value : [];
+  return itemsRaw.flatMap((item): ForumSignalView[] => {
     const row = asRecord(item);
     const id = asString(row?.id, 80);
     const title = asString(row?.title, 500);
@@ -578,36 +772,12 @@ export function readForumSignals(body: unknown): {
       },
     ];
   });
-  const statsRaw = asRecord(data.stats);
-  const syncRaw = asRecord(data.sync);
-  return {
-    items,
-    pagination: readPagination({ pagination: data.pagination }),
-    stats: statsRaw
-      ? {
-          total: Number(statsRaw.total ?? 0) || 0,
-          database: Number(statsRaw.database ?? 0) || 0,
-          mixed: Number(statsRaw.mixed ?? 0) || 0,
-          credentials: Number(statsRaw.credentials ?? 0) || 0,
-          other: Number(statsRaw.other ?? 0) || 0,
-          stealer: Number(statsRaw.stealer ?? 0) || 0,
-          corporate: Number(statsRaw.corporate ?? 0) || 0,
-          government: Number(statsRaw.government ?? 0) || 0,
-          bolivia: Number(statsRaw.bolivia ?? 0) || 0,
-          data: Number(statsRaw.data ?? 0) || 0,
-        }
-      : null,
-    sync: syncRaw
-      ? {
-          lastFinishedAt: asString(syncRaw.lastFinishedAt, 40),
-          lastStatus: asString(syncRaw.lastStatus, 40),
-        }
-      : null,
-  };
 }
 
 export function readForumSync(body: unknown): {
   skipped: boolean;
+  forced: boolean;
+  lastFinishedAt: string | null;
   skipReason: "fresh" | "in_flight" | null;
   created: number;
   freshCount: number;
@@ -624,6 +794,8 @@ export function readForumSync(body: unknown): {
   const skipReason = data.skipReason === "fresh" || data.skipReason === "in_flight" ? data.skipReason : null;
   return {
     skipped: data.skipped === true,
+    forced: data.forced === true,
+    lastFinishedAt: asString(data.lastFinishedAt, 40),
     skipReason,
     created: Number(data.created ?? 0) || 0,
     freshCount: Number(data.freshCount ?? data.created ?? 0) || 0,
@@ -634,6 +806,47 @@ export function readForumSync(body: unknown): {
       if (!title) return [];
       return [{ title, isBolivia: row?.isBolivia === true }];
     }),
+  };
+}
+
+/** Respuesta de /api/pwn/summary: todo el resumen del panel en una llamada. */
+export function readSummary(body: unknown): SummaryView | null {
+  const data = asRecord(dataOf(body));
+  const verdict = asRecord(data?.verdict);
+  const counts = asRecord(data?.counts);
+  if (!data || !verdict || !counts) return null;
+  const tone = verdict.tone === "exposed" || verdict.tone === "clean" ? verdict.tone : "idle";
+  const count = (value: unknown) => asNumber(value) ?? 0;
+  return {
+    verdict: { tone, unreadAlerts: count(verdict.unreadAlerts), provenTargets: count(verdict.provenTargets) },
+    counts: {
+      targets: count(counts.targets),
+      provenTargets: count(counts.provenTargets),
+      activeProvenTargets: count(counts.activeProvenTargets),
+      pendingTargets: count(counts.pendingTargets),
+      exposures: count(counts.exposures),
+      alerts: count(counts.alerts),
+      unreadAlerts: count(counts.unreadAlerts),
+    },
+    recentAlerts: readAlertList(data.recentAlerts),
+    signals: readSignalList(data.signals),
+    verifiedIntel: Array.isArray(data.verifiedIntel)
+      ? data.verifiedIntel.flatMap((item) => {
+          const row = asRecord(item);
+          const id = asString(row?.id, 80);
+          const name = asString(row?.name, 160);
+          if (!row || !id || !name) return [];
+          return [
+            {
+              id,
+              name,
+              sourceUrl: safeHttpUrl(row.sourceUrl),
+              publishedAt: asString(row.publishedAt, 40),
+              source: asString(row.source, 80),
+            },
+          ];
+        })
+      : [],
   };
 }
 

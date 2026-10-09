@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
-import { KeyRound, X } from 'lucide-react';
+import { KeyRound, X } from '@/components/icons';
+import { posFetch } from '@/lib/pos/client';
 
 const PIN_CODES = new Set(['MANAGER_PIN_REQUIRED', 'PIN_INVALID']);
 
@@ -74,13 +75,13 @@ export function useManagerPin() {
       ...init,
       headers: { ...((init.headers as Record<string, string> | undefined) ?? {}), ...(pin ? { 'x-pos-manager-pin': pin } : {}) },
     });
-    let res = await fetch(url, withPin(pinRef.current));
+    let res = await posFetch(url, withPin(pinRef.current));
     for (let attempt = 0; attempt < 3 && res.status === 403; attempt++) {
       const body = await res.clone().json().catch(() => null);
       if (!PIN_CODES.has(body?.code)) break;
       const pin = await ask(body.code === 'PIN_INVALID' ? 'PIN incorrecto. Probá de nuevo.' : body.error);
       if (!pin) break;
-      res = await fetch(url, withPin(pin));
+      res = await posFetch(url, withPin(pin));
       if (res.status !== 403) pinRef.current = pin;
     }
     return res;

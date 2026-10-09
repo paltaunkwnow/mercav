@@ -4,11 +4,14 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { PwnProviderError } from "@/lib/integrations/pwn";
+import { retryAfterCopy } from "@/lib/pwn/rate-copy";
 
 export type PwnSessionUser = {
   id: string;
   email?: string | null;
   roles: string[];
+  /** La cuenta confirmó su buzón: alta con Google o User.isVerified. */
+  emailConfirmed: boolean;
 };
 
 export function disabledResponse(): NextResponse | null {
@@ -17,88 +20,47 @@ export function disabledResponse(): NextResponse | null {
     : NextResponse.json({ success: false, error: "No encontrado" }, { status: 404 });
 }
 
+/**
+ * Usuario de la sesión, siempre resuelto contra la base. Si la fila no existe (cuenta borrada),
+ * el JWT no alcanza: devolvemos null. Los roles salen solo de la base, nunca del token.
+ */
 export async function getPwnSessionUser(): Promise<PwnSessionUser | null> {
   const session = await getServerSession(authOptions);
-  const user = session?.user as
-    | { id?: unknown; email?: string | null; name?: string | null; roles?: unknown }
-    | undefined;
+  const user = session?.user as { id?: unknown; email?: string | null } | undefined;
   if (!user) return null;
   const sessionId = typeof user.id === "string" ? user.id : "";
   const email = typeof user.email === "string" ? user.email.trim().toLowerCase() : "";
-  const name = typeof user.name === "string" ? user.name : null;
   if (!sessionId && !email) return null;
 
-  const resolved = await ensureDbUser({ sessionId, email, name });
+  const resolved = await findDbUser({ sessionId, email });
   if (!resolved) return null;
 
-  const jwtRoles = Array.isArray(user.roles)
-    ? user.roles.filter((role): role is string => typeof role === "string")
-    : [];
   const dbRoles = await prisma.userRole.findMany({
     where: { userId: resolved.id },
     select: { role: true },
   });
-  const roles = [...new Set([...jwtRoles, ...dbRoles.map((row) => row.role)])];
 
   return {
     id: resolved.id,
     email: resolved.email,
-    roles,
+    roles: [...new Set(dbRoles.map((row) => row.role))],
+    emailConfirmed: resolved.isVerified,
   };
 }
 
-async function ensureDbUser(input: {
+async function findDbUser(input: {
   sessionId: string;
   email: string;
-  name: string | null;
-}): Promise<{ id: string; email: string } | null> {
-  if (input.email) {
-    const byEmail = await prisma.user.findUnique({
-      where: { email: input.email },
-      select: { id: true, email: true },
-    });
-    if (byEmail) return byEmail;
-  }
+}): Promise<{ id: string; email: string; isVerified: boolean } | null> {
+  const select = { id: true, email: true, isVerified: true } as const;
+  // Con id en el token, ese id manda: si la fila ya no existe no caemos al email (podría ser otra cuenta).
   if (input.sessionId) {
-    const byId = await prisma.user.findUnique({
-      where: { id: input.sessionId },
-      select: { id: true, email: true },
-    });
-    if (byId) return byId;
+    return prisma.user.findUnique({ where: { id: input.sessionId }, select });
   }
-  if (!input.email) return null;
-
-  const base =
-    input.email
-      .split("@")[0]
-      ?.toLowerCase()
-      .replace(/[^a-z0-9]/g, "") || "user";
-  for (let attempt = 0; attempt < 6; attempt += 1) {
-    const username = `${base}${Math.floor(1000 + Math.random() * 9000)}`;
-    try {
-      return await prisma.user.create({
-        data: {
-          ...(looksLikeUuid(input.sessionId) ? { id: input.sessionId } : {}),
-          email: input.email,
-          name: input.name?.trim() || "Usuario",
-          username,
-          isVerified: true,
-        },
-        select: { id: true, email: true },
-      });
-    } catch {
-      const raced = await prisma.user.findUnique({
-        where: { email: input.email },
-        select: { id: true, email: true },
-      });
-      if (raced) return raced;
-    }
+  if (input.email) {
+    return prisma.user.findUnique({ where: { email: input.email }, select });
   }
   return null;
-}
-
-function looksLikeUuid(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 export function unauthorized(): NextResponse {
@@ -120,14 +82,15 @@ export function providerError(error: unknown): NextResponse | null {
   if (!(error instanceof PwnProviderError)) return null;
   if (error.rateLimited) {
     console.warn(`Pwn provider rate limited: ${error.provider}`);
+    const seconds = error.retryAfterSeconds ?? 60;
     return NextResponse.json(
-      { success: false, error: "El proveedor externo está limitando consultas. Intenta de nuevo en un momento." },
-      { status: 429, headers: { "Retry-After": String(error.retryAfterSeconds ?? 60) } },
+      { success: false, error: `${error.provider} está limitando las consultas. ${retryAfterCopy(seconds)}` },
+      { status: 429, headers: { "Retry-After": String(seconds) } },
     );
   }
   console.error(`Pwn provider failure: ${error.provider}`);
   return NextResponse.json(
-    { success: false, error: "El proveedor externo no está disponible" },
+    { success: false, error: `${error.provider} no respondió. Probá de nuevo en unos minutos.` },
     { status: 502 },
   );
 }

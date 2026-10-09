@@ -61,9 +61,9 @@ export function assertPublicHttpUrl(raw: string): URL {
 }
 
 export function safeCallbackPath(raw: string | null | undefined): string {
-  if (!raw) return "/dashboard";
+  if (!raw) return "/inicio";
   if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\") || raw.includes("://")) {
-    return "/dashboard";
+    return "/inicio";
   }
   return raw;
 }

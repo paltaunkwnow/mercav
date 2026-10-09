@@ -12,7 +12,7 @@ const updateSchema = z.object({
 });
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const ctx = await getPosContext();
+  const ctx = await getPosContext(req, "pos.configure");
   if (!ctx.ok) return ctx.response;
   const gate = await requireManager(req, ctx.config.id);
   if (!gate.ok) return gate.response;

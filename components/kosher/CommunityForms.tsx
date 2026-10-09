@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Check, Copy, Link2, LocateFixed, UserCheck, X } from "lucide-react";
+import { Check, Copy, Link2, LocateFixed, UserCheck, X } from "@/components/icons";
 import { toast } from "sonner";
 import { kosherFetch, useKosherViewer } from "@/components/kosher/KosherViewer";
 import { fieldClass, labelClass, primaryButton, secondaryButton } from "@/components/kosher/ui";

@@ -1,19 +1,30 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { safeCallbackPath } from '@/lib/security/safe-url';
+import { REAL_DATA_NOTICE_CUSTOMER } from '@/lib/business/loyalty/notice';
 import Link from 'next/link';
-import { Loader2, ArrowRight, CheckCircle2, XCircle } from 'lucide-react';
-import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { Loader2, ArrowRight, CheckCircle2, XCircle } from '@/components/icons';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthField, FormAlert, PasswordField, SubmitButton } from '@/components/auth/AuthFields';
-import { useCookieConsent } from '@/components/legal/CookieConsentProvider';
-import { RECAPTCHA_SITE_KEY } from '@/lib/recaptcha';
 
 export default function Register() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
+  );
+}
+
+function RegisterForm() {
   const router = useRouter();
-  const { executeRecaptcha } = useGoogleReCaptcha();
-  const { thirdPartyAllowed, openCookieSettings, hasDecided } = useCookieConsent();
+  const searchParams = useSearchParams();
+  // Vuelta después de crear la cuenta (por ejemplo, a la tarjeta de fidelización para guardarla).
+  const rawCallback = searchParams?.get('callbackUrl') ?? null;
+  const callbackUrl = rawCallback ? safeCallbackPath(rawCallback) : null;
+  const fromCard = !!callbackUrl?.startsWith('/c/');
+  const loginHref = callbackUrl ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : '/login';
   
   const [formData, setFormData] = useState({
     name: '',
@@ -70,51 +81,10 @@ export default function Register() {
     setLoading(true);
     setError('');
 
-    const thirdPartyBlocked = Boolean(RECAPTCHA_SITE_KEY && hasDecided && !thirdPartyAllowed);
-    if (thirdPartyBlocked) {
-      setError('Para registrarte debes aceptar cookies de terceros (Google reCAPTCHA).');
-      openCookieSettings();
-      setLoading(false);
-      return;
-    }
-
     if (formData.password.length < 6) {
       setError('La contraseña debe tener al menos 6 caracteres');
       setLoading(false);
       return;
-    }
-
-    let token: string | undefined;
-    if (RECAPTCHA_SITE_KEY) {
-      if (executeRecaptcha) {
-        try {
-          token = await executeRecaptcha('register');
-        } catch (err) {
-          console.warn('executeRecaptcha hook error:', err);
-        }
-      }
-
-      if (!token && typeof window !== 'undefined') {
-        const w = window as any;
-        for (let attempt = 0; attempt < 20; attempt++) {
-          const g = w.grecaptcha?.enterprise || w.grecaptcha;
-          if (g && typeof g.execute === 'function') {
-            try {
-              token = await g.execute(RECAPTCHA_SITE_KEY, { action: 'register' });
-              if (token) break;
-            } catch (err) {
-              console.warn('Direct grecaptcha error:', err);
-            }
-          }
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-      }
-
-      if (!token) {
-        setError('No se pudo cargar el servicio de seguridad (reCAPTCHA). Si tienes un bloqueador de anuncios (AdBlock, Brave Shields) o extensiones de privacidad, desactívalos temporalmente o refresca la página.');
-        setLoading(false);
-        return;
-      }
     }
 
     try {
@@ -122,21 +92,18 @@ export default function Register() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          recaptchaToken: token,
-        }),
+        body: JSON.stringify(formData),
       });
       const data = await res.json();
       
       if (!res.ok) throw new Error(data.error || 'Error al registrar');
       
-      router.push('/login?registered=true');
+      router.push(callbackUrl ? `/login?registered=true&callbackUrl=${encodeURIComponent(callbackUrl)}` : '/login?registered=true');
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
     }
-  }, [executeRecaptcha, formData, router, thirdPartyAllowed, hasDecided, openCookieSettings]);
+  }, [formData, router, callbackUrl]);
 
   const passwordStrength = formData.password.length === 0 ? 0 : formData.password.length < 6 ? 1 : formData.password.length < 10 ? 2 : 3;
   const strengthLabels = ['', 'Débil', 'Aceptable', 'Fuerte'];
@@ -158,7 +125,7 @@ export default function Register() {
       title="Empezá con Mercav"
       lead="Creá tu cuenta gratis. Con el mismo perfil publicás, contratás, cobrás y vigilás tu exposición."
       panelTitle="Una cuenta abre los siete módulos."
-      panelLead="Tu perfil, tus pagos y tus mensajes viajan con vos entre Ads, Services, Jobs, POS, Tools, Pwn y Kosher."
+      panelLead="Tu perfil, tus pagos y tus mensajes viajan con vos entre Ads, Services, Jobs, Business, Tools, Pwn y Kosher."
     >
       {error && (
         <div className="mb-6">
@@ -166,10 +133,17 @@ export default function Register() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      {fromCard && (
+        <div className="mb-6">
+          <FormAlert tone="success">{REAL_DATA_NOTICE_CUSTOMER}</FormAlert>
+        </div>
+      )}
+
+      {/* method="post": si el JavaScript no carga, los datos no viajan en la URL. */}
+      <form method="post" onSubmit={handleSubmit} className="space-y-5">
         <AuthField
           id="register-name"
-          label="Nombre completo"
+          label={fromCard ? 'Nombre y apellido (como en tu documento)' : 'Nombre completo'}
           type="text"
           name="name"
           autoComplete="name"
@@ -257,7 +231,7 @@ export default function Register() {
 
       <p className="mt-8 text-sm text-[var(--text-secondary)]">
         ¿Ya tenés cuenta?{' '}
-        <Link href="/login" className="mv-link">
+        <Link href={loginHref} className="mv-link">
           Iniciá sesión
         </Link>
       </p>

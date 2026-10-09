@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Search, Package, PackageX, Leaf, ShieldCheck, ScanLine } from 'lucide-react';
+import { Search, Package, PackageX, Leaf, ShieldCheck, ScanLine } from '@/components/icons';
 import { buttonClass } from '@/components/site/primitives';
 import BarcodeScanner from './BarcodeScanner';
 import { isLowStock, keyTiming } from '@/lib/pos/stock';
@@ -14,6 +14,7 @@ const SCAN_MIN_LENGTH = 4;
 const SHORTCUT_KEYS = new Set(['/', '?', '+', '-']);
 import { formatQuantity, getUnit, type BusinessType } from '@/lib/pos/business';
 import { formatMoney } from '@/lib/pos/money';
+import { usePos } from '@/lib/pos/client';
 
 export interface POSGridProduct {
   id: string;
@@ -50,6 +51,7 @@ function isTypingTarget(el: EventTarget | null) {
 }
 
 export default function POSProductGrid({ products, categories, onAdd, onNotFound, currency, business }: POSProductGridProps) {
+  const pos = usePos();
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -286,7 +288,7 @@ export default function POSProductGrid({ products, categories, onAdd, onNotFound
               <>
                 <p className="mt-4 text-base font-semibold text-[var(--text-primary)]">Todavía no hay productos a la venta</p>
                 <p className="mt-1 max-w-sm text-sm text-[var(--text-secondary)]">Cargá tu catálogo en el inventario y vas a poder venderlo desde acá.</p>
-                <Link href="/dashboard/pos/inventory" className={buttonClass('primary', 'sm', 'mt-5')}>
+                <Link href={pos.href('inventory')} className={buttonClass('primary', 'sm', 'mt-5')}>
                   Cargar productos
                 </Link>
               </>

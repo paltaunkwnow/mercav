@@ -5,7 +5,7 @@ export const TOOL_REQUIREMENTS: Record<string, Array<string>> = {
   "price-simulator": ["PROFESSIONAL", "EMPRESA", "ELITE"],
   "palette-generator": ["FREE", "PROFESSIONAL", "EMPRESA", "ELITE"],
   "prompt-generator": ["ELITE"],
-  "pos-system": ["FREE", "PROFESSIONAL", "EMPRESA", "ELITE"],
+  "holiday-calendar": ["FREE", "PROFESSIONAL", "EMPRESA", "ELITE"],
 };
 
 export function toolPlanLabel(toolName: string) {

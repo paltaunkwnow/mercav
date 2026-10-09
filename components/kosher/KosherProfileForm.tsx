@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { MoonStar } from "lucide-react";
+import { MoonStar } from "@/components/icons";
 import { toast } from "sonner";
 import { DENOMINATION, STREAM } from "@/lib/kosher/labels";
 import { kosherFetch } from "@/components/kosher/KosherViewer";

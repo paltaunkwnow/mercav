@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowLeft, CheckCircle2, ExternalLink, ImageOff, Pencil, Plus, Trash2, type LucideIcon } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ExternalLink, ImageOff, Pencil, Plus, Trash2, type LucideIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */

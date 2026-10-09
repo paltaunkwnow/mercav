@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { 
   Search, Users, ShieldCheck, Lock, ShieldAlert,
   Loader2, ChevronDown, MessageSquare, Paperclip, History, UserX
-} from "lucide-react"
+} from "@/components/icons"
 import { AdminUserActions } from "./AdminControls"
 import { AdminDialog } from "./AdminDialog"
 import { cn } from "@/lib/utils"

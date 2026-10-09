@@ -30,7 +30,7 @@ import {
   Video,
   X,
   RefreshCw,
-} from "lucide-react";
+} from "@/components/icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { ConfirmModal } from "@/components/ui/confirm-modal";

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Check, X } from "lucide-react";
+import { Check, X } from "@/components/icons";
 import { toast } from "sonner";
 import { kosherFetch } from "@/components/kosher/KosherViewer";
 import { EmptyState, primaryButton, secondaryButton } from "@/components/kosher/ui";

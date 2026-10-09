@@ -63,7 +63,7 @@ export function RecentLookups() {
   if (!items.length) return null;
 
   return (
-    <section aria-labelledby="pwn-recent-title" className="mv-panel rounded-[1.5rem] p-5 md:p-6">
+    <section aria-labelledby="pwn-recent-title" className="mv-panel p-5 md:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="pwn-recent-title" className="mv-h3 text-lg">
@@ -75,7 +75,7 @@ export function RecentLookups() {
         </div>
         <button
           type="button"
-          className={`mv-link text-sm ${focusRing}`}
+          className={`mv-link inline-flex min-h-11 items-center text-sm ${focusRing}`}
           onClick={() => {
             try {
               sessionStorage.removeItem(KEY);
@@ -92,7 +92,7 @@ export function RecentLookups() {
         {items.map((item) => (
           <li
             key={`${item.type}:${item.hint}:${item.at}`}
-            className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--mv-hairline)] px-4 py-3"
+            className="flex items-center justify-between gap-3 rounded-[0.875rem] border border-[var(--mv-hairline)] px-4 py-3"
           >
             <span className="mv-data truncate text-sm text-[var(--text-primary)]">{item.hint}</span>
             <span className="shrink-0 text-xs text-[var(--text-tertiary)]">

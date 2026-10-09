@@ -10,7 +10,7 @@ import {
   PieChart,
   Pie
 } from "recharts";
-import { Activity, BadgeCheck, Briefcase, CreditCard, DollarSign, LifeBuoy, MapPin, Receipt, Users, Zap } from "lucide-react";
+import { Activity, BadgeCheck, Briefcase, CreditCard, DollarSign, LifeBuoy, MapPin, Receipt, Users, Zap } from "@/components/icons";
 import { PullChart } from "@/components/motion/PullChart";
 import { AdminPanel, EmptyState, Metric, fmt } from "./ui";
 

@@ -1,7 +1,7 @@
-import { LegalDocumentView } from "@/components/legal/LegalDocumentView";
+import { LegalCartelDocument } from "@/components/legal/LegalCartelDocument";
 import { COOKIE_POLICY } from "@/lib/legal/documents";
 
 export default function CookiesPage() {
-  return <LegalDocumentView doc={COOKIE_POLICY} />;
+  return <LegalCartelDocument doc={COOKIE_POLICY} />;
 }
 // creado por pato dev y askforvini

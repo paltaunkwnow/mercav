@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MapPinned, MessagesSquare } from "lucide-react";
+import { MapPinned, MessagesSquare } from "@/components/icons";
 import { prisma } from "@/lib/prisma";
 import { cityThreadKey } from "@/lib/kosher/geo";
 import { BackLink, PageIntro, primaryButton, secondaryButton } from "@/components/kosher/ui";

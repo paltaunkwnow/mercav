@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { X, AlertTriangle } from "lucide-react"
+import { X, AlertTriangle } from "@/components/icons"
 
 import { cn } from "@/lib/utils"
 import { SlideConfirm } from "@/components/motion/SlideConfirm"

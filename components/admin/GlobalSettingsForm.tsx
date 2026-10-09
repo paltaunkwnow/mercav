@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Save, FileDown, Search, History } from "lucide-react";
+import { Loader2, Save, FileDown, Search, History } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { AdminPanel, EmptyState, Field, InlineAlert, LoadingState, StatusBadge, fmt } from "./ui";

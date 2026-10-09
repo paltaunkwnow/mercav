@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { List, LocateFixed, Search, Users, X } from "lucide-react";
+import { List, LocateFixed, Search, Users, X } from "@/components/icons";
 import { toast } from "sonner";
 import type { PlaceDTO } from "@/lib/kosher/server";
 import { SCOPES, type ScopeKey } from "@/lib/kosher/labels";

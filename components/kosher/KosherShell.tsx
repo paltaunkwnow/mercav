@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useAppPathname } from "@/components/layout/HostContext";
 import { motion, useReducedMotion } from "framer-motion";
 import type { ReactNode } from "react";
-import { MoonStar } from "lucide-react";
+import { MoonStar } from "@/components/icons";
 import { Toaster } from "sonner";
 import { useKosherViewer } from "@/components/kosher/KosherViewer";
 import { cn } from "@/lib/utils";
+import { StarOfDavid } from "@/components/site/StarOfDavid";
 
 const NAV = [
   { href: "/kosher", label: "Inicio" },
@@ -26,11 +27,12 @@ export const kosherFocus = "mv-focus outline-none";
 
 export function KosherWordmark({ className }: { className?: string }) {
   return (
-    <span className={cn("inline-flex items-baseline gap-2", className)}>
-      <span className="font-display font-semibold tracking-tight text-[var(--text-primary)]">
-        Mercav <span className="text-gold">Kosher</span>
+    <span className={cn("inline-flex items-center gap-2", className)}>
+      <StarOfDavid className="h-5 w-5 text-[var(--k-accent)]" />
+      <span className="font-semibold tracking-[-0.012em] text-[var(--text-primary)]">
+        Mercav <span className="text-[var(--k-accent)]">Kosher</span>
       </span>
-      <span lang="he" dir="rtl" className="font-display text-sm text-techelet">
+      <span lang="he" dir="rtl" className="text-sm text-[var(--k-accent)]">
         מקום
       </span>
     </span>
@@ -38,7 +40,8 @@ export function KosherWordmark({ className }: { className?: string }) {
 }
 
 export function KosherShell({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
+  // The route, not the browser path: kosher.mercav.lat/mapa renders /kosher/mapa.
+  const pathname = useAppPathname();
   const viewer = useKosherViewer();
   const reduce = useReducedMotion();
   const fullBleed = pathname === "/kosher/mapa";
@@ -58,7 +61,7 @@ export function KosherShell({ children }: { children: ReactNode }) {
 
   if (fullBleed) {
     return (
-      <div className="relative h-[100dvh] w-full overflow-hidden bg-bg-primary">
+      <div className="k-world k-page relative h-[100dvh] w-full overflow-hidden">
         <div className="relative z-10 h-full">{children}</div>
         {toaster}
       </div>
@@ -66,12 +69,7 @@ export function KosherShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="relative w-full bg-bg-primary pb-16 md:pb-24">
-      {/* One ambient light for the whole Kosher area, tinted techelet. */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[520px] overflow-hidden">
-        <div className="absolute left-1/2 top-[-180px] h-[420px] w-[min(900px,140vw)] -translate-x-1/2 rounded-full bg-techelet/[0.08] blur-[110px]" />
-      </div>
-
+    <div className="k-world k-page relative w-full pb-28 md:pb-24">
       <div className="relative z-10 pt-24 md:pt-28">
         <div className="mv-container">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -79,7 +77,7 @@ export function KosherShell({ children }: { children: ReactNode }) {
               <KosherWordmark className="text-lg" />
             </Link>
             <nav aria-label="Secciones de Mercav Kosher" className="-mx-4 px-4 sm:mx-0 sm:px-0">
-              <ul className="liquid-glass scrollbar-hide flex w-max max-w-full gap-0.5 overflow-x-auto rounded-full p-1">
+              <ul className="scrollbar-hide flex w-max max-w-full gap-1.5 overflow-x-auto">
                 {items.map((item) => {
                   const active = item.href === "/kosher" ? pathname === "/kosher" : pathname?.startsWith(item.href);
                   return (
@@ -88,17 +86,17 @@ export function KosherShell({ children }: { children: ReactNode }) {
                         <motion.span
                           layoutId="kosher-subnav"
                           aria-hidden
-                          className="absolute inset-0 rounded-full bg-techelet-dim ring-1 ring-inset ring-techelet/35"
-                          transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 38 }}
+                          className="absolute inset-0 rounded-full bg-[var(--k-accent)]"
+                          transition={reduce ? { duration: 0 } : { type: "spring", bounce: 0, duration: 0.35 }}
                         />
                       )}
                       <Link
                         href={item.href}
                         aria-current={active ? "page" : undefined}
                         className={cn(
-                          "relative inline-flex h-10 items-center rounded-full px-4 text-sm font-semibold transition-colors duration-200",
+                          "relative inline-flex h-10 items-center rounded-full px-4 text-[0.9rem] font-semibold transition-colors duration-200",
                           kosherFocus,
-                          active ? "text-techelet" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
+                          active ? "text-[var(--k-on-accent)]" : "bg-[var(--mv-panel)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
                         )}
                       >
                         {item.label}
@@ -111,8 +109,8 @@ export function KosherShell({ children }: { children: ReactNode }) {
           </div>
 
           {viewer.shabbatLocked && (
-            <div role="status" className="mt-6 flex items-start gap-3 rounded-2xl border border-techelet/30 bg-techelet-dim px-4 py-3 text-sm text-[var(--text-primary)]">
-              <MoonStar className="mt-0.5 h-4 w-4 shrink-0 text-techelet" aria-hidden />
+            <div role="status" className="mt-6 flex items-start gap-3 rounded-2xl bg-[var(--mv-panel)] px-4 py-3 text-sm text-[var(--text-primary)] shadow-[inset_0_0_0_1.5px_var(--k-accent)]">
+              <MoonStar className="mt-0.5 h-4 w-4 shrink-0 text-[var(--k-accent)]" aria-hidden />
               <span>Shabat shalom. Tu modo Shabat está activo: podés leer todo y volver a escribir después de Havdalá.</span>
             </div>
           )}

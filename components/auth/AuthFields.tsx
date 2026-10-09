@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type InputHTMLAttributes, type ReactNode } from "react";
-import { AlertCircle, CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Eye, EyeOff, Loader2 } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 /** Visible label + mv-input. `hint` and `trailing` are optional; `labelAction` sits to the right of the label. */

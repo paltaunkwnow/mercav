@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bookmark, Loader2 } from "lucide-react";
+import { Bookmark, Loader2 } from "@/components/icons";
 import { Toast } from "@/components/ui/toast";
 
 interface SaveButtonProps {

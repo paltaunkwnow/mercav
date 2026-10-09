@@ -20,8 +20,9 @@ test("only other emails need an administrator", () => {
   assert.equal(needsAdminAuthorization("EMAIL", false), true);
   assert.equal(needsAdminAuthorization("DOMAIN", false), false);
   assert.equal(needsAdminAuthorization("DOMAIN", true), false);
-  assert.equal(requestBlockedReason("PENDING", "DOMAIN"), "Los dominios se consultan y se patrullan sin autorización.");
-  assert.equal(monitorAuthHint("PENDING", "DOMAIN"), null);
+  assert.equal(requestBlockedReason("PENDING", "DOMAIN"), "Los dominios se verifican con un registro DNS TXT, no con un administrador.");
+  assert.match(monitorAuthHint("PENDING", "DOMAIN") ?? "", /TXT/);
+  assert.equal(monitorAuthHint("VERIFIED", "DOMAIN"), null);
   assert.match(monitorAuthHint("PENDING", "EMAIL") ?? "", /consultar/);
 });
 

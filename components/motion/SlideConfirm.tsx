@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { animate, motion, useMotionValue, useTransform } from "framer-motion";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check } from "@/components/icons";
 
 const GRIP = 48;
 const GRIP_GOLD = 64;

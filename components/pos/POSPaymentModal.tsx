@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { X, ArrowRight, Wallet, User, Plus, Trash2, Loader2 } from 'lucide-react';
+import { X, ArrowRight, Wallet, User, Plus, Trash2, Loader2 } from '@/components/icons';
 import { PAYMENT_METHODS, paymentMethodLabel } from '@/lib/pos/business';
 import { cashDenominations, currencyDecimals, formatMoney, roundMoney } from '@/lib/pos/money';
 import { countryFiscal } from '@/lib/pos/fiscal';

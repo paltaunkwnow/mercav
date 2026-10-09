@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { RefreshCw, TriangleAlert } from 'lucide-react';
+import { RefreshCw, TriangleAlert } from '@/components/icons';
 import { Container, ButtonLink, buttonClass } from '@/components/site/primitives';
 
 export default function Error({

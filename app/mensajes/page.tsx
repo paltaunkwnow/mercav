@@ -12,7 +12,7 @@ import {
   UserPlus,
   X,
   SquarePen,
-} from "lucide-react";
+} from "@/components/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -83,7 +83,7 @@ function MensajesUI() {
             participants: [admin, session?.user],
             messages: [{
               id: 'admin-welcome-virtual',
-              content: encryptMessage("¡Hola! Este es el canal oficial de soporte de Mercav.\n\nPodemos ayudarte con:\n• Reportes de fraude o usuarios sospechosos.\n• Problemas técnicos con tu POS o publicaciones.\n• Dudas sobre pagos y comisiones.\n• Sugerencias para mejorar la plataforma.\n\nEscribinos tu consulta con el mayor detalle posible y alguien del equipo te va a responder."),
+              content: encryptMessage("¡Hola! Este es el canal oficial de soporte de Mercav.\n\nPodemos ayudarte con:\n• Reportes de fraude o usuarios sospechosos.\n• Problemas técnicos con Mercav Business o tus publicaciones.\n• Dudas sobre pagos y comisiones.\n• Sugerencias para mejorar la plataforma.\n\nEscribinos tu consulta con el mayor detalle posible y alguien del equipo te va a responder."),
               senderId: admin.id,
               createdAt: new Date().toISOString()
             }]
@@ -116,7 +116,7 @@ function MensajesUI() {
         if (isAdminChat) {
           decryptedMessages.unshift({
             id: 'admin-welcome',
-            content: "¡Hola! Este es el canal oficial de soporte de Mercav.\n\nPodemos ayudarte con:\n• Reportes de fraude o usuarios sospechosos.\n• Problemas técnicos con tu POS o publicaciones.\n• Dudas sobre pagos y comisiones.\n• Sugerencias para mejorar la plataforma.\n\nEscribinos tu consulta con el mayor detalle posible y alguien del equipo te va a responder.",
+            content: "¡Hola! Este es el canal oficial de soporte de Mercav.\n\nPodemos ayudarte con:\n• Reportes de fraude o usuarios sospechosos.\n• Problemas técnicos con Mercav Business o tus publicaciones.\n• Dudas sobre pagos y comisiones.\n• Sugerencias para mejorar la plataforma.\n\nEscribinos tu consulta con el mayor detalle posible y alguien del equipo te va a responder.",
             senderId: selectedConv.participants.find((p: any) => p.email === 'admin@mercav.lat')?.id,
             createdAt: selectedConv.createdAt,
             isOfficial: true

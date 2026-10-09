@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Briefcase, Plus, Search, MapPin, Users, Eye } from "lucide-react";
+import { Briefcase, Plus, Search, MapPin, Users, Eye } from "@/components/icons";
 import { useSession } from "next-auth/react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Container, PageHero, ButtonLink } from "@/components/site/primitives";

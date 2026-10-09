@@ -25,7 +25,7 @@ export type ForumThreadSignal = {
   titleKey?: string;
 };
 
-const SCRAPE_UA = "Mercav-Pwn/1.0 (+https://pwn.mercav.lat; defensive threat monitoring)";
+const SCRAPE_UA = "Mercav-Pwn/1.0 (+https://app.mercav.lat/pwn; defensive threat monitoring)";
 
 const BLOCKLIST_HOST =
   /(?:localhost|127\.0\.0\.1|0\.0\.0\.0|169\.254\.|10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/i;

@@ -22,6 +22,8 @@ export type BrandedPdf = {
   subtitle?: string;
   blocks: PdfBlock[];
   fileName: string;
+  /** Pie de página. Por defecto "Generado con Mercav Tools · mercav.lat". */
+  footer?: string;
 };
 
 const PAGE_W = 210;
@@ -66,7 +68,7 @@ function clean(text: string) {
     .replace(/[^\x09\x0A\x0D\x20-\x7E¡-ÿ]/g, "");
 }
 
-export async function downloadBrandedPdf({ toolName, title, subtitle, blocks, fileName }: BrandedPdf) {
+export async function downloadBrandedPdf({ toolName, title, subtitle, blocks, fileName, footer = "Generado con Mercav Tools · mercav.lat" }: BrandedPdf) {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const generatedAt = formatLongDate();
@@ -239,7 +241,7 @@ export async function downloadBrandedPdf({ toolName, title, subtitle, blocks, fi
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
     doc.setTextColor(...FAINT);
-    doc.text("Generado con Mercav Tools · mercav.lat", MARGIN, PAGE_H - 10);
+    doc.text(clean(footer), MARGIN, PAGE_H - 10);
     doc.text(`Página ${page} de ${total}`, PAGE_W - MARGIN, PAGE_H - 10, { align: "right" });
   }
 

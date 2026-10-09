@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Code, PenTool, TrendingUp, Video, Camera, Cpu, Star, Clock, Package, Lock, CheckCheck, MonitorPlay, X } from "lucide-react";
+import { Search, Code, PenTool, TrendingUp, Video, Camera, Cpu, Star, Clock, Package, Lock, CheckCheck, MonitorPlay, X } from "@/components/icons";
 import { Container, PageHero, ButtonLink, buttonClass } from "@/components/site/primitives";
 import { CardSkeletonGrid, EmptyState, MediaFrame, SERVICE_CATEGORY_LABEL, formatMoney, labelFor } from "@/components/anuncios/market-ui";
 import { cn } from "@/lib/utils";

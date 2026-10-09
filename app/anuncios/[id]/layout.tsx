@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { excerpt, jsonLd } from "@/lib/seo/text";
-import { SITE_URL } from "@/lib/seo/site";
+import { canonicalFor } from "@/lib/seo/site";
 
 async function load(id: string) {
   try {
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   return {
     title,
     description,
-    openGraph: { title, description, url: `/anuncios/${space.id}`, images },
+    openGraph: { title, description, url: canonicalFor(`/anuncios/${space.id}`), images },
     twitter: { title, description, images },
   };
 }
@@ -37,9 +37,9 @@ export default async function Layout({ children, params }: { children: React.Rea
     description: excerpt(space.description, 500),
     image: space.images.map((i) => i.url),
     category: "Espacio publicitario",
-    url: `${SITE_URL}/anuncios/${space.id}`,
+    url: canonicalFor(`/anuncios/${space.id}`),
     ...(space.pricePerMonth
-      ? { offers: { "@type": "Offer", price: Number(space.pricePerMonth), priceCurrency: (space.currency || "USD").toUpperCase(), availability: "https://schema.org/InStock", url: `${SITE_URL}/anuncios/${space.id}` } }
+      ? { offers: { "@type": "Offer", price: Number(space.pricePerMonth), priceCurrency: (space.currency || "USD").toUpperCase(), availability: "https://schema.org/InStock", url: canonicalFor(`/anuncios/${space.id}`) } }
       : {}),
   };
   return (

@@ -1,7 +1,7 @@
-import { LegalDocumentView } from "@/components/legal/LegalDocumentView";
+import { LegalCartelDocument } from "@/components/legal/LegalCartelDocument";
 import { REFUNDS } from "@/lib/legal/documents";
 
 export default function ReembolsosPage() {
-  return <LegalDocumentView doc={REFUNDS} />;
+  return <LegalCartelDocument doc={REFUNDS} />;
 }
 // creado por pato dev y askforvini

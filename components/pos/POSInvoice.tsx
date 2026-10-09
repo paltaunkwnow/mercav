@@ -1,6 +1,6 @@
 "use client";
 
-import { Store, Printer, ShoppingBag, CheckCircle2, X, CloudOff, Ban, MessageCircle, Mail, Share2 } from 'lucide-react';
+import { Store, Printer, ShoppingBag, CheckCircle2, X, CloudOff, Ban, MessageCircle, Mail, Share2 } from '@/components/icons';
 import { createPortal } from 'react-dom';
 import { useEffect, useState } from 'react';
 import { formatQuantity, getUnit, orderTypeLabel, paymentMethodLabel } from '@/lib/pos/business';

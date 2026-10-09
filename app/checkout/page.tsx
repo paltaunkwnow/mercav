@@ -7,7 +7,7 @@ import StripeWrapper from '@/components/checkout/StripeWrapper';
 import { Metadata } from 'next';
 import { planChargeUsd } from '@/lib/billing/plans';
 import Link from 'next/link';
-import { AlertCircle, ArrowLeft, Lock } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Lock } from '@/components/icons';
 import { Container, buttonClass } from '@/components/site/primitives';
 
 const PLAN_LABEL: Record<string, string> = { PROFESSIONAL: 'Professional', EMPRESA: 'Empresa', ELITE: 'Elite' };

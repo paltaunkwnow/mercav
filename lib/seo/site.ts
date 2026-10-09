@@ -1,18 +1,49 @@
-// Canonical hosts for search engines. Pwn and Kosher live on their own subdomains;
-// the same pages are also reachable under mercav.lat/pwn and mercav.lat/kosher,
-// so every URL resolves to exactly one canonical address.
+// Canonical hosts for search engines.
+// - mercav.lat: only the public site (landing, quiénes somos, pitch, inversores, legal).
+// - app.mercav.lat: the product. Everything else, including Tools, Pwn (/pwn), Business and Calendario.
+// - kosher.mercav.lat: Mercav Kosher, served from /kosher.
+// pwn.mercav.lat now redirects to app.mercav.lat/pwn. Every URL resolves to exactly one canonical address.
 
 export const SITE_URL = "https://mercav.lat";
-export const PWN_URL = "https://pwn.mercav.lat";
+export const APP_URL = "https://app.mercav.lat";
+export const PWN_URL = `${APP_URL}/pwn`;
 export const KOSHER_URL = "https://kosher.mercav.lat";
+
+export const SITE_HOST = "mercav.lat";
+export const APP_HOST = "app.mercav.lat";
+export const PWN_HOST = "pwn.mercav.lat";
+export const KOSHER_HOST = "kosher.mercav.lat";
 
 export const SITE_NAME = "Mercav";
 export const SITE_DESCRIPTION =
-  "Publicidad física, talento digital, empleo, caja para tu local, herramientas y ciberinteligencia defensiva para Latinoamérica. Una cuenta para todo.";
+  "Publicidad física, talento digital, empleo, RR.HH. y planillas para empresas, herramientas y ciberinteligencia defensiva para Latinoamérica. Una cuenta para todo.";
+
+/** Pages that live on the public site (mercav.lat). Everything else belongs to app.mercav.lat. */
+const MARKETING_EXACT = ["/", "/nosotros", "/pitch", "/inversores", "/terminos", "/privacidad", "/cookies", "/aviso-legal"];
+const MARKETING_PREFIXES = ["/legal"];
+/** Utility pages both hosts may serve. */
+const SHARED_EXACT = ["/1337", "/maintenance", "/offline", "/forbidden"];
+
+export function isMarketingPath(path: string) {
+  const clean = path !== "/" ? path.replace(/\/+$/, "") : "/";
+  return MARKETING_EXACT.includes(clean) || MARKETING_PREFIXES.some((prefix) => clean === prefix || clean.startsWith(`${prefix}/`));
+}
+
+export function isSharedPath(path: string) {
+  return SHARED_EXACT.includes(path.replace(/\/+$/, "") || "/");
+}
+
+/** First screen after login. On app.mercav.lat, "/" redirects here. */
+export const APP_HOME = "/inicio";
 
 /** Path prefixes that are personal, transactional or internal. Never indexed. */
 export const PRIVATE_PREFIXES = [
   "/api",
+  "/inicio",
+  "/business",
+  // Fidelización: customer cards (/c/<slug>/t/<serial>) are personal; the join page stays out of the index too.
+  "/c",
+  "/calendario",
   "/admin",
   "/dashboard",
   "/mensajes",
@@ -64,15 +95,75 @@ export function isNoindexPath(path: string) {
 /** Canonical absolute URL for an app path (the path Next.js routes, e.g. /pwn/breaches). */
 export function canonicalFor(appPath: string) {
   const path = appPath !== "/" ? appPath.replace(/\/+$/, "") : "/";
-  if (matchesPrefix(path, "/pwn")) return `${PWN_URL}${path.slice(4) || "/"}`;
   if (matchesPrefix(path, "/kosher")) return `${KOSHER_URL}${path.slice(7) || "/"}`;
-  return `${SITE_URL}${path}`;
+  if (isMarketingPath(path)) return `${SITE_URL}${path}`;
+  return `${APP_URL}${path}`;
 }
 
-/** The app path a request on a product subdomain maps to (pwn.mercav.lat/x → /pwn/x). */
+/** Sections served under kosher.mercav.lat (folders of app/kosher): kosher.mercav.lat/x is rewritten to /kosher/x. */
+const KOSHER_SEGMENTS = new Set([
+  "calendario", "chat", "comunidad", "comunidades", "invitacion", "lugar", "mapa", "moderacion", "perfil", "sugerir", "terminos", "viaje",
+]);
+
+/** Paths kosher.mercav.lat serves as they are, without the /kosher rewrite: auth, API, assets and shared utility pages. */
+function kosherHostPassthrough(path: string) {
+  return path.startsWith("/api") || path.startsWith("/_next") || path === "/login" || path === "/register" || isSharedPath(path);
+}
+
+/** Browser paths kosher.mercav.lat serves: its own sections, /kosher/x and the passthrough pages. The rest belongs to another host. */
+export function isKosherHostPath(pathname: string) {
+  if (pathname === "/" || pathname.startsWith("/kosher") || kosherHostPassthrough(pathname)) return true;
+  return KOSHER_SEGMENTS.has(pathname.split("/")[1] ?? "");
+}
+
+/** The app path a request on a product subdomain maps to (kosher.mercav.lat/x → /kosher/x). */
 export function appPathFor(host: string | undefined, pathname: string) {
-  if (host === "pwn.mercav.lat" && !matchesPrefix(pathname, "/pwn")) return pathname === "/" ? "/pwn" : `/pwn${pathname}`;
-  if (host === "kosher.mercav.lat" && !matchesPrefix(pathname, "/kosher")) return pathname === "/" ? "/kosher" : `/kosher${pathname}`;
+  if (host === KOSHER_HOST && !matchesPrefix(pathname, "/kosher") && !kosherHostPassthrough(pathname)) {
+    return pathname === "/" ? "/kosher" : `/kosher${pathname}`;
+  }
   return pathname;
+}
+
+/**
+ * Which product the request's host serves. Production hostnames only: 127.0.0.1, localhost and Vercel previews are
+ * "dev" (every route on one origin, no host rules). pwn.mercav.lat only redirects to app.mercav.lat/pwn.
+ */
+export type HostKind = "site" | "app" | "kosher" | "dev";
+
+export function hostKindFor(host: string | null | undefined): HostKind {
+  const name = host?.split(":")[0]?.trim().toLowerCase();
+  if (name === SITE_HOST || name === `www.${SITE_HOST}`) return "site";
+  if (name === APP_HOST || name === PWN_HOST) return "app";
+  if (name === KOSHER_HOST) return "kosher";
+  return "dev";
+}
+
+export function isAbsoluteUrl(href: string) {
+  return /^https?:\/\//i.test(href);
+}
+
+/**
+ * Where a link to an app path (the route Next.js serves: /pwn, /kosher/mapa, /terminos…) should point from a page on
+ * `hostKind`. A path that lives on another host comes back absolute so the caller renders a plain <a>: next/link would
+ * prefetch and soft-navigate against this origin and get a cross-origin 307 from the middleware. "dev" never changes.
+ */
+export function hostHref(href: string, hostKind: HostKind): string {
+  if (hostKind === "dev" || !href.startsWith("/") || href.startsWith("//")) return href;
+  const cut = href.search(/[?#]/);
+  const path = cut === -1 ? href : href.slice(0, cut);
+  const suffix = cut === -1 ? "" : href.slice(cut);
+  if (path.startsWith("/api") || path.startsWith("/_next") || isSharedPath(path)) return href;
+
+  const kosher = matchesPrefix(path, "/kosher");
+  if (hostKind === "kosher") {
+    // Here /x already means /kosher/x, so every other app path (even /calendario or /perfil) lives on another host.
+    if (kosher) return `${path.slice(7) || "/"}${suffix}`;
+    if (kosherHostPassthrough(path)) return href;
+    return `${isMarketingPath(path) ? SITE_URL : APP_URL}${href}`;
+  }
+  if (kosher) return `${KOSHER_URL}${path.slice(7) || "/"}${suffix}`;
+  if (hostKind === "site" && !isMarketingPath(path)) return `${APP_URL}${href}`;
+  if (hostKind === "app" && isMarketingPath(path)) return `${SITE_URL}${href}`;
+  return href;
 }
 // creado por pato dev y askforvini

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Compass } from "lucide-react";
+import { Compass } from "@/components/icons";
 import { buttonClass } from "@/components/site/primitives";
 import { AdminMobileNav, AdminSidebarNav, BackToSite } from "./AdminNav";
 import { ADMIN_TABS } from "./tabs";

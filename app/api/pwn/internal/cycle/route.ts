@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { disabledResponse, internalError, isCronAuthorized } from "../../_lib/http";
 import { ensureSource } from "../../_lib/persistence";
-import { runDomainCycle, syncHibpCatalog, syncKevCatalog } from "../../_lib/cycle";
+import { downgradeUnprovenTargets, runDomainCycle, syncHibpCatalog, syncKevCatalog } from "../../_lib/cycle";
 import { syncForumFeeds } from "../../_lib/forum-sync";
 
 export const maxDuration = 60;
@@ -21,6 +21,9 @@ async function runCycle() {
     data: { sourceId: source.id, status: "RUNNING" },
   });
   try {
+    // Primero: nada sin prueba de pertenencia sigue contando como verificado.
+    const ownership = await downgradeUnprovenTargets();
+    // El catálogo de HIBP se sincroniza acá, nunca dentro de una solicitud de usuario.
     const catalog = await syncHibpCatalog().catch(() => ({ configured: false, upserted: 0 }));
     const domains = await runDomainCycle();
     // KEV caído o con JSON roto no debe marcar todo el ciclo como FAILED.
@@ -37,7 +40,7 @@ async function runCycle() {
       where: { id: job.id },
       data: { status: "SUCCESS", finishedAt: new Date() },
     });
-    return { jobId: job.id, data: { catalog, domains, kev, forums } };
+    return { jobId: job.id, data: { ownership, catalog, domains, kev, forums } };
   } catch (error) {
     await prisma.pwnIngestionJob
       .update({

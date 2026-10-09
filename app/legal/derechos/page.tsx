@@ -1,7 +1,7 @@
-import { LegalDocumentView } from "@/components/legal/LegalDocumentView";
+import { LegalCartelDocument } from "@/components/legal/LegalCartelDocument";
 import { DATA_RIGHTS } from "@/lib/legal/documents";
 
 export default function DerechosPage() {
-  return <LegalDocumentView doc={DATA_RIGHTS} />;
+  return <LegalCartelDocument doc={DATA_RIGHTS} />;
 }
 // creado por pato dev y askforvini

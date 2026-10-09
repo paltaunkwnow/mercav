@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MonitorPlay, Plus, Search, Clock } from "lucide-react";
+import { MonitorPlay, Plus, Search, Clock } from "@/components/icons";
 import { useSession } from "next-auth/react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Container, PageHero, ButtonLink } from "@/components/site/primitives";

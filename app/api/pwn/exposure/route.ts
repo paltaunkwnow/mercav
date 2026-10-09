@@ -4,7 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { redactEmail, hashSubject } from "@/lib/pwn/redaction";
 import { scoreConfidence } from "@/lib/pwn/confidence-engine";
 import { scoreRisk } from "@/lib/pwn/risk-engine";
-import { hibpConnector, type HibpBreach } from "@/lib/integrations/pwn/hibp";
+import {
+  hibpConnector,
+  searchDomainBreaches,
+  type DomainBreachMode,
+  type HibpBreach,
+} from "@/lib/integrations/pwn/hibp";
+import { exposureView, type ExposureAccess } from "@/lib/pwn/exposure-visibility";
 import {
   disabledResponse,
   getPwnSessionUser,
@@ -12,7 +18,8 @@ import {
   providerError,
   validationError,
 } from "../_lib/http";
-import { checkRateLimit, searchLimit } from "../_lib/rate-limit";
+import { checkRateLimits, exposureLimits } from "../_lib/rate-limit";
+import { PROVEN_TARGET_WHERE } from "../_lib/targets";
 import { ensureSource, safeDate, writeAudit } from "../_lib/persistence";
 import { openAlert } from "../_lib/alerts";
 
@@ -87,63 +94,70 @@ async function enrichDomainBreaches(stubs: HibpBreach[]): Promise<HibpBreach[]> 
 }
 
 /**
- * Anyone can consult email or domain findings. Persistence and alerts stay
- * limited to a followed, verified monitoring target (account email or an
- * administrator-approved extra mailbox).
+ * Cualquiera puede preguntar, pero no todos ven lo mismo (lib/pwn/exposure-visibility):
+ * - correo ajeno, sin sesión o sin verificar: solo sí/no y cuántas filtraciones no sensibles;
+ * - dominio ajeno: el catálogo público de HIBP (filtraciones del servicio), sin las sensibles;
+ * - objetivo propio verificado: el detalle completo, también lo sensible, y se guarda para alertas.
  */
 export async function POST(request: NextRequest) {
   const disabled = disabledResponse();
   if (disabled) return disabled;
 
   const sessionUser = await getPwnSessionUser();
-  const limited = await checkRateLimit(request, {
-    route: "exposure-search",
-    ...searchLimit(sessionUser?.id),
-  });
-  if (limited) return limited;
-
   let auditTargetType: "EMAIL" | "DOMAIN" | undefined;
   try {
     const parsed = requestSchema.safeParse(await request.json().catch(() => null));
-    if (!parsed.success) return validationError(parsed.error.flatten());
+    if (!parsed.success) {
+      const limited = await checkRateLimits(request, exposureLimits(sessionUser?.id, false).slice(0, 1));
+      return limited ?? validationError(parsed.error.flatten());
+    }
 
     const subject = normalized(parsed.data.type, parsed.data.query);
     const targetType = parsed.data.type.toUpperCase() as "EMAIL" | "DOMAIN";
     auditTargetType = sessionUser ? targetType : undefined;
 
-    let verifiedTarget: { id: string; targetHash: string } | null = null;
-    if (sessionUser) {
-      verifiedTarget = await prisma.pwnMonitoringTarget.findFirst({
-        where: {
-          userId: sessionUser.id,
-          targetType,
-          targetHash: hashSubject(subject),
-          active: true,
-          verifiedAt: { not: null },
-        },
-        select: { id: true, targetHash: true },
-      });
-    }
+    const ownedTarget = sessionUser
+      ? await prisma.pwnMonitoringTarget.findFirst({
+          where: {
+            userId: sessionUser.id,
+            targetType,
+            targetHash: hashSubject(subject),
+            ...PROVEN_TARGET_WHERE,
+          },
+          select: { id: true, targetHash: true, active: true },
+        })
+      : null;
 
-    const result = await hibpConnector.search({ type: parsed.data.type, account: subject });
-    if (!result.configured) {
-      if (parsed.data.type === "email") {
+    const usesHibpKey = targetType === "EMAIL" || (Boolean(ownedTarget) && hibpConnector.isConfigured());
+    const limited = await checkRateLimits(request, exposureLimits(sessionUser?.id, usesHibpKey));
+    if (limited) return limited;
+
+    let findings: HibpBreach[];
+    let domainMode: DomainBreachMode | null = null;
+    if (parsed.data.type === "email") {
+      const result = await hibpConnector.search({ type: "email", account: subject });
+      if (!result.configured) {
         return NextResponse.json(
           {
             success: false,
             error:
-              "La consulta por correo necesita la integración HIBP. Un dominio sí se puede consultar con el catálogo público, sin demostrar que te pertenece.",
+              "La consulta por correo necesita la integración HIBP. Un dominio sí se puede consultar con el catálogo público.",
           },
           { status: 400 },
         );
       }
-      return NextResponse.json({ success: true, configured: false });
+      findings = result.data;
+    } else {
+      const result = await searchDomainBreaches(subject, { owned: Boolean(ownedTarget) });
+      if (!result.configured) return NextResponse.json({ success: true, configured: false });
+      domainMode = result.data.mode;
+      findings = domainMode === "accounts" ? await enrichDomainBreaches(result.data.data) : result.data.data;
     }
 
-    const findings =
-      parsed.data.type === "domain" ? await enrichDomainBreaches(result.data) : result.data;
-    const visible = findings;
-    const exposed = visible.some((breach) => !breach.isFabricated);
+    const access: ExposureAccess = ownedTarget ? "owner" : targetType === "DOMAIN" ? "catalog" : "summary";
+    const view = exposureView(findings, access);
+    // Solo un objetivo propio, verificado y activo guarda resultados y abre alertas.
+    const verifiedTarget = ownedTarget?.active ? ownedTarget : null;
 
     const subjectHint = targetType === "EMAIL" ? redactEmail(subject) : subject;
     const source = verifiedTarget
@@ -157,7 +171,7 @@ export async function POST(request: NextRequest) {
     const reliability = source?.historicalReliability ?? HIBP_RELIABILITY;
     const data = [];
 
-    for (const breach of visible) {
+    for (const breach of view.items) {
       const verificationStatus = verificationOf(breach);
       const confidence = scoreConfidence({
         sourceReliability: reliability,
@@ -285,17 +299,22 @@ export async function POST(request: NextRequest) {
       targetId: verifiedTarget?.id ?? null,
       metadata: {
         provider: "HIBP",
-        scope: "full",
+        scope: access,
+        domainMode,
         persisted: Boolean(verifiedTarget),
-        resultCategory: data.length ? "MATCH" : "NO_MATCH",
-        resultCount: data.length,
+        resultCategory: view.exposed ? "MATCH" : "NO_MATCH",
+        resultCount: view.count,
       },
     });
     return NextResponse.json({
       success: true,
       configured: true,
-      scope: "full",
-      exposed,
+      scope: view.scope,
+      access,
+      domainMode,
+      exposed: view.exposed,
+      count: view.count,
+      hiddenSensitive: view.hiddenSensitive,
       persisted: Boolean(verifiedTarget),
       data,
     });

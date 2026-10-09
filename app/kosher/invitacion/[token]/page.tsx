@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck } from "@/components/icons";
 import { prisma } from "@/lib/prisma";
 import { getKosherViewer } from "@/lib/kosher/server";
 import { PLACE_TYPES } from "@/lib/kosher/labels";

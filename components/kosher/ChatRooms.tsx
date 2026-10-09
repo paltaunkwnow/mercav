@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ChevronLeft, Hash, ShieldCheck } from "lucide-react";
+import { ChevronLeft, Hash, ShieldCheck } from "@/components/icons";
 import { ThreadView } from "@/components/kosher/ThreadView";
 import { PageIntro } from "@/components/kosher/ui";
 import { cn } from "@/lib/utils";

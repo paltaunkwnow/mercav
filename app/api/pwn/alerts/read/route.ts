@@ -9,6 +9,7 @@ import {
   validationError,
 } from "../../_lib/http";
 import { checkRateLimit } from "../../_lib/rate-limit";
+import { PROVEN_TARGET_WHERE } from "../../_lib/targets";
 
 const requestSchema = z.union([
   z.object({ id: z.string().uuid() }).strict(),
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
     const parsed = requestSchema.safeParse(await request.json().catch(() => null));
     if (!parsed.success) return validationError(parsed.error.flatten());
     const visibleTarget = {
-      OR: [{ targetId: null }, { target: { verifiedAt: { not: null } } }],
+      OR: [{ targetId: null }, { target: PROVEN_TARGET_WHERE }],
     };
     const result = await prisma.pwnAlert.updateMany({
       where:

@@ -1,5 +1,6 @@
 import { flags, HebrewCalendar, HDate, Location, Zmanim, type Event } from "@hebcal/core";
 import { dayKey } from "@/lib/kosher/time";
+import { hebrewMonthEs, spanishHebrewName } from "@/lib/calendar/hebrew-names";
 
 export type ZmanimCity = { city: string; countryCode: string; lat: number; lng: number; timezone: string };
 
@@ -16,47 +17,22 @@ export type CalendarItem = {
 const CANDLE_MINS = 18;
 const HAVDALAH_MINS = 42;
 
-const NAMES: [RegExp, string][] = [
-  [/^Candle lighting$/, "Encendido de velas"],
-  [/^Havdalah$/, "Havdalá"],
-  [/^Parashat /, "Parashá "],
+// Prefijos de hebcal que no son parte del nombre de la fecha.
+const PREFIXES: [RegExp, string][] = [
   [/^Erev /, "Víspera de "],
-  [/^Rosh Chodesh /, "Rosh Jodesh "],
-  [/Cheshvan/, "Jeshván"],
-  [/Sh'vat/, "Shvat"],
-  [/Iyyar/, "Iyar"],
-  [/^Rosh Hashana( \d+)?/, "Rosh Hashaná$1"],
-  [/^Yom Kippur/, "Iom Kipur"],
-  [/^Sukkot/, "Sucot"],
-  [/CH''M/, "Jol Hamoed"],
-  [/^Shmini Atzeret/, "Shminí Atzeret"],
-  [/^Simchat Torah/, "Simjat Torá"],
-  [/^Chanukah: (\d) Candles?/, "Janucá: $1.ª vela"],
-  [/^Chanukah/, "Janucá"],
-  [/^Tu BiShvat/, "Tu Bishvat"],
-  [/^Purim Katan/, "Purim Katán"],
-  [/^Shushan Purim/, "Shushán Purim"],
-  [/^Pesach/, "Pésaj"],
-  [/^Shavuot/, "Shavuot"],
-  [/^Tish'a B'Av/, "Tishá BeAv"],
-  [/^Tzom Gedaliah/, "Ayuno de Guedalia"],
-  [/^Asara B'Tevet/, "Ayuno del 10 de Tevet"],
-  [/^Ta'anit Esther/, "Ayuno de Ester"],
-  [/^Ta'anit Bechorot/, "Ayuno de los primogénitos"],
-  [/^Tzom Tammuz/, "Ayuno del 17 de Tamuz"],
-  [/^Lag BaOmer/, "Lag BaOmer"],
-  [/^Yom HaShoah/, "Iom Hashoá"],
-  [/^Yom HaZikaron/, "Iom Hazikarón"],
-  [/^Yom HaAtzma'ut/, "Iom Haatzmaut"],
-  [/^Yom Yerushalayim/, "Iom Ierushalaim"],
+  [/^Parashat /, "Parashá "],
   [/^Shabbat /, "Shabat "],
-  [/^Leil Selichot/, "Noche de Slijot"],
 ];
 
+/** Nombre en español. Fiestas, ayunos y meses salen de la tabla compartida con el calendario (lib/calendar/hebrew-names.ts). */
 export function spanishName(desc: string) {
-  let out = desc;
-  for (const [re, to] of NAMES) out = out.replace(re, to);
-  return out.replace(/\(([^)]+)\)/g, "($1)").replace(/''/g, "’");
+  if (desc === "Candle lighting") return "Encendido de velas";
+  if (desc === "Havdalah") return "Havdalá";
+  const prefix = PREFIXES.find(([re]) => re.test(desc));
+  const rest = prefix ? desc.replace(prefix[0], "") : desc;
+  // Las parashiot y los shabatot especiales quedan con su nombre.
+  const name = prefix && prefix[1] !== "Víspera de " ? rest : spanishHebrewName(rest);
+  return `${prefix?.[1] ?? ""}${name}`.replace(/''/g, "’");
 }
 
 export function cityLocation(c: ZmanimCity) {
@@ -76,10 +52,17 @@ function kindOf(e: Event): CalendarKind | null {
   return null;
 }
 
+/** yyyy-mm-dd con los getters locales: hebcal arma sus fechas a medianoche local del servidor. */
+function localDayKey(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export function calendarFor(c: ZmanimCity, days = 70, start = new Date()): CalendarItem[] {
-  const end = new Date(start.getTime() + days * 86_400_000);
+  // Desde el día civil de la ciudad, no el del servidor (mismo arreglo que dayZmanim, ver cityCivilDate).
+  const from = cityCivilDate(start, c.timezone);
+  const end = new Date(from.getFullYear(), from.getMonth(), from.getDate() + days, 12);
   const events = HebrewCalendar.calendar({
-    start,
+    start: from,
     end,
     location: cityLocation(c),
     candlelighting: true,
@@ -94,7 +77,7 @@ export function calendarFor(c: ZmanimCity, days = 70, start = new Date()): Calen
     if (!kind) continue;
     const timed = (e as Event & { eventTime?: Date }).eventTime;
     items.push({
-      day: timed ? dayKey(timed, c.timezone) : e.getDate().greg().toISOString().slice(0, 10),
+      day: timed ? dayKey(timed, c.timezone) : localDayKey(e.getDate().greg()),
       kind,
       title: spanishName(e.getDesc()),
       hebrew: e.render("he-x-nonikud").replace(/:.*$/, ""),
@@ -147,12 +130,9 @@ export function isShabbatOrYomTov(c: ZmanimCity, now = new Date()) {
   return active;
 }
 
-const MONTHS: Record<string, string> = { Cheshvan: "Jeshván", "Sh'vat": "Shvat", Iyyar: "Iyar", "Adar I": "Adar I", "Adar II": "Adar II" };
-
 export function hebrewDate(date = new Date()) {
   const hd = new HDate(date);
-  const month = hd.getMonthName();
-  return `${hd.getDate()} de ${MONTHS[month] ?? month} de ${hd.getFullYear()}`;
+  return `${hd.getDate()} de ${hebrewMonthEs(hd.getMonthName())} de ${hd.getFullYear()}`;
 }
 
 export function dayZmanim(c: ZmanimCity, instant = new Date()) {

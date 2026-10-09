@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, MapPin } from "lucide-react";
+import { Loader2, MapPin } from "@/components/icons";
 import Link from "next/link";
 import { Toast } from "@/components/ui/toast";
 import { Container, buttonClass } from "@/components/site/primitives";

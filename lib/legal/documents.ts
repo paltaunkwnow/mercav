@@ -10,7 +10,8 @@ export type LegalDocument = {
   sections: LegalSection[];
 };
 
-const subprocessorsList = SUBPROCESSORS.map(
+/** Párrafo de encargados de la Política de privacidad; la vista del cartel lo muestra como tabla. */
+export const subprocessorsList = SUBPROCESSORS.map(
   (s) => `${s.name}: ${s.purpose} (${s.region}). Política: ${s.url}`,
 ).join(" ");
 
@@ -31,7 +32,7 @@ export const AVISO_LEGAL: LegalDocument = {
     {
       title: "2. Objeto",
       body: [
-        "El presente aviso regula el acceso y la navegación en la plataforma Mercav (marketplace, herramientas, POS, Mercav Pwn, Mercav Kosher y servicios asociados), incluidos sus subdominios como pwn.mercav.lat y kosher.mercav.lat.",
+        "El presente aviso regula el acceso y la navegación en la plataforma Mercav (marketplace, herramientas, Mercav Business, Calendario, Mercav Pwn, Mercav Kosher y servicios asociados): el sitio público mercav.lat, la aplicación app.mercav.lat y el subdominio kosher.mercav.lat. La dirección pwn.mercav.lat redirige a app.mercav.lat/pwn.",
         "El uso del sitio implica la lectura de este aviso, de los Términos y Condiciones, de la Política de Privacidad y de la Política de Cookies.",
       ],
     },
@@ -48,6 +49,8 @@ export const AVISO_LEGAL: LegalDocument = {
         "Mercav no garantiza la disponibilidad ininterrumpida del servicio. No somos parte en contratos entre usuarios (compradores/vendedores, empleadores/candidatos) salvo cuando actuamos como custodio de pagos (escrow) conforme a los términos publicados.",
         "Mercav Pwn ofrece información de seguridad con fines de concienciación y defensa; no constituye asesoría legal ni garantía de ausencia de compromiso.",
         "Mercav Kosher es un directorio comunitario. Muestra la fuente de cada estado (agencia certificadora o reporte de un miembro), no emite hechsher ni psak y no sustituye la consulta a tu rabino o a la agencia.",
+        "Los cálculos de Mercav Business son una ayuda (pre-planilla). No sustituyen la revisión del contador de la empresa ni el asesoramiento laboral, contable o tributario.",
+        "El Calendario es informativo. Las fechas de feriados pueden cambiar por decreto de cada gobierno.",
       ],
     },
     {
@@ -76,7 +79,7 @@ export const COOKIE_POLICY: LegalDocument = {
       title: "2. Cookies estrictamente necesarias",
       body: [
         "Siempre activas. Incluyen la cookie de sesión de autenticación (NextAuth), tokens de seguridad CSRF cuando aplique, y la cookie mercav_cookie_consent que guarda tu elección.",
-        "La cookie de sesión se emite para el dominio mercav.lat y sus subdominios (por ejemplo kosher.mercav.lat y pwn.mercav.lat), así una sola cuenta te mantiene conectado en todo Mercav. Es HttpOnly, Secure y SameSite=Lax.",
+        "La cookie de sesión se emite para el dominio mercav.lat y sus subdominios (por ejemplo app.mercav.lat y kosher.mercav.lat), así una sola cuenta te mantiene conectado en todo Mercav. Es HttpOnly, Secure y SameSite=Lax.",
         "No requieren consentimiento previo porque son imprescindibles para el servicio que solicitas (iniciar sesión, mantener sesión, recordar tu decisión de privacidad).",
       ],
     },
@@ -93,22 +96,21 @@ export const COOKIE_POLICY: LegalDocument = {
       ],
     },
     {
-      title: "5. Terceros (Google reCAPTCHA y Google Sign-In)",
+      title: "5. Terceros (Google Sign-In)",
       body: [
-        "Google reCAPTCHA v3 protege registro e inicio de sesión con credenciales. Puede instalar cookies y procesar datos técnicos (IP, interacción). Solo se carga si aceptas cookies de terceros.",
         "Iniciar sesión con Google redirige a Google OAuth; aplica la política de privacidad de Google. Requiere cookies de terceros habilitadas.",
         "Más información: https://policies.google.com/technologies/cookies",
       ],
     },
     {
-      title: "5 bis. Mapa de Mercav Kosher",
+      title: "6. Mapa de Mercav Kosher",
       body: [
         "El mapa descarga teselas y tipografías de OpenFreeMap y CARTO, con datos de OpenStreetMap. Esos proveedores reciben datos técnicos de la solicitud (IP, agente de usuario) y no instalan cookies de Mercav.",
         "«Cerca de mí» usa la geolocalización del navegador solo cuando la pides. La ubicación se procesa en tu dispositivo para centrar el mapa y ordenar la lista; no se guarda en Mercav.",
       ],
     },
     {
-      title: "6. Cómo gestionar tu elección",
+      title: "7. Cómo gestionar tu elección",
       body: [
         "Al entrar por primera vez verás un banner donde debes elegir: aceptar todas, solo necesarias o personalizar categorías.",
         "Puedes cambiar tu decisión en cualquier momento desde el enlace «Gestionar cookies» en el pie de página.",
@@ -116,7 +118,7 @@ export const COOKIE_POLICY: LegalDocument = {
       ],
     },
     {
-      title: "7. Contacto",
+      title: "8. Contacto",
       body: [`Consultas sobre cookies: ${LEGAL.emailPrivacy}.`],
     },
   ],
@@ -138,7 +140,9 @@ export const PRIVACY_POLICY: LegalDocument = {
       title: "2. Datos que recopilamos",
       body: [
         "Registro: nombre, nombre de usuario, correo electrónico, contraseña (hash), foto de perfil opcional.",
-        "Uso de la plataforma: publicaciones, mensajes, pedidos, datos de POS (inventario, ventas) que el comercio introduce.",
+        "Uso de la plataforma: publicaciones, mensajes, pedidos y, para quienes ya usaban la herramienta de punto de venta, los datos de inventario y ventas que el comercio introduce.",
+        "Mercav Business: datos de la empresa y de sus trabajadores que la empresa carga (por ejemplo nombre, contacto, cargo, fecha de ingreso, salario, número de documento, cuenta bancaria y datos de seguridad social), las planillas y boletas que genera y el historial de cambios sensibles.",
+        "Calendario: el país, la región y las fuentes que eliges, y las fechas que decides ocultar.",
         "Pagos: Mercav no almacena números completos de tarjeta; Stripe procesa pagos conforme a su política.",
         "Técnicos: dirección IP, agente de usuario, logs de seguridad, preferencias de cookies y tema.",
         "Mercav Pwn: consultas de exposición (correo, dominio, CVE), objetivos de monitoreo verificados, alertas generadas, señales de fuentes públicas allowlisted.",
@@ -149,7 +153,7 @@ export const PRIVACY_POLICY: LegalDocument = {
     {
       title: "3. Finalidades y bases legales",
       body: [
-        "Prestación del contrato: cuenta, marketplace, POS, pagos, soporte.",
+        "Prestación del contrato: cuenta, marketplace, Mercav Business, Calendario, pagos, soporte.",
         "Interés legítimo: seguridad, prevención de fraude, mejora del servicio, logs técnicos.",
         "Consentimiento: cookies no esenciales, comunicaciones comerciales cuando las solicites, ciertos tratamientos opcionales.",
         "Obligación legal: requerimientos de autoridades competentes cuando proceda.",
@@ -164,7 +168,7 @@ export const PRIVACY_POLICY: LegalDocument = {
       ],
     },
     {
-      title: "4 bis. Mercav Kosher y datos sensibles",
+      title: "5. Mercav Kosher y datos sensibles",
       body: [
         "La denominación, la corriente y tu participación en la comunidad pueden revelar convicciones religiosas, que muchas leyes consideran datos sensibles. Los tratamos solo con tu consentimiento explícito: los completas tú, son opcionales y puedes borrarlos desde /kosher/perfil.",
         "Tu perfil comunitario es privado. En el chat, las valoraciones y los reportes de stock se muestra solo tu nombre público de Mercav; puedes usar un nombre de usuario en lugar de tu nombre real.",
@@ -173,11 +177,20 @@ export const PRIVACY_POLICY: LegalDocument = {
       ],
     },
     {
-      title: "5. Encargados y transferencias internacionales",
+      title: "6. Mercav Business y datos de trabajadores",
+      body: [
+        "Los datos de trabajadores que una empresa carga en Mercav Business son responsabilidad de esa empresa, que actúa como responsable del tratamiento. Mercav los trata por cuenta de la empresa, como encargado, solo para prestar el servicio.",
+        "La empresa debe informar a sus trabajadores y contar con una base legal para tratar sus datos. Las solicitudes de un trabajador sobre sus datos se dirigen a su empleador; si nos llegan, se las trasladamos.",
+        "El número de documento y la cuenta bancaria se guardan cifrados. El acceso depende del rol que la empresa asigna a cada persona: dueño, RR.HH., encargado, contador o trabajador. Cada trabajador vinculado ve solo su legajo y sus boletas.",
+        "Registramos los cambios sensibles (quién, cuándo y qué campos cambiaron) en un historial de auditoría. Ese historial no guarda el número de documento ni la cuenta bancaria.",
+      ],
+    },
+    {
+      title: "7. Encargados y transferencias internacionales",
       body: [subprocessorsList, "Cuando los datos salen de tu país, aplicamos salvaguardas contractuales razonables con proveedores."],
     },
     {
-      title: "6. Plazos de conservación",
+      title: "8. Plazos de conservación",
       body: [
         "Cuenta activa: datos de perfil y contenido mientras la cuenta exista.",
         "Tras baja: bloqueo y supresión en plazos técnicos razonables (salvo obligación legal o disputas abiertas).",
@@ -186,25 +199,25 @@ export const PRIVACY_POLICY: LegalDocument = {
       ],
     },
     {
-      title: "7. Tus derechos",
+      title: "9. Tus derechos",
       body: [
         "Acceso, rectificación, supresión, oposición, limitación y portabilidad cuando la ley lo reconozca.",
         `Solicitudes: ${LEGAL.emailPrivacy} o formulario en /legal/derechos. Respondemos en plazos legales aplicables.`,
       ],
     },
     {
-      title: "8. Menores",
+      title: "10. Menores",
       body: ["Mercav no está dirigida a menores de 18 años. Si detectamos registro de un menor, procederemos a eliminar la cuenta."],
     },
     {
-      title: "9. Seguridad",
+      title: "11. Seguridad",
       body: [
         "Aplicamos medidas técnicas y organizativas acordes al riesgo (cifrado en tránsito TLS, hashing de contraseñas, controles de acceso).",
         "Ningún sistema es 100 % invulnerable; notificaremos incidentes relevantes cuando la ley lo exija.",
       ],
     },
     {
-      title: "10. Cambios",
+      title: "12. Cambios",
       body: ["Publicaremos versiones actualizadas en esta URL. Cambios materiales se comunicarán por la plataforma o correo."],
     },
   ],
@@ -220,7 +233,7 @@ export const TERMS: LegalDocument = {
       title: "1. Aceptación",
       body: [
         "Al crear cuenta o usar Mercav aceptas estos términos, la Política de Privacidad, la Política de Cookies y, si usas Mercav Pwn o Mercav Kosher, sus términos específicos.",
-        "Una misma cuenta Mercav da acceso a mercav.lat y a sus subdominios, como kosher.mercav.lat y pwn.mercav.lat.",
+        "Una misma cuenta Mercav da acceso al sitio público mercav.lat, a la aplicación app.mercav.lat y a kosher.mercav.lat. La dirección pwn.mercav.lat redirige a app.mercav.lat/pwn.",
       ],
     },
     {
@@ -246,40 +259,51 @@ export const TERMS: LegalDocument = {
       ],
     },
     {
-      title: "5. POS",
+      title: "5. Mercav Business",
       body: [
-        "Los datos comerciales introducidos en el POS son responsabilidad del comercio. Mercav actúa como proveedor de software.",
+        "Mercav Business permite a una empresa llevar los legajos de sus trabajadores y preparar planillas de sueldo. La empresa es responsable de los datos que carga y de su exactitud. Mercav los trata por cuenta de la empresa para prestar el servicio, como detalla la Política de privacidad.",
+        "Los cálculos de planilla son una ayuda (pre-planilla). Los debe revisar el contador de la empresa antes de pagar o declarar, y no sustituyen el asesoramiento laboral, contable ni tributario.",
+        "El número de documento y la cuenta bancaria se guardan cifrados. El acceso se asigna por rol y los cambios sensibles quedan en un historial de auditoría.",
+        "Quienes ya usaban la herramienta de punto de venta conservan el acceso a sus datos. Esos datos comerciales siguen siendo responsabilidad del comercio; Mercav actúa como proveedor de software.",
       ],
     },
     {
-      title: "5 bis. Mercav Kosher",
+      title: "6. Mercav Kosher",
       body: [
         "Mercav Kosher es un espacio para la comunidad judía con mapa de lugares, stock por sucursal, valoraciones y chat por ciudad y por lugar. Se rige además por los Términos de Mercav Kosher en /kosher/terminos.",
         "Los estados de cada lugar indican su fuente. Mercav no certifica kashrut ni emite hechsher.",
       ],
     },
     {
-      title: "6. Propiedad intelectual",
+      title: "7. Calendario",
+      body: [
+        "El Calendario muestra feriados de 20 países de Latinoamérica y fechas del calendario hebreo. Cada persona elige qué fuentes ver y puede ocultar fechas.",
+        "Los feriados de Bolivia se calculan a partir de los decretos publicados. Los de los demás países provienen del conjunto de datos abierto date-holidays (licencia CC-BY 3.0) y las fechas del calendario hebreo se calculan con hebcal.",
+        "Los gobiernos pueden mover o agregar feriados por decreto. La información es orientativa: confirma las fechas con la fuente oficial antes de organizar turnos o pagos.",
+      ],
+    },
+    {
+      title: "8. Propiedad intelectual",
       body: [
         "Concedes a Mercav licencia no exclusiva para alojar y mostrar contenido que publicas, necesaria para operar el servicio.",
       ],
     },
     {
-      title: "7. Limitación de responsabilidad",
+      title: "9. Limitación de responsabilidad",
       body: [
         "En la medida permitida por la ley, Mercav no responde por daños indirectos, lucro cesante o contenido de terceros.",
         "El servicio se ofrece «tal cual» con esfuerzos razonables de disponibilidad.",
       ],
     },
     {
-      title: "8. Modificaciones y terminación",
+      title: "10. Modificaciones y terminación",
       body: [
         "Podemos actualizar estos términos; el uso continuado tras la notificación implica aceptación.",
         "Puedes cerrar tu cuenta; Mercav puede terminar el acceso por incumplimiento grave.",
       ],
     },
     {
-      title: "9. Contacto legal",
+      title: "11. Contacto legal",
       body: [`${LEGAL.emailLegal}`],
     },
   ],
@@ -343,7 +367,7 @@ export const KOSHER_TERMS: LegalDocument = {
       title: "1. Qué es Mercav Kosher",
       body: [
         "Mercav Kosher es un directorio y espacio comunitario: mapa de restaurantes, tiendas, sucursales, sinagogas, mikvaot y kehilot, con stock por sucursal, valoraciones y un chat por ciudad y por lugar.",
-        "Se accede en kosher.mercav.lat y en mercav.lat/kosher con la misma cuenta Mercav. Estos términos complementan los Términos y condiciones generales, la Política de privacidad y la Política de uso aceptable.",
+        "Se accede en kosher.mercav.lat con la misma cuenta Mercav. Estos términos complementan los Términos y condiciones generales, la Política de privacidad y la Política de uso aceptable.",
       ],
     },
     {
@@ -470,14 +494,14 @@ export const ACCEPTABLE_USE: LegalDocument = {
       body: ["Cumple los Términos de Mercav Pwn. No uses el módulo para vigilancia ilegal de personas."],
     },
     {
-      title: "4 bis. Mercav Kosher",
+      title: "5. Mercav Kosher",
       body: [
         "Cumple los Términos de Mercav Kosher. Los reportes de estado y stock deben ser de primera mano y honestos.",
         "En el chat comunitario no se permite antisemitismo, discurso de odio, acoso, revelar datos personales de otros miembros (dirección, horarios de rezo de una persona, familia) ni spam comercial.",
       ],
     },
     {
-      title: "5. Consecuencias",
+      title: "6. Consecuencias",
       body: [
         "Advertencias, suspensión, terminación de cuenta, retención de fondos en disputa y comunicación a autoridades cuando corresponda.",
         `Reportes: ${LEGAL.emailFraud} o /contacto.`,

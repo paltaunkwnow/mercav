@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown, type LucideIcon } from "lucide-react";
+import { Check, ChevronDown, type LucideIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 export type Choice = string | { value: string; label: string };

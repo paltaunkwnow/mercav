@@ -15,7 +15,7 @@ import {
   Megaphone,
   Pencil,
   CreditCard,
-} from "lucide-react";
+} from "@/components/icons";
 import { SaveButton } from "@/components/ui/SaveButton";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";

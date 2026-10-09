@@ -39,7 +39,7 @@ const STATIC: Array<[path: string, priority: number, freq: Freq]> = [
   ["/legal/uso-aceptable", 0.3, "yearly"],
   ["/legal/reembolsos", 0.3, "yearly"],
   ["/legal/derechos", 0.3, "yearly"],
-  // Mercav Pwn (pwn.mercav.lat)
+  // Mercav Pwn (app.mercav.lat/pwn)
   ["/pwn", 0.9, "daily"],
   ["/pwn/exposure", 0.8, "weekly"],
   ["/pwn/breaches", 0.8, "daily"],

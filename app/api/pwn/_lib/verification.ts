@@ -19,6 +19,15 @@ export function txtRecordMatches(record: string, tokenHash: string): boolean {
   return candidate.length === expected.length && timingSafeEqual(candidate, expected);
 }
 
+/** resolveTxt devuelve cada registro partido en trozos de hasta 255 bytes: los unimos. */
+export function flattenTxtRecords(records: string[][]): string[] {
+  return records.map((chunks) => chunks.join("").trim()).filter(Boolean);
+}
+
+export function anyTxtRecordMatches(records: string[][], tokenHash: string): boolean {
+  return flattenTxtRecords(records).some((record) => txtRecordMatches(record, tokenHash));
+}
+
 export function sameEmail(a: string | null | undefined, b: string | null | undefined): boolean {
   if (!a || !b) return false;
   return a.trim().toLowerCase() === b.trim().toLowerCase();

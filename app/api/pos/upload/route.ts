@@ -1,20 +1,17 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getPosScope } from "@/lib/pos/server";
+import { can } from "@/lib/business/permissions";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
-import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({ where: { email: session.user.email } });
-    if (!user) {
-      return NextResponse.json({ success: false, error: "Usuario no encontrado" }, { status: 404 });
+    // Fotos de productos (inventario) o el logo de la tienda (configuración).
+    const res = await getPosScope(req, "pos.sell");
+    if (!res.ok) return res.response;
+    const { scope } = res;
+    if (scope.workspaceId && !can(scope.role, "pos.inventory") && !can(scope.role, "pos.configure")) {
+      return NextResponse.json({ success: false, error: "No tenés permiso para esto" }, { status: 403 });
     }
 
     const formData = await req.formData();
@@ -46,7 +43,7 @@ export async function POST(req: Request) {
 
     // Create a unique filename
     const ext = file.type === "image/png" ? "png" : "jpg";
-    const filename = `logo-${user.id}-${Date.now()}.${ext}`;
+    const filename = `logo-${scope.userId}-${Date.now()}.${ext}`;
     const uploadPath = path.join(uploadsDir, filename);
 
     await writeFile(uploadPath, buffer);

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Star, Clock, RotateCcw, Check, Lock, MessageSquare, MonitorPlay, BadgeCheck, Crown, CalendarDays, CheckCheck, Pencil } from "lucide-react";
+import { Star, Clock, RotateCcw, Check, Lock, MessageSquare, MonitorPlay, BadgeCheck, Crown, CalendarDays, CheckCheck, Pencil } from "@/components/icons";
 import { SaveButton } from "@/components/ui/SaveButton";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth/next";

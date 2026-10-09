@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { verifyRecaptchaToken } from "@/lib/auth";
 
 const registerSchema = z.object({
   name: z.string().trim().min(2, "El nombre debe tener al menos 2 caracteres").max(100, "El nombre es demasiado largo"),
@@ -31,12 +30,6 @@ export async function POST(req: Request) {
     }
     
     const { email, password, name, username } = result.data;
-    const recaptchaToken = (body as any).recaptchaToken as string | undefined;
-
-    const verify = await verifyRecaptchaToken(recaptchaToken);
-    if (!verify.success || (typeof verify.score === 'number' && verify.score < 0.5)) {
-      return NextResponse.json({ success: false, error: "reCAPTCHA verification failed" }, { status: 400 });
-    }
     
     const existingUser = await prisma.user.findFirst({
       where: {

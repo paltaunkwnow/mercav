@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getPosContext, posError } from "@/lib/pos/server";
+import { actorFields, getPosContext, posError } from "@/lib/pos/server";
 import { computeSale } from "@/lib/pos/pricing";
 import { currencyDecimals, formatMoney, roundMoney } from "@/lib/pos/money";
 import { getBusinessType, getUnit, ORDER_TYPES_WITH_CHANNEL, type OrderTypeId } from "@/lib/pos/business";
@@ -37,7 +37,7 @@ const saleInclude = { items: { include: { product: true } }, payments: true } as
 class StockError extends Error {}
 
 export async function POST(req: Request) {
-  const ctx = await getPosContext();
+  const ctx = await getPosContext(req, "pos.sell");
   if (!ctx.ok) return ctx.response;
   const { config } = ctx;
 
@@ -133,6 +133,7 @@ export async function POST(req: Request) {
           clientName: body.clientName?.trim() || null,
           clientRef,
           staffId: activeSession.staffId,
+          sellerUserId: actorFields(ctx),
           items: {
             create: pricing.lines.map((line) => {
               const product = byId.get(line.productId)!;

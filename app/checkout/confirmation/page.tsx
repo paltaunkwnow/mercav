@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { stripe } from '@/lib/stripe';
 import { fulfillPaidTransaction } from '@/lib/billing/fulfill';
-import { CheckCircle2, XCircle, Clock, ArrowRight } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, ArrowRight } from '@/components/icons';
 import Link from 'next/link';
 import { buttonClass } from '@/components/site/primitives';
 

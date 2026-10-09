@@ -1,4 +1,4 @@
-import { ArrowRight, Briefcase, Megaphone, MonitorPlay } from "lucide-react";
+import { ArrowRight, Briefcase, Megaphone, MonitorPlay } from "@/components/icons";
 import Link from "next/link";
 import { Container, PageHero } from "@/components/site/primitives";
 

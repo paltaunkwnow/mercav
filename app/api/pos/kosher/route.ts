@@ -41,8 +41,8 @@ function noteFor(names: string[]) {
   return `${note}.`.slice(0, NOTE_MAX);
 }
 
-export async function GET() {
-  const ctx = await getPosContext();
+export async function GET(req: Request) {
+  const ctx = await getPosContext(req, "pos.inventory");
   if (!ctx.ok) return ctx.response;
 
   const [managed, groups, viewer] = await Promise.all([
@@ -69,7 +69,7 @@ export async function GET() {
 const lastPublish = new Map<string, number>();
 
 export async function POST(req: Request) {
-  const ctx = await getPosContext();
+  const ctx = await getPosContext(req, "pos.inventory");
   if (!ctx.ok) return ctx.response;
   const { config } = ctx;
 

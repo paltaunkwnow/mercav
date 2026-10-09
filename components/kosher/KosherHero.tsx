@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, MapPinned, MessagesSquare } from "lucide-react";
+import { ArrowRight, MapPinned, MessagesSquare } from "@/components/icons";
 import type { KosherPlaceType, KosherStatus } from "@prisma/client";
 import { TiltCard } from "@/components/motion/TiltCard";
 import { PlaceIcon } from "@/components/kosher/PlaceIcon";
 import { StatusBadge } from "@/components/kosher/StatusBadge";
 import { Container, buttonClass } from "@/components/site/primitives";
+import { HostLink } from "@/components/layout/HostContext";
 
 const EASE = [0.23, 1, 0.32, 1] as const;
 
@@ -69,7 +70,8 @@ export function KosherAtlasPreview({ preview }: { preview: KosherPreviewPlace[] 
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.35 + i * 0.1, ease: EASE }}
           >
-            <Link href={`/kosher/lugar/${p.slug}`} className="mv-focus -m-1 flex items-center gap-3 rounded-2xl p-1">
+            {/* Also shown on the mercav.lat landing, where /kosher/… lives on kosher.mercav.lat. */}
+            <HostLink href={`/kosher/lugar/${p.slug}`} className="mv-focus -m-1 flex items-center gap-3 rounded-2xl p-1">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-[var(--mv-gold-wash)] text-gold xl:h-10 xl:w-10">
                 <PlaceIcon type={p.type} className="h-5 w-5" />
               </span>
@@ -77,7 +79,7 @@ export function KosherAtlasPreview({ preview }: { preview: KosherPreviewPlace[] 
                 <span className="block truncate text-sm font-semibold text-[var(--text-primary)]">{p.name}</span>
                 <span className="block truncate text-xs text-[var(--text-secondary)]">{p.city}</span>
               </span>
-            </Link>
+            </HostLink>
             <StatusBadge status={p.status} type={p.type} verified={p.verified} className="mt-2 xl:mt-3" />
           </motion.div>
         ))}

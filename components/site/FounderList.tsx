@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight } from "@/components/icons";
 import { FOUNDERS } from "@/lib/data/team";
 import { cn } from "@/lib/utils";
 
-/** The three cofounders as a grouped inset list. Content layer: standard panel, never glass. */
-export function FounderList({ className, label = "Cofundadores" }: { className?: string; label?: string }) {
+/** The Mercav team as a grouped inset list. Content layer: standard panel, never glass. */
+export function FounderList({ className, label = "Equipo" }: { className?: string; label?: string }) {
   return (
     <div className={className}>
       <p className="mb-3 px-1 text-sm font-semibold text-[var(--text-secondary)]">{label}</p>
@@ -21,7 +21,7 @@ export function FounderList({ className, label = "Cofundadores" }: { className?:
               <span className={cn("flex min-w-0 flex-1 items-center gap-3 py-4 pr-5", i > 0 && "border-t border-[var(--mv-hairline)]")}>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[0.9375rem] font-semibold text-[var(--text-primary)]">{f.name}</span>
-                  <span className="block text-sm text-[var(--text-secondary)]">{f.role} · Cofundador</span>
+                  <span className="block text-sm text-[var(--text-secondary)]">{f.role}</span>
                 </span>
                 {f.profile ? (
                   <span className="flex shrink-0 items-center gap-0.5 text-sm text-[var(--text-tertiary)]">

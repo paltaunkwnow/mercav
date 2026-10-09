@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Bell } from "lucide-react";
+import { ArrowLeft, Bell } from "@/components/icons";
 import Link from "next/link";
 import { Container } from "@/components/site/primitives";
 import { useState } from "react";

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { 
   DollarSign, Zap, Briefcase, MapPin, Loader2, Search, Lock,
   FileSpreadsheet, FileText, CreditCard, AlertTriangle, Scale, Receipt, RotateCw
-} from "lucide-react"
+} from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { AdminDialog } from "./AdminDialog"
 import {

@@ -10,8 +10,8 @@ const createSchema = z.object({
   pin: z.string().regex(PIN_PATTERN),
 });
 
-export async function GET() {
-  const ctx = await getPosContext();
+export async function GET(req: Request) {
+  const ctx = await getPosContext(req, "pos.sell");
   if (!ctx.ok) return NextResponse.json({ success: true, data: [] });
   const staff = await prisma.pOSStaff.findMany({
     where: { posConfigId: ctx.config.id },
@@ -22,7 +22,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const ctx = await getPosContext();
+  const ctx = await getPosContext(req, "pos.configure");
   if (!ctx.ok) return ctx.response;
   const gate = await requireManager(req, ctx.config.id);
   if (!gate.ok) return gate.response;

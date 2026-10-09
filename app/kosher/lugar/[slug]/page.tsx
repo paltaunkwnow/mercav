@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Map } from "lucide-react";
+import { Map } from "@/components/icons";
 import { prisma } from "@/lib/prisma";
 import { PLACE_TYPES, STATUS, isFoodPlace } from "@/lib/kosher/labels";
 import { PlacePanel } from "@/components/kosher/PlacePanel";

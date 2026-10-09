@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
+import { CheckCircle2, ShieldCheck, Zap } from '@/components/icons';
 
 interface ReceiptTemplateProps {
   data: {

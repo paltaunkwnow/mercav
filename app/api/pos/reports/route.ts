@@ -1,22 +1,14 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { summarizeSales } from "@/lib/pos/server";
+import { getPosContext, summarizeSales } from "@/lib/pos/server";
 import { currencyDecimals } from "@/lib/pos/money";
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays } from "date-fns";
 
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { posConfig: true }
-    });
-
-    if (!user?.posConfig) return NextResponse.json({ success: false, error: "POS not configured" }, { status: 400 });
+    const ctx = await getPosContext(req, "pos.reports");
+    if (!ctx.ok) return ctx.response;
+    const posConfigId = ctx.config.id;
 
     const { searchParams } = new URL(req.url);
     const range = searchParams.get("range") || "day"; // day, week, month
@@ -45,7 +37,7 @@ export async function GET(req: Request) {
     // Fetch sales for the range (voided ones are listed, but never counted)
     const allSales = await saleModel.findMany({
       where: {
-        posConfigId: user.posConfig.id,
+        posConfigId: posConfigId,
         createdAt: {
           gte: startDate,
           lte: endDate
@@ -67,7 +59,7 @@ export async function GET(req: Request) {
     // Fetch sessions for the range with their sales
     const rawSessions = await sessionModel.findMany({
       where: {
-        posConfigId: user.posConfig.id,
+        posConfigId: posConfigId,
         openedAt: {
           gte: startDate,
           lte: endDate
@@ -100,7 +92,7 @@ export async function GET(req: Request) {
     const totalOrders = sales.length;
     const totalDiscounts = sales.reduce((acc: number, sale: any) => acc + Number(sale.discountAmount), 0);
     const totalTax = sales.reduce((acc: number, sale: any) => acc + Number(sale.taxAmount || 0), 0);
-    const { byMethod } = summarizeSales(sales, currencyDecimals(user.posConfig.currency));
+    const { byMethod } = summarizeSales(sales, currencyDecimals(ctx.config.currency));
 
     // Calculate cost and profit
     let totalCost = 0;
@@ -125,7 +117,7 @@ export async function GET(req: Request) {
         const qty = Number(item.quantity);
         const costPrice = Number(prod?.costPrice || 0);
         const itemCost = costPrice * qty;
-        const itemRevenue = Number(item.subtotal) - (user.posConfig!.pricesIncludeTax ? Number(item.taxAmount || 0) : 0);
+        const itemRevenue = Number(item.subtotal) - (ctx.config!.pricesIncludeTax ? Number(item.taxAmount || 0) : 0);
 
         totalCost += itemCost;
 
@@ -159,14 +151,43 @@ export async function GET(req: Request) {
 
     // Low stock: products that track stock and dropped to or below their own minimum
     const tracked = await prisma.pOSProduct.findMany({
-      where: { posConfigId: user.posConfig.id, isActive: true, trackStock: true, minStock: { not: null } },
+      where: { posConfigId: posConfigId, isActive: true, trackStock: true, minStock: { not: null } },
       select: { id: true, name: true, stock: true, minStock: true, unit: true, imageUrl: true },
       orderBy: { name: 'asc' }
     });
     const lowStock = tracked.filter((p) => Number(p.stock) <= Number(p.minStock));
 
+    // Caja de empresa: ventas por persona y quién abrió y cerró cada caja (con su cuenta Mercav).
+    let sellers: { userId: string; name: string; orders: number; revenue: number }[] = [];
+    let sessionsOut = sessions;
+    if (ctx.workspaceId) {
+      const ids = new Set<string>();
+      for (const sale of sales as { sellerUserId?: string | null }[]) if (sale.sellerUserId) ids.add(sale.sellerUserId);
+      for (const session of rawSessions as { openedByUserId?: string | null; closedByUserId?: string | null }[]) {
+        if (session.openedByUserId) ids.add(session.openedByUserId);
+        if (session.closedByUserId) ids.add(session.closedByUserId);
+      }
+      const people = ids.size ? await prisma.user.findMany({ where: { id: { in: Array.from(ids) } }, select: { id: true, name: true, username: true } }) : [];
+      const nameOf = new Map(people.map((p) => [p.id, p.name || p.username || "Sin nombre"]));
+      const bySeller = new Map<string, { userId: string; name: string; orders: number; revenue: number }>();
+      for (const sale of sales as { sellerUserId?: string | null; totalAmount: unknown }[]) {
+        if (!sale.sellerUserId) continue;
+        const row = bySeller.get(sale.sellerUserId) ?? { userId: sale.sellerUserId, name: nameOf.get(sale.sellerUserId) ?? "Sin nombre", orders: 0, revenue: 0 };
+        row.orders += 1;
+        row.revenue += Number(sale.totalAmount);
+        bySeller.set(sale.sellerUserId, row);
+      }
+      sellers = Array.from(bySeller.values()).sort((a, b) => b.revenue - a.revenue);
+      sessionsOut = sessions.map((session: { openedByUserId?: string | null; closedByUserId?: string | null }) => ({
+        ...session,
+        openedByName: session.openedByUserId ? nameOf.get(session.openedByUserId) ?? null : null,
+        closedByName: session.closedByUserId ? nameOf.get(session.closedByUserId) ?? null : null,
+      }));
+    }
+
     return NextResponse.json({
       success: true,
+      sellers,
       stats: {
         totalRevenue,
         totalOrders,
@@ -178,10 +199,10 @@ export async function GET(req: Request) {
         averageOrder: totalOrders > 0 ? totalRevenue / totalOrders : 0
       },
       sales: allSales,
-      sessions,
+      sessions: sessionsOut,
       lowStock,
       productProfitability,
-      config: user.posConfig
+      config: ctx.config
     });
 
   } catch (error: any) {

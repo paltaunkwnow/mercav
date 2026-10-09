@@ -1,6 +1,6 @@
 /**
  * Public URL for each Mercav tool. Shared by the server pages (metadata, 404) and the client catalog
- * (open/close a panel by URL). The POS is not here: it lives at /dashboard/pos.
+ * (open/close a panel by URL). The holiday calendar is not here: it lives at /calendario.
  */
 export const TOOL_ROUTES = [
   {

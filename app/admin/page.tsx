@@ -4,7 +4,7 @@ import { isAdminUser } from "@/lib/admin";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { ArrowRight, Users, FileText, Briefcase, MapPinned, Store, Flag } from "lucide-react";
+import { ArrowRight, Users, FileText, Briefcase, MapPinned, Store, Flag } from "@/components/icons";
 import { BackToSite } from "@/components/admin/AdminNav";
 import { ADMIN_TABS } from "@/components/admin/tabs";
 import { Metric, fmt } from "@/components/admin/ui";

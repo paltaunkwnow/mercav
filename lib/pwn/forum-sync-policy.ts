@@ -18,6 +18,11 @@ export function forumSyncSkipReason(input: {
   return null;
 }
 
+/** Saltear la ventana de 10 min es caro (scrape completo): solo administradores o el cron con CRON_SECRET. */
+export function mayForceForumSync(input: { requested: boolean; isAdmin: boolean; cronAuthorized: boolean }): boolean {
+  return input.requested && (input.isAdmin || input.cronAuthorized);
+}
+
 function toTime(value: Date | string | null | undefined): number | null {
   if (!value) return null;
   const time = value instanceof Date ? value.getTime() : Date.parse(value);

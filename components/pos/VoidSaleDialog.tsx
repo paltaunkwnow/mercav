@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Ban, Loader2, X } from 'lucide-react';
+import { Ban, Loader2, X } from '@/components/icons';
 import { formatMoney } from '@/lib/pos/money';
+import { posFetch } from '@/lib/pos/client';
 
 interface VoidSaleDialogProps {
   sale: { id: string; transactionId: string; totalAmount: unknown };
@@ -32,7 +33,7 @@ export default function VoidSaleDialog({ sale, currency, onClose, onVoided }: Vo
     setBusy(true);
     setError('');
     try {
-      const res = await fetch(`/api/pos/sales/${sale.id}/void`, {
+      const res = await posFetch(`/api/pos/sales/${sale.id}/void`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: reason.trim(), managerPin: needPin ? pin : undefined }),

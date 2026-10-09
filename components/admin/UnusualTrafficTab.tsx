@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Search, ScanEye, X } from "lucide-react";
+import { Search, ScanEye, X } from "@/components/icons";
 import { REASON_LABELS, displayIp } from "@/lib/security/unusual-traffic";
 import { cn } from "@/lib/utils";
 import { AdminPanel, EmptyState, KeyValue, Metric, MobileCard, StatusBadge, table } from "./ui";

@@ -1,4 +1,4 @@
-import { LockKeyhole } from "lucide-react";
+import { LockKeyhole } from "@/components/icons";
 import { Container, ButtonLink } from "@/components/site/primitives";
 
 export default function Forbidden() {

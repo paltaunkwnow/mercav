@@ -1,67 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { isBoliviaRelatedSignal, isGovernmentRelatedSignal } from "@/lib/integrations/pwn/forum-classifier";
-import { scrubPublicTitle } from "@/lib/integrations/pwn/forum-scraper";
-import { disabledResponse, getPwnSessionUser, internalError } from "../_lib/http";
+import { disabledResponse, getPwnSessionUser, internalError, isAdmin, isCronAuthorized } from "../_lib/http";
 import { checkRateLimit } from "../_lib/rate-limit";
 import { forumSignalStats } from "../_lib/forum-signal-enrichment";
+import { kindFilterFromParam, mapSignalRow, signalSelect, type SignalRow } from "../_lib/signal-view";
 import { listFreshSignals, syncForumFeeds } from "../_lib/forum-sync";
 import { createNotification } from "@/lib/notifications";
 import { formatLeakNotice, shouldNotifyNewLeaks } from "@/lib/pwn/new-leak-notice";
-import { FORUM_SYNC_INTERVAL_MS } from "@/lib/pwn/forum-sync-policy";
+import { FORUM_SYNC_INTERVAL_MS, mayForceForumSync } from "@/lib/pwn/forum-sync-policy";
 
 export const maxDuration = 60;
-
-const signalSelect = {
-  id: true,
-  title: true,
-  link: true,
-  author: true,
-  category: true,
-  forum: true,
-  publishedAt: true,
-  lastSeenAt: true,
-  verificationStatus: true,
-  signalKind: true,
-  priorityRank: true,
-  source: { select: { name: true } },
-  breach: { select: { name: true, verificationStatus: true } },
-} satisfies Prisma.PwnForumSignalSelect;
-
-// Fila tal cual la devuelve el select (antes se tipaba como el modelo completo y no matcheaba).
-type SignalRow = Prisma.PwnForumSignalGetPayload<{ select: typeof signalSelect }>;
-
-const KINDS = ["DATABASE", "STEALER", "CORPORATE", "CREDENTIALS", "MIXED", "OTHER"] as const;
-
-function kindFilterFromParam(kind: string | undefined) {
-  const k = kind?.trim().toUpperCase();
-  if (k === "DATA") return { signalKind: { in: ["DATABASE", "MIXED", "CORPORATE"] as string[] } };
-  if (k === "LEAKS") return { signalKind: { in: ["DATABASE", "STEALER", "CORPORATE", "MIXED"] as string[] } };
-  if (KINDS.includes(k as (typeof KINDS)[number])) return { signalKind: k };
-  return {};
-}
-
-function mapRow(row: SignalRow) {
-  return {
-    id: row.id,
-    title: scrubPublicTitle(row.title),
-    link: row.link,
-    author: row.author,
-    category: row.category,
-    forum: row.forum,
-    signalKind: row.signalKind,
-    priorityRank: row.priorityRank,
-    isGovernment: isGovernmentRelatedSignal(row.title, row.category, row.forum),
-    isBolivia: isBoliviaRelatedSignal(row.title, row.category, row.forum),
-    publishedAt: row.publishedAt?.toISOString() ?? null,
-    lastSeenAt: row.lastSeenAt.toISOString(),
-    verificationStatus: row.verificationStatus,
-    source: row.source?.name ?? null,
-    breachName: row.breach?.name ?? null,
-    breachVerificationStatus: row.breach?.verificationStatus ?? null,
-  };
-}
 
 export async function GET(request: NextRequest) {
   const disabled = disabledResponse();
@@ -143,7 +92,7 @@ export async function GET(request: NextRequest) {
       success: true,
       configured: true,
       data: {
-        items: rows.map(mapRow),
+        items: rows.map(mapSignalRow),
         pagination: {
           page,
           limit,
@@ -177,7 +126,12 @@ export async function POST(request: NextRequest) {
   });
   if (limited) return limited;
   try {
-    const force = request.nextUrl.searchParams.get("force") === "1";
+    // force salta la ventana de 10 min (scrape completo): solo administradores o el cron.
+    const force = mayForceForumSync({
+      requested: request.nextUrl.searchParams.get("force") === "1",
+      isAdmin: isAdmin(sessionUser),
+      cronAuthorized: isCronAuthorized(request),
+    });
     const sinceRaw = request.nextUrl.searchParams.get("since")?.trim();
     const since = sinceRaw ? new Date(sinceRaw) : null;
     const sinceValid = since && !Number.isNaN(since.getTime()) ? since : null;
@@ -211,6 +165,7 @@ export async function POST(request: NextRequest) {
         freshCount: fresh.count,
         freshSamples: fresh.samples,
         notified,
+        forced: force,
       },
     });
   } catch (error) {

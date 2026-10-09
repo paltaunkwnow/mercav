@@ -1,0 +1,66 @@
+/*
+ * Mervi (components/mervi): tira de cuadros de 96 px escalada con vecino más cercano y factor entero.
+ * --mervi-unit es el tamaño en pantalla de un píxel del sprite (1px, 2px…): sirve para ubicarlo al borde de algo.
+ * Tiras de 2 cuadros: se alternan. Tiras de 3: el tercero es el parpadeo, que aparece una vez cada cuatro ciclos.
+ * Al pasar el mouse, Mervi da un saltito. Con "reducir movimiento" queda en el primer cuadro.
+ */
+.mervi {
+  --mervi-unit: var(--mervi-u1, 1px);
+  --mervi-px: var(--mervi-unit);
+  display: inline-block;
+  flex: none;
+  width: calc(var(--mervi-unit) * 96);
+  height: calc(var(--mervi-unit) * 96);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: calc(var(--mervi-frames, 2) * 100%) 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+@media (min-width: 1024px) {
+  .mervi { --mervi-unit: var(--mervi-u2, var(--mervi-u1, 1px)); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mervi-f2:not(.mervi-still) { animation: mervi-f2 calc(var(--mervi-speed, 0.6s) * 2) step-end infinite; }
+  .mervi-f3:not(.mervi-still) { animation: mervi-f3 calc(var(--mervi-speed, 0.6s) * 8) step-end infinite; }
+  @media (hover: hover) {
+    .mervi:hover { translate: 0 0; animation-name: mervi-f2-hop; }
+    .mervi-f3:hover { animation-name: mervi-f3-hop; }
+  }
+}
+
+@keyframes mervi-f2 {
+  0% { background-position: 0% 0; }
+  50% { background-position: 100% 0; }
+}
+@keyframes mervi-f3 {
+  0% { background-position: 0% 0; }
+  12.5% { background-position: 50% 0; }
+  25% { background-position: 0% 0; }
+  37.5% { background-position: 50% 0; }
+  50% { background-position: 0% 0; }
+  62.5% { background-position: 50% 0; }
+  75% { background-position: 0% 0; }
+  87.5% { background-position: 100% 0; }
+}
+/* Con el mouse encima: mismos cuadros, más un salto de cuatro píxeles del sprite. */
+@keyframes mervi-f2-hop {
+  0% { background-position: 0% 0; translate: 0 0; }
+  12% { translate: 0 calc(var(--mervi-px, 1px) * -4); }
+  25% { translate: 0 0; }
+  50% { background-position: 100% 0; }
+}
+@keyframes mervi-f3-hop {
+  0% { background-position: 0% 0; translate: 0 0; }
+  6% { translate: 0 calc(var(--mervi-px, 1px) * -4); }
+  12.5% { background-position: 50% 0; translate: 0 0; }
+  25% { background-position: 0% 0; }
+  37.5% { background-position: 50% 0; }
+  50% { background-position: 0% 0; }
+  62.5% { background-position: 50% 0; }
+  75% { background-position: 0% 0; }
+  87.5% { background-position: 100% 0; }
+}
+/* creado por pato dev y askforvini */

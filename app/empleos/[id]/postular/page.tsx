@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Send, Loader2, Building2, MapPin, Briefcase, Check } from "lucide-react";
+import { Send, Loader2, Building2, MapPin, Briefcase, Check } from "@/components/icons";
 import { Toast } from "@/components/ui/toast";
 import { Container, buttonClass } from "@/components/site/primitives";
 import { BackLink, EmptyState, Field, FormSection, PageLoading, EMPLOYMENT_LABEL, labelFor, textareaClass } from "@/components/anuncios/market-ui";

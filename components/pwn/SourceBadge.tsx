@@ -1,5 +1,5 @@
-import { ArrowUpRight } from "lucide-react";
-import { focusRing } from "@/components/pwn/format";
+import { ArrowUpRight } from "@/components/icons";
+import { focusRing, pwnHitAreaClass } from "@/components/pwn/format";
 
 export function SourceBadge({ source, href }: { source?: string | null; href?: string | null }) {
   const name = source?.trim() || "Fuente no indicada";
@@ -17,8 +17,8 @@ export function SourceBadge({ source, href }: { source?: string | null; href?: s
       <a
         href={href}
         target="_blank"
-        rel="noreferrer"
-        className={`${className} transition-colors duration-200 hover:border-[var(--color-border-gold)] hover:text-gold`}
+        rel="noopener noreferrer"
+        className={`${className} ${pwnHitAreaClass} transition-colors duration-200 hover:border-[var(--color-border-gold)] hover:text-gold`}
       >
         {content}
         <ArrowUpRight className="h-3 w-3 shrink-0" aria-hidden />

@@ -3,6 +3,7 @@ import { PWN_FEED_SOURCE_NAMES, resolveEnabledFeedSources } from "@/lib/integrat
 import { isBoliviaRelatedSignal, isGovernmentRelatedSignal } from "@/lib/integrations/pwn/forum-classifier";
 import { deriveSignalFields, domainMentionedInText, matchBreachNameInTitle } from "@/lib/integrations/pwn/forum-signal-utils";
 import { openAlert } from "./alerts";
+import { PROVEN_TARGET_WHERE } from "./targets";
 
 export async function loadEnabledForumSourceNames(): Promise<Set<string>> {
   const rows = await prisma.pwnSource.findMany({
@@ -100,8 +101,8 @@ export async function createForumSignalAlertsForSignal(signalId: string): Promis
     where: {
       active: true,
       targetType: "DOMAIN",
-      verificationStatus: "VERIFIED",
       targetLookup: { not: null },
+      ...PROVEN_TARGET_WHERE,
     },
     select: { id: true, userId: true, targetLookup: true, targetDisplay: true },
     take: 200,

@@ -92,7 +92,7 @@ export function buildAlert(input: BuildAlertInput): BuiltAlert {
     );
     if (input.breachName) lines.push(`Posible relación con la brecha conocida «${clean(input.breachName)}».`);
     lines.push("Mercav solo indexa metadatos (titular y enlace). No descargamos volcados ni credenciales.");
-    lines.push("Recomendación: revisa logs, refuerza credenciales de servicios críticos y valida con fuentes oficiales.");
+    lines.push("Recomendación: revisá los registros de acceso, reforzá las credenciales de servicios críticos y validá con fuentes oficiales.");
     const link = clean(input.forumLink);
     if (link.startsWith("https://")) lines.push(`Enlace externo: ${link}`);
   } else if (input.kind === "VULNERABILITY") {
@@ -104,7 +104,7 @@ export function buildAlert(input: BuildAlertInput): BuiltAlert {
         : `Se publicó información sobre ${cve}.`,
     );
     if (target) lines.push(`Objetivo monitoreado: ${target}.`);
-    lines.push("Recomendación: revisa si usas el producto afectado y aplica el parche o la mitigación del fabricante.");
+    lines.push("Recomendación: revisá si usás el producto afectado y aplicá el parche o la mitigación del fabricante.");
   } else {
     const breach = clean(input.breachName);
     const subject = target || "un objetivo monitoreado";
@@ -117,11 +117,11 @@ export function buildAlert(input: BuildAlertInput): BuiltAlert {
     const types = describeDataTypes(input.dataTypes);
     if (types) lines.push(`Tipos de datos involucrados: ${types}.`);
     lines.push("Mercav Pwn nunca almacena ni muestra contraseñas.");
-    lines.push("Recomendación: cambia la contraseña del servicio afectado, no la reutilices y activa la verificación en dos pasos.");
+    lines.push("Recomendación: cambiá la contraseña del servicio afectado, no la reutilices y activá la verificación en dos pasos.");
   }
 
   if (status === "UNVERIFIED" || status === "DISPUTED") {
-    lines.push(`Estado: ${VERIFICATION_LABELS[status]}. Esta información no ha sido confirmada; trátala con cautela.`);
+    lines.push(`Estado: ${VERIFICATION_LABELS[status]}. Esta información no está confirmada; tratala con cautela.`);
   } else {
     lines.push(`Estado de verificación: ${VERIFICATION_LABELS[status]}.`);
   }

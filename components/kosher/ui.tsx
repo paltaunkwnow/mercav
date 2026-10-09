@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowLeft, Inbox } from "lucide-react";
+import { ArrowLeft, Inbox } from "@/components/icons";
 import { buttonClass } from "@/components/site/primitives";
 import { cn } from "@/lib/utils";
 

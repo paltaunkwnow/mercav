@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard, HelpCircle, Package, ShieldCheck, ShoppingBag, UserCheck } from "lucide-react";
+import { Building2, CreditCard, HelpCircle, ShieldCheck, ShoppingBag, UserCheck } from "@/components/icons";
 import { CTABand, ButtonLink, Container, PageHero, Section } from "@/components/site/primitives";
 import { FaqItem, FaqSearch } from "./FaqAccordion";
 
@@ -21,14 +21,13 @@ export default function FAQPage() {
 
   const faqs = [
     {
-      category: "Mercav POS (punto de venta)",
-      icon: Package,
+      category: "Mercav Business",
+      icon: Building2,
       items: [
-        { q: "¿Cómo configuro mi moneda en el POS?", a: "Andá a Dashboard > Ajustes del POS. Ahí podés seleccionar el símbolo de moneda (BOB, USD, etc.) y el nombre de tu negocio para los tickets." },
-        { q: "¿Puedo usar el POS desde mi celular?", a: "Sí, el POS está 100% optimizado para móviles. Incluye un botón flotante de caja para facilitar la facturación rápida." },
-        { q: "¿Cómo cierro mi turno de caja?", a: "En la parte superior de la terminal POS vas a ver un botón rojo de 'Cerrar'. Al pulsarlo, el sistema te pedirá el arqueo final y te mostrará el resumen de ventas del turno." },
-        { q: "¿Genera tickets para impresoras térmicas?", a: "Sí, el sistema genera un recibo digital optimizado para impresión térmica (58mm/80mm) que podés imprimir directamente desde el navegador de tu móvil o PC." },
-        { q: "¿El inventario se descuenta automáticamente?", a: "Correcto. Cada vez que procesas una venta exitosa, el stock de los productos se actualiza en tiempo real en tu base de datos." }
+        { q: "¿Qué es Mercav Business?", a: "Es el módulo para llevar a tu equipo. Creás tu empresa, cargás el legajo de cada trabajador y armás la planilla de sueldos de cada mes. Podés exportarla a Excel y descargar las boletas en PDF." },
+        { q: "¿En qué países funciona?", a: "Podés cargar legajos de trabajadores de cualquier país de Latinoamérica. La planilla automática está disponible primero para Bolivia, con los parámetros de 2026. Sale como pre-planilla: la tiene que revisar tu contador antes de pagar o declarar." },
+        { q: "¿Cómo se protegen los datos de mi equipo?", a: "El número de documento (CI) y la cuenta bancaria se guardan cifrados. Cada persona ve solo lo que le toca según su rol: dueño, RR.HH., encargado, contador o trabajador. Los cambios sensibles quedan registrados." },
+        { q: "¿Cómo ven sus boletas mis trabajadores?", a: "Desde el legajo del trabajador generás un enlace de invitación y se lo pasás. El enlace vale 7 días y sirve una sola vez. Al entrar, el trabajador ve solo su legajo y sus boletas." }
       ]
     },
     {
@@ -63,7 +62,8 @@ export default function FAQPage() {
       category: "Cuentas y seguridad",
       icon: UserCheck,
       items: [
-        { q: "¿Puedo tener múltiples negocios?", a: "Sí, podés configurar varios perfiles de POS o catálogos bajo una misma cuenta maestra de Mercav." },
+        { q: "¿Dónde está todo ahora?", a: "Cuando iniciás sesión, todo pasa en app.mercav.lat: tu inicio, los módulos, los mensajes y tu perfil. mercav.lat queda como el sitio público de Mercav." },
+        { q: "¿Puedo tener múltiples negocios?", a: "Sí. Con la misma cuenta podés crear hasta 5 empresas en Mercav Business y publicar en todos los módulos desde un solo perfil." },
         { q: "¿Cómo cambio mi contraseña?", a: "En la sección de Perfil > Ajustes > Seguridad. Recomendamos usar autenticación de dos pasos (2FA) para proteger tus fondos." },
         { q: "¿Qué pasa si pierdo acceso a mi cuenta?", a: "Escribí de inmediato a soporte@mercav.lat con tu ID de usuario y los últimos movimientos realizados para validar tu identidad." }
       ]
@@ -87,10 +87,10 @@ export default function FAQPage() {
       <PageHero
         kicker="Centro de ayuda"
         title="Respuestas para usar Mercav con tranquilidad."
-        lead="Pagos, POS, verificación, publicidad y cuenta. Buscá por palabra o recorré las categorías."
+        lead="Pagos, Business, verificación, publicidad y cuenta. Buscá por palabra o recorré las categorías."
       >
         <div className="max-w-2xl">
-          <FaqSearch value={searchQuery} onChange={setSearchQuery} placeholder="Buscá respuestas: pagos, POS, stock…" resultCount={resultCount} />
+          <FaqSearch value={searchQuery} onChange={setSearchQuery} placeholder="Buscá respuestas: pagos, planillas, cuenta…" resultCount={resultCount} />
         </div>
       </PageHero>
 

@@ -6,18 +6,24 @@
 
 @layer base {
   :root {
-    /* ===== DARK MODE (DEFAULT) ===== */
-    --color-bg-primary: #050505;
-    --color-bg-secondary: #0C0C0C;
-    --color-bg-tertiary: #141414;
+    /* ===== DARK MODE (DEFAULT) =====
+       La app es la pantalla de los celulares de la portada: fondo #111216, tarjetas #1b1d24 sin borde,
+       dorado para iconos y acciones, letra del sistema. */
+    /* Alto de la barra superior (la del cartel), para lo que se pega debajo en la app. */
+    --c-nav-h: 4.5rem;
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --color-bg-primary: #111216;
+    --color-bg-secondary: #17181D;
+    --color-bg-tertiary: #1B1D24;
     --color-gold: #D4AF37;
-    --color-gold-light: #E8CC6A;
+    --color-gold-light: #E0BD4F;
     --color-gold-dim: rgba(212,175,55,0.12);
-    --color-white: #FFFFFF;
+    --color-white: #F5F4F0;
     --color-white-soft: #F5F0E8;
-    --color-gray-400: #888888;
-    --color-gray-600: #444444;
-    --color-border: #1A1A1A;
+    --color-gray-400: #8A8A90;
+    --color-gray-600: #44464F;
+    --color-border: #23252E;
     --color-border-gold: rgba(212,175,55,0.25);
     
     --background: var(--color-bg-primary);
@@ -48,12 +54,12 @@
     --input: var(--color-bg-tertiary);
     --ring: var(--color-gold);
     
-    --radius: 0.5rem;
+    --radius: 0.875rem;
 
     /* Text colors for theme-aware usage */
-    --text-primary: #FFFFFF;
-    --text-secondary: #A0A0A0;
-    --text-tertiary: #7C7C7C;
+    --text-primary: #F5F4F0;
+    --text-secondary: #A0A0A6;
+    --text-tertiary: #8A8A90;
     --text-inverted: #000000;
     
     /* Surface overlays */
@@ -62,9 +68,9 @@
     --surface-elevated: rgba(255,255,255,0.05);
 
     /* Liquid Glass — thin fill so blur and refraction stay visible */
-    --lg-fill: rgba(255, 255, 255, 0.07);
-    --lg-fill-regular: rgba(255, 255, 255, 0.09);
-    --lg-bar-fill: rgba(16, 16, 18, 0.4);
+    --lg-fill: #1B1D24;
+    --lg-fill-regular: #1B1D24;
+    --lg-bar-fill: #1B1D24;
     --lg-sheen: rgba(255, 255, 255, 0.18);
     --lg-stroke: rgba(255, 255, 255, 0.16);
     --lg-highlight: rgba(255, 255, 255, 0.28);
@@ -80,14 +86,16 @@
     --shadow-lg: 0 8px 40px rgba(0,0,0,0.4);
 
     /* Mercav system — surfaces, hairlines, motion */
-    --mv-hairline: rgba(255, 255, 255, 0.07);
-    --mv-hairline-strong: rgba(255, 255, 255, 0.12);
-    --mv-panel: rgba(255, 255, 255, 0.025);
-    --mv-panel-hover: rgba(255, 255, 255, 0.045);
-    --mv-gold-wash: rgba(212, 175, 55, 0.08);
-    --mv-on-gold: #0A0A0A;
-    --mv-gold-ink: var(--color-gold);
-    --mv-menu-fill: rgba(20, 20, 22, 0.84);
+    --mv-hairline: rgba(255, 255, 255, 0.06);
+    --mv-hairline-strong: rgba(255, 255, 255, 0.1);
+    --mv-panel: #1B1D24;
+    --mv-panel-hover: #23252E;
+    --mv-panel-sunk: #17181D;
+    --mv-gold-wash: rgba(212, 175, 55, 0.12);
+    --mv-on-gold: #111216;
+    --mv-gold-ink: #E0BD4F;
+    --mv-menu-fill: rgba(27, 29, 36, 0.97);
+    --mv-tile-shadow: none;
     --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
     --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
     --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
@@ -95,17 +103,17 @@
 
   /* ===== LIGHT MODE ===== */
   .light {
-    --color-bg-primary: #FAF9F6;
+    --color-bg-primary: #F4F3EF;
     --color-bg-secondary: #FFFFFF;
-    --color-bg-tertiary: #F0EDE6;
+    --color-bg-tertiary: #FFFFFF;
     --color-gold: #A07A14;
     --color-gold-light: #C49B26;
     --color-gold-dim: rgba(160,122,20,0.08);
-    --color-white: #1A1714;
+    --color-white: #111216;
     --color-white-soft: #2E2A22;
-    --color-gray-400: #5C564A;
-    --color-gray-600: #9E978B;
-    --color-border: #E5E0D5;
+    --color-gray-400: #5A5A61;
+    --color-gray-600: #9E9EA5;
+    --color-border: #E6E4DE;
     --color-border-gold: rgba(160,122,20,0.35);
     
     --background: var(--color-bg-primary);
@@ -136,18 +144,18 @@
     --input: #FFFFFF;
     --ring: var(--color-gold);
 
-    --text-primary: #1A1714;
-    --text-secondary: #4A453C;
-    --text-tertiary: #6E685D;
+    --text-primary: #111216;
+    --text-secondary: #4E4E55;
+    --text-tertiary: #66666D;
     --text-inverted: #FFFFFF;
     
     --surface-glass: rgba(255,255,255,0.85);
     --surface-glass-border: rgba(0,0,0,0.06);
     --surface-elevated: rgba(255,255,255,0.95);
 
-    --lg-fill: rgba(255, 255, 255, 0.22);
-    --lg-fill-regular: rgba(255, 255, 255, 0.28);
-    --lg-bar-fill: rgba(255, 255, 255, 0.42);
+    --lg-fill: #FFFFFF;
+    --lg-fill-regular: #FFFFFF;
+    --lg-bar-fill: #FFFFFF;
     --lg-sheen: rgba(255, 255, 255, 0.5);
     --lg-stroke: rgba(26, 23, 20, 0.12);
     --lg-highlight: rgba(255, 255, 255, 0.85);
@@ -160,14 +168,16 @@
     --shadow-gold: 0 4px 30px rgba(160,122,20,0.15);
     --shadow-lg: 0 12px 50px rgba(0,0,0,0.08);
 
-    --mv-hairline: rgba(26, 23, 20, 0.08);
-    --mv-hairline-strong: rgba(26, 23, 20, 0.14);
-    --mv-panel: rgba(255, 255, 255, 0.7);
-    --mv-panel-hover: rgba(255, 255, 255, 0.95);
-    --mv-gold-wash: rgba(160, 122, 20, 0.07);
-    --mv-on-gold: #0E0C0A;
+    --mv-hairline: rgba(17, 18, 22, 0.08);
+    --mv-hairline-strong: rgba(17, 18, 22, 0.14);
+    --mv-panel: #FFFFFF;
+    --mv-panel-hover: #FBFAF7;
+    --mv-panel-sunk: #EEEDE8;
+    --mv-gold-wash: rgba(160, 122, 20, 0.1);
+    --mv-on-gold: #111216;
     --mv-gold-ink: #8B6914;
-    --mv-menu-fill: rgba(252, 251, 248, 0.88);
+    --mv-menu-fill: rgba(255, 255, 255, 0.98);
+    --mv-tile-shadow: 0 1px 2px rgba(17, 18, 22, 0.05), 0 6px 18px -8px rgba(17, 18, 22, 0.08);
   }
 
   .dark {
@@ -240,57 +250,27 @@
   .text-balance {
     text-wrap: balance;
   }
+  /* Antes vidrio líquido; ahora la tarjeta sólida de los celulares de la portada. */
   .liquid-glass,
   .glassmorphism,
-  .glass-card {
-    isolation: isolate;
-    background:
-      linear-gradient(180deg, var(--lg-sheen), transparent 42%),
-      var(--lg-fill-regular);
-    -webkit-backdrop-filter: blur(28px) saturate(1.55);
-    backdrop-filter: blur(28px) saturate(1.55);
-    border: 1px solid var(--lg-stroke);
-    box-shadow:
-      inset 0 1px 0 var(--lg-highlight),
-      inset 0 -1px 0 var(--lg-shade),
-      var(--lg-shadow);
-  }
-
-  /* Regular variant: bars, menus and dialogs carry text over busy content */
-  .liquid-glass {
-    background:
-      linear-gradient(180deg, var(--lg-sheen), transparent 42%),
-      var(--lg-bar-fill);
-  }
-
+  .glass-card,
   .liquid-glass-clear {
-    background:
-      linear-gradient(180deg, var(--lg-sheen), transparent 48%),
-      var(--lg-fill);
-    -webkit-backdrop-filter: blur(14px) saturate(1.6);
-    backdrop-filter: blur(14px) saturate(1.6);
+    isolation: isolate;
+    background: var(--mv-panel);
+    border: 1px solid transparent;
+    box-shadow: var(--mv-tile-shadow);
   }
+  :where(.light) :is(.liquid-glass, .glassmorphism, .glass-card, .liquid-glass-clear) { border-color: var(--mv-hairline); }
 
   /* Nested glass on glass just looks muddy. Inner chips keep a hairline, not a second blur. */
   .liquid-glass .liquid-glass,
   .liquid-glass .liquid-glass-clear,
   .liquid-glass .glassmorphism,
   .liquid-glass .glass-card {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: color-mix(in srgb, var(--text-primary) 8%, transparent);
-    box-shadow: inset 0 1px 0 var(--lg-highlight);
+    background: var(--mv-panel-hover);
+    box-shadow: none;
   }
 
-  html[data-liquid-refract="1"] .liquid-glass-lens {
-    -webkit-backdrop-filter: blur(22px) saturate(1.55) url(#liquid-lens);
-    backdrop-filter: blur(22px) saturate(1.55) url(#liquid-lens);
-  }
-
-  html[data-liquid-refract="1"] .liquid-glass-clear.liquid-glass-lens {
-    -webkit-backdrop-filter: blur(12px) saturate(1.6) url(#liquid-lens);
-    backdrop-filter: blur(12px) saturate(1.6) url(#liquid-lens);
-  }
 
   @media (prefers-reduced-transparency: reduce) {
     .liquid-glass,
@@ -428,11 +408,6 @@ input[type=number] {
   appearance: textfield;
 }
 
-/* Hide reCAPTCHA badge */
-.grecaptcha-badge { 
-  visibility: hidden !important; 
-}
-
 /* ============================================
    LIGHT MODE — COMPREHENSIVE OVERRIDES
    ============================================ */
@@ -558,8 +533,9 @@ input[type=number] {
 }
 
 /* --- FOOTER --- */
-.light footer[data-site-footer] {
-  background-color: var(--color-bg-secondary) !important;
+/* El pie del sitio público (.cartel) es noche fija y maneja sus propios colores. */
+.light footer[data-site-footer]:not(.cartel) {
+  background-color: transparent !important;
   border-color: var(--color-border) !important;
 }
 
@@ -1042,6 +1018,114 @@ input[type=number] {
 }
 
 /* ============================================
+   MERCAV KOSHER — la pantalla azul noche del atlas en el celular de la portada.
+   Fuera de @layer: redefine los tokens de la app dentro del apartado (y en su barra inferior).
+   ============================================ */
+.k-world {
+  --color-bg-primary: #0D1B2E;
+  --color-bg-secondary: #10213A;
+  --color-bg-tertiary: #122440;
+  --color-border: #1C3150;
+  --mv-panel: #122440;
+  --mv-panel-hover: #16294A;
+  --mv-panel-sunk: #0F1F36;
+  --mv-hairline: rgba(141, 180, 236, 0.1);
+  --mv-hairline-strong: rgba(141, 180, 236, 0.18);
+  --mv-menu-fill: rgba(18, 36, 64, 0.97);
+  --text-primary: #F2F6FC;
+  --text-secondary: #A8B8D0;
+  --text-tertiary: #8DA0BC;
+  --k-accent: #8DB4EC;
+  --k-on-accent: #0A1626;
+  --k-selected: #1C3150;
+  --k-land: #8DB4EC;
+  --k-shade: #3D6FB3;
+  --k-ocean: #1C3150;
+}
+.light .k-world {
+  --color-bg-primary: #EEF3FA;
+  --color-bg-secondary: #FFFFFF;
+  --color-bg-tertiary: #FFFFFF;
+  --color-border: #D8E2EF;
+  --mv-panel: #FFFFFF;
+  --mv-panel-hover: #F6F9FD;
+  --mv-panel-sunk: #E3EBF6;
+  --mv-hairline: rgba(13, 27, 46, 0.08);
+  --mv-hairline-strong: rgba(13, 27, 46, 0.14);
+  --mv-menu-fill: rgba(255, 255, 255, 0.98);
+  --text-primary: #0D1B2E;
+  --text-secondary: #44546B;
+  --text-tertiary: #56667E;
+  --k-accent: #2F5FA8;
+  --k-on-accent: #FFFFFF;
+  --k-selected: #E3EBF6;
+  --k-land: #2F5FA8;
+  --k-shade: #9DB9E0;
+  --k-ocean: #C9D8EC;
+}
+.k-page { background-color: var(--color-bg-primary); color: var(--text-primary); }
+body:has(.k-page) { background-color: #0D1B2E; }
+.light body:has(.k-page) { background-color: #EEF3FA; }
+
+/* ============================================
+   MERCAV PWN — la pantalla del celular de la portada: noche con fósforo verde; magenta solo para alertas.
+   Fuera de @layer y redefine el dorado de la app: dentro de Pwn, lo que era dorado pasa a verde.
+   ============================================ */
+.p-world {
+  --color-bg-primary: #0B0E0C;
+  --color-bg-secondary: #0F1410;
+  --color-bg-tertiary: #131A15;
+  --color-border: #1D2A20;
+  --mv-panel: #131A15;
+  --mv-panel-hover: #1A231C;
+  --mv-panel-sunk: #0F1410;
+  --mv-hairline: rgba(59, 229, 122, 0.1);
+  --mv-hairline-strong: rgba(59, 229, 122, 0.18);
+  --mv-menu-fill: rgba(19, 26, 21, 0.97);
+  --text-primary: #EFFBF1;
+  --text-secondary: #A9BFAF;
+  --text-tertiary: #7F9886;
+  --color-gold: #3BE57A;
+  --color-gold-light: #6CF09C;
+  --color-gold-dim: rgba(59, 229, 122, 0.12);
+  --color-border-gold: rgba(59, 229, 122, 0.3);
+  --mv-gold-wash: rgba(59, 229, 122, 0.12);
+  --mv-gold-ink: #3BE57A;
+  --mv-on-gold: #07130B;
+  --p-alert: #FF5C9E;
+  --p-alert-wash: rgba(255, 92, 158, 0.12);
+  --p-warn: #FFE11A;
+}
+.light .p-world {
+  --color-bg-primary: #F1F6F2;
+  --color-bg-secondary: #FFFFFF;
+  --color-bg-tertiary: #FFFFFF;
+  --color-border: #D6E4DA;
+  --mv-panel: #FFFFFF;
+  --mv-panel-hover: #F7FBF8;
+  --mv-panel-sunk: #E4EEE7;
+  --mv-hairline: rgba(11, 26, 16, 0.08);
+  --mv-hairline-strong: rgba(11, 26, 16, 0.14);
+  --mv-menu-fill: rgba(255, 255, 255, 0.98);
+  --text-primary: #0B1A10;
+  --text-secondary: #3F5546;
+  --text-tertiary: #55705C;
+  --color-gold: #00773F;
+  --color-gold-light: #008F4C;
+  --color-gold-dim: rgba(0, 119, 63, 0.1);
+  --color-border-gold: rgba(0, 119, 63, 0.3);
+  --mv-gold-wash: rgba(0, 119, 63, 0.1);
+  --mv-gold-ink: #00773F;
+  --mv-on-gold: #FFFFFF;
+  --p-alert: #C8005E;
+  --p-alert-wash: rgba(200, 0, 94, 0.08);
+  --p-warn: #7A5F00;
+}
+.p-page { background-color: var(--color-bg-primary); color: var(--text-primary); }
+body:has(.p-page) { background-color: #0B0E0C; }
+.light body:has(.p-page) { background-color: #F1F6F2; }
+
+/* ============================================
    MERCAV SYSTEM — type, surfaces, actions, motion
    Shared by every page. Colors stay the brand tokens above.
    ============================================ */
@@ -1069,42 +1153,42 @@ input[type=number] {
   /* Type scale — Outfit for display, Jakarta for reading, DM Mono only for data */
   .mv-display {
     font-family: var(--font-display);
-    font-weight: 600;
-    font-size: clamp(2.6rem, 1.6rem + 4.6vw, 5.5rem);
-    line-height: 0.98;
-    letter-spacing: -0.035em;
+    font-weight: 700;
+    font-size: clamp(2.2rem, 1.5rem + 2.8vw, 3.6rem);
+    line-height: 1.03;
+    letter-spacing: -0.03em;
     color: var(--text-primary);
     text-wrap: balance;
   }
   .mv-h1 {
     font-family: var(--font-display);
-    font-weight: 600;
-    font-size: clamp(2.25rem, 1.5rem + 3vw, 4rem);
-    line-height: 1.02;
-    letter-spacing: -0.03em;
+    font-weight: 700;
+    font-size: clamp(1.9rem, 1.4rem + 2vw, 2.75rem);
+    line-height: 1.06;
+    letter-spacing: -0.026em;
     color: var(--text-primary);
     text-wrap: balance;
   }
   .mv-h2 {
     font-family: var(--font-display);
-    font-weight: 600;
-    font-size: clamp(1.9rem, 1.35rem + 2.2vw, 3.25rem);
-    line-height: 1.05;
-    letter-spacing: -0.028em;
+    font-weight: 700;
+    font-size: clamp(1.5rem, 1.2rem + 1.3vw, 2.15rem);
+    line-height: 1.1;
+    letter-spacing: -0.022em;
     color: var(--text-primary);
     text-wrap: balance;
   }
   .mv-h3 {
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: clamp(1.2rem, 1.05rem + 0.5vw, 1.5rem);
-    line-height: 1.2;
-    letter-spacing: -0.015em;
+    font-size: clamp(1.05rem, 1rem + 0.25vw, 1.2rem);
+    line-height: 1.25;
+    letter-spacing: -0.012em;
     color: var(--text-primary);
   }
   .mv-lead {
-    font-size: clamp(1.05rem, 0.98rem + 0.35vw, 1.25rem);
-    line-height: 1.6;
+    font-size: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+    line-height: 1.55;
     color: var(--text-secondary);
     max-width: 40rem;
     text-wrap: pretty;
@@ -1119,18 +1203,12 @@ input[type=number] {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.8125rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    letter-spacing: -0.005em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
     color: var(--mv-gold-ink);
-  }
-  .mv-kicker::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    background: currentColor;
-    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent);
   }
   .mv-kicker-techelet,
   .mv-kicker-techelet .mv-kicker { color: var(--color-techelet); }
@@ -1138,44 +1216,28 @@ input[type=number] {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
   }
-  .mv-gold-text {
-    background: linear-gradient(180deg, var(--color-gold-light), var(--color-gold) 70%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  /* Light: gold-light on cream is 2.5:1. Darker stops keep large text above 3:1 (3.8 → 4.8). */
-  .light .mv-gold-text {
-    background-image: linear-gradient(180deg, var(--color-gold), var(--mv-gold-ink) 70%);
-  }
+  /* Dorado liso: el celular no usa degradés en el texto. */
+  .mv-gold-text { color: var(--mv-gold-ink); }
 
   /* Surfaces: plain → panel → liquid glass (glass is for what floats or leads) */
   .mv-panel {
     position: relative;
-    border-radius: 1.5rem;
-    border: 1px solid var(--mv-hairline);
+    border-radius: 1.25rem;
+    border: 1px solid transparent;
     background: var(--mv-panel);
-    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text-primary) 4%, transparent);
+    box-shadow: var(--mv-tile-shadow);
   }
-  .light .mv-panel {
-    box-shadow: 0 1px 2px rgba(26, 23, 20, 0.04), 0 8px 24px rgba(26, 23, 20, 0.04);
-  }
+  /* :where deja que un border-* de Tailwind en la misma tarjeta siga mandando. */
+  :where(.light) .mv-panel { border-color: var(--mv-hairline); }
   .mv-panel-interactive {
-    transition: transform 0.35s var(--ease-out), border-color 0.2s ease, background-color 0.2s ease;
+    transition: background-color 160ms ease-out, border-color 160ms ease-out, scale 120ms ease-out;
   }
   @media (hover: hover) and (pointer: fine) {
-    .mv-panel-interactive:hover {
-      border-color: var(--color-border-gold);
-      background: var(--mv-panel-hover);
-      transform: translateY(-2px);
-    }
+    .mv-panel-interactive:hover { background: var(--mv-panel-hover); }
   }
-  .mv-panel-interactive:active { transform: scale(0.99); }
+  .mv-panel-interactive:active { scale: 0.98; }
   .mv-hairline { border-color: var(--mv-hairline); }
-  .mv-divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--mv-hairline-strong), transparent);
-  }
+  .mv-divider { height: 1px; background: var(--mv-hairline-strong); }
 
   /* Actions */
   .mv-btn {
@@ -1184,15 +1246,15 @@ input[type=number] {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    height: 3rem;
-    padding-inline: 1.5rem;
-    border-radius: 999px;
+    height: 2.875rem;
+    padding-inline: 1.25rem;
+    border-radius: 0.875rem;
     font-size: 0.9375rem;
     font-weight: 600;
     letter-spacing: -0.01em;
     white-space: nowrap;
     user-select: none;
-    transition: transform 160ms var(--ease-out), background-color 200ms ease, border-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
+    transition: transform 120ms var(--ease-out), background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
     outline: none;
   }
   .mv-btn:focus-visible {
@@ -1200,12 +1262,11 @@ input[type=number] {
   }
   .mv-btn:active { transform: scale(0.97); }
   .mv-btn[disabled], .mv-btn[aria-disabled="true"] { opacity: 0.5; pointer-events: none; }
-  .mv-btn-sm { height: 2.5rem; padding-inline: 1.1rem; font-size: 0.875rem; }
-  .mv-btn-lg { height: 3.5rem; padding-inline: 1.9rem; font-size: 1rem; }
+  .mv-btn-sm { height: 2.375rem; padding-inline: 0.95rem; font-size: 0.875rem; border-radius: 0.75rem; }
+  .mv-btn-lg { height: 3.25rem; padding-inline: 1.6rem; font-size: 1rem; border-radius: 1rem; }
   .mv-btn-primary {
     background: var(--color-gold);
     color: var(--mv-on-gold);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 24px -8px rgba(212, 175, 55, 0.55);
   }
   @media (hover: hover) and (pointer: fine) {
     .mv-btn-primary:hover { background: var(--color-gold-light); }
@@ -1214,14 +1275,13 @@ input[type=number] {
   .light .mv-btn-primary * { color: var(--mv-on-gold) !important; }
   .mv-btn-secondary {
     color: var(--text-primary);
-    background: linear-gradient(180deg, var(--lg-sheen), transparent 60%), var(--lg-fill);
-    border: 1px solid var(--lg-stroke);
-    box-shadow: inset 0 1px 0 var(--lg-highlight);
-    -webkit-backdrop-filter: blur(14px) saturate(1.5);
-    backdrop-filter: blur(14px) saturate(1.5);
+    background: var(--mv-panel);
+    border: 1px solid transparent;
+    box-shadow: var(--mv-tile-shadow);
   }
+  :where(.light) .mv-btn-secondary { border-color: var(--mv-hairline-strong); }
   @media (hover: hover) and (pointer: fine) {
-    .mv-btn-secondary:hover { border-color: var(--color-border-gold); }
+    .mv-btn-secondary:hover { background: var(--mv-panel-hover); }
   }
   .mv-btn-ghost { color: var(--text-secondary); }
   @media (hover: hover) and (pointer: fine) {
@@ -1244,11 +1304,11 @@ input[type=number] {
   /* Inputs */
   .mv-input {
     width: 100%;
-    height: 3rem;
+    height: 2.875rem;
     border-radius: 0.875rem;
-    border: 1px solid var(--mv-hairline-strong);
-    background: color-mix(in srgb, var(--color-bg-tertiary) 70%, transparent);
-    padding-inline: 1rem;
+    border: 1px solid var(--mv-hairline);
+    background: var(--mv-panel);
+    padding-inline: 0.95rem;
     font-size: 1rem;
     color: var(--text-primary);
     transition: border-color 160ms ease, box-shadow 160ms ease;
@@ -1264,13 +1324,14 @@ input[type=number] {
     height: 1.75rem;
     padding-inline: 0.7rem;
     border-radius: 999px;
-    border: 1px solid var(--mv-hairline-strong);
+    border: 1px solid transparent;
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-secondary);
     background: var(--mv-panel);
   }
-  .mv-chip-gold { color: var(--mv-gold-ink); border-color: var(--color-border-gold); background: var(--mv-gold-wash); }
+  :where(.light) .mv-chip { border-color: var(--mv-hairline); }
+  .mv-chip-gold { color: var(--mv-gold-ink); border-color: transparent; background: var(--mv-gold-wash); }
 
   /* Ambient light behind heroes — one per page, never stacked */
   .mv-aura {
@@ -1280,6 +1341,7 @@ input[type=number] {
     overflow: hidden;
   }
   .mv-aura::before {
+    display: none;
     content: "";
     position: absolute;
     left: 50%;
@@ -1308,12 +1370,8 @@ input[type=number] {
      Render these in a portal (never inside another glass surface) so the blur samples the page. */
   .mv-menu {
     isolation: isolate;
-    background:
-      linear-gradient(180deg, var(--lg-sheen), transparent 38%),
-      var(--mv-menu-fill);
-    -webkit-backdrop-filter: blur(40px) saturate(1.8);
-    backdrop-filter: blur(40px) saturate(1.8);
-    border: 1px solid var(--lg-stroke);
+    background: var(--mv-menu-fill);
+    border: 1px solid var(--mv-hairline-strong);
     box-shadow:
       inset 0 1px 0 var(--lg-highlight),
       0 24px 64px -16px rgba(0, 0, 0, 0.6),

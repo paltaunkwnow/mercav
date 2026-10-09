@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "@/components/icons";
 import { buttonClass } from "@/components/site/primitives";
 import { pwnFieldClass, pwnFieldLabelClass } from "@/components/pwn/format";
 import { PwnSelect } from "@/components/pwn/PwnSelect";
@@ -37,7 +37,7 @@ export function ListControls({
   onPage: (page: number) => void;
 }) {
   return (
-    <div className="mv-panel mb-5 space-y-4 rounded-[1.5rem] p-4 md:p-5">
+    <div className="mv-panel mb-5 space-y-4 p-4 md:p-5">
       <div className="grid gap-3 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
         <div className="space-y-2">
           <label htmlFor="pwn-list-query" className={pwnFieldLabelClass}>
@@ -81,14 +81,14 @@ export function ListControls({
           <span className="mv-data font-semibold text-[var(--text-primary)]">{total}</span> {total === 1 ? "registro" : "registros"}
         </p>
         <nav aria-label="Paginación" className="flex items-center justify-between gap-2 sm:justify-end">
-          <button type="button" className={buttonClass("secondary", "sm", "px-3")} onClick={() => onPage(page - 1)} disabled={page <= 1}>
+          <button type="button" className={buttonClass("secondary", "sm", "min-h-11 px-3")} onClick={() => onPage(page - 1)} disabled={page <= 1}>
             <ChevronLeft className="h-4 w-4" aria-hidden />
             Anterior
           </button>
           <span aria-live="polite" className="px-2 text-xs">
             Página <span className="mv-data text-[var(--text-primary)]">{page}</span> de <span className="mv-data">{pages}</span>
           </span>
-          <button type="button" className={buttonClass("secondary", "sm", "px-3")} onClick={() => onPage(page + 1)} disabled={page >= pages}>
+          <button type="button" className={buttonClass("secondary", "sm", "min-h-11 px-3")} onClick={() => onPage(page + 1)} disabled={page >= pages}>
             Siguiente
             <ChevronRight className="h-4 w-4" aria-hidden />
           </button>

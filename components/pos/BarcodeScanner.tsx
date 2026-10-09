@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
-import { X } from 'lucide-react';
+import { X } from '@/components/icons';
 
 interface DetectedBarcode { rawValue: string }
 interface BarcodeDetectorLike { detect(source: HTMLVideoElement): Promise<DetectedBarcode[]> }

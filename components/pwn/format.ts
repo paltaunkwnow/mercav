@@ -34,11 +34,26 @@ export function formatScore(value: number | null | undefined): string | null {
   return `${Math.round(value)} / 100`;
 }
 
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Fecha y hora local. Un valor solo-fecha ("2024-03-01") se muestra como día, sin hora inventada. */
 export function formatWhen(value: string | null | undefined): string | null {
   if (!value) return null;
+  if (DATE_ONLY.test(value)) return formatDay(value);
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("es", { dateStyle: "medium", timeStyle: "short" }).format(date);
+}
+
+/**
+ * Solo el día, en UTC. Para fechas que la fuente da sin hora (fecha de una filtración en HIBP,
+ * alta en KEV, publicación de un CVE): en hora local, "2024-03-01" se correría al 29 de febrero.
+ */
+export function formatDay(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const date = new Date(DATE_ONLY.test(value) ? `${value}T00:00:00Z` : value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("es", { dateStyle: "medium", timeZone: "UTC" }).format(date);
 }
 
 export function formatRelative(value: string | null | undefined): string | null {
@@ -82,16 +97,35 @@ export const pwnFieldLabelClass = "block text-sm font-medium text-[var(--text-se
 
 export const pwnFormLabelClass = "block text-sm font-medium text-[var(--text-primary)]";
 
-/** Primary form / search panels on Pwn pages. */
-export const pwnPanelClass = "mv-panel rounded-[1.75rem] p-5 md:p-7";
+/** Primary form / search panels on Pwn pages. mv-panel ya trae el radio de 1.25rem. */
+export const pwnPanelClass = "mv-panel p-5 md:p-7";
 
 /** Result cards (one finding, alert, target…). Dashed outline is reserved for unverified claims. */
-export const pwnCardClass = "mv-panel rounded-[1.5rem] p-5 md:p-6";
+export const pwnCardClass = "mv-panel p-5 md:p-6";
 
 export const pwnUnverifiedCardClass = "border-dashed !border-[var(--mv-hairline-strong)]";
+
+/** Caja interna de una tarjeta (nota, cita, aviso): radio de control. */
+export const pwnInsetClass = "rounded-[0.875rem] border border-[var(--mv-hairline)] px-4 py-3";
+
+/** Cuadro del ícono de una tarjeta. */
+export const pwnIconTileClass =
+  "grid h-11 w-11 shrink-0 place-items-center rounded-[0.875rem] border border-[var(--mv-hairline)] bg-[var(--mv-panel)] text-gold";
+
+/** Botón chico con área táctil de 44 px. */
+export const pwnTapClass = "min-h-11";
+
+/** Agranda el área táctil de un enlace chico (insignia, autor) a 44 px de alto sin cambiar cómo se ve. */
+export const pwnHitAreaClass = "relative before:absolute before:inset-x-0 before:-inset-y-3 before:content-['']";
 
 /** Small factual tag (data types, forum names). */
 export const pwnTagClass =
   "inline-flex items-center rounded-full border border-[var(--mv-hairline-strong)] px-2.5 py-1 text-xs text-[var(--text-secondary)]";
+
+/** Bordes y fondos con los tokens de Pwn: magenta para alertas, amarillo para advertencias. */
+export const pwnAlertToneClass =
+  "border-[color-mix(in_srgb,var(--p-alert)_45%,transparent)] bg-[var(--p-alert-wash)] text-[var(--p-alert)]";
+export const pwnWarnToneClass =
+  "border-[color-mix(in_srgb,var(--p-warn)_55%,transparent)] bg-[color-mix(in_srgb,var(--p-warn)_12%,transparent)] text-[var(--p-warn)]";
 
 // creado por pato dev y askforvini

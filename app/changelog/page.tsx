@@ -1,8 +1,23 @@
-import { Bug, Rocket, Wrench } from "lucide-react";
+import { Bug, Rocket, Wrench } from "@/components/icons";
 import { ButtonLink, CTABand, Container, PageHero, Section } from "@/components/site/primitives";
 import { cn } from "@/lib/utils";
 
 const UPDATES = [
+  {
+    version: "v1.4.0",
+    date: "8 de Octubre, 2026",
+    title: "App Mercav, Business y Calendario",
+    description: "El producto se muda a app.mercav.lat, llega Mercav Business y se suma el Calendario.",
+    type: "MAJOR",
+    tags: ["App", "Business", "Calendario", "Sitio público"],
+    changes: [
+      { type: "feature", text: "Nueva app en app.mercav.lat: todo lo que usás con tu cuenta vive ahí, con un inicio al estilo de una app móvil." },
+      { type: "feature", text: "Mercav Business toma el lugar del punto de venta: empresas, legajos y planilla mensual para Bolivia." },
+      { type: "feature", text: "Planillas exportables a Excel, boletas en PDF, roles e invitaciones para tu equipo." },
+      { type: "feature", text: "Calendario con feriados de 20 países y el calendario hebreo: elegí qué ver, ocultá fechas y exportalo en .ics." },
+      { type: "improvement", text: "Sitio público más simple en mercav.lat, con la presentación de Mercav y los textos legales." }
+    ]
+  },
   {
     version: "v1.3.0",
     date: "1 de Octubre, 2026",

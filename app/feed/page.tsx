@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { FeedClient } from "@/components/feed/FeedClient";
-import { Rss } from "lucide-react";
+import { Rss } from "@/components/icons";
 import { ButtonLink, Container } from "@/components/site/primitives";
 
 export default async function FeedPage() {

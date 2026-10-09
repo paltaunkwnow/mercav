@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Briefcase, MapPin } from "lucide-react";
+import { Briefcase, MapPin } from "@/components/icons";
 import { listCommunityJobs } from "@/lib/kosher/jobs";
 import { BackLink, EmptyState, PageIntro, Pill, primaryButton, secondaryButton } from "@/components/kosher/ui";
 

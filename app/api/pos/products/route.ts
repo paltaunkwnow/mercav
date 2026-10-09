@@ -4,8 +4,8 @@ import { getPosContext, posError } from "@/lib/pos/server";
 import { isUniqueCodeError, productInputSchema } from "@/lib/pos/product-input";
 import { requireManager } from "@/lib/pos/staff";
 
-export async function GET() {
-  const ctx = await getPosContext();
+export async function GET(req: Request) {
+  const ctx = await getPosContext(req, "pos.sell");
   if (!ctx.ok) return NextResponse.json({ success: true, data: [] });
 
   const products = await prisma.pOSProduct.findMany({
@@ -17,7 +17,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const ctx = await getPosContext();
+  const ctx = await getPosContext(req, "pos.inventory");
   if (!ctx.ok) return ctx.response;
   const gate = await requireManager(req, ctx.config.id);
   if (!gate.ok) return gate.response;

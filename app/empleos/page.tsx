@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { Search, MapPin, Briefcase, ArrowRight, EyeOff, ListChecks, FileText, X } from "lucide-react";
+import { Search, MapPin, Briefcase, ArrowRight, EyeOff, ListChecks, FileText, X } from "@/components/icons";
 import { Container, PageHero, ButtonLink, buttonClass } from "@/components/site/primitives";
 import { ChoiceMenu } from "@/components/anuncios/ChoiceMenu";
 import { CardSkeletonGrid, EmptyState, EMPLOYMENT_LABEL, WORK_MODE_LABEL, labelFor } from "@/components/anuncios/market-ui";

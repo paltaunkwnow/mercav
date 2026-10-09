@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -18,30 +18,20 @@ import {
   Radar,
   ScanSearch,
   Target,
-} from "lucide-react";
-import {
-  pwnFetch,
-  readAlerts,
-  readBreaches,
-  readPagination,
-  readForumSignals,
-  readTargets,
-  type AlertView,
-  type BreachView,
-  type ForumSignalView,
-  type Paged,
-  type PwnResult,
-} from "@/components/pwn/api";
+} from "@/components/icons";
+import { pwnFetch, readSummary, type AlertView, type PwnResult, type SummaryView } from "@/components/pwn/api";
 import { ForumSignalsPanel } from "@/components/pwn/ForumSignalsPanel";
 import { StatCard } from "@/components/pwn/StatCard";
 import { SearchForm } from "@/components/pwn/SearchForm";
 import { SourceBadge } from "@/components/pwn/SourceBadge";
 import { RiskBadge } from "@/components/pwn/RiskBadge";
-import { DisabledState, ErrorState, LoadingState, UnauthorizedState } from "@/components/pwn/EmptyState";
+import { DisabledState, ErrorState, LoadingState } from "@/components/pwn/EmptyState";
 import { FadeIn, usePwnFeedRefresh } from "@/components/pwn/PwnShell";
 import { ProtectionGuide } from "@/components/pwn/ProtectionGuide";
-import { PwnSectionHeading } from "@/components/pwn/ui";
-import { focusRing, formatRelative } from "@/components/pwn/format";
+import { PwnSectionHeading, VerdictTile } from "@/components/pwn/ui";
+import { usePwnSession } from "@/components/pwn/session";
+import { AlertBody } from "@/components/pwn/AlertBody";
+import { focusRing, formatRelative, pwnIconTileClass, pwnInsetClass } from "@/components/pwn/format";
 import { ButtonLink, buttonClass } from "@/components/site/primitives";
 import { PWN_FEED_SOURCES } from "@/lib/integrations/pwn/feed-catalog";
 import { FORUM_SYNC_INTERVAL_MS } from "@/lib/pwn/forum-sync-policy";
@@ -59,8 +49,8 @@ const CAPABILITIES = [
     icon: ScanSearch,
     name: "Exposición",
     does: "Consulta un correo o un dominio contra Have I Been Pwned.",
-    solves: "Saber si una cuenta ya quedó expuesta, sin tener que demostrar que es tuya.",
-    gets: "Una ficha por filtración: fecha, tipos de dato, confianza y fuente.",
+    solves: "Saber si una cuenta aparece en filtraciones. El detalle es para quien demuestra que es suya.",
+    gets: "Sí o no y cuántas; con el objetivo verificado, una ficha por filtración con fecha, datos y fuente.",
   },
   {
     href: "/pwn/breaches",
@@ -90,8 +80,8 @@ const CAPABILITIES = [
     href: "/pwn/alerts",
     icon: BellRing,
     name: "Alertas",
-    does: "Avisa cuando un objetivo que seguís y verificaste aparece en una fuente.",
-    solves: "Dejar de consultar a mano lo que ya sabés que te importa.",
+    does: "Avisa cuando un objetivo que seguís y verificaste aparece en una fuente. Los dominios se revisan solos cada hora; los correos, cuando los consultás.",
+    solves: "Enterarte de lo nuevo en tus dominios verificados sin consultarlos a mano.",
     gets: "Alertas con severidad, objetivo y fuente, que podés marcar como leídas.",
   },
   {
@@ -104,69 +94,49 @@ const CAPABILITIES = [
   },
 ] as const;
 
-type LoadState = {
-  loading: boolean;
-  breaches: PwnResult<Paged<BreachView>> | null;
-  alerts: PwnResult<Paged<AlertView>> | null;
-  unread: PwnResult<number | null> | null;
-  verifiedTargets: PwnResult<number> | null;
-  forumSignals: PwnResult<{ items: ForumSignalView[] }> | null;
-};
-
-function totalOf(result: PwnResult<Paged<unknown>> | null): number | null {
-  return result?.ok ? (result.data.pagination?.total ?? null) : null;
-}
+type SummaryState =
+  | { kind: "idle" }
+  | { kind: "loading" }
+  | { kind: "ready"; data: SummaryView }
+  | { kind: "failed"; result: Extract<PwnResult<unknown>, { ok: false }> };
 
 export default function PwnDashboardPage() {
   const router = useRouter();
+  const session = usePwnSession();
   const [query, setQuery] = useState("");
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [state, setState] = useState<LoadState>({
-    loading: true,
-    breaches: null,
-    alerts: null,
-    unread: null,
-    verifiedTargets: null,
-    forumSignals: null,
-  });
+  const [summary, setSummary] = useState<SummaryState>({ kind: "idle" });
+  const controllerRef = useRef<AbortController | null>(null);
 
-  const load = useCallback(async (signal?: AbortSignal, silent?: boolean) => {
-    if (!silent) setState((current) => ({ ...current, loading: true }));
-    const [breachesRes, alertsRes, unreadRes, monitoringRes, forumRes] = await Promise.all([
-      pwnFetch("/api/pwn/breaches?page=1&limit=20", { signal }),
-      pwnFetch("/api/pwn/alerts?page=1&limit=8", { signal }),
-      pwnFetch("/api/pwn/alerts?page=1&limit=1&unread=true", { signal }),
-      pwnFetch("/api/pwn/monitoring", { signal }),
-      pwnFetch("/api/pwn/forum-signals?page=1&limit=5&kind=LEAKS", { signal }),
-    ]);
-    if (signal?.aborted) return;
-    const forumParsed = forumRes.ok ? readForumSignals(forumRes.data) : null;
-    setState({
-      loading: false,
-      breaches: breachesRes.ok ? { ok: true, data: readBreaches(breachesRes.data) } : breachesRes,
-      alerts: alertsRes.ok ? { ok: true, data: readAlerts(alertsRes.data) } : alertsRes,
-      unread: unreadRes.ok ? { ok: true, data: readPagination(unreadRes.data)?.total ?? null } : unreadRes,
-      verifiedTargets: monitoringRes.ok
-        ? { ok: true, data: readTargets(monitoringRes.data).filter((target) => target.verificationStatus === "VERIFIED").length }
-        : monitoringRes,
-      forumSignals: forumRes.ok
-        ? forumParsed
-          ? { ok: true, data: { items: forumParsed.items } }
-          : { ok: false, reason: "error", message: "Señales con formato inesperado." }
-        : forumRes,
-    });
+  // Una sola llamada para todo el panel; una carga nueva cancela la anterior.
+  const load = useCallback(async (silent?: boolean) => {
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    if (!silent) setSummary({ kind: "loading" });
+    const response = await pwnFetch("/api/pwn/summary", { signal: controller.signal });
+    if (controller.signal.aborted || (!response.ok && response.reason === "aborted")) return;
+    if (!response.ok) {
+      setSummary({ kind: "failed", result: response });
+      return;
+    }
+    const data = readSummary(response.data);
+    setSummary(
+      data ? { kind: "ready", data } : { kind: "failed", result: { ok: false, reason: "error", message: "El resumen tiene un formato inesperado." } },
+    );
   }, []);
 
+  // Sin sesión no se pide nada privado: el panel muestra cómo entrar.
   useEffect(() => {
-    const controller = new AbortController();
-    void load(controller.signal);
-    return () => controller.abort();
-  }, [load]);
+    if (session.status !== "authenticated") return;
+    void load();
+    return () => controllerRef.current?.abort();
+  }, [load, session.status]);
 
   usePwnFeedRefresh(
     useCallback(() => {
-      void load(undefined, true);
-    }, [load]),
+      if (session.status === "authenticated") void load(true);
+    }, [load, session.status]),
   );
 
   function submitSearch() {
@@ -201,25 +171,15 @@ export default function PwnDashboardPage() {
     setSearchError("Usá un correo, un dominio o un identificador CVE-AAAA-NNNN.");
   }
 
-  const breachValue = totalOf(state.breaches);
-  const alertValue = totalOf(state.alerts);
-  const unreadValue = state.unread?.ok ? state.unread.data : null;
-  const targetValue = state.verifiedTargets?.ok ? state.verifiedTargets.data : null;
-
-  const bothDisabled = state.breaches?.ok === false && state.breaches.reason === "disabled" && state.alerts?.ok === false && state.alerts.reason === "disabled";
-
-  const signedOut = [state.breaches, state.alerts, state.unread, state.verifiedTargets].every(
-    (result) => result !== null && !result.ok && result.reason === "unauthorized",
-  );
-  const hideForum = signedOut && state.forumSignals?.ok === false && state.forumSignals.reason === "unauthorized";
+  const signedOut = session.status === "unauthenticated" || (summary.kind === "failed" && summary.result.reason === "unauthorized");
+  const data = summary.kind === "ready" ? summary.data : null;
 
   return (
     <FadeIn className="space-y-20 md:space-y-28">
       {/* Hero: the search is the main action */}
       <section aria-labelledby="pwn-hero-title" className="grid gap-10 pt-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end xl:gap-14">
         <div className="min-w-0">
-          <p className="mv-kicker">Ciberinteligencia defensiva</p>
-          <h1 id="pwn-hero-title" className="mv-h1 mt-5 max-w-[46rem]">
+          <h1 id="pwn-hero-title" className="mv-h1 max-w-[46rem]">
             Sabé dónde quedó expuesta tu empresa, <span className="mv-gold-text">con la fuente a la vista.</span>
           </h1>
           <p className="mv-lead mt-5">
@@ -227,7 +187,7 @@ export default function PwnDashboardPage() {
             permitidos, y te avisa solo sobre lo que seguís.
           </p>
 
-          <div className="liquid-glass liquid-glass-lens mt-8 rounded-[1.75rem] p-4 sm:p-5 md:p-6">
+          <div className="mv-panel mt-8 p-4 sm:p-5 md:p-6">
             <SearchForm
               id="pwn-dashboard-search"
               label="Buscar correo, dominio o CVE"
@@ -250,8 +210,8 @@ export default function PwnDashboardPage() {
             </ul>
           </div>
           <p className="mt-3 max-w-2xl text-xs leading-relaxed text-[var(--text-tertiary)]">
-            La consulta es abierta: no hace falta demostrar que el correo o el dominio es tuyo. Las alertas sí requieren seguirlo y
-            verificarlo.
+            Cualquiera puede consultar: sin verificar ves si aparece y en cuántas filtraciones. El detalle, el patrullaje y las alertas son
+            para correos y dominios que demostraste que son tuyos.
           </p>
 
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -264,7 +224,7 @@ export default function PwnDashboardPage() {
           </div>
         </div>
 
-        <aside aria-label="Cómo trabaja Pwn" className="mv-panel rounded-[1.75rem] p-5 md:p-6">
+        <aside aria-label="Cómo trabaja Pwn" className="mv-panel p-5 md:p-6">
           <p className="text-sm font-semibold text-[var(--text-primary)]">Cómo trabaja</p>
           <dl className="mt-4 divide-y divide-[var(--mv-hairline)]">
             <HeroFact label="Feeds de foros y RSS" value={formatInt(PWN_FEED_SOURCES.length)} />
@@ -282,87 +242,91 @@ export default function PwnDashboardPage() {
       <section aria-labelledby="pwn-live-title" className="space-y-6">
         <PwnSectionHeading
           id="pwn-live-title"
-          kicker="En vivo"
           title="Tu panel"
-          lead="Filtraciones, alertas y objetivos de tu cuenta. Se actualiza solo cuando el patrullaje encuentra algo nuevo."
+          lead="Tus objetivos, lo que se encontró de ellos y tus alertas. Se actualiza cuando el patrullaje encuentra algo nuevo."
           action={
-            signedOut ? null : (
-              <Link href="/pwn/alerts" className={`mv-link inline-flex items-center gap-1 text-sm ${focusRing}`}>
+            data ? (
+              <Link href="/pwn/alerts" className={`mv-link inline-flex min-h-11 items-center gap-1 text-sm ${focusRing}`}>
                 Ver todas las alertas <ArrowRight className="h-3.5 w-3.5" aria-hidden />
               </Link>
-            )
+            ) : null
           }
         />
 
-        {state.loading ? <LoadingState label="Cargando el resumen…" /> : null}
+        {session.status === "loading" || summary.kind === "loading" ? <LoadingState label="Cargando el resumen…" /> : null}
 
-        {!state.loading && bothDisabled ? (
-          <DisabledState description="El resumen no puede consultar filtraciones ni alertas porque la integración no está configurada." />
+        {signedOut ? <SignedOutPanel /> : null}
+
+        {summary.kind === "failed" && summary.result.reason === "disabled" ? (
+          <DisabledState description="El resumen no está disponible porque Pwn no está activado en este entorno." />
+        ) : null}
+        {summary.kind === "failed" && summary.result.reason !== "disabled" && summary.result.reason !== "unauthorized" ? (
+          <ErrorState message={summary.result.message} onRetry={() => void load()} />
         ) : null}
 
-        {!state.loading && signedOut ? <SignedOutPanel /> : null}
+        {data ? (
+          <>
+            <PanelVerdict data={data} />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <StatCard
+                label="Objetivos verificados"
+                value={data.counts.provenTargets}
+                hint={
+                  data.counts.pendingTargets
+                    ? `${data.counts.pendingTargets} sin verificar`
+                    : data.counts.provenTargets === 0
+                      ? "Ninguno todavía"
+                      : undefined
+                }
+                icon={<Target className="h-4 w-4" aria-hidden />}
+                href="/pwn/exposure"
+              />
+              <StatCard
+                label="Exposiciones en tus objetivos"
+                value={data.counts.exposures}
+                hint={data.counts.exposures === 0 ? "Ninguna guardada" : "Filtraciones donde aparecen"}
+                icon={<Database className="h-4 w-4" aria-hidden />}
+                href="/pwn/exposure"
+              />
+              <StatCard
+                label="Alertas sin leer"
+                value={data.counts.unreadAlerts}
+                hint={data.counts.unreadAlerts === 0 ? "Todas leídas" : undefined}
+                icon={<Eye className="h-4 w-4" aria-hidden />}
+                href="/pwn/alerts"
+              />
+              <StatCard
+                label="Alertas"
+                value={data.counts.alerts}
+                hint={data.counts.alerts === 0 ? "Ninguna todavía" : undefined}
+                icon={<BellRing className="h-4 w-4" aria-hidden />}
+                href="/pwn/alerts"
+              />
+            </div>
 
-        {!state.loading && !signedOut ? (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard
-              label="Filtraciones"
-              value={breachValue}
-              hint={hintFor(state.breaches, breachValue, "Ninguna registrada")}
-              icon={<Database className="h-4 w-4" aria-hidden />}
-              href="/pwn/breaches"
-            />
-            <StatCard
-              label="Alertas"
-              value={alertValue}
-              hint={hintFor(state.alerts, alertValue, "Ninguna registrada")}
-              icon={<BellRing className="h-4 w-4" aria-hidden />}
-              href="/pwn/alerts"
-            />
-            <StatCard
-              label="Sin leer"
-              value={unreadValue}
-              hint={hintFor(state.unread, unreadValue, "Todas leídas")}
-              icon={<Eye className="h-4 w-4" aria-hidden />}
-              href="/pwn/alerts"
-            />
-            <StatCard
-              label="Objetivos autorizados"
-              value={targetValue}
-              hint={hintFor(state.verifiedTargets, targetValue, "Ninguno autorizado")}
-              icon={<Target className="h-4 w-4" aria-hidden />}
-              href="/pwn/exposure"
-            />
-          </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <FeedPanel alerts={data.recentAlerts} />
+              <ForumSignalsPanel result={{ ok: true, data: { items: data.signals } }} loading={false} onRetry={() => void load()} />
+            </div>
+
+            <VerifiedPanel items={data.verifiedIntel} />
+          </>
         ) : null}
-
-        {!state.loading ? (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {!signedOut ? <FeedPanel alerts={state.alerts} onRetry={() => void load()} /> : null}
-            {!hideForum ? (
-              <div className={signedOut ? "lg:col-span-2" : undefined}>
-                <ForumSignalsPanel result={state.forumSignals} loading={false} onRetry={() => void load()} />
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
-        {!state.loading && state.breaches?.ok ? <VerifiedPanel items={state.breaches.data.items} /> : null}
       </section>
 
       {/* Capabilities */}
       <section aria-labelledby="pwn-capacidades" className="space-y-8">
         <PwnSectionHeading
           id="pwn-capacidades"
-          kicker="Qué cubre Pwn"
           title="Seis módulos, una misma lectura del riesgo."
           lead="Cada módulo responde una pregunta concreta. Empezá por el que te preocupa hoy."
         />
         <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {CAPABILITIES.map(({ href, icon: Icon, name, does, solves, gets }) => (
             <li key={href}>
-              <Link href={href} className="mv-panel mv-panel-interactive mv-focus group flex h-full flex-col rounded-[1.5rem] p-6">
+              <Link href={href} className="mv-panel mv-panel-interactive mv-focus group flex h-full flex-col p-6">
                 <div className="flex items-center justify-between">
-                  <span className="grid h-11 w-11 place-items-center rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] text-gold">
+                  <span className={pwnIconTileClass}>
                     <Icon className="h-5 w-5" aria-hidden />
                   </span>
                   <ArrowUpRight
@@ -394,12 +358,11 @@ export default function PwnDashboardPage() {
       <section aria-labelledby="pwn-confianza" className="space-y-8">
         <PwnSectionHeading
           id="pwn-confianza"
-          kicker="Confianza"
           title="Cada hallazgo cita su fuente."
           lead="Fuentes públicas y nombradas, privacidad desde el navegador y un límite claro entre lo confirmado y lo que solo se afirma."
         />
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-          <div className="mv-panel rounded-[1.75rem] p-6 md:p-8">
+          <div className="mv-panel p-6 md:p-8">
             <h3 className="mv-h3">Fuentes que consulta</h3>
             <dl className="mt-6 grid grid-cols-3 gap-4">
               <SourceFact value={OFFICIAL_SOURCES.length} label="APIs oficiales" />
@@ -444,13 +407,13 @@ export default function PwnDashboardPage() {
       </section>
 
       {/* Final CTA: one action */}
-      <section aria-labelledby="pwn-cta" className="liquid-glass relative overflow-hidden rounded-[2rem] px-6 py-12 text-center sm:px-10 md:py-16">
-        <div className="relative mx-auto flex max-w-xl flex-col items-center gap-4">
+      <section aria-labelledby="pwn-cta" className="mv-panel px-6 py-12 text-center sm:px-10 md:py-16">
+        <div className="mx-auto flex max-w-xl flex-col items-center gap-4">
           <h2 id="pwn-cta" className="mv-h2">
             Empezá por tu propio correo.
           </h2>
           <p className="mv-body mx-auto text-base">
-            Consultalo ahora. Si aparece en una filtración, seguilo para recibir la próxima alerta con la fuente citada.
+            Consultalo ahora. Si aparece en una filtración, seguilo y confirmá que es tuyo para ver el detalle y recibir las alertas cuando lo vuelvas a consultar.
           </p>
           <ButtonLink href="/pwn/exposure" size="lg" className="mt-3 w-full sm:w-auto">
             Analizar exposición
@@ -485,8 +448,8 @@ function SourceFact({ value, label }: { value: number; label: string }) {
 
 function TrustPoint({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <li className="mv-panel flex gap-4 rounded-[1.5rem] p-5">
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] text-gold">
+    <li className="mv-panel flex gap-4 p-5">
+      <span className={pwnIconTileClass}>
         {icon}
       </span>
       <div className="min-w-0">
@@ -497,18 +460,19 @@ function TrustPoint({ icon, title, children }: { icon: ReactNode; title: string;
   );
 }
 
-const SIGNED_OUT_PREVIEW = ["Filtraciones", "Alertas", "Sin leer", "Objetivos autorizados"];
+const SIGNED_OUT_PREVIEW = ["Objetivos verificados", "Exposiciones", "Alertas sin leer", "Alertas"];
 
 function SignedOutPanel() {
   return (
-    <div className="mv-panel relative grid gap-8 overflow-hidden rounded-[1.75rem] bg-[radial-gradient(120%_80%_at_0%_0%,var(--mv-gold-wash),transparent_60%)] p-6 md:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-center">
+    <div className="mv-panel grid gap-8 p-6 md:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-center">
       <div>
-        <span className="grid h-11 w-11 place-items-center rounded-2xl border border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold">
+        <span className="grid h-11 w-11 place-items-center rounded-[0.875rem] border border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold">
           <LogIn className="h-5 w-5" aria-hidden />
         </span>
         <h3 className="mv-h3 mt-5">Iniciá sesión para ver tu panel</h3>
         <p className="mv-body mt-2 max-w-md">
-          Tus filtraciones, alertas, objetivos y la patrulla de foros viven en tu cuenta. La búsqueda de arriba funciona sin sesión.
+          Tus objetivos, alertas y la patrulla de foros viven en tu cuenta. La búsqueda de arriba funciona sin sesión (solo dice si aparece y en
+          cuántas filtraciones).
         </p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">
           <Link href="/login?callbackUrl=%2Fpwn" className={buttonClass("primary", "md", "w-full sm:w-auto")}>
@@ -521,7 +485,7 @@ function SignedOutPanel() {
       </div>
       <ul className="grid grid-cols-2 gap-3" aria-label="Qué vas a ver con sesión">
         {SIGNED_OUT_PREVIEW.map((label) => (
-          <li key={label} className="mv-panel rounded-[1.25rem] p-4">
+          <li key={label} className="mv-panel p-4">
             <p className="text-xs font-medium text-[var(--text-secondary)]">{label}</p>
             <p className="mt-3 font-display text-3xl font-semibold text-[var(--text-tertiary)]" aria-hidden>
               —
@@ -529,7 +493,7 @@ function SignedOutPanel() {
             <p className="mt-1 text-[11px] text-[var(--text-tertiary)]">Iniciá sesión para verlo</p>
           </li>
         ))}
-        <li className="col-span-2 rounded-[1.25rem] border border-dashed border-[var(--mv-hairline-strong)] px-4 py-3 text-xs text-[var(--text-secondary)]">
+        <li className="col-span-2 rounded-[0.875rem] border border-dashed border-[var(--mv-hairline-strong)] px-4 py-3 text-xs text-[var(--text-secondary)]">
           También: alertas recientes, patrulla de filtraciones e inteligencia verificada.
         </li>
       </ul>
@@ -537,57 +501,89 @@ function SignedOutPanel() {
   );
 }
 
-function hintFor(result: PwnResult<unknown> | null, value: number | null, zero: string) {
-  if (result && !result.ok && result.reason === "disabled") return "Integración no configurada";
-  if (result && !result.ok && result.reason === "unauthorized") return "Iniciá sesión para verlo";
-  if (result && !result.ok) return "No se pudo consultar";
-  if (value === null) return "Dato no disponible";
-  if (value === 0) return zero;
-  return undefined;
+/** El veredicto de la cuenta en una línea, como la pantalla de Pwn del celular de la portada. */
+function PanelVerdict({ data }: { data: SummaryView }) {
+  const { verdict } = data;
+  if (verdict.tone === "exposed") {
+    return (
+      <VerdictTile
+        tone="exposed"
+        title={verdict.unreadAlerts === 1 ? "1 alerta sin leer en tus objetivos" : `${verdict.unreadAlerts} alertas sin leer en tus objetivos`}
+        detail="Revisalas y seguí los pasos que trae cada una."
+        action={
+          <Link href="/pwn/alerts" className={buttonClass("secondary", "md", "w-full sm:w-auto")}>
+            Ver alertas
+          </Link>
+        }
+      />
+    );
+  }
+  if (verdict.tone === "clean") {
+    return (
+      <VerdictTile
+        tone="clean"
+        title="Sin filtraciones nuevas"
+        detail={
+          verdict.provenTargets === 1 ? "En tu objetivo verificado, desde la última alerta que leíste." : `En tus ${verdict.provenTargets} objetivos verificados, desde la última alerta que leíste.`
+        }
+      />
+    );
+  }
+  return (
+    <VerdictTile
+      tone="idle"
+      title="Todavía no seguís un objetivo verificado"
+      detail="Empezá por tu correo: si tu cuenta ya lo confirmó, queda verificado en un toque."
+      action={
+        <Link href="/pwn/exposure#watch-title" className={buttonClass("primary", "md", "w-full sm:w-auto")}>
+          Seguir mi correo
+        </Link>
+      }
+    />
+  );
 }
 
-function FeedPanel({ alerts, onRetry }: { alerts: PwnResult<Paged<AlertView>> | null; onRetry: () => void }) {
-  if (!alerts) return null;
-  if (!alerts.ok) {
-    if (alerts.reason === "disabled") return <DisabledState title="Actividad no disponible" description="La actividad reciente no está configurada en este entorno." />;
-    if (alerts.reason === "unauthorized") return <UnauthorizedState callbackPath="/pwn" description="Las alertas de tu cuenta requieren una sesión." />;
-    return <ErrorState message={alerts.message} onRetry={onRetry} />;
-  }
-
-  const feed = alerts.data.items;
+function FeedPanel({ alerts }: { alerts: AlertView[] }) {
   return (
-    <section aria-labelledby="pwn-feed-title" className="mv-panel flex h-full flex-col rounded-[1.75rem] p-5 md:p-6">
+    <section aria-labelledby="pwn-feed-title" className="mv-panel flex h-full flex-col p-5 md:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 id="pwn-feed-title" className="mv-h3 text-lg">
           Alertas recientes
         </h3>
-        <Link href="/pwn/alerts" className={`mv-link inline-flex items-center gap-1 text-sm ${focusRing}`}>
+        <Link href="/pwn/alerts" className={`mv-link inline-flex min-h-11 items-center gap-1 text-sm ${focusRing}`}>
           Ver alertas <ArrowRight className="h-3.5 w-3.5" aria-hidden />
         </Link>
       </div>
-      {feed.length === 0 ? (
-        <div className="mt-4 flex flex-1 flex-col items-start justify-center rounded-2xl border border-dashed border-[var(--mv-hairline-strong)] p-5">
+      {alerts.length === 0 ? (
+        <div className="mt-4 flex flex-1 flex-col items-start justify-center rounded-[0.875rem] border border-dashed border-[var(--mv-hairline-strong)] p-5">
           <p className="text-sm font-medium text-[var(--text-primary)]">Aún no hay alertas.</p>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">Seguí un correo o un dominio para recibir la primera.</p>
-          <Link href="/pwn/exposure" className={`mv-link mt-3 text-sm ${focusRing}`}>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">Seguí y verificá un correo o un dominio para recibir la primera.</p>
+          <Link href="/pwn/exposure" className={`mv-link mt-1 inline-flex min-h-11 items-center text-sm ${focusRing}`}>
             Ir a Exposición
           </Link>
         </div>
       ) : (
         <ul className="mt-4 flex flex-col divide-y divide-[var(--mv-hairline)]">
-          {feed.slice(0, 8).map((item) => (
-            <li key={item.id} className="flex flex-col gap-2 py-4 first:pt-1 last:pb-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-              <div className="min-w-0">
-                <p className="text-sm font-medium leading-snug text-[var(--text-primary)]">{item.title}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  {item.severity ? <RiskBadge level={item.severity} /> : null}
-                  <SourceBadge source={item.source} />
-                  {item.targetDisplay ? <span className="mv-data text-xs text-[var(--text-tertiary)]">{item.targetDisplay}</span> : null}
-                </div>
+          {alerts.map((item) => (
+            <li key={item.id} className="flex flex-col gap-2 py-4 first:pt-1 last:pb-0">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                <p className="flex items-start gap-2 text-sm font-medium leading-snug text-[var(--text-primary)]">
+                  {!item.read ? <span aria-hidden className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[var(--p-alert)]" /> : null}
+                  <span>
+                    {!item.read ? <span className="sr-only">Sin leer: </span> : null}
+                    {item.title}
+                  </span>
+                </p>
+                <time className="mv-data shrink-0 text-xs text-[var(--text-tertiary)]" dateTime={item.createdAt ?? undefined}>
+                  {formatRelative(item.createdAt) ?? "Fecha no indicada"}
+                </time>
               </div>
-              <time className="mv-data shrink-0 text-xs text-[var(--text-tertiary)]" dateTime={item.createdAt ?? undefined}>
-                {formatRelative(item.createdAt) ?? "Fecha no indicada"}
-              </time>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {item.severity ? <RiskBadge level={item.severity} /> : null}
+                <SourceBadge source={item.source} />
+                {item.targetDisplay ? <span className="mv-data text-xs text-[var(--text-tertiary)]">{item.targetDisplay}</span> : null}
+              </div>
+              {!item.read ? <AlertBody body={item.body} compact /> : null}
             </li>
           ))}
         </ul>
@@ -596,32 +592,28 @@ function FeedPanel({ alerts, onRetry }: { alerts: PwnResult<Paged<AlertView>> | 
   );
 }
 
-function VerifiedPanel({ items }: { items: BreachView[] }) {
-  const verified = items.filter((item) => {
-    const status = (item.verificationStatus ?? "").toUpperCase();
-    return status === "CONFIRMED" || status === "CORROBORATED";
-  });
+function VerifiedPanel({ items }: { items: SummaryView["verifiedIntel"] }) {
   return (
-    <section aria-labelledby="pwn-verified-title" className="mv-panel rounded-[1.75rem] p-5 md:p-6">
+    <section aria-labelledby="pwn-verified-title" className="mv-panel p-5 md:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 id="pwn-verified-title" className="mv-h3 text-lg">
             Inteligencia verificada reciente
           </h3>
-          <p className="mt-1 text-xs text-[var(--text-tertiary)]">Filtraciones confirmadas o corroboradas por la fuente.</p>
+          <p className="mt-1 text-xs text-[var(--text-tertiary)]">Filtraciones del catálogo confirmadas o corroboradas por la fuente. No son exposiciones tuyas.</p>
         </div>
-        <Link href="/pwn/breaches" className={`mv-link inline-flex items-center gap-1 text-sm ${focusRing}`}>
+        <Link href="/pwn/breaches" className={`mv-link inline-flex min-h-11 items-center gap-1 text-sm ${focusRing}`}>
           Ver filtraciones <ArrowRight className="h-3.5 w-3.5" aria-hidden />
         </Link>
       </div>
-      {verified.length === 0 ? (
-        <p className="mt-4 rounded-2xl border border-dashed border-[var(--mv-hairline-strong)] px-4 py-3 text-sm text-[var(--text-secondary)]">
+      {items.length === 0 ? (
+        <p className={`mt-4 ${pwnInsetClass} border-dashed border-[var(--mv-hairline-strong)] text-sm text-[var(--text-secondary)]`}>
           No hay inteligencia verificada reciente.
         </p>
       ) : (
         <ul className="mt-4 grid gap-3 md:grid-cols-3">
-          {verified.slice(0, 3).map((item) => (
-            <li key={item.id} className="flex flex-col justify-between gap-3 rounded-2xl border border-[var(--mv-hairline)] p-4">
+          {items.map((item) => (
+            <li key={item.id} className={`flex flex-col justify-between gap-3 ${pwnInsetClass} p-4`}>
               <p className="text-sm font-medium text-[var(--text-primary)]">{item.name}</p>
               <SourceBadge source={item.source} href={item.sourceUrl} />
             </li>

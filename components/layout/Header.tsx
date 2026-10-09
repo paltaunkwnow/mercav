@@ -5,7 +5,6 @@ import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   User,
-  Rss,
   LayoutDashboard,
   ShieldAlert,
   Settings,
@@ -14,36 +13,36 @@ import {
   ChevronDown,
   Menu,
   X,
-  Megaphone,
-  MonitorPlay,
-  Briefcase,
-  Wrench,
-  Shield,
-  Store,
-} from "lucide-react";
+  MessageSquare,
+  LayoutGrid,
+} from "@/components/icons";
 import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import NotificationBell from "./NotificationBell";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { HostLink, useAppPathname, useHostKind, useHostNavigate } from "./HostContext";
 import { SeekField } from "@/components/motion/SeekField";
-import { StarOfDavid } from "@/components/site/StarOfDavid";
+import { APP_SECTION_GROUPS, activeSectionKey } from "@/lib/app/sections";
+import { APP_HOME, isMarketingPath, type HostKind } from "@/lib/seo/site";
+import { SiteHeader, ThemeSwitch, Wordmark } from "@/components/site/cartel/SiteHeader";
+import { ArrowRight } from "@/components/icons";
+import { cn } from "@/lib/utils";
 
-export const PRODUCTS = [
-  { href: "/anuncios", label: "Ads", desc: "Vallas, pantallas y vidrieras para alquilar", icon: Megaphone },
-  { href: "/servicios", label: "Services", desc: "Talento digital con pago por hitos", icon: MonitorPlay },
-  { href: "/empleos", label: "Jobs", desc: "Vacantes y postulaciones", icon: Briefcase },
-  { href: "/herramientas", label: "Tools", desc: "Calculadoras, contratos e IA", icon: Wrench },
-  { href: "/dashboard/pos", label: "POS", desc: "Caja e inventario para cualquier rubro", icon: Store },
-  { href: "/pwn", label: "Pwn", desc: "Exposición, filtraciones y alertas", icon: Shield },
-  { href: "/kosher", label: "Kosher", desc: "Atlas, stock y kehilot", icon: StarOfDavid },
-] as const;
-
-const COMPANY = [
-  { href: "/precios", label: "Precios" },
-  { href: "/por-que-mercav", label: "Por qué Mercav" },
-  { href: "/inversores", label: "Inversores" },
+/** Accesos directos de la app en el header de escritorio. */
+const APP_LINKS = [
+  { href: APP_HOME, key: "inicio", label: "Inicio" },
+  { href: "/business", key: "business", label: "Business" },
+  { href: "/herramientas", key: "tools", label: "Tools" },
+  { href: "/pwn", key: "pwn", label: "Pwn" },
+  { href: "/calendario", key: "calendario", label: "Calendario" },
 ];
+
+/** Hide the global chrome on pages that bring their own full-screen shell. */
+export function hidesGlobalChrome(pathname: string | null) {
+  const path = pathname ?? "";
+  // La caja (personal o de una empresa en Business) va a pantalla completa, como una terminal.
+  return /^\/(dashboard\/pos|admin)(\/|$)/.test(path) || /^\/business\/[^/]+\/caja(\/|$)/.test(path) || path === "/1337";
+}
 
 function useDismiss(open: boolean, close: (viaKeyboard?: boolean) => void, refs: React.RefObject<HTMLElement>[]) {
   useEffect(() => {
@@ -67,7 +66,7 @@ function useDismiss(open: boolean, close: (viaKeyboard?: boolean) => void, refs:
 }
 
 function ProfileMenu({ name, email }: { name?: string | null; email?: string | null }) {
-  const router = useRouter();
+  const navigate = useHostNavigate();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -96,7 +95,7 @@ function ProfileMenu({ name, email }: { name?: string | null; email?: string | n
     { href: "/perfil", label: "Mi perfil", icon: User },
     { href: "/perfil/editar", label: "Editar perfil", icon: Edit3 },
     { href: "/perfil/configuracion", label: "Configuración y ajustes", icon: Settings },
-    { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Mi panel", icon: LayoutDashboard },
   ];
 
   return (
@@ -110,11 +109,9 @@ function ProfileMenu({ name, email }: { name?: string | null; email?: string | n
           updatePos();
           setOpen((v) => !v);
         }}
-        className="mv-focus inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-[var(--mv-hairline-strong)] px-3 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:border-gold/50"
+        className="c-label inline-flex h-10 shrink-0 items-center gap-2 rounded-[2px] px-2.5 text-[1.1rem] text-[var(--c-text)] shadow-[inset_0_0_0_2px_var(--c-line-strong)] transition-shadow hover:shadow-[inset_0_0_0_2px_currentColor]"
       >
-        <span className="grid h-6 w-6 place-items-center rounded-full bg-gold/15 text-gold">
-          <User className="h-3.5 w-3.5" aria-hidden />
-        </span>
+        <User className="h-4 w-4 text-[var(--c-yellow-text)]" aria-hidden />
         <span className="hidden xl:inline">Mi perfil</span>
         <ChevronDown className={`h-3.5 w-3.5 opacity-60 transition-transform duration-200 ${open ? "rotate-180" : ""}`} aria-hidden />
       </button>
@@ -141,7 +138,7 @@ function ProfileMenu({ name, email }: { name?: string | null; email?: string | n
                   role="menuitem"
                   onClick={() => {
                     setOpen(false);
-                    router.push(item.href);
+                    navigate(item.href);
                   }}
                   className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm outline-none transition-colors hover:bg-[var(--mv-panel-hover)] focus-visible:bg-[var(--mv-panel-hover)]"
                 >
@@ -154,7 +151,7 @@ function ProfileMenu({ name, email }: { name?: string | null; email?: string | n
             <button
               type="button"
               role="menuitem"
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={() => signOut({ callbackUrl: "/login" })}
               className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm text-red-400 outline-none hover:bg-red-500/10 focus-visible:bg-red-500/10"
             >
               <LogOut className="h-4 w-4" aria-hidden />
@@ -167,7 +164,7 @@ function ProfileMenu({ name, email }: { name?: string | null; email?: string | n
   );
 }
 
-function ProductsMenu({ pathname }: { pathname: string | null }) {
+function SectionsMenu({ pathname }: { pathname: string | null }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -182,8 +179,9 @@ function ProductsMenu({ pathname }: { pathname: string | null }) {
   const place = () => {
     const r = btnRef.current?.getBoundingClientRect();
     if (!r) return;
-    const width = Math.min(576, window.innerWidth - 32);
-    setPos({ top: r.bottom + 18, left: Math.max(16, Math.min(r.left - 8, window.innerWidth - width - 16)) });
+    const width = Math.min(640, window.innerWidth - 32);
+    const bar = btnRef.current?.closest("header")?.getBoundingClientRect().bottom ?? r.bottom;
+    setPos({ top: bar + 8, left: Math.max(16, Math.min(r.left - 8, window.innerWidth - width - 16)) });
   };
   useEffect(() => {
     if (!open) return;
@@ -195,7 +193,7 @@ function ProductsMenu({ pathname }: { pathname: string | null }) {
     };
   }, [open]);
 
-  const active = PRODUCTS.some((p) => pathname === p.href || pathname?.startsWith(`${p.href}/`));
+  const active = activeSectionKey(pathname);
 
   return (
     <div className="relative">
@@ -208,11 +206,13 @@ function ProductsMenu({ pathname }: { pathname: string | null }) {
           place();
           setOpen((v) => !v);
         }}
-        className={`mv-focus inline-flex h-9 items-center gap-1 rounded-full px-3 text-[13.5px] font-semibold transition-colors ${
-          active || open ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-        }`}
+        className={cn(
+          "c-label inline-flex items-center gap-1.5 rounded-[2px] px-2.5 py-2 text-[1.15rem] transition-colors",
+          open ? "text-[var(--c-text)]" : "text-[var(--c-soft)] hover:text-[var(--c-text)]",
+        )}
       >
-        Productos
+        <LayoutGrid className="h-4 w-4" aria-hidden />
+        Apartados
         <ChevronDown className={`h-3.5 w-3.5 opacity-60 transition-transform duration-200 ${open ? "rotate-180" : ""}`} aria-hidden />
       </button>
       {open &&
@@ -220,32 +220,37 @@ function ProductsMenu({ pathname }: { pathname: string | null }) {
           <div
             ref={panelRef}
             id={id}
-            className="mv-pop mv-menu fixed z-[160] w-[min(36rem,calc(100vw-2rem))] rounded-[1.5rem] p-2"
+            className="mv-pop mv-menu fixed z-[160] max-h-[calc(100dvh-7rem)] w-[min(40rem,calc(100vw-2rem))] overflow-y-auto rounded-[1.5rem] p-2"
             style={{ top: pos.top, left: pos.left, transformOrigin: "top left" }}
           >
-            <ul className="grid grid-cols-2 gap-1">
-              {PRODUCTS.map(({ href, label, desc, icon: Icon }) => {
-                const on = pathname === href || pathname?.startsWith(`${href}/`);
-                return (
-                  <li key={href}>
-                    <Link
-                      href={href}
-                      aria-current={on ? "page" : undefined}
-                      onClick={() => setOpen(false)}
-                      className="group flex items-start gap-3 rounded-2xl p-3 outline-none transition-colors hover:bg-[var(--mv-panel-hover)] focus-visible:bg-[var(--mv-panel-hover)] focus-visible:shadow-[inset_0_0_0_1px_var(--color-border-gold)]"
-                    >
-                      <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[var(--mv-hairline)] ${on ? "bg-gold text-[var(--mv-on-gold)]" : "bg-gold/10 text-gold"}`}>
-                        <Icon className="h-4 w-4" aria-hidden />
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-sm font-semibold text-[var(--text-primary)]">Mercav {label}</span>
-                        <span className="block text-xs leading-snug text-[var(--text-secondary)]">{desc}</span>
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+            {APP_SECTION_GROUPS.map((group) => (
+              <div key={group.key} className="p-1">
+                <p className="px-3 pb-1.5 pt-2 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-[var(--text-tertiary)]">{group.title}</p>
+                <ul className="grid grid-cols-2 gap-1">
+                  {group.sections.map(({ key, href, label, desc, icon: Icon }) => {
+                    const on = active === key;
+                    return (
+                      <li key={key}>
+                        <HostLink
+                          href={href}
+                          aria-current={on ? "page" : undefined}
+                          onClick={() => setOpen(false)}
+                          className="group flex items-start gap-3 rounded-2xl p-2.5 outline-none transition-colors hover:bg-[var(--mv-panel-hover)] focus-visible:bg-[var(--mv-panel-hover)] focus-visible:shadow-[inset_0_0_0_1px_var(--color-border-gold)]"
+                        >
+                          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[var(--mv-hairline)] ${on ? "bg-gold text-[var(--mv-on-gold)]" : "bg-gold/10 text-gold"}`}>
+                            <Icon className="h-4 w-4" aria-hidden />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-sm font-semibold text-[var(--text-primary)]">{label}</span>
+                            <span className="block text-xs leading-snug text-[var(--text-secondary)]">{desc}</span>
+                          </span>
+                        </HostLink>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
           </div>,
           document.body,
         )}
@@ -281,52 +286,59 @@ function MobileMenu({ open, onClose, signedIn }: { open: boolean; onClose: () =>
             <X className="h-5 w-5" aria-hidden />
           </button>
         </div>
-        <p className="px-3 pb-1 pt-2 text-xs font-semibold text-[var(--text-tertiary)]">Productos</p>
-        <ul className="grid gap-0.5">
-          {PRODUCTS.map(({ href, label, desc, icon: Icon }) => (
-            <li key={href}>
-              <Link href={href} onClick={onClose} className="flex items-center gap-3 rounded-2xl px-3 py-2.5 outline-none hover:bg-[var(--mv-panel-hover)] focus-visible:bg-[var(--mv-panel-hover)]">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold/10 text-gold">
-                  <Icon className="h-4 w-4" aria-hidden />
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-[15px] font-semibold text-[var(--text-primary)]">{label}</span>
-                  <span className="block truncate text-xs text-[var(--text-secondary)]">{desc}</span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <div className="mv-divider my-3" />
-        <ul className="grid gap-0.5">
-          {[...(signedIn ? [{ href: "/feed", label: "Feed" }] : []), ...COMPANY, { href: "/nosotros", label: "Quiénes somos" }].map((l) => (
-            <li key={l.href}>
-              <Link href={l.href} onClick={onClose} className="block rounded-2xl px-3 py-2.5 text-[15px] font-medium text-[var(--text-primary)] outline-none hover:bg-[var(--mv-panel-hover)] focus-visible:bg-[var(--mv-panel-hover)]">
-                {l.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-        {!signedIn && (
-          <div className="mt-3 grid grid-cols-2 gap-2 p-1">
-            <Link href="/login" onClick={onClose} className="mv-btn mv-btn-secondary">
-              Iniciar sesión
-            </Link>
-            <Link href="/register" onClick={onClose} className="mv-btn mv-btn-primary">
-              Crear cuenta
-            </Link>
-          </div>
-        )}
+        <>
+            {APP_SECTION_GROUPS.map((group) => (
+              <div key={group.key}>
+                <p className="px-3 pb-1.5 pt-3 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-[var(--text-tertiary)]">{group.title}</p>
+                <ul className="grid gap-0.5">
+                  {group.sections.map(({ key, href, label, desc, icon: Icon }) => (
+                    <li key={key}>
+                      <HostLink href={href} onClick={onClose} className="flex items-center gap-3 rounded-2xl px-3 py-2 outline-none hover:bg-[var(--mv-panel-hover)] focus-visible:bg-[var(--mv-panel-hover)]">
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold/10 text-gold">
+                          <Icon className="h-4 w-4" aria-hidden />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[15px] font-semibold text-[var(--text-primary)]">{label}</span>
+                          <span className="block truncate text-xs text-[var(--text-secondary)]">{desc}</span>
+                        </span>
+                      </HostLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            {!signedIn && (
+              <div className="mt-3 grid grid-cols-2 gap-2 p-1">
+                <HostLink href="/login" onClick={onClose} className="mv-btn mv-btn-secondary">
+                  Iniciar sesión
+                </HostLink>
+                <HostLink href="/register" onClick={onClose} className="mv-btn mv-btn-primary">
+                  Crear cuenta
+                </HostLink>
+              </div>
+            )}
+          </>
       </div>
     </div>,
     document.body,
   );
 }
 
+/**
+ * Public-site header (mercav.lat) or app header. The host decides in production; in dev (one origin for every
+ * route) the path does. kosher.mercav.lat always gets the app header.
+ */
+export function isSiteChrome(hostKind: HostKind, pathname: string | null) {
+  if (hostKind === "dev") return isMarketingPath(pathname ?? "/");
+  return hostKind === "site";
+}
+
 export function Header() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
-  const router = useRouter();
+  const appPath = useAppPathname();
+  const hostKind = useHostKind();
+  const navigate = useHostNavigate();
   const [search, setSearch] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -339,50 +351,52 @@ export function Header() {
   }, []);
   useEffect(() => setMenuOpen(false), [pathname]);
 
-  if (/^\/(dashboard\/pos|admin)(\/|$)/.test(pathname ?? "") || pathname === "/1337") return null;
+  if (hidesGlobalChrome(pathname)) return null;
 
+  // mercav.lat muestra el header del sitio público; app.mercav.lat y kosher.mercav.lat, el de la app.
+  const site = isSiteChrome(hostKind, pathname);
+  // mercav.lat tiene su propio header, en el mundo del cartel.
+  if (site) return <SiteHeader />;
   const roles = (session?.user as { roles?: string[] } | undefined)?.roles ?? [];
+  const active = activeSectionKey(appPath);
 
   return (
     <>
-      <header
-        data-scrolled={scrolled}
-        className="liquid-glass liquid-glass-lens fixed z-[100] mx-auto max-w-[76rem] rounded-full transition-[box-shadow,transform] duration-300 left-[max(0.75rem,env(safe-area-inset-left,0px))] right-[max(0.75rem,env(safe-area-inset-right,0px))] top-[max(0.75rem,env(safe-area-inset-top,0px))] data-[scrolled=true]:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.45)]"
-      >
-        <div className="flex h-14 min-w-0 items-center gap-2 pl-2.5 pr-2 sm:h-16 sm:gap-3 sm:pl-4 sm:pr-3">
-          <Link href="/" className="mv-focus flex shrink-0 items-center gap-2 rounded-full pr-1" aria-label="Mercav, inicio">
-            <img src="/images/logo.png" alt="" className="h-8 w-8 object-contain sm:h-9 sm:w-9" width={36} height={36} />
-            <span className="hidden font-display text-[17px] font-semibold tracking-tight text-[var(--text-primary)] sm:inline">Mercav</span>
-          </Link>
+      <header data-scrolled={scrolled} className="cartel c-nav fixed inset-x-0 top-0 z-[100] pt-[env(safe-area-inset-top,0px)]">
+        <div className="c-container flex h-[var(--c-nav-h)] min-w-0 items-center gap-2 sm:gap-3">
+          <HostLink href={APP_HOME} className="flex shrink-0 items-center rounded-[2px]" aria-label="Mercav, inicio de la app">
+            <Wordmark />
+          </HostLink>
 
-          <nav className="ml-2 hidden min-w-0 items-center gap-0.5 lg:flex" aria-label="Principal">
-            <ProductsMenu pathname={pathname} />
-            {[...(session ? [{ href: "/feed", label: "Feed" }] : []), ...COMPANY].map((item) => {
-              const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+          <nav className="ml-3 hidden min-w-0 items-center gap-0.5 lg:flex xl:ml-5" aria-label="Apartados">
+            {APP_LINKS.map((item) => {
+              const isActive = active === item.key;
               return (
-                <Link
-                  key={item.href}
+                <HostLink
+                  key={item.key}
                   href={item.href}
                   aria-current={isActive ? "page" : undefined}
-                  className={`mv-focus inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[13.5px] font-semibold transition-colors ${
-                    isActive ? "bg-gold/10 text-gold" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  }`}
+                  className={cn(
+                    "c-label whitespace-nowrap rounded-[2px] px-2.5 py-2 text-[1.15rem] underline-offset-[0.35em] transition-colors",
+                    isActive ? "text-[var(--c-text)] underline decoration-[var(--c-yellow)] decoration-[3px]" : "text-[var(--c-soft)] hover:text-[var(--c-text)]",
+                  )}
                 >
-                  {item.href === "/feed" && <Rss className="h-3.5 w-3.5" aria-hidden />}
                   {item.label}
-                </Link>
+                </HostLink>
               );
             })}
+            <span aria-hidden className="mx-1.5 h-5 w-[2px] bg-[var(--c-line-strong)]" />
+            <SectionsMenu pathname={appPath} />
           </nav>
 
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5">
             <SeekField
               value={search}
               onValueChange={setSearch}
-              onSubmit={(query) => router.push(`/buscar?q=${encodeURIComponent(query)}`)}
+              onSubmit={(query) => navigate(`/buscar?q=${encodeURIComponent(query)}`)}
               placeholder="Buscar"
-              shut={36}
-              openWidth={156}
+              shut={40}
+              openWidth={168}
               defaultOpen
               persistent
               anchor="end"
@@ -391,46 +405,53 @@ export function Header() {
             <SeekField
               value={search}
               onValueChange={setSearch}
-              onSubmit={(query) => router.push(`/buscar?q=${encodeURIComponent(query)}`)}
+              onSubmit={(query) => navigate(`/buscar?q=${encodeURIComponent(query)}`)}
               placeholder="Buscar"
-              shut={36}
+              shut={40}
               openWidth={168}
               anchor="end"
               className="shrink-0 xl:hidden"
             />
 
-            <ThemeToggle />
+            <ThemeSwitch />
 
             {session ? (
               <>
+                <HostLink
+                  href="/mensajes"
+                  aria-label="Mensajes"
+                  title="Mensajes"
+                  className={cn(
+                    "hidden h-10 w-10 place-items-center rounded-[2px] transition-colors sm:grid",
+                    active === "mensajes" ? "text-[var(--c-yellow-text)]" : "text-[var(--c-text)] hover:text-[var(--c-yellow-text)]",
+                  )}
+                >
+                  <MessageSquare className="h-5 w-5" aria-hidden />
+                </HostLink>
                 <NotificationBell />
                 {roles.includes("ADMIN") && (
-                  <Link
+                  <HostLink
                     href="/admin/dashboard"
                     aria-label="Administración"
                     title="Administración"
-                    className="mv-focus hidden h-9 w-9 place-items-center rounded-full text-gold transition-colors hover:bg-gold/10 sm:grid"
+                    className="hidden h-10 w-10 place-items-center rounded-[2px] text-[var(--c-yellow-text)] transition-colors hover:text-[var(--c-text)] sm:grid"
                   >
-                    <ShieldAlert className="h-[18px] w-[18px]" aria-hidden />
-                  </Link>
+                    <ShieldAlert className="h-5 w-5" aria-hidden />
+                  </HostLink>
                 )}
-                <Link
-                  href="/dashboard"
-                  aria-label="Panel"
-                  title="Panel"
-                  className="mv-focus hidden h-9 w-9 place-items-center rounded-full text-[var(--text-secondary)] transition-colors hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)] md:grid"
-                >
-                  <LayoutDashboard className="h-[18px] w-[18px]" aria-hidden />
-                </Link>
                 <ProfileMenu name={session.user?.name} email={session.user?.email} />
               </>
+            ) : status === "loading" ? (
+              // Mientras se lee la sesión no mostramos "Entrar" para no parpadear.
+              <span className="hidden h-10 w-44 sm:block" aria-hidden />
             ) : (
               <>
-                <Link href="/login" className="mv-btn mv-btn-ghost mv-btn-sm hidden md:inline-flex">
-                  Iniciar sesión
+                <Link href="/login" className="c-label hidden rounded-[2px] px-2 py-2 text-[1.15rem] text-[var(--c-soft)] transition-colors hover:text-[var(--c-text)] md:inline-flex">
+                  Entrar
                 </Link>
-                <Link href="/register" className="mv-btn mv-btn-primary mv-btn-sm hidden sm:inline-flex">
-                  Crear cuenta
+                <Link href="/register" className="c-btn c-btn-sm hidden sm:inline-flex">
+                  Creá tu cuenta
+                  <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
               </>
             )}
@@ -440,9 +461,9 @@ export function Header() {
               onClick={() => setMenuOpen(true)}
               aria-label="Abrir menú"
               aria-expanded={menuOpen}
-              className="mv-focus grid h-9 w-9 place-items-center rounded-full text-[var(--text-primary)] transition-colors hover:bg-[var(--mv-panel-hover)] lg:hidden"
+              className="grid h-10 w-10 place-items-center rounded-[2px] text-[var(--c-text)] lg:hidden"
             >
-              <Menu className="h-5 w-5" aria-hidden />
+              <Menu className="h-6 w-6" aria-hidden />
             </button>
           </div>
         </div>

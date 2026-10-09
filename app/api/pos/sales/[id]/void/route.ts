@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { getPosContext, posError } from "@/lib/pos/server";
+import { actorFields, getPosContext, posError } from "@/lib/pos/server";
 import { requireManager } from "@/lib/pos/staff";
 
 const schema = z.object({
@@ -13,7 +13,7 @@ class AlreadyVoided extends Error {}
 
 /** Voids a sale: marks it VOIDED, keeps who/why/when and puts tracked stock back. One transaction. */
 export async function POST(req: Request, { params }: { params: { id: string } }) {
-  const ctx = await getPosContext();
+  const ctx = await getPosContext(req, "pos.void");
   if (!ctx.ok) return ctx.response;
   const { config } = ctx;
 
@@ -35,7 +35,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       // Guard against two voids at once: only one flips COMPLETED → VOIDED.
       const flipped = await tx.pOSSale.updateMany({
         where: { id: sale.id, status: { not: "VOIDED" } },
-        data: { status: "VOIDED", voidedAt: new Date(), voidReason: parsed.data.reason, voidedById: gate.actorStaffId },
+        data: { status: "VOIDED", voidedAt: new Date(), voidReason: parsed.data.reason, voidedById: gate.actorStaffId, voidedByUserId: actorFields(ctx) },
       });
       if (flipped.count === 0) throw new AlreadyVoided();
 

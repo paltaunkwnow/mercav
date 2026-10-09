@@ -132,9 +132,16 @@ function parseBreachList(payload: unknown): HibpBreach[] {
   });
 }
 
+// El catálogo pesa cerca de 1 MB: se guarda una hora por instancia en vez de bajarlo en cada consulta.
+const CATALOG_TTL_MS = 60 * 60 * 1000;
+let catalogCache: { at: number; data: HibpBreach[] } | null = null;
+
 /** Public catalog of disclosed breaches. Does not require HIBP_API_KEY. */
-export async function fetchHibpBreachCatalog(): Promise<ConnectorResponse<HibpBreach[]>> {
+export async function fetchHibpBreachCatalog(options: { fresh?: boolean } = {}): Promise<ConnectorResponse<HibpBreach[]>> {
   if (!isPwnEnabled()) return { configured: false };
+  if (!options.fresh && catalogCache && Date.now() - catalogCache.at < CATALOG_TTL_MS) {
+    return { configured: true, data: catalogCache.data };
+  }
   let response: Response;
   try {
     response = await fetch(`${HIBP_API}/breaches`, {
@@ -143,17 +150,82 @@ export async function fetchHibpBreachCatalog(): Promise<ConnectorResponse<HibpBr
       signal: AbortSignal.timeout(15_000),
     });
   } catch {
+    if (catalogCache) return { configured: true, data: catalogCache.data };
     return { configured: false };
   }
   if (response.status === 429) throw rateLimitedError("HIBP", response);
-  if (!response.ok) throw new PwnProviderError("HIBP");
+  if (!response.ok) {
+    if (catalogCache) return { configured: true, data: catalogCache.data };
+    throw new PwnProviderError("HIBP");
+  }
   let payload: unknown;
   try {
     payload = await response.json();
   } catch {
     throw new PwnProviderError("HIBP");
   }
-  return { configured: true, data: parseBreachList(payload) };
+  const data = parseBreachList(payload);
+  catalogCache = { at: Date.now(), data };
+  return { configured: true, data };
+}
+
+/**
+ * Dos preguntas distintas sobre un dominio:
+ * - catalog: ¿el servicio de ese dominio sufrió una filtración? (catálogo público, sin API key)
+ * - accounts: ¿hay cuentas @dominio en filtraciones? (breacheddomain: necesita API key y que HIBP
+ *   tenga el dominio verificado para esa key). Solo se intenta para dominios propios verificados.
+ */
+export type DomainBreachMode = "catalog" | "accounts";
+
+function domainStubs(names: string[]): HibpBreach[] {
+  return names.map((name) => ({
+    name,
+    title: name,
+    domain: null,
+    breachDate: null,
+    addedDate: null,
+    modifiedDate: null,
+    pwnCount: null,
+    description: null,
+    dataClasses: [],
+    isVerified: false,
+    isFabricated: false,
+    isSensitive: false,
+    isRetired: false,
+    sourceUrl: `https://haveibeenpwned.com/PwnedWebsites#${encodeURIComponent(name)}`,
+  }));
+}
+
+async function catalogForDomain(domain: string): Promise<ConnectorResponse<{ mode: DomainBreachMode; data: HibpBreach[] }>> {
+  const catalog = await fetchHibpBreachCatalog();
+  if (!catalog.configured) return { configured: false };
+  return { configured: true, data: { mode: "catalog", data: breachesForDomain(catalog.data, domain) } };
+}
+
+export async function searchDomainBreaches(
+  domain: string,
+  options: { owned: boolean },
+): Promise<ConnectorResponse<{ mode: DomainBreachMode; data: HibpBreach[] }>> {
+  if (!isPwnEnabled()) return { configured: false };
+  if (!options.owned || !process.env.HIBP_API_KEY) return catalogForDomain(domain);
+
+  let response: Response;
+  try {
+    response = await hibpRequest(`/breacheddomain/${encodeURIComponent(domain)}`);
+  } catch {
+    return catalogForDomain(domain);
+  }
+  if (response.status === 429) throw rateLimitedError("HIBP", response);
+  if (response.status === 404) return { configured: true, data: { mode: "accounts", data: [] } };
+  // 401/403: HIBP no tiene ese dominio verificado para nuestra key. Caemos al catálogo público.
+  if (!response.ok) return catalogForDomain(domain);
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    return catalogForDomain(domain);
+  }
+  return { configured: true, data: { mode: "accounts", data: domainStubs(parseDomainPayload(payload)) } };
 }
 
 export const hibpConnector: PwnConnector<HibpQuery, HibpBreach[]> = {
@@ -166,19 +238,17 @@ export const hibpConnector: PwnConnector<HibpQuery, HibpBreach[]> = {
   async search(query) {
     if (!isPwnEnabled()) return { configured: false };
 
-    if (!this.isConfigured()) {
-      if (query.type !== "domain") return { configured: false };
-      const catalog = await fetchHibpBreachCatalog();
-      if (!catalog.configured) return { configured: false };
-      return { configured: true, data: breachesForDomain(catalog.data, query.account) };
+    // Por defecto un dominio se mira en el catálogo público; los propios usan searchDomainBreaches.
+    if (query.type === "domain") {
+      const result = await catalogForDomain(query.account);
+      return result.configured ? { configured: true, data: result.data.data } : result;
     }
+    if (!this.isConfigured()) return { configured: false };
 
     const path =
       query.type === "email"
         ? `/breachedaccount/${encodeURIComponent(query.account)}?truncateResponse=false`
-        : query.type === "domain"
-          ? `/breacheddomain/${encodeURIComponent(query.account)}`
-          : `/breach/${encodeURIComponent(query.account)}`;
+        : `/breach/${encodeURIComponent(query.account)}`;
     const response = await hibpRequest(path);
 
     if (response.status === 404) return { configured: true, data: [] };
@@ -193,27 +263,6 @@ export const hibpConnector: PwnConnector<HibpQuery, HibpBreach[]> = {
       throw new PwnProviderError("HIBP");
     }
 
-    if (query.type === "domain") {
-      return {
-        configured: true,
-        data: parseDomainPayload(payload).map((name) => ({
-          name,
-          title: name,
-          domain: null,
-          breachDate: null,
-          addedDate: null,
-          modifiedDate: null,
-          pwnCount: null,
-          description: null,
-          dataClasses: [],
-          isVerified: false,
-          isFabricated: false,
-          isSensitive: false,
-          isRetired: false,
-          sourceUrl: `https://haveibeenpwned.com/PwnedWebsites#${encodeURIComponent(name)}`,
-        })),
-      };
-    }
     if (query.type === "breach") {
       return { configured: true, data: parseBreachList([payload]) };
     }

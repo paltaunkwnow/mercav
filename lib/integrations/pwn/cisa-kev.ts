@@ -48,8 +48,15 @@ function mapEntry(value: unknown): CisaKevEntry | null {
   };
 }
 
-export async function fetchKevCatalog(): Promise<ConnectorResponse<CisaKevEntry[]>> {
+// El catálogo KEV pesa más de 1 MB: una copia por instancia durante una hora.
+const KEV_TTL_MS = 60 * 60 * 1000;
+let kevCache: { at: number; data: CisaKevEntry[] } | null = null;
+
+export async function fetchKevCatalog(options: { fresh?: boolean } = {}): Promise<ConnectorResponse<CisaKevEntry[]>> {
   if (process.env.PWN_ENABLED !== "true") return { configured: false };
+  if (!options.fresh && kevCache && Date.now() - kevCache.at < KEV_TTL_MS) {
+    return { configured: true, data: kevCache.data };
+  }
   let response: Response;
   try {
     response = await fetch(CISA_KEV_FEED, {
@@ -69,10 +76,21 @@ export async function fetchKevCatalog(): Promise<ConnectorResponse<CisaKevEntry[
     throw new PwnProviderError("CISA KEV");
   }
   if (!Array.isArray(payload?.vulnerabilities)) throw new PwnProviderError("CISA KEV");
-  return {
-    configured: true,
-    data: payload.vulnerabilities.map(mapEntry).filter((item): item is CisaKevEntry => Boolean(item)),
-  };
+  const data = payload.vulnerabilities.map(mapEntry).filter((item): item is CisaKevEntry => Boolean(item));
+  kevCache = { at: Date.now(), data };
+  return { configured: true, data };
+}
+
+/** Entrada KEV de un CVE, null si no figura, o "unknown" si el catálogo no se pudo leer. */
+export async function kevEntryFor(cveId: string): Promise<CisaKevEntry | null | "unknown"> {
+  try {
+    const catalog = await fetchKevCatalog();
+    if (!catalog.configured) return "unknown";
+    const target = cveId.toUpperCase();
+    return catalog.data.find((item) => item.cveId.toUpperCase() === target) ?? null;
+  } catch {
+    return "unknown";
+  }
 }
 
 export const cisaKevConnector: PwnConnector<{ cveId: string }, CisaKevEntry[]> = {

@@ -564,10 +564,10 @@ function implicationFor(dataTypes: string[]): string | null {
   const has = (part: string) => keys.some((item) => item.includes(part));
   const parts: string[] = [];
   if (has("password") || has("contraseña")) {
-    parts.push("Si tu cuenta está en la lista, cambia la contraseña de ese servicio, no la reutilices y activa un segundo factor.");
+    parts.push("Si tu cuenta está en la lista, cambiá la contraseña de ese servicio, no la reutilices y activá un segundo factor.");
   }
   if (has("email") || has("correo")) {
-    parts.push("Los correos filtrados se usan para phishing dirigido: desconfía de mensajes que citen tu cargo, empresa o un ticket de soporte.");
+    parts.push("Los correos filtrados se usan para phishing dirigido: desconfiá de mensajes que citen tu cargo, empresa o un ticket de soporte.");
   }
   if (has("phone") || has("teléfono")) {
     parts.push("Un teléfono expuesto abre la puerta a llamadas y SMS fraudulentos que parecen del soporte de la empresa.");
@@ -576,13 +576,13 @@ function implicationFor(dataTypes: string[]): string | null {
     parts.push("Las direcciones postales no deben usarse para verificar identidad por teléfono ni por correo.");
   }
   if (has("health") || has("salud")) {
-    parts.push("Hay datos sanitarios: trátelos como información clínica sensible, no solo como una lista de contactos.");
+    parts.push("Hay datos sanitarios: tratalos como información clínica sensible, no solo como una lista de contactos.");
   }
   if (has("passport") || has("social security") || has("government") || has("identidad") || has("seguridad social")) {
-    parts.push("Hay identificadores oficiales: vigila fraudes de identidad y no envíes copias de documentos si te las piden por ese canal.");
+    parts.push("Hay identificadores oficiales: vigilá fraudes de identidad y no mandes copias de documentos si te las piden por ese canal.");
   }
   if (has("credit card") || has("tarjeta") || has("financial") || has("bancaria")) {
-    parts.push("Hay datos financieros: revisa movimientos y avisa al banco si ves cargos que no reconoces.");
+    parts.push("Hay datos financieros: revisá los movimientos y avisale al banco si ves cargos que no reconocés.");
   }
   if (parts.length === 0) {
     parts.push("Quien figure en esta lista puede recibir contactos muy creíbles. No confirmes contraseñas ni códigos por ese medio.");

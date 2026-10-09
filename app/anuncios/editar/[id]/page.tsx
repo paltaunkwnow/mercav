@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, MapPin } from "lucide-react";
+import { Loader2, MapPin } from "@/components/icons";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Container, buttonClass } from "@/components/site/primitives";

@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
 import { z } from "zod";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { BUSINESS_TYPES } from "@/lib/pos/business";
 import { requireManager } from "@/lib/pos/staff";
+import { getPosScope } from "@/lib/pos/server";
 
 const configSchema = z.object({
   shopName: z.string().max(120).nullish(),
@@ -23,19 +22,12 @@ const configSchema = z.object({
   kosherPlaceId: z.string().max(64).nullish(),
 });
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { posConfig: true }
-    });
-
-    if (!user) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
-
-    return NextResponse.json({ success: true, data: user.posConfig });
+    // La caja de empresa todavía sin activar devuelve null: la pantalla muestra el alta.
+    const res = await getPosScope(req, "pos.sell");
+    if (!res.ok) return res.response;
+    return NextResponse.json({ success: true, data: res.scope.config });
   } catch (error) {
     return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
   }
@@ -43,17 +35,11 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true, posConfig: { select: { id: true } } }
-    });
-
-    if (!user) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
-    if (user.posConfig) {
-      const gate = await requireManager(req, user.posConfig.id);
+    const res = await getPosScope(req, "pos.configure");
+    if (!res.ok) return res.response;
+    const { scope } = res;
+    if (scope.config) {
+      const gate = await requireManager(req, scope.config.id);
       if (!gate.ok) return gate.response;
     }
 
@@ -62,19 +48,17 @@ export async function POST(req: Request) {
     const data = { ...parsed.data, paymentMethods: Array.from(new Set(parsed.data.paymentMethods)) };
     if (data.kosherPlaceId) {
       const manages = await prisma.kosherPlaceManager.findUnique({
-        where: { placeId_userId: { placeId: data.kosherPlaceId, userId: user.id } },
+        where: { placeId_userId: { placeId: data.kosherPlaceId, userId: scope.userId } },
         select: { placeId: true },
       });
       if (!manages) return NextResponse.json({ success: false, error: "Solo podés vincular un lugar de Mercav Kosher que administrás" }, { status: 403 });
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { id: user.id },
-      data: { posConfig: { upsert: { update: data, create: data } } },
-      include: { posConfig: true }
-    });
+    const config = scope.workspaceId
+      ? await prisma.pOSConfig.upsert({ where: { workspaceId: scope.workspaceId }, update: data, create: { ...data, workspaceId: scope.workspaceId } })
+      : await prisma.pOSConfig.upsert({ where: { userId: scope.userId }, update: data, create: { ...data, userId: scope.userId } });
 
-    return NextResponse.json({ success: true, data: updatedUser.posConfig });
+    return NextResponse.json({ success: true, data: config });
   } catch (error) {
     console.error("POS_CONFIG_POST_ERROR", error);
     return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });

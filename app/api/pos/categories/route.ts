@@ -1,26 +1,17 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { z } from "zod";
+import { getPosContext, getPosScope } from "@/lib/pos/server";
 import { prisma } from "@/lib/prisma";
 import { requireManager } from "@/lib/pos/staff";
 
-export async function GET() {
+const categorySchema = z.object({ name: z.string().trim().min(1).max(60) });
+
+export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { posConfig: true }
-    });
-
-    if (!user?.posConfig) return NextResponse.json({ success: true, data: [] });
-
-    const categories = await prisma.pOSCategory.findMany({
-      where: { posConfigId: user.posConfig.id },
-      orderBy: { name: "asc" }
-    });
-
+    const res = await getPosScope(req, "pos.sell");
+    if (!res.ok) return res.response;
+    if (!res.scope.config) return NextResponse.json({ success: true, data: [] });
+    const categories = await prisma.pOSCategory.findMany({ where: { posConfigId: res.scope.config.id }, orderBy: { name: "asc" } });
     return NextResponse.json({ success: true, data: categories });
   } catch (error) {
     return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });
@@ -29,28 +20,14 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { posConfig: true }
-    });
-
-    if (!user?.posConfig) return NextResponse.json({ success: false, error: "POS not configured" }, { status: 400 });
-    const gate = await requireManager(req, user.posConfig.id);
+    const ctx = await getPosContext(req, "pos.inventory");
+    if (!ctx.ok) return ctx.response;
+    const gate = await requireManager(req, ctx.config.id);
     if (!gate.ok) return gate.response;
 
-    const body = await req.json();
-    const { name } = body;
-
-    const category = await prisma.pOSCategory.create({
-      data: {
-        posConfigId: user.posConfig.id,
-        name
-      }
-    });
-
+    const parsed = categorySchema.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) return NextResponse.json({ success: false, error: "Escribí el nombre de la categoría" }, { status: 400 });
+    const category = await prisma.pOSCategory.create({ data: { posConfigId: ctx.config.id, name: parsed.data.name } });
     return NextResponse.json({ success: true, data: category });
   } catch (error) {
     return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });

@@ -5,14 +5,12 @@ import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
-import { Mail, Loader2, ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
-import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { Mail, Loader2, ArrowLeft, ArrowRight, ShieldCheck } from '@/components/icons';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { BodyPortal } from '@/components/auth/BodyPortal';
 import { AuthDivider, AuthField, FormAlert, GoogleIcon, PasswordField, SubmitButton } from '@/components/auth/AuthFields';
 import { useCookieConsent } from '@/components/legal/CookieConsentProvider';
 import { safeCallbackPath } from '@/lib/security/safe-url';
-import { RECAPTCHA_SITE_KEY } from '@/lib/recaptcha';
 
 function LoginForm() {
   const router = useRouter();
@@ -29,54 +27,13 @@ function LoginForm() {
   const [showForgotModal, setShowForgotModal] = useState(false);
 
   const reduce = useReducedMotion();
-  const { executeRecaptcha } = useGoogleReCaptcha();
-  const { thirdPartyAllowed, openCookieSettings, hasDecided } = useCookieConsent();
+  // Las cookies de terceros solo hacen falta para entrar con Google.
+  const { thirdPartyAllowed, openCookieSettings } = useCookieConsent();
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
-    const thirdPartyBlocked = Boolean(RECAPTCHA_SITE_KEY && hasDecided && !thirdPartyAllowed);
-    if (thirdPartyBlocked) {
-      setError('Para iniciar sesión con correo debes aceptar cookies de terceros (Google reCAPTCHA).');
-      openCookieSettings();
-      setLoading(false);
-      return;
-    }
-
-    let token: string | undefined;
-    if (RECAPTCHA_SITE_KEY) {
-      if (executeRecaptcha) {
-        try {
-          token = await executeRecaptcha('login');
-        } catch (err) {
-          console.warn('executeRecaptcha hook error:', err);
-        }
-      }
-
-      if (!token && typeof window !== 'undefined') {
-        const w = window as any;
-        for (let attempt = 0; attempt < 20; attempt++) {
-          const g = w.grecaptcha?.enterprise || w.grecaptcha;
-          if (g && typeof g.execute === 'function') {
-            try {
-              token = await g.execute(RECAPTCHA_SITE_KEY, { action: 'login' });
-              if (token) break;
-            } catch (err) {
-              console.warn('Direct grecaptcha error:', err);
-            }
-          }
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-      }
-
-      if (!token) {
-        setError('No se pudo cargar el servicio de seguridad (reCAPTCHA). Si tienes un bloqueador de anuncios (AdBlock, Brave Shields) o extensiones de privacidad, desactívalos temporalmente o refresca la página.');
-        setLoading(false);
-        return;
-      }
-    }
 
     try {
       
@@ -84,7 +41,6 @@ function LoginForm() {
         redirect: false,
         email,
         password,
-        recaptchaToken: token,
         twoFactorCode: show2FA ? twoFactorCode : undefined,
       });
 
@@ -96,9 +52,6 @@ function LoginForm() {
           setError(''); // Clear any previous errors
         } else if (res.error === '2FA_INVALID' || res.error.includes('2FA_INVALID')) {
           setError('Código 2FA incorrecto. Verifica tu aplicación.');
-          setLoading(false);
-        } else if (res.error.includes('reCAPTCHA')) {
-          setError('Error de verificación (reCAPTCHA).');
           setLoading(false);
         } else {
           setError('Credenciales inválidas. Revisa tu email y contraseña.');
@@ -112,7 +65,7 @@ function LoginForm() {
       setError('Error al iniciar sesión. Intenta de nuevo.');
       setLoading(false);
     }
-  }, [executeRecaptcha, email, password, twoFactorCode, show2FA, callbackUrl, router, thirdPartyAllowed, hasDecided, openCookieSettings]);
+  }, [email, password, twoFactorCode, show2FA, callbackUrl, router]);
 
   return (
     <AuthShell
@@ -127,7 +80,8 @@ function LoginForm() {
         {error && <FormAlert id="login-error">{error}</FormAlert>}
       </div>
 
-      <form onSubmit={handleSubmit} className={registered || error ? "mt-6 space-y-5" : "space-y-5"}>
+      {/* method="post": si el JavaScript no carga, el navegador no pone el correo y la contraseña en la URL. */}
+      <form method="post" onSubmit={handleSubmit} className={registered || error ? "mt-6 space-y-5" : "space-y-5"}>
         {!show2FA ? (
           <>
             <AuthField
@@ -226,7 +180,7 @@ function LoginForm() {
 
       <p className="mt-8 text-sm text-[var(--text-secondary)]">
         ¿Todavía no tenés cuenta?{' '}
-        <Link href="/register" className="mv-link">
+        <Link href={searchParams?.get('callbackUrl') ? `/register?callbackUrl=${encodeURIComponent(callbackUrl)}` : '/register'} className="mv-link">
           Creala gratis
         </Link>
       </p>

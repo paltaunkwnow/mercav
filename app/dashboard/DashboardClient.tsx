@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   Briefcase,
+  Building2,
   MonitorPlay,
   Megaphone,
   MessageSquare,
@@ -13,13 +14,12 @@ import {
   Clock,
   ChevronRight,
   Settings,
-  Store,
   Wrench,
   Shield,
   UserCheck,
   LifeBuoy,
   Sparkles,
-} from "lucide-react";
+} from "@/components/icons";
 import { ButtonLink, Container, PageHero, Section, GlassPanel } from "@/components/site/primitives";
 import { StarOfDavid } from "@/components/site/StarOfDavid";
 
@@ -39,6 +39,7 @@ export default function DashboardClient({
   const [loading, setLoading] = useState(false);
 
   const firstName = (user.name || "").split(" ")[0];
+  const businessCount: number = user.businessMemberships?.length || 0;
 
   const categories = [
     {
@@ -72,14 +73,14 @@ export default function DashboardClient({
       pending: false,
     },
     {
-      title: "POS",
-      sub: "Punto de venta",
-      desc: "Cobrá en tu local, llevá el inventario y emití tickets desde el navegador.",
-      icon: Store,
-      link: user.posConfig ? "/dashboard/pos" : "/dashboard/pos/config",
-      stats: user.posConfig ? "Configurado" : "Pendiente",
-      action: user.posConfig ? "Abrir terminal" : "Configurar local",
-      pending: !user.posConfig,
+      title: "Business",
+      sub: "RR.HH. y planillas",
+      desc: "Llevá los legajos de tu equipo y armá la planilla de sueldos de cada mes.",
+      icon: Building2,
+      link: "/business",
+      stats: businessCount > 0 ? `${businessCount} ${businessCount === 1 ? "empresa" : "empresas"}` : "Sin empresas",
+      action: "Abrir Business",
+      pending: businessCount === 0,
     },
   ];
 
@@ -101,7 +102,6 @@ export default function DashboardClient({
     { label: "Herramientas", link: "/herramientas", icon: Wrench },
     { label: "Pwn", link: "/pwn", icon: Shield },
     { label: "Kosher", link: "/kosher", icon: StarOfDavid },
-    { label: "Ajustes del POS", link: "/dashboard/pos/config", icon: Settings },
     { label: "Premium", link: "/premium", icon: Sparkles },
   ];
 
@@ -201,6 +201,24 @@ export default function DashboardClient({
               ))}
             </ul>
           </nav>
+
+          {user.posConfig && (
+            <p className="mt-4 text-xs text-[var(--text-tertiary)]">
+              <Link
+                href="/dashboard/pos"
+                className="mv-focus rounded underline-offset-4 outline-none transition-colors duration-200 hover:text-[var(--text-secondary)] hover:underline"
+              >
+                Tu caja POS anterior
+              </Link>
+              {" · "}
+              <Link
+                href="/business"
+                className="mv-focus rounded underline-offset-4 outline-none transition-colors duration-200 hover:text-[var(--text-secondary)] hover:underline"
+              >
+                Traela a tu empresa en Business
+              </Link>
+            </p>
+          )}
         </Container>
       </Section>
 

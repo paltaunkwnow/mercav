@@ -1,5 +1,5 @@
 import type { KosherPlaceType, KosherStatus } from "@prisma/client";
-import { BadgeCheck, CircleHelp, CircleSlash, MessageCircleWarning, Scale, ShieldCheck } from "lucide-react";
+import { BadgeCheck, CircleHelp, CircleSlash, MessageCircleWarning, Scale, ShieldCheck } from "@/components/icons";
 import { STATUS, isFoodPlace, placeTone } from "@/lib/kosher/labels";
 import { cn } from "@/lib/utils";
 
@@ -12,7 +12,7 @@ const ICONS = {
 } as const;
 
 const TONE_CLASS = {
-  seal: "bg-[var(--mv-gold-wash)] text-gold ring-gold/30",
+  seal: "bg-[#2ee06f]/15 text-[#5ff09a] ring-[#2ee06f]/25 [.light_&]:bg-[#00773f]/10 [.light_&]:text-[#00773f] [.light_&]:ring-[#00773f]/25",
   reported: "bg-techelet-dim text-techelet ring-techelet/30",
   danger: "bg-red-500/10 text-red-500 ring-red-500/25 [.light_&]:text-red-700",
   muted: "bg-[var(--mv-panel)] text-[var(--text-secondary)] ring-[var(--mv-hairline-strong)]",

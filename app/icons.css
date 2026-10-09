@@ -1,0 +1,178 @@
+/*
+ * Íconos animados de Mercav (components/icons).
+ * Cada ícono tiene un movimiento propio que dispara el control que lo contiene: hover con mouse,
+ * foco con teclado o el toque. Se usan las propiedades translate/rotate/scale por separado para no
+ * pisar las clases transform de Tailwind (rotate-180 de un desplegable, animate-spin de un loader).
+ * Las curvas son resortes: --mv-spring sin rebote, --mv-spring-bounce con un rebote corto.
+ */
+
+:root {
+  --mv-spring: linear(0, 0.0699, 0.2132, 0.3701, 0.5134, 0.6336, 0.7292, 0.8028, 0.858, 0.8987, 0.9283, 0.9496, 0.9648, 0.9755, 0.983, 0.9883, 0.9919, 0.9945, 0.9962, 0.9974, 1);
+  --mv-spring-ms: 550ms;
+  --mv-spring-bounce: linear(0, 0.0344, 0.1216, 0.2406, 0.3743, 0.5096, 0.6374, 0.7515, 0.8485, 0.927, 0.9874, 1.0309, 1.0598, 1.0763, 1.083, 1.0824, 1.0766, 1.0675, 1.0566, 1.0453, 1.0343, 1.0243, 1.0156, 1.0084, 1.0028, 0.9987, 0.9958, 0.9941, 0.9932, 0.993, 0.9934, 0.994, 0.9949, 0.9959, 0.9968, 0.9977, 1);
+  --mv-spring-bounce-ms: 600ms;
+}
+
+.mv-icon.mv-icon {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    translate var(--mv-spring-ms) var(--mv-spring),
+    rotate var(--mv-spring-bounce-ms) var(--mv-spring-bounce),
+    scale var(--mv-spring-bounce-ms) var(--mv-spring-bounce),
+    transform 200ms var(--ease-out, ease-out),
+    color 160ms ease-out,
+    opacity 160ms ease-out;
+}
+
+/* El disparador: un control (o un contenedor .group / .mv-icon-host) con hover, foco visible o presionado. */
+@media (hover: hover) {
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-nudge { translate: 3px 0; }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-back { translate: -3px 0; }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-up { translate: 0 -2.5px; }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-down { translate: 0 2.5px; }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-diagonal { translate: 2.5px -2.5px; }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-spin { rotate: 180deg; }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-spin-back { rotate: -180deg; }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-turn { rotate: 90deg; }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-pop { scale: 1.16; }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-tilt { rotate: -10deg; scale: 1.06; }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-lift { translate: 0 -2px; scale: 1.06; }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-ring { animation: mv-i-ring 700ms ease-out; }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-wiggle { animation: mv-i-wiggle 560ms ease-out; }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-scan { animation: mv-i-scan 640ms var(--mv-spring); }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-beat { animation: mv-i-beat 760ms ease-out; }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-blink { animation: mv-i-blink 420ms ease-in-out; }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-key { animation: mv-i-key 620ms var(--mv-spring-bounce); }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-bars { animation: mv-i-bars 520ms var(--mv-spring-bounce); }
+  :where(a, button, summary, label, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"], .group, .mv-icon-host):not(:disabled, [aria-disabled="true"]):hover .mv-icon.mv-i-flip { animation: mv-i-flip 600ms var(--mv-spring); }
+}
+
+/* Teclado: el mismo gesto con foco visible. */
+:where(a, button, summary, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"]):focus-visible .mv-icon.mv-i-nudge { translate: 3px 0; }
+:where(a, button, summary, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"]):focus-visible .mv-icon.mv-i-back { translate: -3px 0; }
+:where(a, button, summary, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"]):focus-visible .mv-icon.mv-i-diagonal { translate: 2.5px -2.5px; }
+:where(a, button, summary, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"]):focus-visible .mv-icon.mv-i-turn { rotate: 90deg; }
+:where(a, button, summary, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="option"]):focus-visible .mv-icon:is(.mv-i-pop, .mv-i-lift, .mv-i-tilt) { scale: 1.1; }
+
+/* Presionar responde en el acto (al bajar el dedo, no al soltarlo). */
+:where(a, button, [role="button"], [role="tab"], [role="menuitem"]):not(:disabled, [aria-disabled="true"]):active .mv-icon.mv-icon {
+  scale: 0.88;
+  transition-duration: 90ms;
+}
+
+@keyframes mv-i-ring {
+  0%, 100% { rotate: 0deg; }
+  15% { rotate: 14deg; }
+  30% { rotate: -12deg; }
+  45% { rotate: 8deg; }
+  60% { rotate: -5deg; }
+  75% { rotate: 2deg; }
+}
+@keyframes mv-i-wiggle {
+  0%, 100% { rotate: 0deg; }
+  20% { rotate: -12deg; }
+  45% { rotate: 10deg; }
+  70% { rotate: -5deg; }
+}
+@keyframes mv-i-scan {
+  0%, 100% { scale: 1; translate: 0 0; }
+  35% { scale: 1.12; translate: 0 -1px; }
+}
+@keyframes mv-i-beat {
+  0%, 100% { scale: 1; }
+  18% { scale: 1.2; }
+  36% { scale: 1; }
+  54% { scale: 1.1; }
+}
+@keyframes mv-i-blink {
+  0%, 100% { scale: 1 1; }
+  50% { scale: 1 0.12; }
+}
+@keyframes mv-i-key {
+  0%, 100% { rotate: 0deg; }
+  45% { rotate: -18deg; }
+}
+@keyframes mv-i-bars {
+  0% { scale: 1 1; }
+  40% { scale: 1 0.7; }
+  100% { scale: 1 1; }
+}
+@keyframes mv-i-flip {
+  0% { scale: 1 1; }
+  45% { scale: 1 0.15; }
+  100% { scale: 1 1; }
+}
+
+/* Pictogramas de módulo (ModuleGlyph): se trazan al entrar en pantalla y hacen su gesto con hover. */
+.mv-glyph { overflow: visible; }
+.mv-glyph :is(path, rect, circle, g) { transform-box: fill-box; transform-origin: center; }
+.mv-glyph .mg-row { transform-origin: left center; }
+.mv-glyph .mg-handle { transform-origin: center bottom; }
+.mv-glyph .mg-sweep { transform-box: view-box; transform-origin: 24px 23px; }
+.mv-glyph .mg-page { transform-origin: center top; }
+
+@supports (animation-timeline: view()) {
+  .mv-glyph :is(.mg-d, .mg-row, .mg-wave, .mg-wrench, .mg-check, .mg-handle, .mg-spark, .mg-sweep) {
+    stroke-dasharray: 180;
+    animation: mv-draw linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 30%;
+  }
+  .mv-glyph :is(.mg-stamp, .mg-page) {
+    animation: mv-glyph-in linear both;
+    animation-timeline: view();
+    animation-range: entry 20% cover 35%;
+  }
+  /* Los íconos de lucide marcados con .mv-icon-draw también se trazan al aparecer. */
+  .mv-icon-draw :is(path, line, polyline, polygon, circle, rect, ellipse) {
+    stroke-dasharray: 160;
+    animation: mv-draw-short linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 30%;
+  }
+}
+@keyframes mv-draw { from { stroke-dashoffset: 180; } to { stroke-dashoffset: 0; } }
+@keyframes mv-draw-short { from { stroke-dashoffset: 160; } to { stroke-dashoffset: 0; } }
+@keyframes mv-glyph-in { from { opacity: 0; scale: 0.4; } to { opacity: 1; scale: 1; } }
+
+@media (hover: hover) {
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-row { animation: mv-glyph-row 900ms var(--mv-spring) both; }
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-row-2 { animation-delay: 90ms; }
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-row-3 { animation-delay: 180ms; }
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-stamp { animation: mv-glyph-stamp 520ms var(--mv-spring-bounce) both; }
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-stamp-2 { animation-delay: 110ms; }
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-stamp-3 { animation-delay: 220ms; }
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-stamp-4 { animation-delay: 330ms; }
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-wave { animation: mv-glyph-wave 900ms ease-out both; }
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-wave-2 { animation-delay: 120ms; }
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-wave-3 { animation-delay: 240ms; }
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-spark { animation: mv-glyph-spark 700ms var(--mv-spring-bounce) both; }
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-handle { animation: mv-glyph-lift 600ms var(--mv-spring-bounce) both; }
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-check { animation: mv-glyph-stamp 520ms 160ms var(--mv-spring-bounce) both; }
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-wrench { animation: mv-glyph-wrench 760ms var(--mv-spring-bounce) both; }
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-sweep { animation: mv-glyph-sweep 1100ms var(--mv-spring) both; }
+  :where(a, button, .group, .mv-icon-host):hover .mv-glyph .mg-page { animation: mv-i-flip 640ms var(--mv-spring) both; }
+}
+@keyframes mv-glyph-row { 0% { scale: 0 1; } 100% { scale: 1 1; } }
+@keyframes mv-glyph-stamp { 0% { scale: 0.3; opacity: 0.2; } 100% { scale: 1; opacity: 1; } }
+@keyframes mv-glyph-wave { 0% { opacity: 0.15; translate: -3px 0; } 60% { opacity: 1; } 100% { opacity: 1; translate: 0 0; } }
+@keyframes mv-glyph-spark { 0% { rotate: 0deg; scale: 0.5; } 100% { rotate: 90deg; scale: 1; } }
+@keyframes mv-glyph-lift { 0%, 100% { translate: 0 0; } 40% { translate: 0 -3px; } }
+@keyframes mv-glyph-wrench { 0%, 100% { rotate: 0deg; } 40% { rotate: -28deg; } 70% { rotate: 8deg; } }
+@keyframes mv-glyph-sweep { from { rotate: 0deg; } to { rotate: 360deg; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .mv-icon.mv-icon,
+  .mv-glyph,
+  .mv-glyph *,
+  .mv-icon-draw * {
+    animation: none !important;
+    transition: color 160ms ease-out, opacity 160ms ease-out !important;
+    translate: none !important;
+    rotate: none !important;
+    scale: none !important;
+    stroke-dasharray: none !important;
+  }
+}
+/* creado por pato dev y askforvini */

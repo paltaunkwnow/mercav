@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MapPin } from "lucide-react";
+import { MapPin } from "@/components/icons";
 import { prisma } from "@/lib/prisma";
 import { getKosherViewer, publicAuthorName } from "@/lib/kosher/server";
 import { listCities, pickCity } from "@/lib/kosher/cities";

@@ -10,7 +10,7 @@ import {
   ScanEye,
   Medal,
   Settings,
-} from "lucide-react";
+} from "@/components/icons";
 
 export type AdminTabId =
   | "overview"

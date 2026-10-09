@@ -22,6 +22,24 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  allowedDevOrigins: ["127.0.0.1"],
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored: [
+          "**/node_modules/**",
+          "**/.git/**",
+          "**/.next/**",
+          "**/Implementacion Nueva Kosher/**",
+          "**/.cursor/**",
+          "**/.claude/**",
+          "**/obsidian/**",
+        ],
+      };
+    }
+    return config;
+  },
   async headers() {
     return [
       { source: '/pwn/:path*', headers: pwnSecurityHeaders },

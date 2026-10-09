@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Plus, Medal, Search, UserPlus, Trash2, Loader2, Upload, Check } from "lucide-react";
+import { Plus, Medal, Search, UserPlus, Trash2, Loader2, Upload, Check } from "@/components/icons";
 import { Toast } from "@/components/ui/toast";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { cn } from "@/lib/utils";

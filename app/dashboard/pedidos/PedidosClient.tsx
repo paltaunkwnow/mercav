@@ -24,7 +24,7 @@ import {
   X,
   Loader2,
   ChevronDown
-} from "lucide-react";
+} from "@/components/icons";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ButtonLink, Container, PageHero, Section, buttonClass } from "@/components/site/primitives";
 import { ReceiptTemplate } from "@/components/checkout/ReceiptTemplate";

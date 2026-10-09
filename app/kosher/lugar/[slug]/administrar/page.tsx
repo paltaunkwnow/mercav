@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertTriangle, BadgeCheck, CalendarPlus, ShieldCheck } from "lucide-react";
+import { AlertTriangle, BadgeCheck, CalendarPlus, ShieldCheck } from "@/components/icons";
 import { prisma } from "@/lib/prisma";
 import { getKosherViewer, managesPlace } from "@/lib/kosher/server";
 import { PLACE_TYPES, isFoodPlace } from "@/lib/kosher/labels";

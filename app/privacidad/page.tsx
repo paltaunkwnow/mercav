@@ -1,7 +1,7 @@
-import { LegalDocumentView } from "@/components/legal/LegalDocumentView";
+import { LegalCartelDocument } from "@/components/legal/LegalCartelDocument";
 import { PRIVACY_POLICY } from "@/lib/legal/documents";
 
 export default function PrivacyPage() {
-  return <LegalDocumentView doc={PRIVACY_POLICY} />;
+  return <LegalCartelDocument doc={PRIVACY_POLICY} />;
 }
 // creado por pato dev y askforvini

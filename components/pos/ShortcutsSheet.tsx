@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X } from '@/components/icons';
 
 const SHORTCUTS: { keys: string[]; label: string }[] = [
   { keys: ['/', 'F2'], label: 'Ir al buscador' },

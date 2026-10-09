@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { ADMIN_GROUPS, ADMIN_TABS } from "./tabs";
 

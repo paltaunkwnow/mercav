@@ -1,7 +1,16 @@
+import type { ComponentType, CSSProperties, ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Globe2, Heart, MapPin, Shield, Target, Workflow } from "lucide-react";
-import { ButtonLink, CTABand, Container, Reveal, Section, SectionHeading } from "@/components/site/primitives";
-import { FounderList } from "@/components/site/FounderList";
+import { ArrowRight, ArrowUpRight, Globe2, MapPin } from "@/components/icons";
+// Kosher, the app and /contacto live on other hosts than mercav.lat.
+import { HostLink } from "@/components/layout/HostContext";
+import { Mervi, type MerviPose } from "@/components/mervi/Mervi";
+import { AuthCTA } from "@/components/site/cartel/AuthCTA";
+import { FounderRoll } from "@/components/site/cartel/FounderRoll";
+import { KeremPoster } from "@/components/site/cartel/KeremPoster";
+import { ProfilePhoto } from "@/components/site/cartel/ProfilePhoto";
+import { CartelSection, FitLines } from "@/components/site/cartel/primitives";
+import { StarOfDavid } from "@/components/site/StarOfDavid";
+import { cn } from "@/lib/utils";
 
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
@@ -25,53 +34,17 @@ const GithubIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-function StarOfDavid({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="miter" className={className} aria-hidden>
-      <path d="M12 3.2 20.2 17.4H3.8Z" />
-      <path d="M12 20.8 3.8 6.6h16.4Z" />
-    </svg>
-  );
-}
-
-const SOCIALS = [
+const SOCIALS: { name: string; icon: ComponentType<{ className?: string }>; href: string }[] = [
   { name: "askforvini.pw", icon: Globe2, href: "https://askforvini.pw" },
   { name: "Instagram", icon: InstagramIcon, href: "https://www.instagram.com/askforvini/" },
   { name: "LinkedIn", icon: LinkedinIcon, href: "https://www.linkedin.com/in/vinicius-salazar-54700938a/" },
   { name: "GitHub", icon: GithubIcon, href: "https://github.com/invertilo" },
 ];
 
-const HOW_I_WORK = [
-  {
-    icon: Target,
-    title: "Sistemas",
-    body: "Diseño el servicio, lo pruebo y lo cierro. APIs, autenticación y datos que tienen que sostener carga.",
-  },
-  {
-    icon: Shield,
-    title: "Ciberseguridad",
-    body: "Seguridad defensiva de alto nivel: pentesting autorizado, auditoría y respuesta post-incidente. Qué pasó, qué quedó expuesto y qué hay que cerrar.",
-  },
-  {
-    icon: StarOfDavid,
-    title: "Fe",
-    body: "Agradezco a Hashem el conocimiento para construir. Ante el Creador, el trabajo pide la misma seriedad que el resto del día.",
-  },
-  {
-    icon: Heart,
-    title: "Valores",
-    body: "Ayudar a otras personas. Si el producto no sirve a alguien concreto, no vale.",
-  },
-  {
-    icon: BookOpen,
-    title: "Uso",
-    body: "Claro, completo y al alcance. Nadie debería perderse para publicar, contratar o consultar.",
-  },
-  {
-    icon: Workflow,
-    title: "Cierre",
-    body: "No publico recetas de ataque. Documento el fallo y el arreglo: el informe tiene que servir para defender.",
-  },
+/** Perfiles públicos de Alejandro Mendoza, CTO. */
+const ALEJANDRO_SOCIALS: { name: string; icon: ComponentType<{ className?: string }>; href: string }[] = [
+  { name: "GitHub", icon: GithubIcon, href: "https://github.com/alejondr3" },
+  { name: "Instagram", icon: InstagramIcon, href: "https://www.instagram.com/alejondre._/" },
 ];
 
 const ORDER = [
@@ -81,247 +54,378 @@ const ORDER = [
   { time: "Servicio", title: "Mercav", desc: "Anuncios, servicios, empleo, herramientas y lo kosher: una plataforma para ayudar." },
 ];
 
+/** Filetes verticales de una fila que pasa de 1 a 2 columnas, y a 4 desde xl. */
+function orderRule(i: number) {
+  return cn(
+    i % 2 === 1 && "sm:border-l-2 sm:pl-6",
+    i % 2 === 0 && "sm:pr-6",
+    i > 0 && "xl:border-l-2 xl:pl-8",
+    i < ORDER.length - 1 && "xl:pr-8",
+  );
+}
+
+/**
+ * Foto del equipo como afiche pegado, con el Mervi de cada persona sentado en la esquina de abajo. Mervi va fuera del
+ * afiche: si girara con la inclinación, el pixel art perdería la nitidez.
+ */
+function TeamPhoto({ tilt, pose, side, tag, children }: { tilt: string; pose: MerviPose; side: "left" | "right"; tag: ReactNode; children: ReactNode }) {
+  return (
+    <div className="relative mx-auto w-full max-w-sm lg:mx-0">
+      <figure className="c-poster c-inverse w-full p-2" style={{ "--tilt": tilt } as CSSProperties}>
+        <div className="relative aspect-[4/5] overflow-hidden bg-[var(--c-raised)]">
+          {children}
+          <span className="c-label absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-[2px] bg-[#0b0a09] px-2.5 py-1.5 text-[0.95rem] text-[#fffdf8]">{tag}</span>
+        </div>
+      </figure>
+      <Mervi
+        pose={pose}
+        scale={1}
+        scaleLg={2}
+        className={cn(
+          "pointer-events-none absolute bottom-[calc(var(--mervi-unit)*-12)] z-10",
+          side === "right" ? "right-2 sm:right-[calc(var(--mervi-unit)*-30)]" : "left-2 sm:left-[calc(var(--mervi-unit)*-30)]",
+        )}
+      />
+    </div>
+  );
+}
+
 export default function Nosotros() {
   return (
-    <div className="w-full bg-bg-primary">
-      {/* Hero: el equipo */}
-      <header className="relative w-full overflow-hidden pb-16 pt-28 md:pb-24 md:pt-36">
-        <div className="mv-aura" aria-hidden />
-        <Container className="relative">
-          <div className="grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-20">
-            <Reveal>
-              <p className="mv-kicker">Quiénes somos</p>
-              <h1 className="mv-h1 mt-5">
-                Tres cofundadores, <span className="mv-gold-text">un mismo producto.</span>
-              </h1>
-              <p className="mv-lead mt-6">
+    <div className="cartel flex w-full flex-col overflow-x-clip">
+      {/* Portada: el equipo */}
+      <section aria-labelledby="nosotros-title" className="relative pb-20 pt-[calc(var(--c-nav-h)+2rem)] md:pb-28 md:pt-[calc(var(--c-nav-h)+3rem)]">
+        <div className="c-container">
+          <FitLines
+            id="nosotros-title"
+            lines={[
+              { text: "Un fundador, un equipo,", fit: 10.803 },
+              { text: "un mismo producto.", fit: 12.723, className: "c-text-green" },
+            ]}
+          />
+          <div className="mt-10 grid gap-12 lg:mt-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-end lg:gap-16">
+            <div className="flex flex-col gap-8 lg:pb-4">
+              <p className="c-lead">
                 Diseñamos, construimos y operamos Mercav desde Santa Cruz de la Sierra. Sistemas, ciberseguridad y una plataforma que se pueda usar de verdad.
               </p>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <ButtonLink href="/pitch" tone="secondary" size="lg" className="w-full sm:w-auto">
-                  Ver el pitch <ArrowRight className="h-4 w-4" aria-hidden />
-                </ButtonLink>
-              </div>
-            </Reveal>
-
-            <Reveal delay={120}>
-              <FounderList />
-            </Reveal>
+              <Link href="/pitch" className="c-btn c-btn-ghost w-full sm:w-fit">
+                Ver el pitch
+                <ArrowRight className="h-5 w-5" aria-hidden />
+              </Link>
+            </div>
+            <div className="flex flex-col">
+              <Mervi pose="comunidad" scale={1} scaleLg={2} label="Mervi, la mascota de Mercav, con un corazón dorado" className="relative z-10 mb-[calc(var(--mervi-unit)*-4)] self-end" />
+              <FounderRoll />
+            </div>
           </div>
-        </Container>
-      </header>
+        </div>
+      </section>
 
       {/* Vinicius */}
-      <Section tone="raised" id="vinicius" labelledBy="vinicius-title">
-        <Container>
-          <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
-            <div className="lg:sticky lg:top-28 lg:self-start">
-              <p className="mv-kicker">Vinicius Salazar · CEO</p>
-              <h2 id="vinicius-title" className="sr-only">
-                Vinicius Salazar, cofundador y CEO
-              </h2>
-              <Reveal className="mx-auto mt-6 w-full max-w-sm lg:mx-0">
-                <figure className="liquid-glass liquid-glass-lens overflow-hidden rounded-[2rem] p-2">
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-[1.6rem] bg-bg-tertiary">
-                    <img
-                      src="/images/vinicius.jpg"
-                      alt="Vinicius Salazar, cofundador y CEO de Mercav, en Santa Cruz de la Sierra"
-                      width={960}
-                      height={1280}
-                      decoding="async"
-                      className="h-full w-full object-cover object-[center_30%]"
-                    />
-                    <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent" />
-                    <span className="absolute left-3 top-3 inline-flex h-8 items-center gap-1.5 rounded-full bg-black/65 px-3 text-xs font-medium text-white">
-                      <MapPin className="h-3.5 w-3.5" aria-hidden /> Santa Cruz, Bolivia
-                    </span>
-                  </div>
-                  <figcaption className="flex items-center justify-between gap-3 px-4 pb-3 pt-4">
-                    <span>
-                      <span className="block font-display text-lg font-semibold text-[var(--text-primary)]">Vinicius Salazar</span>
-                      <span className="block text-sm text-[var(--text-secondary)]">Cofundador y CEO</span>
-                    </span>
-                    <span className="grid h-10 w-10 place-items-center rounded-full border border-[var(--color-border-gold)] text-gold">
-                      <StarOfDavid className="h-5 w-5" />
-                    </span>
-                  </figcaption>
-                </figure>
-              </Reveal>
-              <ul className="mt-6 flex flex-wrap gap-2" aria-label="Perfiles de Vinicius">
-                {SOCIALS.map(({ name, icon: Icon, href }) => (
-                  <li key={name}>
-                    <a
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mv-focus inline-flex h-10 items-center gap-2 rounded-full border border-[var(--mv-hairline-strong)] px-4 text-sm font-medium text-[var(--text-secondary)] transition-colors duration-200 hover:border-[var(--color-border-gold)] hover:text-[var(--text-primary)]"
-                    >
-                      <Icon className="h-4 w-4" />
-                      {name}
-                      <span className="sr-only"> (se abre en otra pestaña)</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="max-w-[65ch] space-y-6 text-[1.0625rem] leading-[1.75] text-[var(--text-secondary)]">
-              <Reveal>
-                <p lang="he" dir="rtl" className="font-display text-3xl font-medium leading-snug text-[var(--text-primary)] md:text-4xl">
-                  בעזרת השם, כל עכבה לטובה.
-                </p>
-                <p className="mt-4 text-[0.9375rem] text-[var(--text-secondary)]">Con la ayuda del Creador, cada demora es para bien.</p>
-                <div className="mt-6 h-px w-24 bg-gradient-to-r from-gold to-transparent" aria-hidden />
-              </Reveal>
-              <p>
-                Me llamo <span className="font-semibold text-[var(--text-primary)]">Vinicius</span>. Tengo 19 años y vivo en Santa Cruz de la Sierra, Bolivia. Soy cofundador y CEO de Mercav: diseño la lógica de los sistemas —APIs, autenticación, datos, reglas de negocio— y trabajo ciberseguridad defensiva de alto nivel: pentesting autorizado, defensa, auditoría y respuesta post-incidente. El perfil técnico está en{" "}
-                <a href="https://askforvini.pw" target="_blank" rel="noopener noreferrer" className="mv-link">
-                  askforvini.pw
-                </a>
-                .
-              </p>
-              <p>
-                Aprendí el oficio construyendo software para negocios reales, no recitando teoría. Mercav es el resultado de ese trabajo: anuncios, servicios, empleo, herramientas y ciberinteligencia en una sola plataforma, hecha desde Bolivia para quien necesita usarla de verdad.
-              </p>
-
-              <aside className="liquid-glass rounded-[1.75rem] p-6 md:p-8" aria-label="Agradecimiento">
-                <div className="flex items-start gap-4 md:gap-5">
-                  <span className="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold">
-                    <StarOfDavid className="h-6 w-6" />
-                  </span>
-                  <div className="min-w-0 space-y-3">
-                    <p className="text-[1.0625rem] font-medium leading-7 text-[var(--text-primary)] md:text-lg">
-                      Agradezco a Hashem el conocimiento con el que puedo desarrollar este sistema.
-                    </p>
-                    <p className="text-base leading-7 text-[var(--text-secondary)]">
-                      Mis creencias y valores piden que no quede a medias: que se entienda, esté completo y cualquiera pueda usarlo.
-                    </p>
-                  </div>
-                </div>
-              </aside>
-
-              <p>
-                La observancia ordena el día con la misma seriedad con la que reviso un sistema. Ante el Creador, el trabajo tiene que ser limpio, ayudar a otras personas y no usar a nadie como medio.
-              </p>
-              <p>
-                Quiero ayudar. Mercav tiene que ser usable de punta a punta: publicar, contratar, buscar empleo o consultar una herramienta sin perderse. Kerem y Mercav Kosher siguen el mismo criterio: un estándar verificable y un servicio que se pueda usar.
-              </p>
-            </div>
+      <CartelSection id="vinicius" labelledBy="vinicius-title" className="scroll-mt-[var(--c-nav-h)] border-t-2 border-[var(--c-line)]">
+        <div className="c-container grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-x-20 lg:gap-y-10">
+          <div className="lg:col-start-2 lg:row-start-1">
+            <FitLines
+              as="h2"
+              id="vinicius-title"
+              lines={[
+                { text: "Vinicius", fit: 33.015 },
+                { text: "Salazar", fit: 32.923, className: "c-text-green" },
+              ]}
+              className="max-w-[30rem]"
+            />
+            <p className="c-label mt-5 text-[1.25rem] md:text-[1.45rem]">Fundador, CEO y encargado de Ciberseguridad</p>
           </div>
-        </Container>
-      </Section>
 
-      {/* Cómo trabajo */}
-      <Section labelledBy="como-trabajo-title">
-        <Container>
-          <SectionHeading
-            id="como-trabajo-title"
-            kicker="Cómo trabajo"
-            title="Backend, ciberseguridad y un producto que tiene que cerrar bien."
-            lead="El detalle técnico está en askforvini.pw. Acá, los criterios que ordenan el trabajo."
-          />
-          <ul className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {HOW_I_WORK.map(({ icon: Icon, title, body }, i) => (
-              <Reveal as="li" key={title} delay={Math.min(i * 50, 250)} className="liquid-glass flex flex-col rounded-[1.5rem] p-6 md:p-7">
-                <span className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold">
-                  <Icon className="h-5 w-5" />
-                </span>
-                <h3 className="mt-5 text-lg font-semibold tracking-tight text-[var(--text-primary)]">{title}</h3>
-                <p className="mv-body mt-2">{body}</p>
-              </Reveal>
-            ))}
-          </ul>
-        </Container>
-      </Section>
+          <div className="flex flex-col gap-8 lg:sticky lg:top-[calc(var(--c-nav-h)+2rem)] lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:self-start">
+            <TeamPhoto
+              tilt="-1deg"
+              pose="cool"
+              side="right"
+              tag={
+                <>
+                  <MapPin className="h-4 w-4" aria-hidden />
+                  Santa Cruz, Bolivia
+                </>
+              }
+            >
+              <img
+                src="/images/vinicius.jpg"
+                alt="Vinicius Salazar, fundador, CEO y encargado de ciberseguridad de Mercav, en Santa Cruz de la Sierra"
+                width={960}
+                height={1280}
+                decoding="async"
+                className="h-full w-full object-cover object-[center_30%]"
+              />
+            </TeamPhoto>
+            <ul className="mx-auto w-full max-w-sm border-t-2 border-[var(--c-line)] lg:mx-0" aria-label="Perfiles de Vinicius">
+              {SOCIALS.map(({ name, icon: Icon, href }) => (
+                <li key={name} className="border-b-2 border-[var(--c-line)]">
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="c-label flex items-center gap-3 rounded-[2px] py-3 text-[1.15rem] text-[var(--c-soft)] transition-colors duration-150 hover:text-[var(--c-text)]"
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    <span className="flex-1">{name}</span>
+                    <ArrowUpRight className="h-5 w-5 shrink-0" aria-hidden />
+                    <span className="sr-only"> (se abre en otra pestaña)</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-      {/* Kerem by Mercav — próximo */}
-      <Section tone="raised" labelledBy="kerem-title">
-        <Container>
-          <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
+          <div className="flex max-w-[65ch] flex-col gap-6 text-[1.0625rem] leading-[1.75] text-[var(--c-soft)] lg:col-start-2">
+            <div className="border-b-2 border-[var(--c-line)] pb-8">
+              <p lang="he" dir="rtl" className="text-[clamp(1.9rem,1.5rem+1.6vw,2.75rem)] font-semibold leading-snug text-[var(--c-text)]">
+                בעזרת השם, כל עכבה לטובה.
+              </p>
+              <p className="mt-3 text-[1rem] text-[var(--c-soft)]">Con la ayuda del Creador, cada demora es para bien.</p>
+            </div>
+            <p>
+              Me llamo <span className="font-semibold text-[var(--c-text)]">Vinicius</span>. Tengo 19 años y vivo en Santa Cruz de la Sierra, Bolivia. Soy el fundador y CEO de Mercav: diseño la lógica de los sistemas —APIs, autenticación, datos, reglas de negocio— y trabajo ciberseguridad defensiva de alto nivel: pentesting autorizado, defensa, auditoría y respuesta post-incidente. El perfil técnico está en{" "}
+              <a href="https://askforvini.pw" target="_blank" rel="noopener noreferrer" className="c-link font-semibold text-[var(--c-text)]">
+                askforvini.pw
+              </a>
+              .
+            </p>
+            <p>
+              Aprendí el oficio construyendo software para negocios reales, no recitando teoría. Mercav es el resultado de ese trabajo: anuncios, servicios, empleo, herramientas y ciberinteligencia en una sola plataforma, hecha desde Bolivia para quien necesita usarla de verdad.
+            </p>
+
+            <aside className="my-2 flex items-start gap-4 border-y-2 border-[var(--c-text)] py-7 md:gap-6" aria-label="Agradecimiento">
+              <StarOfDavid className="mt-1 h-8 w-8 shrink-0 text-[var(--c-text)]" strokeWidth={1.75} />
+              <div className="min-w-0 space-y-3">
+                <p className="text-[1.25rem] font-semibold leading-snug text-[var(--c-text)] md:text-[1.4rem]">
+                  Agradezco a Hashem el conocimiento con el que puedo desarrollar este sistema.
+                </p>
+                <p className="text-[1rem] leading-7">Mis creencias y valores piden que no quede a medias: que se entienda, esté completo y cualquiera pueda usarlo.</p>
+              </div>
+            </aside>
+
+            <p>
+              La observancia ordena el día con la misma seriedad con la que reviso un sistema. Ante el Creador, el trabajo tiene que ser limpio, ayudar a otras personas y no usar a nadie como medio.
+            </p>
+            <p>
+              Quiero ayudar. Mercav tiene que ser usable de punta a punta: publicar, contratar, buscar empleo o consultar una herramienta sin perderse. Kerem y Mercav Kosher siguen el mismo criterio: un estándar verificable y un servicio que se pueda usar.
+            </p>
+          </div>
+        </div>
+      </CartelSection>
+
+      {/* Kerem by Mercav, próximo */}
+      {/* Sebastian, cofundador */}
+      <CartelSection id="sebastian" labelledBy="sebastian-title" className="scroll-mt-[var(--c-nav-h)] border-t-2 border-[var(--c-line)]">
+        <div className="c-container grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-center lg:gap-x-20">
+          <div className="flex flex-col gap-8">
             <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="mv-kicker">Hospitalidad · Santa Cruz</p>
-                <span className="mv-chip">Próximamente</span>
-              </div>
-              <h2 id="kerem-title" className="mv-h2 mt-5">
-                Kerem <span className="font-normal text-[var(--text-secondary)]">by Mercav</span>
+              <h2 id="sebastian-title" className="c-display text-[clamp(3rem,1.6rem+4.4vw,5.75rem)] [text-wrap:balance]">
+                Sebastian <span className="c-text-green">Rojas</span>
               </h2>
-              <div className="mt-6 space-y-5 text-[1.0625rem] leading-[1.75] text-[var(--text-secondary)]">
-                <p>
-                  <span className="font-medium text-[var(--text-primary)]">Kerem</span> es el próximo proyecto: una mesa física de hospitalidad en Santa Cruz de la Sierra. El estándar es kashrut: ingredientes, cocina y servicio con el mismo rigor que aplico a un sistema.
-                </p>
-                <p>El criterio es el mismo en la cocina y en el código: que el estándar se pueda verificar y que el servicio se pueda usar.</p>
-                <p>
-                  <Link href="/kosher" className="mv-link">
-                    Mercav Kosher
-                  </Link>{" "}
-                  es la capa digital: un directorio de lugares y servicios. No emite certificación, hechsher ni psak, y no sustituye a una agencia. Informa, con fuente, para quien necesita decidir.
-                </p>
-              </div>
-              <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-[var(--mv-hairline)] pt-6">
-                {[
-                  { label: "Estándar", val: "Kashrut" },
-                  { label: "Sede", val: "Santa Cruz" },
-                  { label: "Alcance", val: "Bolivia" },
-                  { label: "Directorio", val: "Mercav Kosher" },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <dt className="text-xs text-[var(--text-tertiary)]">{item.label}</dt>
-                    <dd className="mt-1 font-semibold text-[var(--text-primary)]">{item.val}</dd>
-                  </div>
-                ))}
-              </dl>
+              <p className="c-label mt-5 text-[1.25rem] md:text-[1.45rem]">Cofundador</p>
             </div>
-            <figure>
-              <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem] border border-[var(--mv-hairline)] bg-bg-tertiary lg:aspect-[4/5]">
-                <img
-                  src="https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=1600&auto=format&fit=crop"
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover grayscale-[40%]"
-                />
-                <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-              </div>
-              <figcaption className="mt-3 text-xs text-[var(--text-tertiary)]">Imagen ilustrativa. Kerem todavía no abrió sus puertas.</figcaption>
-            </figure>
+            <div className="flex max-w-[65ch] flex-col gap-6 text-[1.0625rem] leading-[1.75] text-[var(--c-soft)]">
+              <p>
+                <span className="font-semibold text-[var(--c-text)]">Sebastian Rojas Cespedes</span> es cofundador de Mercav. Se especializa en desarrollo
+                frontend y en análisis de endpoints: construye las interfaces que usan las empresas y revisa cómo se comunican con el servidor, para que
+                cada pantalla sea rápida, clara y segura.
+              </p>
+            </div>
+            <ul className="max-w-[44rem] border-t-2 border-[var(--c-line)]" aria-label="Especialidades de Sebastian">
+              {[
+                { k: "Desarrollo frontend", v: "Interfaces web claras, accesibles y rápidas, del diseño al código que llega al navegador." },
+                { k: "Análisis de endpoints", v: "Revisión de las rutas y APIs que consume una aplicación para detectar errores de diseño, datos de más y configuraciones débiles." },
+              ].map((x) => (
+                <li key={x.k} className="grid gap-2 border-b-2 border-[var(--c-line)] py-5 md:grid-cols-[minmax(0,13rem)_minmax(0,1fr)] md:gap-8">
+                  <span className="c-h3">{x.k}</span>
+                  <span className="text-[0.98rem] leading-relaxed text-[var(--c-soft)]">{x.v}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-        </Container>
-      </Section>
+          <TeamPhoto tilt="1.2deg" pose="smartphone" side="left" tag="Cofundador · Mercav">
+            <ProfilePhoto src="/images/sebastian-rojas.jpg" alt="Sebastian Rojas Cespedes, cofundador de Mercav" initials="SR" position="44% 30%" />
+          </TeamPhoto>
+        </div>
+      </CartelSection>
+
+      {/* Alejandro, CTO */}
+      <CartelSection id="alejandro" labelledBy="alejandro-title" className="scroll-mt-[var(--c-nav-h)] border-t-2 border-[var(--c-line)]">
+        <div className="c-container grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-x-20">
+          <div className="flex flex-col gap-8 lg:order-2">
+            <div>
+              <FitLines
+                as="h2"
+                id="alejandro-title"
+                lines={[
+                  { text: "Alejandro", fit: 24.755 },
+                  { text: "Mendoza", fit: 29.453, className: "c-text-magenta" },
+                ]}
+                className="max-w-[30rem]"
+              />
+              <p className="c-label mt-5 text-[1.25rem] md:text-[1.45rem]">CTO</p>
+            </div>
+            <div className="flex max-w-[65ch] flex-col gap-6 text-[1.0625rem] leading-[1.75] text-[var(--c-soft)]">
+              <p>
+                <span className="font-semibold text-[var(--c-text)]">Alejandro Ismael Mendoza Diaz</span> es el CTO de Mercav. Se especializa en
+                desarrollo backend y en el reconocimiento técnico de aplicaciones web: entiende cómo está construido un servicio y qué superficie deja
+                expuesta en internet, para que pueda protegerse antes de que alguien la aproveche.
+              </p>
+              <p>Trabaja con métodos no intrusivos y siempre sobre sistemas propios o con autorización expresa de sus dueños.</p>
+            </div>
+            <ul className="max-w-[44rem] border-t-2 border-[var(--c-line)]" aria-label="Especialidades de Alejandro">
+              {[
+                { k: "Desarrollo backend", v: "Arquitectura del lado del servidor: modelos de datos, lógica de negocio, APIs y su rendimiento." },
+                { k: "Escaneo pasivo web", v: "Reconocimiento no intrusivo de la información, las tecnologías y los activos que un sitio expone públicamente, sin interactuar con sus sistemas." },
+                { k: "Escaneo de endpoints", v: "Relevamiento de rutas y APIs expuestas para detectar configuraciones débiles y reducir la superficie de ataque." },
+              ].map((x) => (
+                <li key={x.k} className="grid gap-2 border-b-2 border-[var(--c-line)] py-5 md:grid-cols-[minmax(0,13rem)_minmax(0,1fr)] md:gap-8">
+                  <span className="c-h3">{x.k}</span>
+                  <span className="text-[0.98rem] leading-relaxed text-[var(--c-soft)]">{x.v}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex flex-col gap-8 lg:order-1 lg:sticky lg:top-[calc(var(--c-nav-h)+2rem)] lg:self-start">
+            <TeamPhoto tilt="-1.2deg" pose="programador" side="right" tag="CTO · Mercav">
+              <ProfilePhoto src="/images/alejandro-mendoza.jpg" alt="Alejandro Mendoza, CTO de Mercav" initials="AM" />
+            </TeamPhoto>
+            <ul className="mx-auto w-full max-w-sm border-t-2 border-[var(--c-line)] lg:mx-0" aria-label="Perfiles de Alejandro">
+              {ALEJANDRO_SOCIALS.map(({ name, icon: Icon, href }) => (
+                <li key={name} className="border-b-2 border-[var(--c-line)]">
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="c-label flex items-center gap-3 rounded-[2px] py-3 text-[1.15rem] text-[var(--c-soft)] transition-colors duration-150 hover:text-[var(--c-text)]"
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    <span className="flex-1">{name}</span>
+                    <ArrowUpRight className="h-5 w-5 shrink-0" aria-hidden />
+                    <span className="sr-only"> (se abre en otra pestaña)</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </CartelSection>
+
+      {/* Marco, Costa Rica */}
+      <CartelSection id="marco" labelledBy="marco-title" className="scroll-mt-[var(--c-nav-h)] border-t-2 border-[var(--c-line)]">
+        <div className="c-container grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-center lg:gap-x-20">
+          <div className="flex flex-col gap-8">
+            <div>
+              <h2 id="marco-title" className="c-display text-[clamp(3rem,1.6rem+4.4vw,5.75rem)] [text-wrap:balance]">
+                Marco <span className="c-text-orange">Sánchez</span>
+              </h2>
+              <p className="c-label mt-5 text-[1.25rem] md:text-[1.45rem]">Representante de Mercav en Costa Rica</p>
+            </div>
+            <div className="flex max-w-[65ch] flex-col gap-6 text-[1.0625rem] leading-[1.75] text-[var(--c-soft)]">
+              <p>
+                <span className="font-semibold text-[var(--c-text)]">Marco Sánchez</span> representa a Mercav en Costa Rica, donde vive. Está a cargo de
+                llevar la plataforma al país: presentarla a negocios y comunidades costarricenses, cuidar la imagen de la marca y encabezar su marketing
+                local, en coordinación con Vinicius Salazar.
+              </p>
+            </div>
+            <ul className="max-w-[44rem] border-t-2 border-[var(--c-line)]" aria-label="Responsabilidades de Marco">
+              {[
+                { k: "Expansión en Costa Rica", v: "Abre el mercado costarricense: acerca Mercav a negocios, comercios y comunidades, y trae de vuelta lo que necesitan para usarlo." },
+                { k: "Imagen de marca", v: "Cuida que Mercav se vea y se escuche en Costa Rica con la misma seriedad que en el resto de la región." },
+                { k: "Marketing local", v: "Campañas, redes y presencia en el país, pensadas para el público costarricense." },
+              ].map((x) => (
+                <li key={x.k} className="grid gap-2 border-b-2 border-[var(--c-line)] py-5 md:grid-cols-[minmax(0,13rem)_minmax(0,1fr)] md:gap-8">
+                  <span className="c-h3">{x.k}</span>
+                  <span className="text-[0.98rem] leading-relaxed text-[var(--c-soft)]">{x.v}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <TeamPhoto
+            tilt="1.2deg"
+            pose="emprendedor"
+            side="left"
+            tag={
+              <>
+                <MapPin className="h-4 w-4" aria-hidden />
+                Costa Rica · Mercav
+              </>
+            }
+          >
+            <ProfilePhoto src="/images/marco-sanchez.jpg" alt="Marco Sánchez, representante de Mercav en Costa Rica" initials="MS" position="45% 30%" />
+          </TeamPhoto>
+        </div>
+      </CartelSection>
+
+      <CartelSection labelledBy="kerem-title">
+        <div className="c-container">
+          <KeremPoster titleId="kerem-title" status="Próximamente" line="Hospitalidad · Santa Cruz">
+            <p>
+              <span className="font-semibold text-[var(--c-text)]">Kerem</span> es el próximo proyecto: una mesa física de hospitalidad en Santa Cruz de la Sierra. El estándar es kashrut: ingredientes, cocina y servicio con el mismo rigor que aplico a un sistema.
+            </p>
+            <p>El criterio es el mismo en la cocina y en el código: que el estándar se pueda verificar y que el servicio se pueda usar.</p>
+            <p>
+              <HostLink href="/kosher" className="c-link font-semibold text-[var(--c-text)]">
+                Mercav Kosher
+              </HostLink>{" "}
+              es la capa digital: un directorio de lugares y servicios. No emite certificación, hechsher ni psak, y no sustituye a una agencia. Informa, con fuente, para quien necesita decidir.
+            </p>
+          </KeremPoster>
+        </div>
+      </CartelSection>
 
       {/* El trabajo, en orden */}
-      <Section labelledBy="orden-title">
-        <Container>
-          <SectionHeading id="orden-title" kicker="En orden" title="El trabajo, en orden." lead="Sistemas, ciberseguridad, fe y un producto que tiene que servir." />
-          <ol className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <CartelSection labelledBy="orden-title" className="!pt-4 md:!pt-8">
+        <div className="c-container">
+          <div className="grid gap-6 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] md:items-end md:gap-12">
+            <h2 id="orden-title" className="c-h2">
+              El trabajo, en orden.
+            </h2>
+            <p className="c-lead md:pb-2">Sistemas, ciberseguridad, fe y un producto que tiene que servir.</p>
+          </div>
+          <ol className="mt-14 grid border-t-2 border-[var(--c-line)] sm:grid-cols-2 md:mt-20 xl:grid-cols-4">
             {ORDER.map((m, i) => (
-              <li key={m.title} className="mv-panel flex flex-col p-6">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-gold">{m.time}</span>
-                  <span className="mv-data text-xs text-[var(--text-tertiary)]">0{i + 1}</span>
-                </div>
-                <h3 className="mt-6 text-lg font-semibold tracking-tight text-[var(--text-primary)]">{m.title}</h3>
-                <p className="mv-body mt-2">{m.desc}</p>
+              <li key={m.title} className={cn("flex flex-col gap-3 border-b-2 border-[var(--c-line)] py-8 md:py-10", orderRule(i))}>
+                <h3 className="c-h3">{m.time}</h3>
+                <p className="text-[1.0625rem] font-semibold leading-snug">{m.title}</p>
+                <p className="c-body">{m.desc}</p>
               </li>
             ))}
           </ol>
-        </Container>
-      </Section>
+        </div>
+      </CartelSection>
 
-      <CTABand
-        title="Si querés hablar"
-        lead="Podés usar Mercav, leer el pitch o escribirnos. El trabajo se toma en serio."
-        action={
-          <>
-            <ButtonLink href="/register" size="lg" className="w-full sm:w-auto">
-              Crear cuenta
-            </ButtonLink>
-            <ButtonLink href="/contacto" tone="ghost" size="lg" className="w-full sm:w-auto">
-              Escribirnos
-            </ButtonLink>
-          </>
-        }
-      />
+      {/* Cierre */}
+      <section aria-labelledby="nosotros-cierre" className="c-band c-ink-yellow">
+        <div className="c-container grid gap-10 pb-28 pt-20 md:pb-36 md:pt-28 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:items-end lg:gap-16 lg:pb-44">
+          <FitLines
+            as="h2"
+            id="nosotros-cierre"
+            lines={[
+              { text: "Si querés", fit: 28.485 },
+              { text: "hablar.", fit: 34.41 },
+            ]}
+            className="max-w-[36rem]"
+          />
+          <div className="flex flex-col gap-6 lg:pb-3">
+            <p className="max-w-[30rem] text-[1.125rem] leading-relaxed text-[var(--c-soft)]">
+              Podés usar Mercav, leer el{" "}
+              <Link href="/pitch" className="c-link font-semibold text-[var(--c-text)]">
+                pitch
+              </Link>{" "}
+              o escribirnos. El trabajo se toma en serio.
+            </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+              <AuthCTA tone="ink" secondary={false} className="[&>a]:w-full sm:[&>a]:w-auto" />
+              <HostLink href="/contacto" className="c-btn c-btn-lg c-btn-ghost w-full sm:w-auto">
+                Escribinos
+              </HostLink>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

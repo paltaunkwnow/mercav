@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Compass } from "lucide-react";
+import { ArrowLeft, Compass } from "@/components/icons";
 import { Container, ButtonLink, buttonClass } from "@/components/site/primitives";
 
 const SUGGESTIONS = [

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowUp, Flag, Trash2 } from "lucide-react";
+import { ArrowUp, Flag, Trash2 } from "@/components/icons";
 import { toast } from "sonner";
 import { kosherFetch, useKosherViewer } from "@/components/kosher/KosherViewer";
 import { primaryButton, secondaryButton } from "@/components/kosher/ui";

@@ -1,23 +1,32 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Outfit, DM_Mono } from "next/font/google";
+import { DM_Mono, Big_Shoulders_Display } from "next/font/google";
+// cartel.css va antes que Tailwind: sus clases ganan al preflight por especificidad y las utilidades
+// (text-[…], hidden, sm:inline-flex) ganan a las clases del cartel por orden.
+import "./cartel.css";
 import "./globals.css";
+import "./icons.css";
+import "./mervi.css";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Providers } from "@/components/layout/Providers";
+import { HostProvider } from "@/components/layout/HostContext";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
+import { headers } from "next/headers";
 import { authOptions } from "@/lib/auth";
-import { Zap } from "lucide-react";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo/site";
+import { Zap } from "@/components/icons";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, hostKindFor } from "@/lib/seo/site";
 
 export const dynamic = "force-dynamic";
 
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans" });
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-display" });
+// La app y el sitio usan la letra del sistema (SF en Apple), como los celulares de la portada: --font-sans y
+// --font-display viven en globals.css.
 const dmMono = DM_Mono({ weight: ["400", "500"], subsets: ["latin"], variable: "--font-mono" });
+// Letra del cartel del sitio público (mercav.lat). "block" porque los titulares se calibran a su ancho: con otra letra se desbordan.
+const cartel = Big_Shoulders_Display({ weight: "variable", subsets: ["latin", "latin-ext"], variable: "--font-cartel", display: "block" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -35,8 +44,10 @@ export const metadata: Metadata = {
     "freelancers",
     "talento digital",
     "empleos",
-    "punto de venta",
-    "POS",
+    "planillas de sueldo",
+    "recursos humanos",
+    "feriados",
+    "calendario hebreo",
     "ciberseguridad",
     "filtraciones de datos",
     "kosher",
@@ -134,6 +145,8 @@ export default async function RootLayout({
   }
 
   const isAdmin = session?.user?.roles?.includes("ADMIN");
+  // The chrome can't infer the host from usePathname(): kosher.mercav.lat/mapa renders /kosher/mapa.
+  const hostKind = hostKindFor(headers().get("host"));
 
   if (config?.maintenanceMode && !isAdmin) {
     return (
@@ -155,7 +168,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="es" className={cn("font-sans dark", jakarta.variable, outfit.variable, dmMono.variable)} suppressHydrationWarning>
+    <html lang="es" className={cn("font-sans dark", dmMono.variable, cartel.variable)} suppressHydrationWarning>
       <head>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
         {/* Prevent flash of wrong theme */}
@@ -173,14 +186,16 @@ export default async function RootLayout({
       </head>
       <body className="flex min-h-dvh flex-col overflow-x-clip antialiased">
         <Providers>
-          <a href="#contenido" className="mv-skip">Saltar al contenido</a>
-          <AnnouncementBar />
-          <Header />
-          <main id="contenido" tabIndex={-1} className="flex-1 w-full flex flex-col outline-none">
-            {children}
-          </main>
-          <Footer />
-          <BottomNav />
+          <HostProvider kind={hostKind}>
+            <a href="#contenido" className="mv-skip">Saltar al contenido</a>
+            <AnnouncementBar />
+            <Header />
+            <main id="contenido" tabIndex={-1} className="flex-1 w-full flex flex-col outline-none">
+              {children}
+            </main>
+            <Footer />
+            <BottomNav />
+          </HostProvider>
         </Providers>
       </body>
     </html>

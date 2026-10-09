@@ -1,11 +1,11 @@
 "use client";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { LayoutDashboard } from 'lucide-react';
+import { LayoutGrid } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { SlideConfirm } from '@/components/motion/SlideConfirm';
+import { HostLink, useHostNavigate } from '@/components/layout/HostContext';
+import { APP_HOME } from '@/lib/seo/site';
 
 interface AuthHeroButtonProps {
   label?: string;
@@ -16,7 +16,8 @@ interface AuthHeroButtonProps {
 const FOOTPRINT = "h-16 w-full min-w-[18rem] rounded-full sm:min-w-[24rem] md:h-20";
 
 export function AuthHeroButton({ label = "Empezar gratis", className }: AuthHeroButtonProps) {
-  const router = useRouter();
+  // Also rendered on mercav.lat (the landing), where /inicio and /register live on app.mercav.lat.
+  const navigate = useHostNavigate();
   const { data: session, status } = useSession();
 
   if (status === "loading") {
@@ -33,8 +34,8 @@ export function AuthHeroButton({ label = "Empezar gratis", className }: AuthHero
 
   if (session?.user) {
     return (
-      <Link
-        href="/dashboard"
+      <HostLink
+        href={APP_HOME}
         className={cn(
           FOOTPRINT,
           "mv-btn mv-btn-primary gap-3 text-sm font-semibold uppercase tracking-widest md:text-base",
@@ -42,9 +43,9 @@ export function AuthHeroButton({ label = "Empezar gratis", className }: AuthHero
           className,
         )}
       >
-        <LayoutDashboard className="h-5 w-5" aria-hidden />
-        Ir al panel
-      </Link>
+        <LayoutGrid className="h-5 w-5" aria-hidden />
+        Abrir la app
+      </HostLink>
     );
   }
 
@@ -53,7 +54,7 @@ export function AuthHeroButton({ label = "Empezar gratis", className }: AuthHero
       variant="gold"
       label={label}
       className={cn("rounded-full", className)}
-      onConfirm={() => router.push("/register")}
+      onConfirm={() => navigate("/register")}
     />
   );
 }

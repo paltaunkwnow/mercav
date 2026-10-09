@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ShieldCheck, UsersRound } from "lucide-react";
+import { ShieldCheck, UsersRound } from "@/components/icons";
 import { prisma } from "@/lib/prisma";
 import { getKosherViewer, publicAuthorName } from "@/lib/kosher/server";
 import { listCities, pickCity } from "@/lib/kosher/cities";

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { MapPin, Briefcase, Globe, GraduationCap, BadgeCheck, CalendarDays, Pencil, Users, UserRound } from "lucide-react";
+import { MapPin, Briefcase, Globe, GraduationCap, BadgeCheck, CalendarDays, Pencil, Users, UserRound } from "@/components/icons";
 import { SaveButton } from "@/components/ui/SaveButton";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth/next";

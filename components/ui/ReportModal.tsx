@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ShieldAlert, AlertTriangle, Check, Loader2, X } from "lucide-react"
+import { ShieldAlert, AlertTriangle, Check, Loader2, X } from "@/components/icons"
 
 interface ReportModalProps {
   isOpen: boolean

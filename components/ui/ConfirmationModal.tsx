@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle, X } from "@/components/icons";
 import { Button } from "./button";
 import { SlideConfirm } from "@/components/motion/SlideConfirm";
 

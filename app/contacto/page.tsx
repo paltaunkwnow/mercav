@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Check, Copy, Flag, Lightbulb, ShieldAlert } from "lucide-react";
+import { ArrowUpRight, Check, Copy, Flag, Lightbulb, ShieldAlert } from "@/components/icons";
 import { Container, PageHero, Section, SectionHeading, buttonClass } from "@/components/site/primitives";
 import { LEGAL } from "@/lib/legal/site";
 

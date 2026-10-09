@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Flame, MoonStar, Sparkles, Sunrise } from "lucide-react";
+import { Flame, MoonStar, Sparkles, Sunrise } from "@/components/icons";
 import { getKosherViewer } from "@/lib/kosher/server";
 import { listCities, pickCity } from "@/lib/kosher/cities";
 import { calendarFor, dayZmanim, nextShabbat, type CalendarItem } from "@/lib/kosher/zmanim";
@@ -45,7 +45,7 @@ export default async function KosherCalendarPage({ searchParams }: { searchParam
 
   return (
     <div>
-      <PageIntro eyebrow="Zmanim" title={`Calendario de ${city.city}`}>
+      <PageIntro title={`Calendario de ${city.city}`}>
         <p>
           Hoy es {today.hebrewDate} ·{" "}
           <bdi lang="he" className="text-techelet">
@@ -58,7 +58,7 @@ export default async function KosherCalendarPage({ searchParams }: { searchParam
       <CityPills cities={cities} current={city.slug} basePath="/kosher/calendario" />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.1fr_1fr]">
-        <section aria-labelledby="k-shabbat" className="liquid-glass relative overflow-hidden rounded-[1.75rem] p-6 md:p-8">
+        <section aria-labelledby="k-shabbat" className={cn(cardClass, "relative overflow-hidden md:p-8")}>
           <p className="mv-kicker relative">{shabbat.chag ? "Shabat y iom tov" : "Este Shabat"}</p>
           <h2 id="k-shabbat" className="mv-h2 relative mt-3">
             {shabbat.parasha ?? shabbat.chag ?? "Shabat"}
@@ -70,8 +70,8 @@ export default async function KosherCalendarPage({ searchParams }: { searchParam
           )}
           {shabbat.parasha && shabbat.chag && <p className="relative mt-1 text-sm text-[var(--text-secondary)]">{shabbat.chag}</p>}
           <dl className="relative mt-8 grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-[var(--mv-gold-wash)] p-4 ring-1 ring-inset ring-gold/25">
-              <dt className="flex items-center gap-1.5 text-xs font-medium text-gold">
+            <div className="rounded-2xl bg-[var(--mv-gold-wash)] p-4 ring-1 ring-inset ring-[var(--color-border-gold)]">
+              <dt className="flex items-center gap-1.5 text-xs font-medium text-[var(--mv-gold-ink)]">
                 <Flame className="h-3.5 w-3.5" aria-hidden /> Velas
               </dt>
               <dd className="mv-data mt-2 text-2xl text-[var(--text-primary)]">
@@ -115,11 +115,11 @@ export default async function KosherCalendarPage({ searchParams }: { searchParam
       {chagim.length > 0 && (
         <section aria-labelledby="k-chagim" className="mt-16">
           <h2 id="k-chagim" className="mv-h3 flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-gold" aria-hidden /> Próximos jaguim y ayunos
+            <Sparkles className="h-5 w-5 text-[var(--mv-gold-ink)]" aria-hidden /> Próximos jaguim y ayunos
           </h2>
           <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {chagim.slice(0, 9).map((c) => (
-              <li key={`${c.day}-${c.title}`} className="mv-panel rounded-2xl px-4 py-4">
+              <li key={`${c.day}-${c.title}`} className="mv-panel px-4 py-4">
                 <Pill tone={KIND_TONE[c.kind]}>{KIND_LABEL[c.kind]}</Pill>
                 <p className="mt-2 font-semibold text-[var(--text-primary)]">{c.title}</p>
                 <p className="mt-0.5 text-sm text-[var(--text-secondary)]">{formatDay(`${c.day}T12:00:00Z`, "UTC")}</p>

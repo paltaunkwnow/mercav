@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import {
@@ -9,13 +10,32 @@ import {
   validationError,
 } from "../_lib/http";
 import { checkRateLimit } from "../_lib/rate-limit";
-import { syncHibpCatalog } from "../_lib/cycle";
+
+const VERIFICATION_FILTER: Record<string, Prisma.PwnBreachWhereInput> = {
+  unverified: { verificationStatus: "UNVERIFIED" },
+  corroborated: { verificationStatus: { in: ["CORROBORATED", "PARTIALLY_CORROBORATED"] } },
+  confirmed: { verificationStatus: "CONFIRMED" },
+  disputed: { verificationStatus: "DISPUTED" },
+};
+
+const ORDER: Record<string, Prisma.PwnBreachOrderByWithRelationInput[]> = {
+  recent: [{ publishedAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
+  name: [{ name: "asc" }],
+  confidence: [{ confidenceScore: "desc" }, { publishedAt: { sort: "desc", nulls: "last" } }],
+};
 
 const querySchema = z.object({
   page: z.coerce.number().int().min(1).max(10_000).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),
+  q: z.string().trim().max(120).optional(),
+  verification: z.enum(["all", "unverified", "corroborated", "confirmed", "disputed"]).default("all"),
+  sort: z.enum(["recent", "name", "confidence"]).default("recent"),
 });
 
+/**
+ * Catálogo de filtraciones con búsqueda, filtro y orden en el servidor (sobre toda la tabla,
+ * no sobre la página visible). El catálogo de HIBP se sincroniza en el cron, no acá.
+ */
 export async function GET(request: NextRequest) {
   const disabled = disabledResponse();
   if (disabled) return disabled;
@@ -34,15 +54,23 @@ export async function GET(request: NextRequest) {
       Object.fromEntries(request.nextUrl.searchParams.entries()),
     );
     if (!parsed.success) return validationError(parsed.error.flatten());
-    const { page, limit } = parsed.data;
-    const existingTotal = await prisma.pwnBreach.count();
-    if (existingTotal < 800) {
-      await syncHibpCatalog().catch(() => ({ configured: false, upserted: 0 }));
-    }
+    const { page, limit, q, verification, sort } = parsed.data;
+    const where: Prisma.PwnBreachWhereInput = {
+      ...(VERIFICATION_FILTER[verification] ?? {}),
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { description: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    };
 
     const [data, total] = await Promise.all([
       prisma.pwnBreach.findMany({
-        orderBy: [{ publishedAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
+        where,
+        orderBy: ORDER[sort],
         skip: (page - 1) * limit,
         take: limit,
         include: {
@@ -51,7 +79,7 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      prisma.pwnBreach.count(),
+      prisma.pwnBreach.count({ where }),
     ]);
 
     return NextResponse.json({

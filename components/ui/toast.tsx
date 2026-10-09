@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { AlertCircle, CheckCircle2, Info, X } from "lucide-react"
+import { AlertCircle, CheckCircle2, Info, X } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { createPortal } from "react-dom"
 

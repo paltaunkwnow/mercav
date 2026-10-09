@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useId, type KeyboardEvent } from "react";
-import { ChevronDown, Check } from "lucide-react";
+import { ChevronDown, Check } from "@/components/icons";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 interface Option {

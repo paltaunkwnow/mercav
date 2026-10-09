@@ -13,7 +13,7 @@ import {
   MapPin,
   Clock,
   Heart,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 

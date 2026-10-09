@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, type KeyboardEvent } from "react"
 import { 
   Trash2, CheckCircle2, Eye, FileText, Loader2, Check, Flag, LifeBuoy, Archive, ArrowUpRight
-} from "lucide-react"
+} from "@/components/icons"
 import Link from "next/link"
 import { AdminTicketActions } from "./AdminControls"
 import { AdminDialog } from "./AdminDialog"

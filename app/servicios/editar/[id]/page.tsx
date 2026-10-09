@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/components/icons";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Container, buttonClass } from "@/components/site/primitives";

@@ -201,7 +201,6 @@ export function CTABand({
       <Container>
         <Reveal>
           <div className="liquid-glass relative overflow-hidden rounded-[2rem] px-6 py-14 text-center sm:px-10 md:rounded-[2.5rem] md:py-20">
-            <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-40 mx-auto h-80 max-w-3xl rounded-full bg-gold/15 blur-[90px]" />
             <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-5">
               <h2 className="mv-h2">{title}</h2>
               {lead ? <p className="mv-lead mx-auto">{lead}</p> : null}

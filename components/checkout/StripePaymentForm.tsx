@@ -6,7 +6,7 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
-import { AlertCircle, Loader2, Lock } from 'lucide-react';
+import { AlertCircle, Loader2, Lock } from '@/components/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface StripePaymentFormProps {

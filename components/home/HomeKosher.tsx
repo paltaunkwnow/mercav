@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, MapPinned, MessagesSquare, ShieldCheck, Store } from "lucide-react";
+import { ArrowRight, MapPinned, MessagesSquare, ShieldCheck, Store } from "@/components/icons";
 import { KosherAtlasPreview, type KosherPreviewPlace } from "@/components/kosher/KosherHero";
 
 const POINTS = [

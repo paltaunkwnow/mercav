@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { excerpt, jsonLd } from "@/lib/seo/text";
-import { SITE_URL } from "@/lib/seo/site";
+import { canonicalFor } from "@/lib/seo/site";
 
 async function load(id: string) {
   try {
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   return {
     title,
     description,
-    openGraph: { title, description, url: `/servicios/${service.id}`, images },
+    openGraph: { title, description, url: canonicalFor(`/servicios/${service.id}`), images },
     twitter: { title, description, images },
   };
 }
@@ -43,7 +43,7 @@ export default async function Layout({ children, params }: { children: React.Rea
     name: service.title,
     description: excerpt(service.description, 500),
     image: service.images.map((i) => i.url),
-    url: `${SITE_URL}/servicios/${service.id}`,
+    url: canonicalFor(`/servicios/${service.id}`),
     ...(service.provider?.name ? { provider: { "@type": "Person", name: service.provider.name } } : {}),
   };
   return (

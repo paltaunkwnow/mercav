@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PwnShell } from "@/components/pwn/PwnShell";
-import { PWN_URL } from "@/lib/seo/site";
+import { APP_URL, PWN_URL } from "@/lib/seo/site";
 import { LoadingState } from "@/components/pwn/EmptyState";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(PWN_URL),
+  metadataBase: new URL(APP_URL),
   title: {
     absolute: "Mercav Pwn — ciberinteligencia defensiva para empresas y gobierno",
     template: "%s · Mercav Pwn",

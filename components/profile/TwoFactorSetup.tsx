@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { KeyRound, Smartphone, Loader2, CheckCircle2, AlertTriangle } from "lucide-react"
+import { KeyRound, Smartphone, Loader2, CheckCircle2, AlertTriangle } from "@/components/icons"
 import { BodyPortal } from "@/components/auth/BodyPortal"
 
 export function TwoFactorSetup({ isEnabledInitial }: { isEnabledInitial: boolean }) {

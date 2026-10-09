@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useId } from 'react';
-import { Search, ChevronDown, Check } from 'lucide-react';
+import { Search, ChevronDown, Check } from '@/components/icons';
 import { LATAM_CURRENCIES } from '@/lib/data/pos-data';
 
 interface CurrencySelectorProps {

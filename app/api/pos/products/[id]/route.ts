@@ -5,7 +5,7 @@ import { isUniqueCodeError, productInputSchema } from "@/lib/pos/product-input";
 import { requireManager } from "@/lib/pos/staff";
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  const ctx = await getPosContext();
+  const ctx = await getPosContext(req, "pos.inventory");
   if (!ctx.ok) return ctx.response;
   const gate = await requireManager(req, ctx.config.id);
   if (!gate.ok) return gate.response;
@@ -33,7 +33,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
-  const ctx = await getPosContext();
+  const ctx = await getPosContext(_req, "pos.inventory");
   if (!ctx.ok) return ctx.response;
   const gate = await requireManager(_req, ctx.config.id);
   if (!gate.ok) return gate.response;

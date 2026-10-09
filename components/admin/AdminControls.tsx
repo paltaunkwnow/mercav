@@ -3,7 +3,7 @@
 export * from "./GlobalSettingsForm";
 
 import { useState } from "react"
-import { Trash2, ShieldAlert, ShieldCheck, CheckCircle2, Loader2, Check, Users, X } from "lucide-react"
+import { Trash2, ShieldAlert, ShieldCheck, CheckCircle2, Loader2, Check, Users, X } from "@/components/icons"
 import { useRouter } from "next/navigation"
 import { ConfirmModal } from "@/components/ui/confirm-modal"
 import { Toast } from "@/components/ui/toast"

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookOpenCheck, CalendarDays, Flame, MessagesSquare, MoonStar, UsersRound, UtensilsCrossed } from "lucide-react";
+import { ArrowRight, BookOpenCheck, CalendarDays, Flame, MessagesSquare, MoonStar, UsersRound, UtensilsCrossed } from "@/components/icons";
 import type { ReactNode } from "react";
 import { prisma } from "@/lib/prisma";
 import { getKosherViewer } from "@/lib/kosher/server";

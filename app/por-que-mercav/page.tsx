@@ -15,7 +15,7 @@ import {
   Target,
   Users,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import { ButtonLink, CTABand, Container, Reveal, Section, SectionHeading } from "@/components/site/primitives";
 
 const PROBLEMS = [
@@ -53,7 +53,7 @@ const COMPARISON = [
   { them: "Precios en dólares sin contexto regional", us: "Planes pensados para la realidad económica de la región." },
 ];
 
-const MODULES = ["Ads", "Services", "Jobs", "POS", "Tools", "Pwn", "Kosher"];
+const MODULES = ["Ads", "Services", "Jobs", "Business", "Tools", "Pwn", "Kosher"];
 
 export default function PorQueMercavPage() {
   return (

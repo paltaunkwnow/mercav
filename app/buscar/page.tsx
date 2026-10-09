@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { Search, Users, Briefcase, MonitorPlay, Megaphone, ArrowRight, MapPin, type LucideIcon } from "lucide-react";
+import { Search, Users, Briefcase, MonitorPlay, Megaphone, ArrowRight, MapPin, type LucideIcon } from "@/components/icons";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ReactNode } from "react";

@@ -2,25 +2,38 @@ import type { PwnVerificationStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { scoreConfidence } from "@/lib/pwn/confidence-engine";
 import { scoreRisk } from "@/lib/pwn/risk-engine";
-import { hibpConnector, fetchHibpBreachCatalog } from "@/lib/integrations/pwn/hibp";
+import { hibpConnector, fetchHibpBreachCatalog, searchDomainBreaches } from "@/lib/integrations/pwn/hibp";
 import { PwnProviderError } from "@/lib/integrations/pwn/types";
 import { fetchKevCatalog } from "@/lib/integrations/pwn/cisa-kev";
 import { ensureSource, safeDate } from "./persistence";
 import { openAlert } from "./alerts";
+import { PROVEN_TARGET_WHERE } from "./targets";
 
 const HIBP_RELIABILITY = 90;
 
 /**
- * Re-checks verified domains the owner follows. Emails stay hash-only, so
- * they alert when the owner searches them or when an extra mailbox is authorized.
+ * Filas que el código viejo marcó VERIFIED sin prueba (dominio en un GET, correo de una cuenta
+ * sin confirmar): vuelven a pendiente. Las pruebas nuevas siempre dejan verifiedByUserId.
+ */
+export async function downgradeUnprovenTargets() {
+  const result = await prisma.pwnMonitoringTarget.updateMany({
+    where: { verificationStatus: "VERIFIED", verifiedByUserId: null },
+    data: { verificationStatus: "PENDING", verifiedAt: null },
+  });
+  return { downgraded: result.count };
+}
+
+/**
+ * Re-checks verified domains the owner follows. Emails stay hash-only (no hay cómo volver a
+ * consultarlos sin el correo en claro): alertan cuando el dueño los consulta.
  */
 export async function runDomainCycle(limit = 20) {
   const targets = await prisma.pwnMonitoringTarget.findMany({
     where: {
       active: true,
       targetType: "DOMAIN",
-      verifiedAt: { not: null },
       targetLookup: { not: null },
+      ...PROVEN_TARGET_WHERE,
     },
     orderBy: { updatedAt: "asc" },
     take: limit,
@@ -45,10 +58,9 @@ export async function runDomainCycle(limit = 20) {
       data: { targetDisplay: target.targetDisplay },
     });
 
-    if (!hibpConnector.isConfigured()) continue;
-    let result: Awaited<ReturnType<typeof hibpConnector.search>>;
+    let result: Awaited<ReturnType<typeof searchDomainBreaches>>;
     try {
-      result = await hibpConnector.search({ type: "domain", account: domain });
+      result = await searchDomainBreaches(domain, { owned: true });
     } catch (error) {
       // Un dominio que falla no debe tumbar el ciclo; si HIBP nos limita, cortamos acá
       // y los objetivos restantes quedan para la próxima hora (orden por updatedAt).
@@ -65,7 +77,7 @@ export async function runDomainCycle(limit = 20) {
       verificationMethod: "API oficial de HIBP",
     });
 
-    for (const breach of result.data) {
+    for (const breach of result.data.data) {
       if (breach.isFabricated) continue;
       // Tipado explícito: sin esto TS ensancha a `string` y no matchea el enum de Prisma.
       const verificationStatus: PwnVerificationStatus = breach.isVerified ? "CORROBORATED" : "UNVERIFIED";
@@ -149,12 +161,12 @@ export async function runDomainCycle(limit = 20) {
     }
   }
 
-  return { scanned, alertsCreated, configured: hibpConnector.isConfigured() };
+  return { scanned, alertsCreated, accountsLookup: hibpConnector.isConfigured() };
 }
 
 /** Public HIBP catalog — no API key. Fills /pwn/breaches so the list is not empty. */
 export async function syncHibpCatalog(limit = 2500) {
-  const catalog = await fetchHibpBreachCatalog();
+  const catalog = await fetchHibpBreachCatalog({ fresh: true });
   if (!catalog.configured) return { configured: false, upserted: 0 };
   const source = await ensureSource({
     name: "HIBP",
@@ -213,7 +225,7 @@ export async function syncHibpCatalog(limit = 2500) {
 
 /** Stores the public CISA KEV catalog so vulnerability lookup does not depend on a live fetch. */
 export async function syncKevCatalog() {
-  const catalog = await fetchKevCatalog();
+  const catalog = await fetchKevCatalog({ fresh: true });
   if (!catalog.configured) return { configured: false, upserted: 0 };
   const source = await ensureSource({
     name: "CISA_KEV",

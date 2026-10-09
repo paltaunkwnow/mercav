@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { Search, MapPin, Lightbulb, Megaphone, CalendarRange, CreditCard, BadgePercent, SlidersHorizontal, X, Eye } from "lucide-react";
+import { Search, MapPin, Lightbulb, Megaphone, CalendarRange, CreditCard, BadgePercent, SlidersHorizontal, X, Eye } from "@/components/icons";
 import { Container, PageHero, ButtonLink, buttonClass } from "@/components/site/primitives";
 import { ChoiceMenu } from "@/components/anuncios/ChoiceMenu";
 import { CardSkeletonGrid, EmptyState, MediaFrame, SPACE_TYPE_LABEL, formatMoney, labelFor } from "@/components/anuncios/market-ui";

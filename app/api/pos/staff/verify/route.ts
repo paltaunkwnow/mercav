@@ -7,7 +7,7 @@ const schema = z.object({ pin: z.string().max(6), staffId: z.string().optional()
 
 /** Confirms a PIN without doing anything else. The browser uses it to unlock manager-only screens. */
 export async function POST(req: Request) {
-  const ctx = await getPosContext();
+  const ctx = await getPosContext(req, "pos.sell");
   if (!ctx.ok) return ctx.response;
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return posError("PIN inválido");

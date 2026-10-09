@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import * as Select from "@radix-ui/react-select";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown } from "@/components/icons";
 
 export function PwnSelect({
   id,

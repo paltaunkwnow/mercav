@@ -1,10 +1,17 @@
 /** One badge shape for every Pwn status: sentence case, compact, readable in both themes. */
 const BADGE = "h-6 shrink-0 gap-1.5 whitespace-nowrap rounded-full border px-2.5 text-[11px] font-semibold leading-none";
 
+// Tokens de Pwn (globals.css, .p-world): magenta para alerta, amarillo para advertencia. El "dorado" acá es verde.
+const ALERT_FILL = "border-[color-mix(in_srgb,var(--p-alert)_50%,transparent)] bg-[var(--p-alert-wash)] text-[var(--p-alert)]";
+const ALERT_LINE = "border-[color-mix(in_srgb,var(--p-alert)_50%,transparent)] bg-transparent text-[var(--p-alert)]";
+const WARN_FILL =
+  "border-[color-mix(in_srgb,var(--p-warn)_55%,transparent)] bg-[color-mix(in_srgb,var(--p-warn)_12%,transparent)] text-[var(--p-warn)]";
+const WARN_LINE = "border-[color-mix(in_srgb,var(--p-warn)_55%,transparent)] bg-transparent text-[var(--p-warn)]";
+
 const RISK: Record<string, { label: string; className: string }> = {
-  critical: { label: "Crítica", className: "border-red-400/40 bg-red-500/10 text-red-200 [.light_&]:text-red-800 [.light_&]:border-red-700/30" },
-  high: { label: "Alta", className: "border-orange-300/40 bg-orange-500/10 text-orange-100 [.light_&]:text-orange-800 [.light_&]:border-orange-700/30" },
-  medium: { label: "Media", className: "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold" },
+  critical: { label: "Crítica", className: ALERT_FILL },
+  high: { label: "Alta", className: ALERT_LINE },
+  medium: { label: "Media", className: WARN_FILL },
   low: { label: "Baja", className: "border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] text-[var(--text-secondary)]" },
   informational: { label: "Informativa", className: "border-[var(--mv-hairline-strong)] bg-transparent text-[var(--text-secondary)]" },
   unknown: { label: "Sin clasificar", className: "border-[var(--mv-hairline)] bg-transparent text-[var(--text-tertiary)]" },
@@ -26,7 +33,7 @@ const VERIFICATION: Record<string, { label: string; className: string; note?: st
   },
   CONFIRMED: {
     label: "Confirmada",
-    className: "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold",
+    className: "border-[var(--text-secondary)] bg-[var(--mv-panel-hover)] text-[var(--text-primary)]",
   },
   DISPUTED: {
     label: "En disputa",
@@ -40,9 +47,24 @@ function riskKey(level?: string | null): string {
   if (/crit/.test(value)) return "critical";
   if (/high|alta/.test(value)) return "high";
   if (/med/.test(value)) return "medium";
-  if (/low|baja|info/.test(value)) return value.includes("info") ? "informational" : "low";
   if (/info/.test(value)) return "informational";
-  return level ? "unknown" : "unknown";
+  if (/low|baja/.test(value)) return "low";
+  return "unknown";
+}
+
+/** Pasa un nivel de riesgo a la clave de RISK (para usar el mismo color fuera de la insignia). */
+export function riskTone(level?: string | null): "critical" | "high" | "medium" | "low" | "informational" | "unknown" {
+  return riskKey(level) as "critical" | "high" | "medium" | "low" | "informational" | "unknown";
+}
+
+/** Insignia para un CVE en el catálogo KEV de CISA. */
+export function KnownExploitedBadge() {
+  return (
+    <span className={`inline-flex items-center ${BADGE} ${ALERT_FILL}`}>
+      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current opacity-80" />
+      Explotación conocida
+    </span>
+  );
 }
 
 export function RiskBadge({ level }: { level?: string | null }) {
@@ -64,10 +86,10 @@ export function verificationMeta(status?: string | null) {
 }
 
 const SIGNAL_KIND: Record<string, { label: string; className: string }> = {
-  DATABASE: { label: "Base de datos", className: "border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold" },
-  STEALER: { label: "Stealer logs", className: "border-fuchsia-300/40 bg-fuchsia-500/10 text-fuchsia-100 [.light_&]:text-fuchsia-800 [.light_&]:border-fuchsia-700/30" },
-  CORPORATE: { label: "Robo corporativo", className: "border-sky-300/40 bg-sky-500/10 text-sky-100 [.light_&]:text-sky-800 [.light_&]:border-sky-700/30" },
-  MIXED: { label: "Mixto", className: "border-amber-300/40 bg-amber-500/10 text-amber-100 [.light_&]:text-amber-800 [.light_&]:border-amber-700/30" },
+  DATABASE: { label: "Base de datos", className: WARN_LINE },
+  STEALER: { label: "Stealer logs", className: ALERT_LINE },
+  CORPORATE: { label: "Robo corporativo", className: ALERT_FILL },
+  MIXED: { label: "Mixto", className: WARN_FILL },
   CREDENTIALS: { label: "Cuentas / logs", className: "border-[var(--mv-hairline-strong)] bg-[var(--mv-panel)] text-[var(--text-secondary)]" },
   OTHER: { label: "Filtración", className: "border-[var(--mv-hairline-strong)] bg-transparent text-[var(--text-secondary)]" },
 };
@@ -75,7 +97,7 @@ const SIGNAL_KIND: Record<string, { label: string; className: string }> = {
 export function BoliviaPriorityBadge({ active }: { active?: boolean }) {
   if (!active) return null;
   return (
-    <span className={`inline-flex items-center ${BADGE} border-[var(--color-border-gold)] bg-[var(--mv-gold-wash)] text-gold`}>
+    <span className={`inline-flex items-center ${BADGE} ${WARN_LINE}`}>
       <span className="sr-only">Prioridad: </span>
       Bolivia
     </span>
@@ -85,7 +107,7 @@ export function BoliviaPriorityBadge({ active }: { active?: boolean }) {
 export function GovernmentPriorityBadge({ active }: { active?: boolean }) {
   if (!active) return null;
   return (
-    <span className={`inline-flex items-center ${BADGE} border-red-400/50 bg-red-500/15 text-red-100 [.light_&]:border-red-700/30 [.light_&]:text-red-800`}>
+    <span className={`inline-flex items-center ${BADGE} ${ALERT_FILL}`}>
       <span className="sr-only">Prioridad: </span>
       Gobierno
     </span>

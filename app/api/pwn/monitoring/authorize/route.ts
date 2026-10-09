@@ -23,6 +23,9 @@ import {
 } from "../../_lib/http";
 import { checkRateLimit } from "../../_lib/rate-limit";
 import { listAdminUserIds, writeAudit } from "../../_lib/persistence";
+import { mailerReady } from "../../_lib/mailer";
+import { isProvenTarget } from "../../_lib/targets";
+import { hashSubject } from "@/lib/pwn/redaction";
 
 const TYPE_LABEL: Record<string, string> = { EMAIL: "correo", DOMAIN: "dominio" };
 
@@ -75,7 +78,8 @@ export async function GET(request: NextRequest) {
       take: 100,
       select: {
         ...ownerSelect,
-        user: { select: { id: true, name: true, email: true, username: true } },
+        targetHash: true,
+        user: { select: { id: true, name: true, email: true, username: true, isVerified: true } },
       },
     });
     return NextResponse.json({
@@ -97,8 +101,12 @@ export async function GET(request: NextRequest) {
           name: row.user.name,
           email: row.user.email,
           username: row.user.username,
+          emailConfirmed: row.user.isVerified,
         },
+        // El administrador no ve el correo seguido (solo su hash): le decimos al menos si es el de la cuenta.
+        isOwnerAccountEmail: row.user.email ? hashSubject(row.user.email.trim().toLowerCase()) === row.targetHash : false,
       })),
+      meta: { mailerReady: mailerReady() },
     });
   } catch (error) {
     return internalError("monitoring auth queue", error);
@@ -129,15 +137,29 @@ export async function POST(request: NextRequest) {
         targetType: true,
         targetDisplay: true,
         verificationStatus: true,
+        verifiedAt: true,
+        verifiedByUserId: true,
       },
     });
     if (!target) {
       return NextResponse.json({ success: false, error: "Objetivo no encontrado" }, { status: 404 });
     }
-    const blocked = requestBlockedReason(target.verificationStatus, target.targetType);
-    if (target.targetType !== "EMAIL" || blocked || !canRequestMonitorAuthorization(target.verificationStatus)) {
+    // Una fila marcada VERIFIED sin prueba (código viejo) cuenta como pendiente.
+    const status = isProvenTarget(target) ? "VERIFIED" : target.verificationStatus === "VERIFIED" ? "PENDING" : target.verificationStatus;
+    const blocked = requestBlockedReason(status, target.targetType);
+    if (target.targetType !== "EMAIL" || blocked || !canRequestMonitorAuthorization(status)) {
       return NextResponse.json(
-        { success: false, error: blocked ?? "Solo los correos distintos al de tu cuenta requieren autorización." },
+        { success: false, error: blocked ?? "Solo los correos sin confirmar requieren autorización." },
+        { status: 409 },
+      );
+    }
+
+    if (mailerReady()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Este correo se confirma con el enlace que llega al buzón. Volvé a seguirlo para recibir uno nuevo.",
+        },
         { status: 409 },
       );
     }
@@ -254,7 +276,8 @@ export async function PATCH(request: NextRequest) {
       action: approved ? "MONITORING_AUTH_APPROVED" : "MONITORING_AUTH_DENIED",
       targetType: target.targetType,
       targetId: target.id,
-      metadata: { ownerUserId: target.userId },
+      // Queda registrado que la aprobación no prueba que el buzón sea del solicitante.
+      metadata: { ownerUserId: target.userId, method: "ADMIN_WITHOUT_MAILBOX_PROOF" },
     });
 
     const display = updated.targetLookup ?? updated.targetDisplay;

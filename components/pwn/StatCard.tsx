@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "@/components/icons";
 import { formatCount } from "@/components/pwn/format";
 
 export function StatCard({
@@ -43,11 +43,11 @@ export function StatCard({
 
   if (href) {
     return (
-      <Link href={href} className="mv-panel mv-panel-interactive mv-focus group block rounded-[1.5rem] p-5">
+      <Link href={href} className="mv-panel mv-panel-interactive mv-focus group block p-5">
         {body}
       </Link>
     );
   }
-  return <article className="mv-panel rounded-[1.5rem] p-5">{body}</article>;
+  return <article className="mv-panel p-5">{body}</article>;
 }
 // creado por pato dev y askforvini
