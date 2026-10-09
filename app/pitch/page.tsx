@@ -16,19 +16,10 @@ const SNAPSHOT = [
   { k: "Sede", v: "Santa Cruz de la Sierra, Bolivia" },
 ];
 
-const PROBLEMS = [
-  { market: "Publicidad física", body: "Alquilar una valla o una pantalla todavía depende de conocer al dueño. No hay un canal digital para reservar y pagar." },
-  { market: "Talento", body: "Quien trabaja por proyecto compite en plataformas extranjeras, en inglés, con precios en dólares y comisiones que no piensan en la región." },
-  { market: "Empresas", body: "Una empresa paga por separado los sueldos, la bolsa de empleo y cada herramienta. Nada comparte la misma cuenta ni los mismos datos." },
-];
-
-const MODULES: { glyph: ReactNode; name: string; desc: string; route: string }[] = [
-  { glyph: <ModuleGlyph name="publicidad" size={36} />, name: "Publicidad", desc: "Vallas, pantallas y vidrieras para alquilar por fechas", route: "/anuncios" },
-  { glyph: <ModuleGlyph name="talento" size={36} />, name: "Servicios", desc: "Talento digital con paquetes y pago con tarjeta", route: "/servicios" },
-  { glyph: <ModuleGlyph name="empleos" size={36} />, name: "Empleos", desc: "Vacantes, postulaciones y seguimiento de candidatos", route: "/empleos" },
-  { glyph: <ModuleGlyph name="business" size={36} />, name: "Business", desc: "Empresas, legajos y planillas de sueldo mensuales", route: "/business" },
-  { glyph: <ModuleGlyph name="herramientas" size={36} />, name: "Herramientas", desc: "ROI, contratos, SEO, tarifas, paletas y prompts", route: "/herramientas" },
-  { glyph: <ModuleGlyph name="pwn" size={36} />, name: "Pwn", desc: "Ciberinteligencia defensiva: exposición, filtraciones y CVE", route: "/pwn" },
+/** Las tres apps de la cuenta, como en la portada del sitio. */
+const APPS: { glyph: ReactNode; name: string; desc: string; route: string }[] = [
+  { glyph: <ModuleGlyph name="business" size={36} />, name: "Business", desc: "Caja, planillas con los descuentos de ley y fidelización con la marca del negocio", route: "/business" },
+  { glyph: <ModuleGlyph name="pwn" size={36} />, name: "Pwn", desc: "Ciberseguridad: filtraciones, exposición y vulnerabilidades explotadas, con fuentes públicas", route: "/pwn" },
   { glyph: <StarOfDavid width={36} height={36} strokeWidth={1.5} />, name: "Kosher", desc: "Atlas de lugares y kehilot. Informa con fuente; no emite hechsher", route: "/kosher" },
 ];
 
@@ -45,18 +36,12 @@ const FEES = [
   { name: "Facturación anual", detail: "Sobre el precio mensual de cualquier plan pago.", value: "−20 %" },
 ];
 
-const EDGE = [
-  { title: "Cada módulo trae usuarios al siguiente", desc: "Quien entra para pagar sueldos encuentra empleo, talento y publicidad sin registrarse de nuevo." },
-  { title: "Hecho para la región", desc: "En español desde la primera línea y con planes pensados para la economía latinoamericana." },
-  { title: "La seguridad es parte del producto", desc: "2FA, ciberinteligencia defensiva propia y un equipo que trabaja seguridad. La confianza también se vende." },
-];
-
 const LIVE = [
-  "Plataforma en producción en mercav.lat",
-  "Pagos con Stripe en Publicidad, Servicios y planes",
-  "Login con correo o Google y 2FA opcional",
-  "Business con planilla mensual para Bolivia, Excel y boletas en PDF",
-  "Producto en app.mercav.lat y subdominio propio en kosher.mercav.lat",
+  "En producción en mercav.lat, app.mercav.lat y kosher.mercav.lat",
+  "Planilla mensual para Bolivia, con Excel y boletas en PDF",
+  "Tarjetas de sellos o puntos para 19 rubros, con QR en el mostrador",
+  "Pwn con Have I Been Pwned, NVD y CISA KEV",
+  "Pagos con Stripe y login con correo o Google, con 2FA opcional",
 ];
 
 /** Filetes del resumen: 2 columnas en el teléfono, 4 desde lg. */
@@ -95,9 +80,7 @@ export default function PitchPage() {
             ]}
           />
           <div className="flex flex-col gap-7 lg:pb-36">
-            <p className="c-lead">
-              Mercav reúne publicidad física, talento digital, empleo, planillas de sueldo, herramientas y ciberinteligencia defensiva en una plataforma hecha desde Santa Cruz de la Sierra.
-            </p>
+            <p className="c-lead">Caja, planillas, fidelización, ciberseguridad y el atlas Kosher. En español, con los precios y las normas de tu país.</p>
             <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
               <Link href="/inversores#contacto-inversores" className="c-btn">
                 Hablar con el equipo
@@ -125,21 +108,14 @@ export default function PitchPage() {
 
       {/* El problema */}
       <CartelSection labelledBy="pitch-problema" className="!pt-12 md:!pt-16">
-        <div className="c-container">
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-end lg:gap-12">
-            <h2 id="pitch-problema" className="c-h2">
-              Tres mercados que siguen operando sin infraestructura.
-            </h2>
-            <p className="c-lead lg:pb-2">La demanda existe. Lo que falta es una plataforma regional que la ordene.</p>
-          </div>
-          <ul className="mt-14 border-t-2 border-[var(--c-line)] md:mt-20">
-            {PROBLEMS.map((p) => (
-              <li key={p.market} className="grid gap-4 border-b-2 border-[var(--c-line)] py-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-12 md:py-10">
-                <h3 className="c-h3">{p.market}</h3>
-                <p className="c-body text-[1.0625rem]">{p.body}</p>
-              </li>
-            ))}
-          </ul>
+        <div className="c-container grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-end lg:gap-12">
+          <h2 id="pitch-problema" className="c-h2">
+            Cada tarea del negocio, una app distinta.
+          </h2>
+          <p className="c-lead lg:pb-2">
+            La caja, los sueldos, los clientes y la seguridad viven en herramientas de un solo propósito o traducidas de otros mercados. Nada comparte la misma cuenta ni los mismos
+            datos.
+          </p>
         </div>
       </CartelSection>
 
@@ -148,9 +124,9 @@ export default function PitchPage() {
         <div className="c-container grid gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-20">
           <div className="flex flex-col gap-6 lg:sticky lg:top-[calc(var(--c-nav-h)+3rem)] lg:self-start">
             <h2 id="pitch-producto" className="c-h2">
-              Siete módulos. Una cuenta.
+              Tres apps. Una cuenta.
             </h2>
-            <p className="c-lead">Mismo login, mismo perfil y mismo medio de pago en todo el ecosistema.</p>
+            <p className="c-lead">Mismo login, mismo perfil y mismo medio de pago en todo Mercav.</p>
             <Link href="/" className="c-link inline-flex w-fit items-center gap-2 font-semibold">
               Abrir Mercav
               <ArrowUpRight className="h-4 w-4" aria-hidden />
@@ -162,8 +138,8 @@ export default function PitchPage() {
               <p className="c-display text-[clamp(2.5rem,1.8rem+2.6vw,4rem)]">Tu cuenta Mercav</p>
               <p className="mt-3 text-[1rem] text-[var(--c-soft)]">Correo o Google · 2FA opcional</p>
             </div>
-            <ul aria-label="Módulos incluidos en la cuenta" className="px-6 pb-4 sm:px-10 sm:pb-6">
-              {MODULES.map((m, i) => (
+            <ul aria-label="Apps incluidas en la cuenta" className="px-6 sm:px-10">
+              {APPS.map((m, i) => (
                 <li
                   key={m.name}
                   className={cn(
@@ -182,6 +158,9 @@ export default function PitchPage() {
                 </li>
               ))}
             </ul>
+            <p className="border-t-2 border-[var(--c-text)] px-6 py-5 text-[1rem] text-[var(--c-soft)] sm:px-10">
+              Y en la misma cuenta: publicidad, servicios, empleos y herramientas.
+            </p>
           </div>
         </div>
       </CartelSection>
@@ -231,16 +210,12 @@ export default function PitchPage() {
             <h2 id="pitch-ventaja" className="c-h2 max-w-[14ch]">
               La ventaja está en la integración.
             </h2>
-            <ul className="mt-12 border-t-2 border-[var(--c-line)] md:mt-16">
-              {EDGE.map((e) => (
-                <li key={e.title} className="flex flex-col gap-3 border-b-2 border-[var(--c-line)] py-8">
-                  <h3 className="c-h3">{e.title}</h3>
-                  <p className="c-body text-[1.0625rem]">{e.desc}</p>
-                </li>
-              ))}
-            </ul>
+            <p className="c-lead mt-8">
+              Quien entra para pagar sueldos encuentra la caja, la fidelización y Pwn sin registrarse de nuevo. En español desde la primera línea, con los precios y las normas de cada
+              país.
+            </p>
           </div>
-          <div className="lg:pt-28">
+          <div className="lg:pt-6">
             <div className="c-poster c-paste c-band c-ink-green p-6 sm:p-10" style={{ "--tilt": "-0.6deg" } as CSSProperties}>
               <StatusTag />
               <h3 className="c-display mt-6 text-[clamp(2.5rem,1.8rem+2.4vw,3.75rem)]">Lo que ya funciona</h3>
