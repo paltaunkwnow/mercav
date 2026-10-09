@@ -26,6 +26,10 @@ const publicPaths = [
   '/precios',
   '/preguntas-frecuentes',
   '/por-que-mercav',
+  // Páginas de producto para los buscadores.
+  '/caja',
+  '/planillas',
+  '/fidelizacion',
   '/nosotros',
   '/terminos',
   '/privacidad',

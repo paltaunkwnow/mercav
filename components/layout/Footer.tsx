@@ -23,6 +23,9 @@ const COMPANY: FooterLink[] = [
 
 const APPS: FooterLink[] = [
   { href: "/business", label: "Mercav Business" },
+  { href: "/caja", label: "Caja" },
+  { href: "/planillas", label: "Planillas de sueldo" },
+  { href: "/fidelizacion", label: "Fidelización" },
   { href: "/pwn", label: "Mercav Pwn" },
   { href: "/kosher", label: "Mercav Kosher" },
 ];

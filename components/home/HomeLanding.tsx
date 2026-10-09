@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import {
   ArrowRight,
@@ -23,16 +24,12 @@ import { cn } from "@/lib/utils";
 import { AuthCTA } from "@/components/site/cartel/AuthCTA";
 import { CartelSection, FitLines, Starburst } from "@/components/site/cartel/primitives";
 import { Mervi, type MerviPose } from "@/components/mervi/Mervi";
+import { FlipHint } from "@/components/site/cartel/FlipHint";
 import { PillarNav, RegionPicker, ShabbatPicker, type CountryInfo, type ShabbatCity } from "./LandingClient";
 import { BookingPicker, KosherPhone, PhoneDemo, type PhoneDemoData } from "./LandingDemos";
 
-export type PayslipDemo = {
-  rows: { label: string; short?: string; value: string; minus?: boolean; strong?: boolean }[];
-  net: string;
-  gross: string;
-  deductions: string;
-  note: string;
-};
+export type { PayslipDemo } from "@/lib/business/bolivia/payslip-demo";
+import type { PayslipDemo } from "@/lib/business/bolivia/payslip-demo";
 export type KevItem = { cveId: string; cvss: number | null; published: string | null; url: string };
 export type PlaceItem = { name: string; city: string; type: string; status: string; certified: boolean };
 
@@ -291,7 +288,11 @@ function BusinessPillar({ data }: { data: LandingData }) {
           <article className="c-tile c-night flex flex-col gap-5 p-7 md:col-span-2 lg:row-span-2">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="c-h3">Planillas de sueldo</h3>
+                <h3 className="c-h3">
+                  <Link href="/planillas" className="underline-offset-[0.2em] hover:underline">
+                    Planillas de sueldo
+                  </Link>
+                </h3>
                 <p className="mt-2 max-w-[24rem] text-[0.98rem] text-[var(--c-soft)]">Aportes, RC-IVA y antigüedad calculados solos. Exportás a Excel y cada trabajador ve su boleta.</p>
               </div>
               <ModuleGlyph name="business" size={48} className="shrink-0 text-[var(--c-yellow-text)]" />
@@ -319,7 +320,11 @@ function BusinessPillar({ data }: { data: LandingData }) {
 
           <article className="c-tile c-band c-ink-magenta flex flex-col gap-5 p-7 sm:flex-row sm:items-center md:col-span-2">
             <div className="flex-1">
-              <h3 className="c-h3">Fidelización</h3>
+              <h3 className="c-h3">
+                  <Link href="/fidelizacion" className="underline-offset-[0.2em] hover:underline">
+                    Fidelización
+                  </Link>
+                </h3>
               <p className="mt-2 text-[0.98rem] text-[var(--c-soft)]">Tarjetas de sellos o puntos con tu logo. Tus clientes se suman con un QR y las guardan en su cuenta.</p>
               <p className="c-label mt-3 text-[1.05rem]">19 rubros listos · MercavClub</p>
             </div>
@@ -327,21 +332,18 @@ function BusinessPillar({ data }: { data: LandingData }) {
               <div className="w-[15rem] rotate-[-4deg] motion-reduce:rotate-0">
                 <LoyaltyCard design={CAFE_DESIGN} type="STAMPS" stampsGoal={10} rewardName={cafe.rewardName} balance={7} customerName="Lucía" side="flip" size="sm" className="w-full" />
               </div>
-              {/* La tarjeta ya dice "Tocá para ver el reverso" en su aria-label; esta pista es solo visual. */}
-              <p aria-hidden className="c-label flex items-center gap-1.5 text-[1rem]">
-                <svg viewBox="0 0 40 32" className="c-nudge h-7 w-9" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 27c9 1 20-3 26-17" />
-                  <path d="M24 11.5 31.5 8l2.5 8" />
-                </svg>
-                Tocala para darla vuelta
-              </p>
+              <FlipHint />
             </div>
           </article>
 
           <article className="c-tile c-night flex flex-col gap-5 p-7 md:col-span-2">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="c-h3">Caja</h3>
+                <h3 className="c-h3">
+                  <Link href="/caja" className="underline-offset-[0.2em] hover:underline">
+                    Caja
+                  </Link>
+                </h3>
                 <p className="mt-2 max-w-[26rem] text-[0.98rem] text-[var(--c-soft)]">Vendé desde el celular o la compu, con o sin conexión. El reporte te dice quién vendió qué.</p>
               </div>
               <ShoppingCart className="h-10 w-10 shrink-0 text-[var(--c-yellow-text)]" aria-hidden />
