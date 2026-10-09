@@ -47,14 +47,14 @@ export const APP_SECTION_GROUPS: AppSectionGroup[] = [
         needsAccount: true,
         isNew: true,
       },
-      { key: "jobs", label: "Jobs", product: "Mercav Jobs", desc: "Vacantes y postulaciones", href: "/empleos", icon: Briefcase },
+      { key: "jobs", label: "Empleos", product: "Mercav Empleos", desc: "Vacantes y postulaciones", href: "/empleos", icon: Briefcase },
     ],
   },
   {
     key: "herramientas",
     title: "Herramientas",
     sections: [
-      { key: "tools", label: "Tools", product: "Mercav Tools", desc: "Calculadoras, contratos, SEO e IA", href: "/herramientas", icon: Wrench },
+      { key: "tools", label: "Herramientas", product: "Mercav Herramientas", desc: "Calculadoras, contratos, SEO e IA", href: "/herramientas", icon: Wrench },
       { key: "pwn", label: "Pwn", product: "Mercav Pwn", desc: "Filtraciones, exposición y alertas", href: "/pwn", icon: Shield },
       {
         key: "calendario",
@@ -71,8 +71,8 @@ export const APP_SECTION_GROUPS: AppSectionGroup[] = [
     key: "mercado",
     title: "Mercado",
     sections: [
-      { key: "ads", label: "Ads", product: "Mercav Ads", desc: "Vallas, pantallas y vidrieras por fechas", href: "/anuncios", icon: Megaphone },
-      { key: "services", label: "Services", product: "Mercav Services", desc: "Talento digital con pago por hitos", href: "/servicios", icon: MonitorPlay },
+      { key: "ads", label: "Publicidad", product: "Mercav Publicidad", desc: "Vallas, pantallas y vidrieras por fechas", href: "/anuncios", icon: Megaphone },
+      { key: "services", label: "Servicios", product: "Mercav Servicios", desc: "Talento digital con pago por hitos", href: "/servicios", icon: MonitorPlay },
     ],
   },
   {
@@ -104,8 +104,12 @@ export function appSection(key: string): AppSection {
   return found;
 }
 
-/** Los apartados de la barra inferior en el celular. */
-export const APP_TAB_KEYS = ["business", "tools", "pwn", "calendario", "perfil"] as const;
+/**
+ * Los apartados fijos de la navegación, después de Inicio. Son los mismos en el header de la compu y en la barra del celular;
+ * el resto se abre desde Apartados, el menú y las tarjetas de Inicio.
+ */
+export const APP_PRIMARY_KEYS = ["business", "pwn", "calendario"] as const;
+export type AppPrimaryKey = (typeof APP_PRIMARY_KEYS)[number];
 
 /** El apartado activo para una ruta, para resaltarlo en la navegación. */
 export function activeSectionKey(pathname: string | null | undefined): string | null {

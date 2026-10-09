@@ -100,9 +100,9 @@ export default function PublicarEmpleoPage() {
     <div className="relative w-full bg-bg-primary pb-14 pt-24 md:pb-24 md:pt-32">
       <div className="mv-aura" aria-hidden />
       <Container className="relative">
-        <BackLink href="/empleos">Volver a Mercav Jobs</BackLink>
+        <BackLink href="/empleos">Volver a Mercav Empleos</BackLink>
         <header className="mt-6 flex max-w-3xl flex-col gap-4">
-          <p className="mv-kicker">Mercav Jobs</p>
+          <p className="mv-kicker">Mercav Empleos</p>
           <h1 className="mv-h2">Publicar una vacante</h1>
           <p className="mv-lead">Describí el puesto, las condiciones y si mostrás el salario. Las postulaciones te llegan a tu cuenta.</p>
         </header>

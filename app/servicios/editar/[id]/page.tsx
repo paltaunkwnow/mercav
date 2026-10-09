@@ -87,7 +87,7 @@ export default function EditarServicioPage() {
       <Container className="relative">
         <BackLink href="/servicios/mis-servicios">Volver a mis servicios</BackLink>
         <header className="mt-6 flex max-w-3xl flex-col gap-4">
-          <p className="mv-kicker">Mercav Services</p>
+          <p className="mv-kicker">Mercav Servicios</p>
           <h1 className="mv-h2">Editar servicio</h1>
           <p className="mv-lead">Ajustá tu propuesta y tus imágenes. Los precios de los paquetes no se editan desde acá.</p>
         </header>
@@ -154,7 +154,7 @@ export default function EditarServicioPage() {
         </form>
       </Container>
 
-      {success ? <SavedOverlay title="Cambios guardados" body="Tu servicio ya se ve actualizado en Mercav Services." /> : null}
+      {success ? <SavedOverlay title="Cambios guardados" body="Tu servicio ya se ve actualizado en Mercav Servicios." /> : null}
     </div>
   );
 }

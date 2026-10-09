@@ -99,7 +99,7 @@ export default function EditarEspacioPage() {
       <Container className="relative">
         <BackLink href="/anuncios/mis-espacios">Volver a mis espacios</BackLink>
         <header className="mt-6 flex max-w-3xl flex-col gap-4">
-          <p className="mv-kicker">Mercav Ads</p>
+          <p className="mv-kicker">Mercav Publicidad</p>
           <h1 className="mv-h2">Editar espacio</h1>
           <p className="mv-lead">Actualizá fotos, descripción y ficha técnica. Los cambios se ven en el catálogo apenas guardás.</p>
         </header>
@@ -215,7 +215,7 @@ export default function EditarEspacioPage() {
         </form>
       </Container>
 
-      {success ? <SavedOverlay title="Cambios guardados" body="Tu espacio ya se ve actualizado en Mercav Ads." /> : null}
+      {success ? <SavedOverlay title="Cambios guardados" body="Tu espacio ya se ve actualizado en Mercav Publicidad." /> : null}
     </div>
   );
 }

@@ -55,7 +55,7 @@ export default function ServiciosPage() {
   return (
     <div className="w-full bg-bg-primary">
       <PageHero
-        kicker="Mercav Services"
+        kicker="Mercav Servicios"
         title={
           <>
             Talento digital, <span className="mv-gold-text">pagado por hitos.</span>

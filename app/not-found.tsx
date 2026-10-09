@@ -3,10 +3,10 @@ import { StatusPage } from "@/components/site/cartel/StatusPage";
 import { BackButton } from "@/components/site/cartel/BackButton";
 
 const SUGGESTIONS = [
-  { href: "/anuncios", label: "Ads" },
-  { href: "/servicios", label: "Services" },
-  { href: "/empleos", label: "Jobs" },
-  { href: "/herramientas", label: "Tools" },
+  { href: "/anuncios", label: "Publicidad" },
+  { href: "/servicios", label: "Servicios" },
+  { href: "/empleos", label: "Empleos" },
+  { href: "/herramientas", label: "Herramientas" },
   { href: "/faq", label: "Ayuda" },
 ];
 

@@ -7,20 +7,25 @@ import { Home, User, Map, MessagesSquare, Users, Plus } from "@/components/icons
 import { ModuleGlyph } from "@/components/icons/ModuleGlyph";
 import { StarOfDavid } from "@/components/site/StarOfDavid";
 import { cn } from "@/lib/utils";
-import { activeSectionKey } from "@/lib/app/sections";
+import { APP_PRIMARY_KEYS, activeSectionKey, appSection, type AppPrimaryKey } from "@/lib/app/sections";
 import { APP_HOME, hostHref } from "@/lib/seo/site";
 import { hidesGlobalChrome, isSiteChrome } from "@/components/layout/Header";
 import type { ReactNode } from "react";
 
 type Item = { key: string; label: string; href: string; icon: ReactNode; create?: boolean };
 
-/** La barra de la app en el celular, igual a la de los celulares de la portada: cuatro apartados y "Publicar" al centro. */
+/** Un apartado fijo de la lista de apartados, con su glifo. */
+function tab(key: AppPrimaryKey): Item {
+  const { label, href } = appSection(key);
+  return { key, label, href, icon: <ModuleGlyph name={key} size={22} /> };
+}
+
+/** La barra de la app en el celular: Inicio, los mismos apartados fijos que el header de la compu y "Publicar" al centro. */
 const APP_ITEMS: Item[] = [
   { key: "inicio", label: "Inicio", href: APP_HOME, icon: <Home className="h-[22px] w-[22px]" aria-hidden /> },
-  { key: "business", label: "Business", href: "/business", icon: <ModuleGlyph name="business" size={22} /> },
+  tab(APP_PRIMARY_KEYS[0]),
   { key: "publicar", label: "Publicar", href: "/publicar", icon: <Plus className="h-6 w-6" aria-hidden />, create: true },
-  { key: "calendario", label: "Calendario", href: "/calendario", icon: <ModuleGlyph name="calendario" size={22} /> },
-  { key: "perfil", label: "Perfil", href: "/perfil", icon: <User className="h-[22px] w-[22px]" aria-hidden /> },
+  ...APP_PRIMARY_KEYS.slice(1).map(tab),
 ];
 
 const KOSHER_ITEMS: Item[] = [

@@ -86,9 +86,17 @@ function SearchContent() {
       title="No encontramos resultados"
       body="Probá con otras palabras o recorré los catálogos de cada módulo."
       action={
-        <ButtonLink href="/explorar" tone="secondary" className="w-full sm:w-auto">
-          Explorar categorías
-        </ButtonLink>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <ButtonLink href="/anuncios" tone="secondary" className="w-full sm:w-auto">
+            Publicidad
+          </ButtonLink>
+          <ButtonLink href="/servicios" tone="secondary" className="w-full sm:w-auto">
+            Servicios
+          </ButtonLink>
+          <ButtonLink href="/empleos" tone="secondary" className="w-full sm:w-auto">
+            Empleos
+          </ButtonLink>
+        </div>
       }
     />
   );

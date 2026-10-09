@@ -129,9 +129,9 @@ export default function PublicarEspacioPage() {
     <div className="relative w-full bg-bg-primary pb-14 pt-24 md:pb-24 md:pt-32">
       <div className="mv-aura" aria-hidden />
       <Container className="relative">
-        <BackLink href="/anuncios">Volver a Mercav Ads</BackLink>
+        <BackLink href="/anuncios">Volver a Mercav Publicidad</BackLink>
         <header className="mt-6 flex max-w-3xl flex-col gap-4">
-          <p className="mv-kicker">Mercav Ads</p>
+          <p className="mv-kicker">Mercav Publicidad</p>
           <h1 className="mv-h2">Publicar un espacio publicitario</h1>
           <p className="mv-lead">Cargá la ubicación, las medidas y el precio mensual. Las marcas ven tu calendario y reservan las fechas libres; tu primer alquiler no paga comisión de plataforma.</p>
         </header>

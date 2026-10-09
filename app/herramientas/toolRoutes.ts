@@ -69,11 +69,11 @@ export function toolIdFromPathname(pathname: string | null | undefined): RoutedT
   return match ? routeBySlug(decodeURIComponent(match[1]))?.toolId ?? null : null;
 }
 
-export const CATALOG_TITLE = "Herramientas · Mercav Tools";
+export const CATALOG_TITLE = "Herramientas · Mercav";
 export const CATALOG_DESCRIPTION =
   "Calculadora de ROI, contratos, SEO, precios, paletas y prompts para tu negocio. Se abren en el navegador, sin instalar nada.";
 
 export function documentTitleFor(route: ToolRoute | null) {
-  return route ? `${route.title} · Mercav Tools` : CATALOG_TITLE;
+  return route ? `${route.title} · Mercav Herramientas` : CATALOG_TITLE;
 }
 // creado por pato dev y askforvini

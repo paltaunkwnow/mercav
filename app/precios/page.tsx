@@ -73,7 +73,7 @@ export default function Precios() {
       features: [
         "Hasta 20 espacios o servicios",
         "Aparición destacada en el inicio",
-        "Mercav Tools sin límites",
+        "Mercav Herramientas sin límites",
         "Generación de contratos con IA",
         "API de integración completa",
         "Soporte 24/7 prioritario"
@@ -193,7 +193,7 @@ export default function Precios() {
         <Container>
           <SectionHeading
             id="comparar-tools"
-            kicker="Mercav Tools"
+            kicker="Mercav Herramientas"
             title="Qué herramientas abre cada plan."
             lead="El acceso a cada herramienta depende del plan de tu cuenta. Esta tabla sale de la misma configuración que usa la plataforma."
           />

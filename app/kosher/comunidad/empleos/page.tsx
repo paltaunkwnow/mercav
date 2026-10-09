@@ -16,7 +16,7 @@ export default async function KosherJobsPage() {
     <div>
       <BackLink />
       <PageIntro
-        eyebrow="Mercav Jobs"
+        eyebrow="Mercav Empleos"
         title="Empleos de la comunidad"
         actions={
           <>
@@ -24,20 +24,20 @@ export default async function KosherJobsPage() {
               Publicar una oferta
             </Link>
             <Link href="/empleos" className={secondaryButton}>
-              Ver todo Mercav Jobs
+              Ver todo Mercav Empleos
             </Link>
           </>
         }
       >
         <p>
-          Ofertas de Mercav Jobs relacionadas con la vida comunitaria: mashgijim, cocina kosher, docentes de hebreo, instituciones y más. Se publican
+          Ofertas de Mercav Empleos relacionadas con la vida comunitaria: mashgijim, cocina kosher, docentes de hebreo, instituciones y más. Se publican
           y se postulan con tu misma cuenta Mercav.
         </p>
       </PageIntro>
 
       {jobs.length === 0 ? (
         <EmptyState>
-          Ahora no hay ofertas comunitarias activas. Las instituciones pueden publicar desde Mercav Jobs usando palabras como «kosher», «mashgiaj»,
+          Ahora no hay ofertas comunitarias activas. Las instituciones pueden publicar desde Mercav Empleos usando palabras como «kosher», «mashgiaj»,
           «hebreo» o «comunidad judía» para aparecer acá.
         </EmptyState>
       ) : (

@@ -50,6 +50,13 @@ const nextConfig = {
     }
     return config;
   },
+  // Páginas que repetían a otra: /premium vendía los mismos planes que /precios y /explorar solo elegía catálogo antes de /buscar.
+  async redirects() {
+    return [
+      { source: '/premium', destination: '/precios', permanent: true },
+      { source: '/explorar', destination: '/buscar', permanent: true },
+    ];
+  },
   async headers() {
     return [
       { source: '/pwn/:path*', headers: pwnSecurityHeaders },

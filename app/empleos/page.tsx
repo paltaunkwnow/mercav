@@ -145,7 +145,7 @@ export default function EmpleosPage() {
   return (
     <div className="w-full bg-bg-primary">
       <PageHero
-        kicker="Mercav Jobs"
+        kicker="Mercav Empleos"
         title={
           <>
             Vacantes claras, <span className="mv-gold-text">postulación directa.</span>

@@ -607,7 +607,7 @@ const COMMUNITY_LINKS = [
   { id: "anuncios", href: "/anuncios", label: "Publicidad", icon: Megaphone },
   { id: "servicios", href: "/servicios", label: "Servicios", icon: MonitorPlay },
   { id: "empleos", href: "/empleos", label: "Empleos", icon: Briefcase },
-  { id: "tools", href: "/herramientas", label: "Mercav Tools", icon: Wrench },
+  { id: "tools", href: "/herramientas", label: "Mercav Herramientas", icon: Wrench },
 ];
 
 function CommunityShortcuts() {

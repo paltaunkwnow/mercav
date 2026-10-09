@@ -43,7 +43,7 @@ export default function DashboardClient({
 
   const categories = [
     {
-      title: "Ads",
+      title: "Publicidad",
       sub: "Espacios publicitarios",
       desc: "Administrá tus vallas, pantallas y letreros disponibles para reserva.",
       icon: Megaphone,
@@ -53,7 +53,7 @@ export default function DashboardClient({
       pending: false,
     },
     {
-      title: "Services",
+      title: "Servicios",
       sub: "Servicios freelance",
       desc: "Controlá tus servicios publicados y seguí los pedidos que contrataste.",
       icon: MonitorPlay,
@@ -102,7 +102,7 @@ export default function DashboardClient({
     { label: "Herramientas", link: "/herramientas", icon: Wrench },
     { label: "Pwn", link: "/pwn", icon: Shield },
     { label: "Kosher", link: "/kosher", icon: StarOfDavid },
-    { label: "Premium", link: "/premium", icon: Sparkles },
+    { label: "Planes", link: "/precios", icon: Sparkles },
   ];
 
   return (

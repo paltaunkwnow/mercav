@@ -192,7 +192,7 @@ export default function HerramientasClient() {
   return (
     <div className="relative w-full bg-bg-primary">
       <PageHero
-        kicker="Mercav Tools"
+        kicker="Mercav Herramientas"
         title={
           <>
             Herramientas para el trabajo <span className="mv-gold-text">de todos los días.</span>
@@ -624,7 +624,7 @@ function ROIForm() {
       <ToolPanel title="Datos de la campaña">
         <div className="space-y-5">
           <div>
-            <span className={FIELD_LABEL}>Espacio de Mercav Ads</span>
+            <span className={FIELD_LABEL}>Espacio de Mercav Publicidad</span>
             <span className={FIELD_HINT}>Elegí un espacio publicado para usar su costo mensual, o cargá el tuyo.</span>
             {spaces === null ? (
               <p className="flex min-h-12 items-center gap-2 text-sm text-[var(--text-secondary)]">

@@ -36,7 +36,6 @@ const publicPaths = [
   '/aviso-legal',
   '/contacto',
   '/soporte',
-  '/explorar',
   '/buscar',
   '/herramientas',
   '/login',
@@ -288,8 +287,8 @@ async function handle(req: NextRequest): Promise<NextResponse> {
                        
   const isDynamicPublicPath = 
     (pathname.startsWith('/anuncios/') && !pathname.includes('/mis-espacios') && !pathname.includes('/publicar')) ||
-    (pathname.startsWith('/servicios/') && !pathname.includes('/mis-servicios') && !pathname.includes('/ordenes') && !pathname.includes('/publicar')) ||
-    (pathname.startsWith('/empleos/') && !pathname.includes('/mis-vacantes') && !pathname.includes('/mis-postulaciones') && !pathname.includes('/publicar'));
+    (pathname.startsWith('/servicios/') && !pathname.includes('/mis-servicios') && !pathname.includes('/publicar')) ||
+    (pathname.startsWith('/empleos/') && !pathname.includes('/mis-empleos') && !pathname.includes('/publicar'));
 
   const isAuthPath = pathname === '/login' || pathname === '/register';
   const isAdminPath = pathname.startsWith('/admin');

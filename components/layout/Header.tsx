@@ -22,19 +22,19 @@ import { usePathname } from "next/navigation";
 import NotificationBell from "./NotificationBell";
 import { HostLink, useAppPathname, useHostKind, useHostNavigate } from "./HostContext";
 import { SeekField } from "@/components/motion/SeekField";
-import { APP_SECTION_GROUPS, activeSectionKey } from "@/lib/app/sections";
+import { APP_PRIMARY_KEYS, APP_SECTION_GROUPS, activeSectionKey, appSection } from "@/lib/app/sections";
 import { APP_HOME, isMarketingPath, type HostKind } from "@/lib/seo/site";
 import { SiteHeader, ThemeSwitch, Wordmark } from "@/components/site/cartel/SiteHeader";
 import { ArrowRight } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
-/** Accesos directos de la app en el header de escritorio. */
+/** Accesos fijos de la app en el header de escritorio: Inicio y los mismos apartados que la barra del celular. */
 const APP_LINKS = [
   { href: APP_HOME, key: "inicio", label: "Inicio" },
-  { href: "/business", key: "business", label: "Business" },
-  { href: "/herramientas", key: "tools", label: "Tools" },
-  { href: "/pwn", key: "pwn", label: "Pwn" },
-  { href: "/calendario", key: "calendario", label: "Calendario" },
+  ...APP_PRIMARY_KEYS.map((key) => {
+    const { href, label } = appSection(key);
+    return { href, key, label };
+  }),
 ];
 
 /** Hide the global chrome on pages that bring their own full-screen shell. */
@@ -258,6 +258,9 @@ function SectionsMenu({ pathname }: { pathname: string | null }) {
   );
 }
 
+/** Sin sesión, el menú oculta lo que necesita cuenta, salvo los apartados fijos: esos están en la barra y el header igual. */
+const isPrimary = (key: string) => (APP_PRIMARY_KEYS as readonly string[]).includes(key);
+
 function MobileMenu({ open, onClose, signedIn }: { open: boolean; onClose: () => void; signedIn: boolean }) {
   const panelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -287,7 +290,9 @@ function MobileMenu({ open, onClose, signedIn }: { open: boolean; onClose: () =>
           </button>
         </div>
         <>
-            {APP_SECTION_GROUPS.map((group) => (
+            {APP_SECTION_GROUPS.map((group) => ({ ...group, sections: group.sections.filter((s) => signedIn || !s.needsAccount || isPrimary(s.key)) }))
+              .filter((group) => group.sections.length > 0)
+              .map((group) => (
               <div key={group.key}>
                 <p className="px-3 pb-1.5 pt-3 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-[var(--text-tertiary)]">{group.title}</p>
                 <ul className="grid gap-0.5">
@@ -413,7 +418,10 @@ export function Header() {
               className="shrink-0 xl:hidden"
             />
 
-            <ThemeSwitch />
+            {/* En el celular con sesión, el lugar es de Mensajes: el tema se cambia en Ajustes. */}
+            <span className={cn("contents", session && "max-sm:hidden")}>
+              <ThemeSwitch />
+            </span>
 
             {session ? (
               <>
@@ -422,7 +430,7 @@ export function Header() {
                   aria-label="Mensajes"
                   title="Mensajes"
                   className={cn(
-                    "hidden h-10 w-10 place-items-center rounded-[2px] transition-colors sm:grid",
+                    "grid h-10 w-10 place-items-center rounded-[2px] transition-colors",
                     active === "mensajes" ? "text-[var(--c-yellow-text)]" : "text-[var(--c-text)] hover:text-[var(--c-yellow-text)]",
                   )}
                 >

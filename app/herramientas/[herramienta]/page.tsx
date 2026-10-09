@@ -11,7 +11,7 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: Props): Metadata {
   const route = routeBySlug(params.herramienta);
-  if (!route) return { title: { absolute: "Herramienta no encontrada · Mercav Tools" } };
+  if (!route) return { title: { absolute: "Herramienta no encontrada · Mercav Herramientas" } };
   const title = documentTitleFor(route);
   return {
     // absolute: the root layout's "%s | Mercav" template would repeat the brand.

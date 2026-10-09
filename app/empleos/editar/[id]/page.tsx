@@ -86,7 +86,7 @@ export default function EditarEmpleoPage() {
       <Container className="relative">
         <BackLink href="/empleos/mis-empleos">Volver a mis vacantes</BackLink>
         <header className="mt-6 flex max-w-3xl flex-col gap-4">
-          <p className="mv-kicker">Mercav Jobs</p>
+          <p className="mv-kicker">Mercav Empleos</p>
           <h1 className="mv-h2">Editar vacante</h1>
           <p className="mv-lead">Ajustá la descripción, los requisitos y las condiciones. El rango salarial queda como lo publicaste.</p>
         </header>
@@ -194,7 +194,7 @@ export default function EditarEmpleoPage() {
         </form>
       </Container>
 
-      {success ? <SavedOverlay title="Cambios guardados" body="La vacante ya se ve actualizada en Mercav Jobs." /> : null}
+      {success ? <SavedOverlay title="Cambios guardados" body="La vacante ya se ve actualizada en Mercav Empleos." /> : null}
     </div>
   );
 }

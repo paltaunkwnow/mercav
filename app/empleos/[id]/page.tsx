@@ -61,7 +61,7 @@ export default async function EmpleoDetailPage({ params }: { params: { id: strin
       <div className="mv-aura" aria-hidden />
       <Container className="relative">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <BackLink href="/empleos">Volver a Mercav Jobs</BackLink>
+          <BackLink href="/empleos">Volver a Mercav Empleos</BackLink>
           {isOwner ? (
             <ButtonLink href={`/empleos/editar/${job.id}`} tone="secondary" size="sm">
               <Pencil className="h-4 w-4" aria-hidden />

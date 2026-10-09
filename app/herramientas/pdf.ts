@@ -1,6 +1,6 @@
 /**
- * Branded PDF export for Mercav Tools. jsPDF is loaded on demand so it never weighs on the catalog bundle.
- * Every page gets the same header ("Mercav" + tool name) and footer (page number + "Generado con Mercav Tools").
+ * Branded PDF export for Mercav Herramientas. jsPDF is loaded on demand so it never weighs on the catalog bundle.
+ * Every page gets the same header ("Mercav" + tool name) and footer (page number + "Generado con Mercav Herramientas").
  */
 
 export type PdfBlock =
@@ -22,7 +22,7 @@ export type BrandedPdf = {
   subtitle?: string;
   blocks: PdfBlock[];
   fileName: string;
-  /** Pie de página. Por defecto "Generado con Mercav Tools · mercav.lat". */
+  /** Pie de página. Por defecto "Generado con Mercav Herramientas · mercav.lat". */
   footer?: string;
 };
 
@@ -68,7 +68,7 @@ function clean(text: string) {
     .replace(/[^\x09\x0A\x0D\x20-\x7E¡-ÿ]/g, "");
 }
 
-export async function downloadBrandedPdf({ toolName, title, subtitle, blocks, fileName, footer = "Generado con Mercav Tools · mercav.lat" }: BrandedPdf) {
+export async function downloadBrandedPdf({ toolName, title, subtitle, blocks, fileName, footer = "Generado con Mercav Herramientas · mercav.lat" }: BrandedPdf) {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const generatedAt = formatLongDate();

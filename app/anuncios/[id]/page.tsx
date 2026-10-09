@@ -65,7 +65,7 @@ export default async function AnuncioDetailPage({ params }: { params: { id: stri
       <div className="mv-aura" aria-hidden />
       <Container className="relative">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <BackLink href="/anuncios">Volver a Mercav Ads</BackLink>
+          <BackLink href="/anuncios">Volver a Mercav Publicidad</BackLink>
           {isOwner ? (
             <ButtonLink href={`/anuncios/editar/${space.id}`} tone="secondary" size="sm">
               <Pencil className="h-4 w-4" aria-hidden />
@@ -196,7 +196,7 @@ export default async function AnuncioDetailPage({ params }: { params: { id: stri
                 <CreditCard className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden />
                 <span>
                   El pago se procesa con Stripe.
-                  {space.isFirstRentalFree ? " Tu primer alquiler en Mercav Ads no paga comisión de plataforma." : ""}
+                  {space.isFirstRentalFree ? " Tu primer alquiler en Mercav Publicidad no paga comisión de plataforma." : ""}
                 </span>
               </p>
             </div>

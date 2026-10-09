@@ -184,7 +184,7 @@ export default function AnunciosPage() {
   return (
     <div className="w-full bg-bg-primary">
       <PageHero
-        kicker="Mercav Ads"
+        kicker="Mercav Publicidad"
         title={
           <>
             Publicidad física, <span className="mv-gold-text">con fechas a la vista.</span>

@@ -58,7 +58,7 @@ export default function MisServiciosPage() {
   return (
     <div className="w-full bg-bg-primary">
       <PageHero
-        kicker="Mercav Services"
+        kicker="Mercav Servicios"
         title="Mis servicios"
         lead="Tus ofertas publicadas: editá la propuesta, revisá cómo se ven o dalas de baja."
         actions={

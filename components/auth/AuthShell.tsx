@@ -5,11 +5,11 @@ import { StarOfDavid } from "@/components/site/StarOfDavid";
 
 /** The seven modules one Mercav account opens (Business replaced POS). Copy mirrors the home platform tabs. */
 const MODULES = [
-  { name: "Ads", icon: Megaphone, does: "Alquilá vallas, pantallas y vidrieras con reserva por fechas." },
-  { name: "Services", icon: MonitorPlay, does: "Contratá talento con pagos retenidos hasta cada hito." },
-  { name: "Jobs", icon: Briefcase, does: "Publicá vacantes y ordená las postulaciones." },
+  { name: "Publicidad", icon: Megaphone, does: "Alquilá vallas, pantallas y vidrieras con reserva por fechas." },
+  { name: "Servicios", icon: MonitorPlay, does: "Contratá talento con pagos retenidos hasta cada hito." },
+  { name: "Empleos", icon: Briefcase, does: "Publicá vacantes y ordená las postulaciones." },
   { name: "Business", icon: Building2, does: "Equipo, planillas de sueldo y tarjetas de fidelización." },
-  { name: "Tools", icon: Wrench, does: "Contratos, cálculos, SEO y precios en un solo lugar." },
+  { name: "Herramientas", icon: Wrench, does: "Contratos, cálculos, SEO y precios en un solo lugar." },
   { name: "Pwn", icon: Shield, does: "Vigilá la exposición de los correos y dominios de tu empresa." },
   { name: "Kosher", icon: StarOfDavid, does: "Atlas de lugares kosher, sinagogas y kehilot." },
 ] as const;

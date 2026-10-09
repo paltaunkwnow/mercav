@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-/** Words that tie a Mercav Jobs posting to community life. Matched case-insensitively in title or description. */
+/** Words that tie a Mercav Empleos posting to community life. Matched case-insensitively in title or description. */
 export const COMMUNITY_JOB_TERMS = [
   "kosher",
   "kasher",

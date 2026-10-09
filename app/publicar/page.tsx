@@ -6,7 +6,7 @@ const PUBLISH_OPTIONS = [
   {
     id: "ads",
     href: "/anuncios/publicar",
-    module: "Mercav Ads",
+    module: "Mercav Publicidad",
     title: "Un espacio publicitario",
     desc: "Valla, pantalla, letrero o vidriera. Cargás medidas, ubicación y precio mensual; las marcas reservan sobre tu calendario.",
     note: "Tu primer alquiler no paga comisión de plataforma.",
@@ -15,7 +15,7 @@ const PUBLISH_OPTIONS = [
   {
     id: "service",
     href: "/servicios/publicar",
-    module: "Mercav Services",
+    module: "Mercav Servicios",
     title: "Un servicio profesional",
     desc: "Desarrollo, diseño, marketing o video. Definís precio, plazo de entrega y revisiones.",
     note: "Cobrás por hitos, con el pago en custodia.",
@@ -24,7 +24,7 @@ const PUBLISH_OPTIONS = [
   {
     id: "job",
     href: "/empleos/publicar",
-    module: "Mercav Jobs",
+    module: "Mercav Empleos",
     title: "Una vacante de empleo",
     desc: "Cargo, requisitos, modalidad y nivel. Elegís si mostrás el rango salarial.",
     note: "Recibís las postulaciones en tu cuenta.",

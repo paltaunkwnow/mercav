@@ -59,7 +59,7 @@ export default function MisEmpleosPage() {
   return (
     <div className="w-full bg-bg-primary">
       <PageHero
-        kicker="Mercav Jobs"
+        kicker="Mercav Empleos"
         title="Mis vacantes"
         lead="Seguí tus búsquedas abiertas: revisá postulantes, editá la oferta o cerrala."
         actions={

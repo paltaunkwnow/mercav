@@ -179,7 +179,7 @@ export function LandingHero({ data }: { data: LandingData }) {
 
 /** Una cinta torcida, como la que sostiene un afiche, con los módulos corriendo. */
 export function LandingMarquee() {
-  const items = ["Mercav Business", "Mercav Pwn", "Mercav Kosher", "Caja", "Planillas", "Fidelización", "Publicidad", "Empleo", "Calendario hebreo", "20 países"];
+  const items = ["Mercav Business", "Mercav Pwn", "Mercav Kosher", "Caja", "Planillas", "Fidelización", "Publicidad", "Empleos", "Calendario hebreo", "20 países"];
   const tape = (k: number) => (
     <ul key={k} aria-hidden={k === 1 || undefined} className="flex shrink-0 items-center">
       {items.concat(items).map((t, i) => (
@@ -396,7 +396,7 @@ function BusinessPillar({ data }: { data: LandingData }) {
           </article>
 
           <article className="c-tile c-band c-ink-green flex flex-col p-6">
-            <h3 className="c-h3">Talento</h3>
+            <h3 className="c-h3">Servicios</h3>
             <p className="mt-1 text-[0.92rem] text-[var(--c-soft)]">El pago se libera hito por hito.</p>
             <ol className="mt-auto grid gap-2 text-[0.9rem]">
               {[
@@ -416,7 +416,7 @@ function BusinessPillar({ data }: { data: LandingData }) {
           </article>
 
           <article className="c-tile c-inverse flex flex-col p-6">
-            <h3 className="c-h3">Empleo</h3>
+            <h3 className="c-h3">Empleos</h3>
             <div className="c-band c-ink-yellow mt-auto -rotate-2 rounded-[0.9rem] p-4 motion-reduce:rotate-0">
               <p className="c-display text-[1.7rem] leading-[0.9]">Se busca encargada de ventas</p>
               <p className="mt-2 text-[0.8rem]">Salario visible · postulaciones a tu panel</p>

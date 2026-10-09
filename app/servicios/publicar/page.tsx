@@ -9,7 +9,7 @@ import { Container, buttonClass } from "@/components/site/primitives";
 import { ChoiceMenu } from "@/components/anuncios/ChoiceMenu";
 import { BackLink, SERVICE_CATEGORY_LABEL, Field, FormSection, MediaFrame, SwitchRow, formatMoney, textareaClass } from "@/components/anuncios/market-ui";
 
-/** Longest title the form accepts (also used to trim ?titulo= coming from Mercav Tools). */
+/** Longest title the form accepts (also used to trim ?titulo= coming from Mercav Herramientas). */
 const TITLE_MAX = 100;
 
 export default function PublicarServicioPage() {
@@ -38,7 +38,7 @@ function PublicarServicioForm() {
     imageUrl: "",
   });
 
-  // Prefill from /servicios/publicar?titulo=…&precio=… (links from Mercav Tools). Without params nothing changes.
+  // Prefill from /servicios/publicar?titulo=…&precio=… (links from Mercav Herramientas). Without params nothing changes.
   const searchParams = useSearchParams();
   useEffect(() => {
     const titulo = searchParams?.get("titulo")?.trim();
@@ -105,9 +105,9 @@ function PublicarServicioForm() {
     <div className="relative w-full bg-bg-primary pb-14 pt-24 md:pb-24 md:pt-32">
       <div className="mv-aura" aria-hidden />
       <Container className="relative">
-        <BackLink href="/servicios">Volver a Mercav Services</BackLink>
+        <BackLink href="/servicios">Volver a Mercav Servicios</BackLink>
         <header className="mt-6 flex max-w-3xl flex-col gap-4">
-          <p className="mv-kicker">Mercav Services</p>
+          <p className="mv-kicker">Mercav Servicios</p>
           <h1 className="mv-h2">Ofrecer un servicio</h1>
           <p className="mv-lead">Contá qué hacés, cuánto cuesta y en cuánto tiempo lo entregás. Cobrás por hitos: el pago del cliente queda en custodia hasta cada entrega.</p>
         </header>

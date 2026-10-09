@@ -58,7 +58,7 @@ export default function MisEspaciosPage() {
   return (
     <div className="w-full bg-bg-primary">
       <PageHero
-        kicker="Mercav Ads"
+        kicker="Mercav Publicidad"
         title="Mis espacios"
         lead="Administrá tus vallas, pantallas y vidrieras: editá la ficha, revisá cómo se ven o dalos de baja."
         actions={

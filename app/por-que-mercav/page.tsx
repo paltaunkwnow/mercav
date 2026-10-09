@@ -53,7 +53,7 @@ const COMPARISON = [
   { them: "Precios en dólares sin contexto regional", us: "Planes pensados para la realidad económica de la región." },
 ];
 
-const MODULES = ["Ads", "Services", "Jobs", "Business", "Tools", "Pwn", "Kosher"];
+const MODULES = ["Publicidad", "Servicios", "Empleos", "Business", "Herramientas", "Pwn", "Kosher"];
 
 export default function PorQueMercavPage() {
   return (

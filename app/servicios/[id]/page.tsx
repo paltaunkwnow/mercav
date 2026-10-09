@@ -74,7 +74,7 @@ export default async function ServicioDetailPage({ params }: { params: { id: str
       <div className="mv-aura" aria-hidden />
       <Container className="relative">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <BackLink href="/servicios">Volver a Mercav Services</BackLink>
+          <BackLink href="/servicios">Volver a Mercav Servicios</BackLink>
           {isOwner ? (
             <ButtonLink href={`/servicios/editar/${service.id}`} tone="secondary" size="sm">
               <Pencil className="h-4 w-4" aria-hidden />
