@@ -582,7 +582,6 @@ button.c-btn { background-color: var(--btn-bg); }
 
 /* Cintas cruzadas */
 .c-tape { box-shadow: 0 14px 30px -18px rgba(0, 0, 0, 0.6); }
-.c-marquee-reverse .c-marquee-track { animation-direction: reverse; }
 
 /* Punto activo del mapa */
 @media (prefers-reduced-motion: no-preference) {

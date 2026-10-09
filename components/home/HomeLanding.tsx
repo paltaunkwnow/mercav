@@ -5,9 +5,6 @@ import {
   Check,
   FileText,
   Calculator,
-  MapPinned,
-  MessagesSquare,
-  Moon,
   Palette,
   Search,
   ShieldCheck,
@@ -180,11 +177,10 @@ export function LandingHero({ data }: { data: LandingData }) {
   );
 }
 
-/** Dos cintas cruzadas, como las que sostienen un afiche, con los módulos corriendo en sentidos opuestos. */
+/** Una cinta torcida, como la que sostiene un afiche, con los módulos corriendo. */
 export function LandingMarquee() {
-  const a = ["Mercav Business", "Mercav Pwn", "Mercav Kosher", "Caja", "Planillas", "Fidelización", "Calendario hebreo"];
-  const b = ["20 países", "MercavClub", "Publicidad", "Empleo", "Talento", "Herramientas", "Una sola cuenta"];
-  const tape = (items: string[], k: number) => (
+  const items = ["Mercav Business", "Mercav Pwn", "Mercav Kosher", "Caja", "Planillas", "Fidelización", "Publicidad", "Empleo", "Calendario hebreo", "20 países"];
+  const tape = (k: number) => (
     <ul key={k} aria-hidden={k === 1 || undefined} className="flex shrink-0 items-center">
       {items.concat(items).map((t, i) => (
         <li key={`${t}-${i}`} className="c-display flex items-center gap-5 pr-5 text-[clamp(1.35rem,1rem+1.4vw,2.2rem)]">
@@ -195,12 +191,9 @@ export function LandingMarquee() {
     </ul>
   );
   return (
-    <div className="relative h-[11rem] overflow-hidden md:h-[13rem]" role="presentation">
-      <div className="c-band c-ink-magenta c-marquee c-tape absolute -left-[5%] -right-[5%] top-[22%] -rotate-[3.5deg] py-2.5" style={{ "--marquee-s": "42s" } as CSSProperties}>
-        <div className="c-marquee-track">{[0, 1].map((k) => tape(a, k))}</div>
-      </div>
-      <div className="c-band c-ink-yellow c-marquee c-marquee-reverse c-tape absolute -left-[5%] -right-[5%] top-[46%] rotate-[2.5deg] py-2.5" style={{ "--marquee-s": "48s" } as CSSProperties}>
-        <div className="c-marquee-track">{[0, 1].map((k) => tape(b, k))}</div>
+    <div className="relative flex h-[7rem] items-center overflow-hidden md:h-[8.5rem]" role="presentation">
+      <div className="c-band c-ink-magenta c-marquee c-tape -mx-[5%] w-[110%] -rotate-[2.5deg] py-2.5" style={{ "--marquee-s": "48s" } as CSSProperties}>
+        <div className="c-marquee-track">{[0, 1].map((k) => tape(k))}</div>
       </div>
     </div>
   );
@@ -470,7 +463,7 @@ function PwnPillar({ data }: { data: LandingData }) {
           cta="Abrir Pwn"
           button="[--btn-bg:#2ee06f]"
         />
-        <div className="mt-14 grid gap-6 lg:mt-20 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        <div className={cn("mt-14 grid gap-6 lg:mt-20", data.kevs.length > 0 ? "lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start" : "max-w-[40rem]")}>
           <div className="rounded-[1.5rem] bg-[var(--c-raised)] p-6 shadow-[inset_0_0_0_1px_var(--c-line-strong)] md:p-8">
             <p className="c-label text-[1.05rem] text-[var(--c-muted)]">Consulta de exposición</p>
             <div className="mt-4 flex items-center gap-3 rounded-full bg-[var(--c-ground)] px-5 py-3 shadow-[inset_0_0_0_1.5px_var(--c-line-strong)]">
@@ -492,43 +485,30 @@ function PwnPillar({ data }: { data: LandingData }) {
               <span className="c-label text-[1.1rem]">Sin filtraciones nuevas</span>
               <ShieldCheck className="h-5 w-5" aria-hidden />
             </div>
-            <p className="mt-3 text-[0.8rem] text-[var(--c-muted)]">Ejemplo de una consulta. Las fuentes son las que Pwn revisa de verdad.</p>
+            <p className="mt-3 text-[0.8rem] text-[var(--c-muted)]">
+              Ejemplo de una consulta con las fuentes que Pwn revisa de verdad. El detalle solo lo ve quien verificó que el correo o el dominio es suyo.
+            </p>
           </div>
-          <div className="flex flex-col gap-6">
-            {data.kevs.length > 0 ? (
-              <div className="rounded-[1.5rem] p-6 shadow-[inset_0_0_0_1px_var(--c-line-strong)] md:p-8">
-                <p className="c-label text-[1.05rem] text-[var(--c-magenta-text)]">Explotadas ahora, según CISA KEV</p>
-                <ul className="mt-4 divide-y divide-[var(--c-line)]">
-                  {data.kevs.map((k) => (
-                    <li key={k.cveId}>
-                      <a href={k.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-4 py-3 transition-colors hover:text-[var(--c-green-text)]">
-                        <span className="font-mono text-[0.98rem]">{k.cveId}</span>
-                        <span className="flex items-center gap-3 text-[0.85rem] text-[var(--c-soft)]">
-                          {k.cvss != null ? <span className="c-num rounded-full px-2 py-0.5 shadow-[inset_0_0_0_1.5px_var(--c-line-strong)]">CVSS {k.cvss.toFixed(1)}</span> : null}
-                          {date(k.published)}
-                          <ArrowRight className="h-4 w-4" aria-hidden />
-                        </span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-3 text-[0.8rem] text-[var(--c-muted)]">Datos públicos del catálogo de vulnerabilidades explotadas de CISA, tal como los guarda Pwn.</p>
-              </div>
-            ) : null}
-            <ul className="grid gap-px overflow-hidden rounded-[1.25rem] bg-[var(--c-line)]">
-              {[
-                "Consulta abierta: si un correo o un dominio aparece, y en cuántas filtraciones",
-                "El detalle, solo para quien verificó que es suyo",
-                "Dominios verificados por DNS, con alertas",
-                "Cada hallazgo cita su fuente",
-              ].map((t) => (
-                <li key={t} className="flex items-center gap-3 bg-[var(--c-ground)] px-5 py-4">
-                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[var(--c-green-text)]" aria-hidden />
-                  <span className="text-[0.95rem] font-semibold leading-snug">{t}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {data.kevs.length > 0 ? (
+            <div className="rounded-[1.5rem] p-6 shadow-[inset_0_0_0_1px_var(--c-line-strong)] md:p-8">
+              <p className="c-label text-[1.05rem] text-[var(--c-magenta-text)]">Explotadas ahora, según CISA KEV</p>
+              <ul className="mt-4 divide-y divide-[var(--c-line)]">
+                {data.kevs.map((k) => (
+                  <li key={k.cveId}>
+                    <a href={k.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-4 py-3 transition-colors hover:text-[var(--c-green-text)]">
+                      <span className="font-mono text-[0.98rem]">{k.cveId}</span>
+                      <span className="flex items-center gap-3 text-[0.85rem] text-[var(--c-soft)]">
+                        {k.cvss != null ? <span className="c-num rounded-full px-2 py-0.5 shadow-[inset_0_0_0_1.5px_var(--c-line-strong)]">CVSS {k.cvss.toFixed(1)}</span> : null}
+                        {date(k.published)}
+                        <ArrowRight className="h-4 w-4" aria-hidden />
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-[0.8rem] text-[var(--c-muted)]">Datos públicos del catálogo de vulnerabilidades explotadas de CISA, tal como los guarda Pwn.</p>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>
@@ -536,12 +516,6 @@ function PwnPillar({ data }: { data: LandingData }) {
 }
 
 function KosherPillar({ data }: { data: LandingData }) {
-  const features = [
-    { icon: MapPinned, text: "Mapa con el estado de cada lugar y la fuente que lo respalda" },
-    { icon: Moon, text: "Modo Shabat: la app queda en solo lectura" },
-    { icon: CalendarDays, text: "Calendario hebreo con las fechas que elijas" },
-    { icon: MessagesSquare, text: "Chat por ciudad y kehilot de la región" },
-  ];
   return (
     <section id="pilar-kosher" aria-labelledby="kosher-title" className="c-kosher scroll-mt-[var(--c-nav-h)]">
       <div className="c-container pb-24 pt-28 md:pb-32 md:pt-36">
@@ -565,16 +539,11 @@ function KosherPillar({ data }: { data: LandingData }) {
             <KosherPhone places={data.places} />
             <figcaption className="mt-4 text-center text-[0.8rem] text-[var(--c-muted)]">Lugares publicados hoy en el atlas. Tocá una ciudad, un punto o un lugar.</figcaption>
           </figure>
-          <div className="flex flex-col gap-8">
-            <ul className="grid gap-px overflow-hidden rounded-[1.5rem] bg-[var(--c-line)] sm:grid-cols-2">
-              {features.map(({ icon: Icon, text }) => (
-                <li key={text} className="group flex items-start gap-3 bg-[var(--c-ground)] p-5">
-                  <Icon className="mt-0.5 h-5 w-5 shrink-0 text-[var(--k-ink)]" aria-hidden />
-                  <span className="text-[0.98rem] font-semibold leading-snug">{text}</span>
-                </li>
-              ))}
-            </ul>
+          <div className="flex flex-col gap-5">
             <ShabbatPicker cities={data.shabbat} />
+            <p className="max-w-[34rem] text-[0.98rem] leading-relaxed text-[var(--c-soft)]">
+              También trae el calendario hebreo, un modo Shabat que deja la app en solo lectura y chat por ciudad con las kehilot de la región.
+            </p>
           </div>
         </div>
       </div>
