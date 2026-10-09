@@ -6,7 +6,6 @@ export const API_HOST = "api.mercav.lat";
 
 const MERCAV_ORIGINS = new Set([
   "https://mercav.lat",
-  "https://www.mercav.lat",
   "https://app.mercav.lat",
   "https://kosher.mercav.lat",
   "https://pwn.mercav.lat",

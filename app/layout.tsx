@@ -18,7 +18,7 @@ import { getServerSession } from "next-auth/next";
 import { headers } from "next/headers";
 import { authOptions } from "@/lib/auth";
 import { Zap } from "@/components/icons";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, hostKindFor } from "@/lib/seo/site";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_PROFILES, X_HANDLE, canonicalFor, hostKindFor, isNoindexPath } from "@/lib/seo/site";
 
 export const dynamic = "force-dynamic";
 
@@ -28,29 +28,32 @@ const dmMono = DM_Mono({ weight: ["400", "500"], subsets: ["latin"], variable: "
 // Letra del cartel del sitio público (mercav.lat). "block" porque los titulares se calibran a su ancho: con otra letra se desbordan.
 const cartel = Big_Shoulders_Display({ weight: "variable", subsets: ["latin", "latin-ext"], variable: "--font-cartel", display: "block" });
 
-export const metadata: Metadata = {
+const TITLE = "Mercav — tu negocio entero, en una sola cuenta";
+
+const BASE_METADATA: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Mercav — publicidad, talento, empleo y ciberinteligencia para Latinoamérica",
+    default: TITLE,
     template: "%s | Mercav",
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   keywords: [
     "Mercav",
-    "publicidad exterior",
-    "alquiler de vallas",
-    "pantallas publicitarias",
-    "freelancers",
-    "talento digital",
-    "empleos",
+    "caja para negocios",
+    "punto de venta",
+    "inventario",
     "planillas de sueldo",
-    "recursos humanos",
-    "feriados",
-    "calendario hebreo",
-    "ciberseguridad",
+    "planillas Bolivia",
+    "fidelización de clientes",
+    "tarjeta de sellos",
+    "ciberseguridad para empresas",
     "filtraciones de datos",
-    "kosher",
+    "atlas kosher",
+    "calendario hebreo",
+    "feriados Latinoamérica",
+    "publicidad exterior",
+    "empleos",
     "Latinoamérica",
   ],
   authors: [
@@ -69,20 +72,22 @@ export const metadata: Metadata = {
     locale: "es_419",
     siteName: SITE_NAME,
     url: SITE_URL,
-    title: "Mercav — tu negocio entero, en una sola cuenta",
+    title: TITLE,
     description: SITE_DESCRIPTION,
     images: [
       {
         url: "/opengraph-image.png",
         width: 1200,
         height: 630,
-        alt: "Mercav — publicidad, talento, empleo y ciberinteligencia para Latinoamérica",
+        alt: TITLE,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mercav — tu negocio entero, en una sola cuenta",
+    site: X_HANDLE,
+    creator: X_HANDLE,
+    title: TITLE,
     description: SITE_DESCRIPTION,
     images: ["/twitter-image.png"],
   },
@@ -103,7 +108,20 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico?v=3",
     apple: [{ url: "/icons/apple-touch-icon.png?v=3", sizes: "180x180" }],
   },
+  // Google Search Console: el código de la etiqueta HTML va en GOOGLE_SITE_VERIFICATION (con la verificación por DNS no hace falta).
+  ...(process.env.GOOGLE_SITE_VERIFICATION ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } } : {}),
 };
+
+/**
+ * Cada página declara su URL canónica y su og:url. El middleware manda la ruta en x-mercav-path; las áreas privadas
+ * (noindex) no llevan canónica. Una página que define su propio alternates u openGraph lo pisa.
+ */
+export function generateMetadata(): Metadata {
+  const path = headers().get("x-mercav-path");
+  if (!path || isNoindexPath(path)) return BASE_METADATA;
+  const canonical = canonicalFor(path);
+  return { ...BASE_METADATA, alternates: { canonical }, openGraph: { ...BASE_METADATA.openGraph, url: canonical } };
+}
 
 const STRUCTURED_DATA = {
   "@context": "https://schema.org",
@@ -114,7 +132,8 @@ const STRUCTURED_DATA = {
       name: SITE_NAME,
       url: SITE_URL,
       logo: `${SITE_URL}/icons/icon-512.png`,
-      sameAs: ["https://www.instagram.com/mercav.lat", "https://www.tiktok.com/@mercav.ar", "https://github.com/invertilo"],
+      description: SITE_DESCRIPTION,
+      sameAs: Object.values(SOCIAL_PROFILES),
       founder: [
         { "@type": "Person", name: "Vinicius Salazar", jobTitle: "Fundador y CEO" },
         { "@type": "Person", name: "Sebastian Rojas Cespedes", jobTitle: "Cofundador" },

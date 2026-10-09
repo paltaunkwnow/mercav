@@ -7,7 +7,6 @@ import {
   SITE_HOST,
   SITE_URL,
   appPathFor,
-  canonicalFor,
   isKosherHostPath,
   isNoindexPath,
   isSharedPath,
@@ -173,7 +172,7 @@ function productHostRedirect(req: NextRequest, host: string | undefined, pathnam
   const search = req.nextUrl.search;
   const kosherPath = pathname === '/kosher' || pathname.startsWith('/kosher/');
 
-  if (host === SITE_HOST || host === `www.${SITE_HOST}`) {
+  if (host === SITE_HOST) {
     if (kosherPath) return moved(new URL(`${pathname.slice(7) || '/'}${search}`, KOSHER_URL));
     return null;
   }
@@ -212,8 +211,12 @@ async function handle(req: NextRequest): Promise<NextResponse> {
     if (pathname === '/') return NextResponse.json({ name: 'Mercav API', status: 'ok' }, { headers: { 'Cache-Control': 'no-store' } });
     if (pathname !== '/api' && !pathname.startsWith('/api/')) pathname = `/api${pathname}`;
   }
+  // La ruta canónica viaja al layout (x-mercav-path), que arma el <link rel="canonical"> y el og:url de cada página.
+  const forwarded = new Headers(req.headers);
+  forwarded.set('x-mercav-path', appPathFor(host, req.nextUrl.pathname));
   // En api.mercav.lat la respuesta que sigue es la ruta de /api; en el resto de los dominios, la misma URL.
-  const pass = () => (apiHost ? NextResponse.rewrite(new URL(`${pathname}${req.nextUrl.search}`, req.url)) : NextResponse.next());
+  const pass = () =>
+    apiHost ? NextResponse.rewrite(new URL(`${pathname}${req.nextUrl.search}`, req.url)) : NextResponse.next({ request: { headers: forwarded } });
 
   if (
     looksLikeInterceptor(req.headers.get('user-agent')) &&
@@ -245,7 +248,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
   ) {
     const url = req.nextUrl.clone();
     url.pathname = pathname === '/' ? '/kosher' : `/kosher${pathname}`;
-    return NextResponse.rewrite(url);
+    return NextResponse.rewrite(url, { request: { headers: forwarded } });
   }
 
   // PWN rewrite on pwn.mercav.lat
@@ -260,7 +263,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
   ) {
     const url = req.nextUrl.clone();
     url.pathname = pathname === '/' ? '/pwn' : `/pwn${pathname}`;
-    return NextResponse.rewrite(url);
+    return NextResponse.rewrite(url, { request: { headers: forwarded } });
   }
 
   if (pathname.startsWith('/api/') && rateLimited(req, pathname)) {
@@ -364,20 +367,15 @@ async function handle(req: NextRequest): Promise<NextResponse> {
 }
 
 
-// Search engines: every HTML response says which URL is canonical (pwn.* and kosher.* own their
-// sections) and private areas are marked noindex.
+// Buscadores: las áreas privadas van con noindex. La URL canónica la escribe el layout en el HTML (x-mercav-path):
+// un encabezado Link no sirve porque Next lo pisa con el suyo de precarga de fuentes.
 export async function middleware(req: NextRequest) {
   const host = req.headers.get('host')?.split(':')[0]?.toLowerCase();
   if (host === API_HOST) return withApiHeaders(await handle(req), req);
   const res = await handle(req);
   const { pathname } = req.nextUrl;
   if (req.method === 'GET' && !pathname.startsWith('/api/') && !pathname.startsWith('/_next') && res.status < 300) {
-    const appPath = appPathFor(host, pathname);
-    if (isNoindexPath(appPath)) {
-      res.headers.set('X-Robots-Tag', 'noindex, nofollow');
-    } else {
-      res.headers.set('Link', `<${canonicalFor(appPath)}>; rel="canonical"`);
-    }
+    if (isNoindexPath(appPathFor(host, pathname))) res.headers.set('X-Robots-Tag', 'noindex, nofollow');
   }
   return res;
 }

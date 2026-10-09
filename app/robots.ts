@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
-import { APP_HOST, APP_URL, KOSHER_HOST, KOSHER_URL, PRIVATE_PREFIXES, SITE_URL } from "@/lib/seo/site";
+import { KOSHER_HOST, KOSHER_URL, PRIVATE_PREFIXES, SITE_URL } from "@/lib/seo/site";
 
-// One robots.txt per host. On kosher.* the paths are served without the /kosher prefix.
-// pwn.mercav.lat has no host of its own anymore: it redirects to app.mercav.lat/pwn.
+// Un robots.txt por dominio. En kosher.* las rutas van sin el prefijo /kosher. Los rastreadores (Google, Bing,
+// ChatGPT, Perplexity…) pueden entrar a todo lo público; solo quedan afuera la API y las áreas privadas.
 export default function robots(): MetadataRoute.Robots {
   const host = headers().get("host")?.split(":")[0]?.toLowerCase();
   const isKosher = host === KOSHER_HOST;
@@ -22,7 +22,7 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,
-    host: isKosher ? KOSHER_URL : host === APP_HOST ? APP_URL : SITE_URL,
+    host: isKosher ? KOSHER_URL : SITE_URL,
   };
 }
 // creado por pato dev y askforvini

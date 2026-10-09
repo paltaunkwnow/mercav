@@ -1,23 +1,33 @@
-// Canonical hosts for search engines.
-// - mercav.lat: only the public site (landing, quiénes somos, pitch, inversores, legal).
-// - app.mercav.lat: the product. Everything else, including Tools, Pwn (/pwn), Business and Calendario.
-// - kosher.mercav.lat: Mercav Kosher, served from /kosher.
-// pwn.mercav.lat now redirects to app.mercav.lat/pwn. Every URL resolves to exactly one canonical address.
+// Dominios canónicos para los buscadores.
+// - mercav.lat: el sitio público y la app en el mismo dominio (el header y el footer cambian según la página).
+// - kosher.mercav.lat: Mercav Kosher, servido desde /kosher.
+// - api.mercav.lat: la API (lib/api/origins.ts). pwn.mercav.lat lleva a la app.
+// www.mercav.lat ya no existe: ninguna URL lo usa, aunque una variable de entorno vieja lo traiga.
 
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.mercav.lat";
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.mercav.lat";
+const withoutWww = (url: string) => url.replace(/^(https?:\/\/)www\./i, "$1").replace(/\/+$/, "");
+
+export const SITE_URL = withoutWww(process.env.NEXT_PUBLIC_SITE_URL || "https://mercav.lat");
+export const APP_URL = withoutWww(process.env.NEXT_PUBLIC_APP_URL || SITE_URL);
 export const PWN_URL = `${SITE_URL}/pwn`;
 export const KOSHER_URL =
   process.env.NEXT_PUBLIC_KOSHER_URL || "https://kosher.mercav.lat";
 
 export const SITE_HOST = "mercav.lat";
-export const APP_HOST = "www.mercav.lat";
 export const PWN_HOST = "pwn.mercav.lat";
 export const KOSHER_HOST = "kosher.mercav.lat";
 
 export const SITE_NAME = "Mercav";
 export const SITE_DESCRIPTION =
-  "Publicidad física, talento digital, empleo, RR.HH. y planillas para empresas, herramientas y ciberinteligencia defensiva para Latinoamérica. Una cuenta para todo.";
+  "Caja, planillas, fidelización, ciberseguridad y el atlas Kosher en una sola cuenta para negocios de Latinoamérica. En español, con los precios y las normas de tu país.";
+
+/** Perfiles oficiales de Mercav: los mismos en el footer y en los datos estructurados (sameAs). */
+export const SOCIAL_PROFILES = {
+  instagram: "https://www.instagram.com/mercav.lat",
+  x: "https://x.com/mercavlat",
+  tiktok: "https://www.tiktok.com/@mercav.ar",
+  github: "https://github.com/invertilo",
+} as const;
+export const X_HANDLE = "@mercavlat";
 
 /** Pages that live on the public site (mercav.lat). Everything else belongs to app.mercav.lat. */
 const MARKETING_EXACT = ["/", "/nosotros", "/pitch", "/inversores", "/terminos", "/privacidad", "/cookies", "/aviso-legal"];
@@ -133,8 +143,8 @@ export type HostKind = "site" | "app" | "kosher" | "dev";
 
 export function hostKindFor(host: string | null | undefined): HostKind {
   const name = host?.split(":")[0]?.trim().toLowerCase();
-  if (name === SITE_HOST || name === `www.${SITE_HOST}`) return "site";
-  if (name === APP_HOST || name === PWN_HOST) return "app";
+  if (name === SITE_HOST) return "site";
+  if (name === PWN_HOST) return "app";
   if (name === KOSHER_HOST) return "kosher";
   return "dev";
 }
