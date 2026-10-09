@@ -107,6 +107,7 @@ const PRODUCT_LINKS = [
   { href: "/planillas", label: "Planillas de sueldo" },
   { href: "/fidelizacion", label: "Tarjetas de fidelización" },
   { href: "/feriados", label: "Feriados por país" },
+  { href: "/guias", label: "Guías para tu negocio" },
 ];
 
 export function MoreProducts({ current }: { current: string }) {

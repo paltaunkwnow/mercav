@@ -316,6 +316,8 @@ async function handle(req: NextRequest): Promise<NextResponse> {
                        // Feriados por país: páginas públicas para los buscadores.
                        pathname === '/feriados' ||
                        pathname.startsWith('/feriados/') ||
+                       pathname === '/guias' ||
+                       pathname.startsWith('/guias/') ||
                        pathname === '/pwn' ||
                        pathname.startsWith('/pwn/') ||
                        pathname === '/kosher' ||

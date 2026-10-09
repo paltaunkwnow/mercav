@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { canonicalFor } from "@/lib/seo/site";
 import { FERIADO_COUNTRIES, todayFor } from "./feriados/data";
+import { GUIDES } from "./guias/guides";
 
 export const revalidate = 3600;
 
@@ -83,6 +84,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const c of FERIADO_COUNTRIES) {
     entries.push({ url: canonicalFor(`/feriados/${c.slug}`), lastModified: now, changeFrequency: "weekly", priority: 0.7 });
     entries.push({ url: canonicalFor(`/feriados/${c.slug}/${todayFor(c).year + 1}`), lastModified: now, changeFrequency: "monthly", priority: 0.5 });
+  }
+
+  // Guías: el índice y cada guía, con la fecha en que se actualizó.
+  entries.push({ url: canonicalFor("/guias"), lastModified: now, changeFrequency: "weekly", priority: 0.7 });
+  for (const g of GUIDES) {
+    entries.push({ url: canonicalFor(`/guias/${g.slug}`), lastModified: new Date(`${g.updated}T12:00:00Z`), changeFrequency: "monthly", priority: 0.7 });
   }
 
   // Live public listings. A failing query must never break the sitemap.
