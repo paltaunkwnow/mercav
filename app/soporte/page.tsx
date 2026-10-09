@@ -69,7 +69,7 @@ Saludos.`);
               </span>
               <h3 className="mv-h3 mt-6">Preguntas frecuentes</h3>
               <p className="mv-body mt-2 flex-1">Respuestas a lo más consultado sobre pagos, Business, verificación, publicidad y cuenta.</p>
-              <Link href="/faq" className={buttonClass("secondary", "md", "mt-6 w-full sm:w-auto sm:self-start")}>
+              <Link href="/preguntas-frecuentes" className={buttonClass("secondary", "md", "mt-6 w-full sm:w-auto sm:self-start")}>
                 Ver preguntas frecuentes <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
             </article>

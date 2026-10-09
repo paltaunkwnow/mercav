@@ -7,7 +7,7 @@ const SUGGESTIONS = [
   { href: "/servicios", label: "Servicios" },
   { href: "/empleos", label: "Empleos" },
   { href: "/herramientas", label: "Herramientas" },
-  { href: "/faq", label: "Ayuda" },
+  { href: "/preguntas-frecuentes", label: "Ayuda" },
 ];
 
 export default function NotFound() {

@@ -138,7 +138,7 @@ export default function ContactoPage() {
               </ol>
               <p className="mt-8 text-sm text-[var(--text-secondary)]">
                 ¿Es una duda de uso? Puede que ya esté respondida en las{" "}
-                <Link href="/faq" className="mv-link">
+                <Link href="/preguntas-frecuentes" className="mv-link">
                   preguntas frecuentes
                 </Link>
                 .

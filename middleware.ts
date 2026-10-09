@@ -44,7 +44,6 @@ const publicPaths = [
   '/inversores',
   '/pitch',
   '/feed',
-  '/faq',
   // Está en el sitemap: sin esto, los buscadores y quien llega por un link caían en el login.
   '/changelog',
   // Páginas de estado: las tiene que poder ver cualquiera (antes mandaban al login).

@@ -55,6 +55,8 @@ const nextConfig = {
     return [
       { source: '/premium', destination: '/precios', permanent: true },
       { source: '/explorar', destination: '/buscar', permanent: true },
+      // Una sola página de preguntas frecuentes.
+      { source: '/faq', destination: '/preguntas-frecuentes', permanent: true },
       // Un solo inicio, una sola forma de publicar, las ventas en un lugar y el perfil con sus ajustes.
       // /dashboard va exacto: /dashboard/pedidos, /postulantes y /pos siguen existiendo.
       { source: '/dashboard', destination: '/inicio', permanent: true },
