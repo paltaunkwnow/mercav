@@ -335,10 +335,14 @@ async function handle(req: NextRequest): Promise<NextResponse> {
                        pathname === '/perfil' ||
                        pathname.match(/^\/perfil\/[^\/]+$/);
                        
-  const isDynamicPublicPath = 
+  // Editar una publicación y postularse a una vacante piden sesión (la API ya lo exige): así quien no entró va al login
+  // y vuelve a la misma página, en vez de llenar un formulario que falla al guardar.
+  const needsSession =
+    /^\/(anuncios|servicios|empleos)\/editar(\/|$)/.test(pathname) || /^\/empleos\/[^/]+\/postular(\/|$)/.test(pathname);
+  const isDynamicPublicPath = !needsSession && (
     (pathname.startsWith('/anuncios/') && !pathname.includes('/mis-espacios') && !pathname.includes('/publicar')) ||
     (pathname.startsWith('/servicios/') && !pathname.includes('/mis-servicios') && !pathname.includes('/publicar')) ||
-    (pathname.startsWith('/empleos/') && !pathname.includes('/mis-empleos') && !pathname.includes('/publicar'));
+    (pathname.startsWith('/empleos/') && !pathname.includes('/mis-empleos') && !pathname.includes('/publicar')));
 
   const isAuthPath = pathname === '/login' || pathname === '/register';
   const isAdminPath = pathname.startsWith('/admin');
