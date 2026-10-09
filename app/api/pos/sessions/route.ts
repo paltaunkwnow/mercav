@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { actorFields, getPosContext, posError, summarizeSales } from "@/lib/pos/server";
+import { actorFields, getPosContext, getPosScope, posError, summarizeSales } from "@/lib/pos/server";
 import { currencyDecimals, roundMoney } from "@/lib/pos/money";
 import { checkPin, publicStaffSelect } from "@/lib/pos/staff";
 
@@ -16,13 +16,16 @@ async function findOpenSession(posConfigId: string) {
 }
 
 export async function GET(req: Request) {
-  const ctx = await getPosContext(req, "pos.sell");
-  if (!ctx.ok) return ctx.response;
+  const res = await getPosScope(req, "pos.sell");
+  if (!res.ok) return res.response;
+  // Sin caja configurada no hay caja abierta: la pantalla ya muestra "Configurá tu caja".
+  const config = res.scope.config;
+  if (!config) return NextResponse.json({ success: true, data: null });
 
-  const session = await findOpenSession(ctx.config.id);
+  const session = await findOpenSession(config.id);
   if (!session) return NextResponse.json({ success: true, data: null });
 
-  const summary = summarizeSales(session.sales, currencyDecimals(ctx.config.currency));
+  const summary = summarizeSales(session.sales, currencyDecimals(config.currency));
   const { sales, ...rest } = session;
   return NextResponse.json({
     success: true,
@@ -30,7 +33,7 @@ export async function GET(req: Request) {
       ...rest,
       summary: {
         ...summary,
-        expectedCash: roundMoney(Number(session.openingAmount) + (summary.byMethod.CASH ?? 0), currencyDecimals(ctx.config.currency)),
+        expectedCash: roundMoney(Number(session.openingAmount) + (summary.byMethod.CASH ?? 0), currencyDecimals(config.currency)),
       },
     },
   });
