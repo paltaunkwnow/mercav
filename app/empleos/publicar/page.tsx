@@ -97,13 +97,11 @@ export default function PublicarEmpleoPage() {
   const identities = [{ id: "", name: "Mi cuenta personal", personal: true }, ...userCompanies.map((c: any) => ({ id: c.id, name: c.name, personal: false }))];
 
   return (
-    <div className="relative w-full bg-bg-primary pb-14 pt-24 md:pb-24 md:pt-32">
-      <div className="mv-aura" aria-hidden />
+    <div className="relative w-full bg-bg-primary pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
       <Container className="relative">
         <BackLink href="/empleos">Volver a Mercav Empleos</BackLink>
         <header className="mt-6 flex max-w-3xl flex-col gap-4">
-          <p className="mv-kicker">Mercav Empleos</p>
-          <h1 className="mv-h2">Publicar una vacante</h1>
+          <h1 className="font-display text-[1.9rem] font-semibold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:text-[2.4rem]">Publicar una vacante</h1>
           <p className="mv-lead">Describí el puesto, las condiciones y si mostrás el salario. Las postulaciones te llegan a tu cuenta.</p>
         </header>
 

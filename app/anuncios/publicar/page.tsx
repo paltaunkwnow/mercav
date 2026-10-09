@@ -126,13 +126,11 @@ export default function PublicarEspacioPage() {
   const pricePreview = formatMoney(formData.pricePerMonth, formData.currency);
 
   return (
-    <div className="relative w-full bg-bg-primary pb-14 pt-24 md:pb-24 md:pt-32">
-      <div className="mv-aura" aria-hidden />
+    <div className="relative w-full bg-bg-primary pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
       <Container className="relative">
         <BackLink href="/anuncios">Volver a Mercav Publicidad</BackLink>
         <header className="mt-6 flex max-w-3xl flex-col gap-4">
-          <p className="mv-kicker">Mercav Publicidad</p>
-          <h1 className="mv-h2">Publicar un espacio publicitario</h1>
+          <h1 className="font-display text-[1.9rem] font-semibold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:text-[2.4rem]">Publicar un espacio publicitario</h1>
           <p className="mv-lead">Cargá la ubicación, las medidas y el precio mensual. Las marcas ven tu calendario y reservan las fechas libres; tu primer alquiler no paga comisión de plataforma.</p>
         </header>
 

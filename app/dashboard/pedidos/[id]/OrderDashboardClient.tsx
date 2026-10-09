@@ -19,7 +19,6 @@ import {
   AlertCircle,
   Download,
   Upload,
-  ArrowLeft,
   Loader2,
   Printer
 } from "@/components/icons";
@@ -42,6 +41,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Toast } from "@/components/ui/toast";
+import { AppBack } from "@/components/app-shell/AppPage";
 
 const EASE = [0.23, 1, 0.32, 1] as const;
 
@@ -379,23 +379,17 @@ export default function OrderDashboardClient({
   const paidTransactions = (order.transactions || []).filter((t: any) => t.status === 'PAID');
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-bg-primary pb-20 pt-28 md:pb-28 md:pt-36">
-      <div className="mv-aura" aria-hidden />
+    <div className="relative min-h-screen w-full overflow-hidden bg-bg-primary pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
       <Container width="wide" className="relative">
         <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" aria-hidden tabIndex={-1} />
 
         <header className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex min-w-0 flex-col gap-4">
-            <p className="mv-kicker">
-              <Link href="/dashboard/pedidos" className="-my-2 inline-flex items-center gap-1.5 rounded py-2 hover:underline mv-focus">
-                <ArrowLeft className="h-3.5 w-3.5" aria-hidden /> Pedidos
-              </Link>
-              <span aria-hidden>/</span>
-              <span className="mv-data">{order.id.slice(-8).toUpperCase()}</span>
-            </p>
-            <h1 className="mv-h1 max-w-4xl break-words">{order.service.title}</h1>
+            <AppBack href="/dashboard/pedidos" label="Pedidos y ventas" />
+            <h1 className="font-display text-[1.9rem] font-semibold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:text-[2.4rem] max-w-4xl break-words">{order.service.title}</h1>
             <div className="flex flex-wrap items-center gap-3">
               <span className={`mv-chip ${statusChip(status)}`}>{statusLabels[status] || status}</span>
+              <span className="mv-data text-sm text-[var(--text-tertiary)]">#{order.id.slice(-8).toUpperCase()}</span>
               <span className="text-sm text-[var(--text-secondary)]">
                 {isProvider ? 'Cliente' : 'Profesional'}: <span className="font-medium text-[var(--text-primary)]">{otherUser.name}</span>
               </span>

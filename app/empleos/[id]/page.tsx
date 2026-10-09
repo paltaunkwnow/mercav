@@ -57,8 +57,7 @@ export default async function EmpleoDetailPage({ params }: { params: { id: strin
   ].filter((b) => b.text);
 
   return (
-    <div className="relative w-full bg-bg-primary pb-14 pt-24 md:pb-24 md:pt-32">
-      <div className="mv-aura" aria-hidden />
+    <div className="relative w-full bg-bg-primary pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
       <Container className="relative">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <BackLink href="/empleos">Volver a Mercav Empleos</BackLink>
@@ -87,7 +86,7 @@ export default async function EmpleoDetailPage({ params }: { params: { id: strin
               {job.workMode ? <span className="mv-chip">{labelFor(WORK_MODE_LABEL, job.workMode)}</span> : null}
               {job.experienceLevel ? <span className="mv-chip">{labelFor(EXPERIENCE_LABEL, job.experienceLevel)}</span> : null}
             </div>
-            <h1 className="mv-h2 max-w-4xl">{job.title}</h1>
+            <h1 className="font-display text-[1.9rem] font-semibold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:text-[2.4rem] max-w-4xl">{job.title}</h1>
             <p className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[var(--text-secondary)]">
               <span className="flex items-center gap-1.5 font-medium text-[var(--text-primary)]">
                 {company}

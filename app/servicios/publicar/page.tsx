@@ -102,13 +102,11 @@ function PublicarServicioForm() {
   const pricePreview = formatMoney(formData.packagePrice);
 
   return (
-    <div className="relative w-full bg-bg-primary pb-14 pt-24 md:pb-24 md:pt-32">
-      <div className="mv-aura" aria-hidden />
+    <div className="relative w-full bg-bg-primary pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
       <Container className="relative">
         <BackLink href="/servicios">Volver a Mercav Servicios</BackLink>
         <header className="mt-6 flex max-w-3xl flex-col gap-4">
-          <p className="mv-kicker">Mercav Servicios</p>
-          <h1 className="mv-h2">Ofrecer un servicio</h1>
+          <h1 className="font-display text-[1.9rem] font-semibold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:text-[2.4rem]">Ofrecer un servicio</h1>
           <p className="mv-lead">Contá qué hacés, cuánto cuesta y en cuánto tiempo lo entregás. Cobrás por hitos: el pago del cliente queda en custodia hasta cada entrega.</p>
         </header>
 

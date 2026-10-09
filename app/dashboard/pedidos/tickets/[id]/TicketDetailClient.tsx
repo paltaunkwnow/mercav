@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { 
-  ArrowLeft, 
   Send, 
   Clock, 
   ShieldCheck, 
@@ -21,6 +19,7 @@ import {
 } from "@/components/icons";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ButtonLink, Container, buttonClass } from "@/components/site/primitives";
+import { AppBack } from "@/components/app-shell/AppPage";
 
 const EASE = [0.23, 1, 0.32, 1] as const;
 
@@ -170,20 +169,14 @@ export default function TicketDetailClient({ ticket, user }: TicketDetailClientP
   const fieldLabel = "mb-2 block text-sm font-medium text-[var(--text-secondary)]";
 
   return (
-    <div className="relative w-full min-h-screen overflow-hidden bg-bg-primary pb-20 pt-28 md:pb-28 md:pt-36">
-      <div className="mv-aura" aria-hidden />
+    <div className="relative w-full min-h-screen overflow-hidden bg-bg-primary pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
       <Container className="relative">
         <header className="mb-10 flex flex-col gap-4">
-          <p className="mv-kicker">
-            <Link href="/dashboard/pedidos?tab=tickets" className="-my-2 inline-flex items-center gap-1.5 rounded py-2 hover:underline mv-focus">
-              <ArrowLeft className="h-3.5 w-3.5" aria-hidden /> Reportes
-            </Link>
-            <span aria-hidden>/</span>
-            <span className="mv-data">{ticket.id.split('-')[0].toUpperCase()}</span>
-          </p>
-          <h1 className="mv-h1 max-w-4xl break-words">{ticket.subject}</h1>
+          <AppBack href="/dashboard/pedidos?tab=tickets" label="Reportes" />
+          <h1 className="font-display text-[1.9rem] font-semibold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:text-[2.4rem] max-w-4xl break-words">{ticket.subject}</h1>
           <div className="flex flex-wrap items-center gap-3">
             <span className={`mv-chip ${getStatusColor(ticket.status)}`}>{statusLabels[ticket.status] || ticket.status}</span>
+            <span className="mv-data text-sm text-[var(--text-tertiary)]">#{ticket.id.split('-')[0].toUpperCase()}</span>
             <span className="inline-flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
               <Clock className="h-3.5 w-3.5" aria-hidden /> Abierto el{" "}
               <time dateTime={ticket.createdAt} className="mv-data">

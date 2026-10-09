@@ -94,13 +94,11 @@ export default function EditarEspacioPage() {
   const set = (patch: Record<string, unknown>) => setFormData({ ...formData, ...patch });
 
   return (
-    <div className="relative w-full bg-bg-primary pb-14 pt-24 md:pb-24 md:pt-32">
-      <div className="mv-aura" aria-hidden />
+    <div className="relative w-full bg-bg-primary pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
       <Container className="relative">
         <BackLink href="/anuncios/mis-espacios">Volver a mis espacios</BackLink>
         <header className="mt-6 flex max-w-3xl flex-col gap-4">
-          <p className="mv-kicker">Mercav Publicidad</p>
-          <h1 className="mv-h2">Editar espacio</h1>
+          <h1 className="font-display text-[1.9rem] font-semibold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:text-[2.4rem]">Editar espacio</h1>
           <p className="mv-lead">Actualizá fotos, descripción y ficha técnica. Los cambios se ven en el catálogo apenas guardás.</p>
         </header>
 

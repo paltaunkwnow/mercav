@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowLeft, CheckCircle2, ExternalLink, ImageOff, Pencil, Plus, Trash2, type LucideIcon } from "@/components/icons";
+import { ChevronLeft, CheckCircle2, ExternalLink, ImageOff, Pencil, Plus, Trash2, type LucideIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
@@ -74,9 +74,9 @@ export function BackLink({ href, children }: { href: string; children: ReactNode
   return (
     <Link
       href={href}
-      className="mv-focus group inline-flex h-10 items-center gap-2 rounded-full pr-3 text-sm font-semibold text-[var(--text-secondary)] transition-colors duration-200 hover:text-[var(--text-primary)]"
+      className="mv-focus -ml-1 inline-flex w-fit items-center gap-1 rounded-full py-1 pl-1 pr-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
     >
-      <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5" aria-hidden />
+      <ChevronLeft className="h-4 w-4" aria-hidden />
       {children}
     </Link>
   );

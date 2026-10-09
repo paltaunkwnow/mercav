@@ -81,13 +81,11 @@ export default function EditarEmpleoPage() {
   const hasSalary = formData.salaryMin != null && formData.salaryMin !== "" || formData.salaryMax != null && formData.salaryMax !== "";
 
   return (
-    <div className="relative w-full bg-bg-primary pb-14 pt-24 md:pb-24 md:pt-32">
-      <div className="mv-aura" aria-hidden />
+    <div className="relative w-full bg-bg-primary pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
       <Container className="relative">
         <BackLink href="/empleos/mis-empleos">Volver a mis vacantes</BackLink>
         <header className="mt-6 flex max-w-3xl flex-col gap-4">
-          <p className="mv-kicker">Mercav Empleos</p>
-          <h1 className="mv-h2">Editar vacante</h1>
+          <h1 className="font-display text-[1.9rem] font-semibold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:text-[2.4rem]">Editar vacante</h1>
           <p className="mv-lead">Ajustá la descripción, los requisitos y las condiciones. El rango salarial queda como lo publicaste.</p>
         </header>
 

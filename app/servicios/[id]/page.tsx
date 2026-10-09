@@ -70,8 +70,7 @@ export default async function ServicioDetailPage({ params }: { params: { id: str
   const providerName = service.provider?.name || "Profesional";
 
   return (
-    <div className="relative w-full bg-bg-primary pb-14 pt-24 md:pb-24 md:pt-32">
-      <div className="mv-aura" aria-hidden />
+    <div className="relative w-full bg-bg-primary pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
       <Container className="relative">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <BackLink href="/servicios">Volver a Mercav Servicios</BackLink>
@@ -90,7 +89,7 @@ export default async function ServicioDetailPage({ params }: { params: { id: str
             <span className="mv-chip">{labelFor(SERVICE_CATEGORY_LABEL, service.category) || formatCategory(service.category)}</span>
             {service.subcategory ? <span className="mv-chip">{service.subcategory}</span> : null}
           </div>
-          <h1 className="mv-h2 max-w-4xl">{service.title}</h1>
+          <h1 className="font-display text-[1.9rem] font-semibold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:text-[2.4rem] max-w-4xl">{service.title}</h1>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[var(--text-secondary)]">
             <Link href={`/perfil/${service.provider?.id || ''}`} className="mv-focus flex items-center gap-2 rounded-full pr-2 font-medium text-[var(--text-primary)] hover:text-gold">
               {service.provider?.avatar ? (

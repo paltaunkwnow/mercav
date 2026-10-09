@@ -96,8 +96,7 @@ export default function PostularPage({ params }: { params: { id: string } }) {
   const company = job.company?.name || "la empresa";
 
   return (
-    <div className="relative w-full bg-bg-primary pb-14 pt-24 md:pb-24 md:pt-32">
-      <div className="mv-aura" aria-hidden />
+    <div className="relative w-full bg-bg-primary pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
       <Container width="narrow" className="relative">
         <BackLink href={`/empleos/${params.id}`}>Volver a la vacante</BackLink>
 
@@ -111,8 +110,7 @@ export default function PostularPage({ params }: { params: { id: string } }) {
             </span>
           )}
           <div className="flex min-w-0 flex-col gap-2">
-            <p className="mv-kicker">Postulación</p>
-            <h1 className="mv-h2">{job.title}</h1>
+            <h1 className="font-display text-[1.9rem] font-semibold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:text-[2.4rem]">{job.title}</h1>
             <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[var(--text-secondary)]">
               <span className="flex items-center gap-1.5 font-medium text-[var(--text-primary)]"><Building2 className="h-4 w-4 text-gold" aria-hidden /> {company}</span>
               {job.city ? <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-gold" aria-hidden /> {job.city}</span> : null}

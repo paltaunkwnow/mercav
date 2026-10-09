@@ -77,7 +77,7 @@ function SearchContent() {
     { id: "users", label: "Personas", icon: Users },
     { id: "jobs", label: "Empleos", icon: Briefcase },
     { id: "services", label: "Servicios", icon: MonitorPlay },
-    { id: "spaces", label: "Anuncios", icon: Megaphone },
+    { id: "spaces", label: "Publicidad", icon: Megaphone },
   ];
 
   const renderEmpty = () => (
@@ -104,7 +104,7 @@ function SearchContent() {
   return (
     <div className="flex flex-col gap-10">
       <div className="flex flex-col gap-6">
-        <h1 className="mv-h1">
+        <h1 className="font-display text-[1.9rem] font-semibold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:text-[2.4rem]">
           {initialQuery ? (
             <>
               Resultados para <span className="text-gold">“{initialQuery}”</span>
@@ -318,8 +318,7 @@ function SearchContent() {
 
 export default function SearchPage() {
   return (
-    <div className="relative w-full bg-bg-primary pb-14 pt-28 md:pb-24 md:pt-36">
-      <div className="mv-aura" aria-hidden />
+    <div className="relative w-full bg-bg-primary pb-32 pt-24 sm:pt-28 md:pb-20 md:pt-32">
       <Container className="relative">
         <div className="mb-8">
           <BackLink href="/inicio">Volver al inicio</BackLink>
