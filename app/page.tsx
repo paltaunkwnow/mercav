@@ -8,7 +8,6 @@ import {
   LandingMervi,
   LandingPillars,
   LandingRegion,
-  LandingSteps,
   LandingTrust,
   type KevItem,
   type LandingData,
@@ -185,7 +184,6 @@ export default async function Home() {
       <LandingHero data={data} />
       <LandingMarquee />
       <LandingPillars data={data} />
-      <LandingSteps />
       <LandingRegion data={data} />
       <LandingMervi />
       <LandingTrust />

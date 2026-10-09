@@ -57,11 +57,6 @@ export type LandingData = {
 const cafe = BUSINESS_TYPES.find((t) => t.key === "CAFE") ?? BUSINESS_TYPES[0];
 const CAFE_DESIGN = defaultDesign(cafe, "Café La Esquina");
 
-/** "25 dic." para una fecha yyyy-mm-dd (sin correr el día por la zona horaria). */
-function shortDate(date: string) {
-  return new Intl.DateTimeFormat("es", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`));
-}
-
 function hourIn(iso: string | null, timeZone: string) {
   if (!iso) return "—";
   return new Intl.DateTimeFormat("es", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone }).format(new Date(iso));
@@ -135,10 +130,7 @@ export function LandingHero({ data }: { data: LandingData }) {
           <span className="block">Tu negocio entero,</span>
           <span className="c-display c-text-yellow inline-block px-2">en una sola cuenta.</span>
         </h1>
-        <p className="c-lead mx-auto mt-7 text-center">
-          Equipo y planillas, fidelización, publicidad, empleo, herramientas, ciberseguridad con Pwn y el atlas Kosher. En español, con los precios y
-          las normas de tu país.
-        </p>
+        <p className="c-lead mx-auto mt-7 text-center">Caja, planillas, fidelización, ciberseguridad y el atlas Kosher. En español, con los precios y las normas de tu país.</p>
         <AuthCTA className="mt-9 items-center sm:justify-center" />
       </div>
 
@@ -221,7 +213,7 @@ export function LandingMarquee() {
 export function LandingPillars({ data }: { data: LandingData }) {
   return (
     <>
-      <CartelSection labelledBy="apps-title" className="!pb-12 md:!pb-16">
+      <CartelSection labelledBy="apps-title" className="!pb-20">
         <div className="c-container grid gap-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-end md:gap-14">
           <FitLines
             as="h2"
@@ -232,10 +224,7 @@ export function LandingPillars({ data }: { data: LandingData }) {
             ]}
             className="max-w-[34rem]"
           />
-          <p className="c-lead md:pb-3">
-            Mercav Business para operar tu negocio, Mercav Pwn para protegerlo y Mercav Kosher para la comunidad. Las tres se abren con el mismo perfil,
-            desde la app de Mercav.
-          </p>
+          <p className="c-lead md:pb-3">Business para operar tu negocio, Pwn para protegerlo y Kosher para la comunidad. Las tres se abren con el mismo perfil.</p>
         </div>
       </CartelSection>
       <div className="relative">
@@ -300,7 +289,7 @@ function BusinessPillar({ data }: { data: LandingData }) {
           app="Mercav Business"
           mark={<ModuleGlyph name="business" size={24} />}
           title="Tu caja, tu equipo y tus clientes."
-          lead="La caja con inventario y reportes, legajos y planillas con los descuentos de ley, tarjetas de fidelización con tu marca, empleo, talento por hitos, publicidad y herramientas. Tu equipo entra con su propia cuenta."
+          lead="Caja, planillas, fidelización, publicidad y empleo en un mismo lugar. Tu equipo entra con su propia cuenta."
           href="/business"
           cta="Abrir Business"
           button="c-btn-ink"
@@ -338,10 +327,7 @@ function BusinessPillar({ data }: { data: LandingData }) {
           <article className="c-tile c-band c-ink-magenta flex flex-col gap-5 p-7 sm:flex-row sm:items-center md:col-span-2">
             <div className="flex-1">
               <h3 className="c-h3">Fidelización</h3>
-              <p className="mt-2 text-[0.98rem] text-[var(--c-soft)]">
-                Tarjetas de sellos o puntos con tu logo. Tus clientes se suman con un QR y las guardan en su cuenta; los encontrás por número de cliente o por su código
-                MercavClub.
-              </p>
+              <p className="mt-2 text-[0.98rem] text-[var(--c-soft)]">Tarjetas de sellos o puntos con tu logo. Tus clientes se suman con un QR y las guardan en su cuenta.</p>
               <p className="c-label mt-3 text-[1.05rem]">19 rubros listos · MercavClub</p>
             </div>
             <div className="w-[15rem] shrink-0 rotate-[-4deg] motion-reduce:rotate-0">
@@ -353,9 +339,7 @@ function BusinessPillar({ data }: { data: LandingData }) {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="c-h3">Caja</h3>
-                <p className="mt-2 max-w-[26rem] text-[0.98rem] text-[var(--c-soft)]">
-                  Vendé desde el celular o la compu, con o sin conexión. Cada uno vende con su cuenta y el reporte te dice quién vendió qué.
-                </p>
+                <p className="mt-2 max-w-[26rem] text-[0.98rem] text-[var(--c-soft)]">Vendé desde el celular o la compu, con o sin conexión. El reporte te dice quién vendió qué.</p>
               </div>
               <ShoppingCart className="h-10 w-10 shrink-0 text-[var(--c-yellow-text)]" aria-hidden />
             </div>
@@ -375,7 +359,7 @@ function BusinessPillar({ data }: { data: LandingData }) {
               </ul>
             </div>
             <ul className="mt-auto flex flex-wrap gap-2">
-              {["Lector de códigos", "Pagos divididos", "Ticket por WhatsApp", "Inventario con alertas", "Anulaciones con motivo"].map((t) => (
+              {["Lector de códigos", "Ticket por WhatsApp", "Inventario con alertas"].map((t) => (
                 <li key={t} className="rounded-full px-3 py-1.5 text-[0.85rem] font-semibold shadow-[inset_0_0_0_1.5px_var(--c-line-strong)]">
                   {t}
                 </li>
@@ -436,44 +420,21 @@ function BusinessPillar({ data }: { data: LandingData }) {
             </div>
           </article>
 
-          <article className="c-tile c-night relative flex flex-col p-6 md:col-span-2">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="c-h3">Herramientas</h3>
-                <p className="mt-1 text-[0.92rem] text-[var(--c-soft)]">Las siete de hoy, incluidas según tu plan.</p>
-              </div>
-            </div>
-            <ul className="mt-auto flex flex-wrap gap-2 pr-24 sm:pr-28">
-              {tools.map(({ icon: Icon, name }) => (
-                <li key={name} className="group flex items-center gap-2 rounded-full px-3 py-1.5 text-[0.9rem] font-semibold shadow-[inset_0_0_0_1.5px_var(--c-line-strong)]">
-                  <Icon className="h-4 w-4 text-[var(--c-yellow-text)]" aria-hidden />
-                  {name}
-                </li>
-              ))}
-            </ul>
-            <Mervi pose="programador" scale={1} className="absolute -bottom-1 right-3" />
-          </article>
-
-          <article className="c-tile c-band c-ink-yellow flex flex-col gap-4 p-6 shadow-[inset_0_0_0_2px_#0b0a09] md:col-span-2">
-            <div>
-              <h3 className="c-h3">Calendario</h3>
-              <p className="mt-1 max-w-[30rem] text-[0.92rem] text-[var(--c-soft)]">
-                Feriados de tu país y calendario hebreo. Suscribilo a Google, Apple u Outlook: si un decreto mueve un feriado, te llega solo.
-              </p>
-            </div>
-            {data.phone.holidays.length ? (
-              <ul className="grid gap-1.5 text-[0.9rem]">
-                {data.phone.holidays.slice(0, 3).map((h) => (
-                  <li key={h.date + h.title} className="flex items-center justify-between gap-3 rounded-[0.8rem] bg-[#0b0a09] px-3 py-2 text-[#fffdf8]">
-                    <span className="min-w-0 truncate font-semibold">{h.title}</span>
-                    <span className="c-num shrink-0 text-[0.82rem] text-[#d2cbc0]">{shortDate(h.date)}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-            <p className="c-label mt-auto text-[0.95rem]">Días hábiles y fines de semana largos</p>
-          </article>
         </div>
+        <article className="c-tile c-night mt-4 flex flex-col gap-5 p-6 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+          <div className="shrink-0">
+            <h3 className="c-h3">Herramientas</h3>
+            <p className="mt-1 text-[0.92rem] text-[var(--c-soft)]">Las siete de hoy, incluidas según tu plan.</p>
+          </div>
+          <ul className="flex flex-wrap gap-2 lg:justify-end">
+            {tools.map(({ icon: Icon, name }) => (
+              <li key={name} className="flex items-center gap-2 rounded-full px-3 py-1.5 text-[0.9rem] font-semibold shadow-[inset_0_0_0_1.5px_var(--c-line-strong)]">
+                <Icon className="h-4 w-4 text-[var(--c-yellow-text)]" aria-hidden />
+                {name}
+              </li>
+            ))}
+          </ul>
+        </article>
       </div>
     </section>
   );
@@ -500,8 +461,7 @@ function PwnPillar({ data }: { data: LandingData }) {
           button="[--btn-bg:#2ee06f]"
         />
         <div className="mt-14 grid gap-6 lg:mt-20 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-          <div className="relative rounded-[1.5rem] bg-[var(--c-raised)] p-6 shadow-[inset_0_0_0_1px_var(--c-line-strong)] md:p-8">
-            <Mervi pose="pensativo" scale={1} className="absolute -top-[calc(var(--mervi-unit)*88)] right-4" />
+          <div className="rounded-[1.5rem] bg-[var(--c-raised)] p-6 shadow-[inset_0_0_0_1px_var(--c-line-strong)] md:p-8">
             <p className="c-label text-[1.05rem] text-[var(--c-muted)]">Consulta de exposición</p>
             <div className="mt-4 flex items-center gap-3 rounded-full bg-[var(--c-ground)] px-5 py-3 shadow-[inset_0_0_0_1.5px_var(--c-line-strong)]">
               <Search className="h-5 w-5 text-[var(--c-green-text)]" aria-hidden />
@@ -561,20 +521,6 @@ function PwnPillar({ data }: { data: LandingData }) {
           </div>
         </div>
       </div>
-      <div className="c-marquee border-y border-[var(--c-line)] py-3 text-[var(--c-green-text)]" style={{ "--marquee-s": "60s" } as CSSProperties}>
-        <div className="c-marquee-track">
-          {[0, 1].map((k) => (
-            <ul key={k} aria-hidden={k === 1 || undefined} className="flex shrink-0 items-center">
-              {data.pwnSources.map((s) => (
-                <li key={s} className="c-label flex items-center gap-5 pr-5 text-[1.05rem]">
-                  {s}
-                  <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />
-                </li>
-              ))}
-            </ul>
-          ))}
-        </div>
-      </div>
     </section>
   );
 }
@@ -623,44 +569,6 @@ function KosherPillar({ data }: { data: LandingData }) {
         </div>
       </div>
     </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Cómo empezar                                                        */
-/* ------------------------------------------------------------------ */
-
-export function LandingSteps() {
-  const steps: { pose: MerviPose; title: string; body: string }[] = [
-    { pose: "normal", title: "Creá tu cuenta", body: "Es gratis y te pide lo justo: tu correo o tu cuenta de Google." },
-    { pose: "smartphone", title: "Abrí lo que necesitás hoy", body: "Planillas, fidelización, Pwn, Kosher o herramientas: todo vive en app.mercav.lat, desde el celular o la compu." },
-    { pose: "celebrando", title: "Sumá a tu equipo y a tus clientes", body: "Invitá a tu equipo con roles. Tus clientes se suman a tu tarjeta con un QR en el mostrador." },
-  ];
-  return (
-    <CartelSection labelledBy="steps-title">
-      <div className="c-container">
-        <h2 id="steps-title" className="c-h2 max-w-[14ch]">
-          Empezá en tres pasos.
-        </h2>
-        <ol className="mt-14 grid gap-4 md:mt-20 md:grid-cols-3">
-          {steps.map((s, i) => (
-            <li key={s.title} className={cn("c-tile flex flex-col gap-4 p-7", i === 1 ? "c-band c-ink-yellow" : "c-tile-line")}>
-              <div className="flex items-end justify-between gap-4">
-                <span className="c-display text-[5rem] leading-[0.8]" aria-hidden>
-                  {i + 1}
-                </span>
-                <Mervi pose={s.pose} scale={1} />
-              </div>
-              <h3 className="c-h3">
-                <span className="sr-only">Paso {i + 1}: </span>
-                {s.title}
-              </h3>
-              <p className="c-body">{s.body}</p>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </CartelSection>
   );
 }
 
@@ -728,42 +636,27 @@ export function LandingMervi() {
 /* ------------------------------------------------------------------ */
 
 export function LandingTrust() {
-  const principles = [
-    { title: "Cada dato cita su fuente", body: "Pwn y Kosher muestran de dónde salió cada hallazgo o cada estado. Una afirmación sin verificar no se presenta como hecho." },
-    { title: "Tus datos, cifrados", body: "El carnet y la cuenta bancaria de tu equipo se guardan cifrados, y cada acción importante queda registrada." },
-    { title: "Hay personas detrás", body: "Vinicius Salazar fundó Mercav en Santa Cruz de la Sierra y lo construye con su equipo. Podés leer quiénes son y escribirles." },
-  ];
   return (
     <CartelSection labelledBy="trust-title">
-      <div className="c-container">
-        <h2 id="trust-title" className="c-h2 max-w-[16ch]">
-          Lo que podés comprobar por tu cuenta.
-        </h2>
-        <div className="mt-14 grid gap-12 md:mt-20 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:gap-16">
-          <ul className="grid border-t-2 border-[var(--c-line)]">
-            {principles.map((p) => (
-              <li key={p.title} className="grid gap-3 border-b-2 border-[var(--c-line)] py-7 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:gap-10">
-                <h3 className="c-h3">{p.title}</h3>
-                <p className="c-body">{p.body}</p>
-              </li>
-            ))}
-          </ul>
-          <div className="c-tile c-tile-line flex flex-col gap-5 p-7">
-            <p className="c-label text-[1.25rem]">Lo firma su equipo</p>
-            <ul className="flex flex-col">
-              {FOUNDERS.map((f) => (
-                <li key={f.name} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b-2 border-[var(--c-line)] py-3">
-                  <span className={cn("c-display text-[1.7rem] leading-none md:text-[2rem]", f.lead && "c-text-yellow")}>{f.name}</span>
-                  <span className="c-label text-[1rem] text-[var(--c-muted)]">{f.role}</span>
-                </li>
-              ))}
-            </ul>
-            <HostLink href="/nosotros" className="c-link inline-flex w-fit items-center gap-2 font-semibold">
-              Conocer al equipo
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </HostLink>
-          </div>
+      <div className="c-container grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
+        <div className="flex flex-col items-start gap-6">
+          <h2 id="trust-title" className="c-h2">
+            Hay personas detrás.
+          </h2>
+          <p className="c-body max-w-[30rem]">Vinicius Salazar fundó Mercav en Santa Cruz de la Sierra y lo construye con su equipo. Podés leer quiénes son y escribirles.</p>
+          <HostLink href="/nosotros" className="c-link inline-flex w-fit items-center gap-2 font-semibold">
+            Conocer al equipo
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </HostLink>
         </div>
+        <ul className="border-t-2 border-[var(--c-line)]">
+          {FOUNDERS.map((f) => (
+            <li key={f.name} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b-2 border-[var(--c-line)] py-4">
+              <span className={cn("c-display text-[1.9rem] leading-none md:text-[2.4rem]", f.lead && "c-text-yellow")}>{f.name}</span>
+              <span className="c-label text-[1rem] text-[var(--c-muted)]">{f.role}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </CartelSection>
   );
@@ -787,7 +680,6 @@ const FAQ: { q: string; a: ReactNode }[] = [
       </>
     ),
   },
-  { q: "¿En qué países funciona?", a: "En toda Latinoamérica: 20 países con sus feriados y su moneda. Las planillas de sueldo ya siguen las reglas de Bolivia y los demás países llegan de a uno." },
   {
     q: "¿Mis datos están seguros?",
     a: (
@@ -800,14 +692,6 @@ const FAQ: { q: string; a: ReactNode }[] = [
         .
       </>
     ),
-  },
-  {
-    q: "¿Qué hace Mercav Pwn?",
-    a: "Es ciberinteligencia defensiva: revisa fuentes públicas, como Have I Been Pwned, NVD y CISA KEV, para avisarte si los correos o el dominio de tu empresa aparecen en filtraciones, y te muestra las vulnerabilidades que conviene parchear. Cada hallazgo cita su fuente.",
-  },
-  {
-    q: "¿Qué es Mercav Kosher?",
-    a: "Un atlas de lugares kosher, sinagogas y kehilot de la región, con el estado de cada lugar y su fuente, los horarios de Shabat por ciudad y el calendario hebreo. Mercav no emite certificaciones: muestra quién certifica.",
   },
   {
     q: "¿Mi equipo puede usar la caja?",
