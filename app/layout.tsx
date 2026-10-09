@@ -53,12 +53,7 @@ export const metadata: Metadata = {
     "kosher",
     "Latinoamérica",
   ],
-  authors: [
-    { name: "Mercav", url: SITE_URL },
-    { name: "Vinicius Salazar", url: `${SITE_URL}/nosotros#vinicius` },
-    { name: "Sebastian Rojas Cespedes", url: `${SITE_URL}/nosotros` },
-    { name: "Alejandro Ismael Mendoza Diaz", url: `${SITE_URL}/nosotros` },
-  ],
+  authors: [{ name: "Mercav", url: SITE_URL }],
   creator: "Mercav",
   publisher: "Mercav",
   category: "business",
@@ -70,20 +65,11 @@ export const metadata: Metadata = {
     url: SITE_URL,
     title: "Mercav — tu negocio entero, en una sola cuenta",
     description: SITE_DESCRIPTION,
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Mercav — publicidad, talento, empleo y ciberinteligencia para Latinoamérica",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Mercav — tu negocio entero, en una sola cuenta",
     description: SITE_DESCRIPTION,
-    images: ["/twitter-image.png"],
   },
   robots: {
     index: true,
@@ -114,17 +100,12 @@ const STRUCTURED_DATA = {
       url: SITE_URL,
       logo: `${SITE_URL}/icons/icon-512.png`,
       sameAs: ["https://www.instagram.com/mercav.lat", "https://www.tiktok.com/@mercav.ar", "https://github.com/invertilo"],
-      founder: [
-        { "@type": "Person", name: "Vinicius Salazar", jobTitle: "CEO" },
-        { "@type": "Person", name: "Sebastian Rojas Cespedes", jobTitle: "CTO" },
-        { "@type": "Person", name: "Alejandro Ismael Mendoza Diaz", jobTitle: "CTO" },
-      ],
     },
     {
       "@type": "WebSite",
       "@id": `${SITE_URL}/#website`,
-      name: SITE_NAME,
       url: SITE_URL,
+      name: SITE_NAME,
       inLanguage: "es",
       publisher: { "@id": `${SITE_URL}/#organization` },
       potentialAction: {
