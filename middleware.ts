@@ -175,23 +175,9 @@ function productHostRedirect(req: NextRequest, host: string | undefined, pathnam
   const search = req.nextUrl.search;
   const kosherPath = pathname === '/kosher' || pathname.startsWith('/kosher/');
 
-  if (host === PWN_HOST) {
-    const rest = pathname.startsWith('/pwn') ? pathname : pathname === '/' ? '/pwn' : `/pwn${pathname}`;
-    const target = pathname === '/login' || pathname === '/register' ? pathname : rest;
-    return moved(new URL(`${target}${search}`, APP_URL));
-  }
-
   if (host === SITE_HOST || host === `www.${SITE_HOST}`) {
     if (kosherPath) return moved(new URL(`${pathname.slice(7) || '/'}${search}`, KOSHER_URL));
-    if (host !== SITE_HOST) return moved(new URL(`${pathname}${search}`, SITE_URL));
-    if (isMarketingPath(pathname)) return null;
-    return moved(new URL(`${pathname}${search}`, APP_URL));
-  }
-
-  if (host === APP_HOST) {
-    if (pathname === '/') return NextResponse.redirect(new URL(`${APP_HOME}${search}`, APP_URL));
-    if (kosherPath) return moved(new URL(`${pathname.slice(7) || '/'}${search}`, KOSHER_URL));
-    if (isMarketingPath(pathname)) return moved(new URL(`${pathname}${search}`, SITE_URL));
+    return null;
   }
 
   return null;
@@ -215,10 +201,9 @@ async function handle(req: NextRequest): Promise<NextResponse> {
   if (hostRedirect) return hostRedirect;
 
   // On kosher.mercav.lat only Kosher's own sections stay (isKosherHostPath, shared with the chrome's hostHref).
-  // Public-site pages go straight to mercav.lat, any other route to the app: one redirect, not two.
+  // Public-site pages go straight to mercav.lat.
   if (host === KOSHER_HOST && !isKosherHostPath(pathname)) {
-    const target = isMarketingPath(pathname) ? SITE_URL : APP_URL;
-    return NextResponse.redirect(new URL(`${pathname}${req.nextUrl.search}`, target));
+    return NextResponse.redirect(new URL(`${pathname}${req.nextUrl.search}`, SITE_URL));
   }
 
   // Shared utility pages (/1337, /maintenance…) are served as they are: /kosher/1337 doesn't exist.
@@ -233,6 +218,21 @@ async function handle(req: NextRequest): Promise<NextResponse> {
   ) {
     const url = req.nextUrl.clone();
     url.pathname = pathname === '/' ? '/kosher' : `/kosher${pathname}`;
+    return NextResponse.rewrite(url);
+  }
+
+  // PWN rewrite on pwn.mercav.lat
+  if (
+    host === PWN_HOST &&
+    !pathname.startsWith('/api') &&
+    !pathname.startsWith('/_next') &&
+    !pathname.startsWith('/pwn') &&
+    pathname !== '/login' &&
+    pathname !== '/register' &&
+    !isSharedPath(pathname)
+  ) {
+    const url = req.nextUrl.clone();
+    url.pathname = pathname === '/' ? '/pwn' : `/pwn${pathname}`;
     return NextResponse.rewrite(url);
   }
 

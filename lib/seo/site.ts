@@ -4,19 +4,14 @@
 // - kosher.mercav.lat: Mercav Kosher, served from /kosher.
 // pwn.mercav.lat now redirects to app.mercav.lat/pwn. Every URL resolves to exactly one canonical address.
 
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : "https://mercav.lat");
-export const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL ||
-  (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : "https://app.mercav.lat");
-export const PWN_URL = `${APP_URL}/pwn`;
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.mercav.lat";
+export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.mercav.lat";
+export const PWN_URL = `${SITE_URL}/pwn`;
 export const KOSHER_URL =
-  process.env.NEXT_PUBLIC_KOSHER_URL ||
-  (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/kosher` : "https://kosher.mercav.lat");
+  process.env.NEXT_PUBLIC_KOSHER_URL || "https://kosher.mercav.lat";
 
 export const SITE_HOST = "mercav.lat";
-export const APP_HOST = "app.mercav.lat";
+export const APP_HOST = "www.mercav.lat";
 export const PWN_HOST = "pwn.mercav.lat";
 export const KOSHER_HOST = "kosher.mercav.lat";
 
@@ -162,14 +157,12 @@ export function hostHref(href: string, hostKind: HostKind): string {
 
   const kosher = matchesPrefix(path, "/kosher");
   if (hostKind === "kosher") {
-    // Here /x already means /kosher/x, so every other app path (even /calendario or /perfil) lives on another host.
+    // Here /x already means /kosher/x, so every other app path lives on the main host.
     if (kosher) return `${path.slice(7) || "/"}${suffix}`;
     if (kosherHostPassthrough(path)) return href;
-    return `${isMarketingPath(path) ? SITE_URL : APP_URL}${href}`;
+    return `${SITE_URL}${href}`;
   }
   if (kosher) return `${KOSHER_URL}${path.slice(7) || "/"}${suffix}`;
-  if (hostKind === "site" && !isMarketingPath(path)) return `${APP_URL}${href}`;
-  if (hostKind === "app" && isMarketingPath(path)) return `${SITE_URL}${href}`;
   return href;
 }
 // creado por pato dev y askforvini
