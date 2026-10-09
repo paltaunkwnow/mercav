@@ -14,12 +14,12 @@ import {
 
 const PLANS = [
   { value: "FREE", label: "Free" },
-  { value: "PROFESSIONAL", label: "Professional" },
+  { value: "PROFESSIONAL", label: "Pro" },
   { value: "EMPRESA", label: "Empresa" },
   { value: "ELITE", label: "Elite" },
 ] as const
 
-const planLabel = (plan: string) => PLANS.find((p) => p.value === plan)?.label ?? (plan === "PRO" ? "Professional" : plan)
+const planLabel = (plan: string) => PLANS.find((p) => p.value === plan)?.label ?? (plan === "PRO" ? "Pro" : plan)
 const planTone = (plan: string) =>
   plan === "PROFESSIONAL" || plan === "PRO" ? "gold" : plan === "EMPRESA" || plan === "ELITE" ? "info" : "neutral"
 

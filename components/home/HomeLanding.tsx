@@ -680,8 +680,8 @@ const FAQ: { q: string; a: ReactNode }[] = [
     q: "¿Crear la cuenta cuesta algo?",
     a: (
       <>
-        No. Crear la cuenta es gratis y te da acceso a todos los módulos con el mismo perfil. Algunas herramientas y funciones avanzadas dependen de tu plan;
-        los precios están en{" "}
+        No. La cuenta es gratis y te da acceso a todos los módulos con el mismo perfil, con algunos límites. Mercav Pro (9,99 USD por mes) los quita;
+        el detalle está en{" "}
         <HostLink href="/precios" className="c-link font-semibold">
           la página de precios
         </HostLink>

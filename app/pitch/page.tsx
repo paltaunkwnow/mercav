@@ -24,10 +24,8 @@ const APPS: { glyph: ReactNode; name: string; desc: string; route: string }[] = 
 ];
 
 const PLANS = [
-  { name: "Free", who: "Para explorar la plataforma", price: "$0" },
-  { name: "Profesional", who: "Freelancers y profesionales", price: "$9.99" },
-  { name: "Empresa", who: "Agencias y negocios", price: "$29" },
-  { name: "Elite", who: "La suite completa para escalar", price: "$79" },
+  { name: "Gratis", who: "Para empezar, con límites", price: "$0" },
+  { name: "Mercav Pro", who: "Sin los límites del plan Gratis", price: "$9.99" },
 ];
 
 const FEES = [

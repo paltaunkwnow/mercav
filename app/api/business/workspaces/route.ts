@@ -5,6 +5,7 @@ import { sessionUserId } from "@/lib/calendar/server";
 import { uniqueSlug } from "@/lib/business/slug";
 import { audit } from "@/lib/business/audit";
 import { LATAM_CODES, latamCountry } from "@/lib/geo/latam";
+import { checkPlanLimit } from "@/lib/checkPlanLimit";
 
 const CreateSchema = z.object({
   name: z.string().trim().min(2, "El nombre es muy corto").max(80),
@@ -23,6 +24,9 @@ export async function POST(req: Request) {
   const parsed = CreateSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ success: false, error: parsed.error.issues[0]?.message ?? "Datos inválidos" }, { status: 400 });
 
+  // Plan Gratis: 1 empresa propia. Quien crea queda como dueño, así que cuenta su propio plan.
+  const limit = await checkPlanLimit(userId, "create_workspace");
+  if (!limit.allowed) return NextResponse.json({ success: false, error: limit.message }, { status: 403 });
   const owned = await prisma.businessWorkspace.count({ where: { ownerId: userId } });
   if (owned >= 5) return NextResponse.json({ success: false, error: "Ya tenés 5 empresas. Escribinos si necesitás más." }, { status: 400 });
 

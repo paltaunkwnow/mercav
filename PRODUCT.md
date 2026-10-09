@@ -49,8 +49,10 @@ Terminology:
 - The product is "Mercav Business", no longer "POS".
 - Each module is named in Spanish.
 
+Decided:
+- Pricing: one Free tier with limits and one subscription, Mercav Pro, at 9.99 USD per month or 95.88 USD per year (20 % off, 7.99 USD per month). Empresa and Elite are no longer sold; accounts that have them keep Pro access until they expire. Pwn, Kosher, and Calendario stay free with no limits.
+
 Undecided:
-- Final pricing. `/precios` exists, but the loyalty price is still a hypothesis.
 - Wallet passes ship after the Apple and Google accounts are approved.
 
 ## Brand Commitments

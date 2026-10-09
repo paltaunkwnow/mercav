@@ -5,12 +5,10 @@ import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import StripeWrapper from '@/components/checkout/StripeWrapper';
 import { Metadata } from 'next';
-import { planChargeUsd } from '@/lib/billing/plans';
+import { PRO_ANNUAL_MONTHLY_USD, PRO_PLAN, billingInterval, planChargeUsd } from '@/lib/billing/plans';
 import Link from 'next/link';
 import { AlertCircle, ArrowLeft, Lock } from '@/components/icons';
 import { Container, buttonClass } from '@/components/site/primitives';
-
-const PLAN_LABEL: Record<string, string> = { PROFESSIONAL: 'Professional', EMPRESA: 'Empresa', ELITE: 'Elite' };
 
 export const metadata: Metadata = {
   title: 'Checkout | Mercav',
@@ -47,12 +45,14 @@ export default async function CheckoutPage({
     if (!reservation || reservation.advertiserId !== userId || reservation.status !== 'PENDING') redirect('/precios');
     amount = Number(reservation.totalPrice);
   } else {
+    // Solo se vende Mercav Pro (PROFESSIONAL): EMPRESA, ELITE o un plan desconocido vuelven a /precios.
     amount = planChargeUsd(searchParams.plan, searchParams.interval);
   }
   if (amount == null || !Number.isFinite(amount) || amount < 0.5) {
     redirect('/precios');
   }
   const currency = 'usd';
+  const interval = billingInterval(searchParams.interval);
 
   try {
     // Create PaymentIntent server-side
@@ -63,11 +63,7 @@ export default async function CheckoutPage({
       // pagar una reserva también activara un plan).
       metadata: searchParams.reservationId
         ? { userId, reservationId: searchParams.reservationId }
-        : {
-            userId,
-            plan: (searchParams.plan || '').toUpperCase(),
-            interval: searchParams.interval === 'annual' ? 'annual' : 'monthly',
-          },
+        : { userId, plan: PRO_PLAN, interval },
       automatic_payment_methods: {
         enabled: true,
       },
@@ -83,10 +79,7 @@ export default async function CheckoutPage({
         userId,
         metadata: searchParams.reservationId
           ? { reservationId: searchParams.reservationId }
-          : {
-              plan: (searchParams.plan || '').toUpperCase(),
-              interval: searchParams.interval === 'annual' ? 'annual' : 'monthly',
-            },
+          : { plan: PRO_PLAN, interval },
       },
     });
 
@@ -94,10 +87,14 @@ export default async function CheckoutPage({
       throw new Error('Failed to create PaymentIntent client secret');
     }
 
-    const planKey = (searchParams.plan || '').toUpperCase();
-    const planName = searchParams.reservationId ? 'Reserva de espacio publicitario' : PLAN_LABEL[planKey] ? `Plan ${PLAN_LABEL[planKey]}` : 'Plan Mercav';
-    const intervalLabel = searchParams.reservationId ? null : searchParams.interval === 'annual' ? 'Facturación anual' : 'Facturación mensual';
-    const formattedAmount = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(amount);
+    const usd = (value: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(value);
+    const planName = searchParams.reservationId ? 'Reserva de espacio publicitario' : 'Mercav Pro';
+    const intervalLabel = searchParams.reservationId
+      ? null
+      : interval === 'annual'
+        ? `Pago anual: 12 meses de Pro (${usd(PRO_ANNUAL_MONTHLY_USD)} por mes)`
+        : 'Pago mensual: 1 mes de Pro';
+    const formattedAmount = usd(amount);
 
     return (
       <div className="relative w-full bg-bg-primary pb-16 pt-24 md:pb-24 md:pt-28">

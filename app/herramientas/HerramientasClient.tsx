@@ -42,7 +42,8 @@ import { CATALOG_PATH, documentTitleFor, routeByToolId, toolIdFromPathname, tool
 import { ToolHistory, type SavedRun } from "./ToolHistory";
 import { downloadBrandedPdf, safeFileName, type PdfBlock } from "./pdf";
 import { PROMPT_LOCALES, PROMPT_TEMPLATES, PROMPT_TONES, templateById, type PromptVariant } from "./promptTemplates";
-import { TOOL_REQUIREMENTS, toolPlanLabel } from "@/lib/toolPlanCatalog";
+import { toolAllowedForPlan, toolPlanLabel, toolTier } from "@/lib/toolPlanCatalog";
+import { effectivePlan, planDisplayName } from "@/lib/billing/plans";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { Toast } from "@/components/ui/toast";
 import { ButtonLink, Container, PageHero, Section, SectionHeading, buttonClass } from "@/components/site/primitives";
@@ -116,14 +117,9 @@ const TOOLS = [
 
 type ToolId = typeof TOOLS[number]["id"];
 
-const PLAN_NAMES: Record<string, string> = { FREE: "Free", PROFESSIONAL: "Professional", EMPRESA: "Empresa", ELITE: "Elite" };
-
-/** Short, human label for the cheapest plan that unlocks a tool. Derived from TOOL_REQUIREMENTS. */
+/** Short, human label for the plan that unlocks a tool. Derived from lib/toolPlanCatalog.ts. */
 function planChipLabel(toolId: string) {
-  const plans = TOOL_REQUIREMENTS[toolId] || [];
-  if (plans.includes("FREE")) return "Incluida en Free";
-  if (plans.length === 1) return `Solo ${PLAN_NAMES[plans[0]] ?? plans[0]}`;
-  return `Desde ${PLAN_NAMES[plans[0]] ?? plans[0]}`;
+  return toolTier(toolId) === "FREE" ? "Incluida en Gratis" : "Con Mercav Pro";
 }
 
 /* Shared form styling for every tool (presentation only) */
@@ -159,7 +155,8 @@ export default function HerramientasClient() {
     fetch("/api/profile")
       .then((res) => res.json())
       .then((json) => {
-        if (json?.success) setUserPlan(json.data?.plan || null);
+        // Plan vigente: un plan pago vencido vale como Gratis, igual que en el servidor.
+        if (json?.success && json.data?.plan) setUserPlan(effectivePlan(json.data.plan, json.data.planExpiresAt ? new Date(json.data.planExpiresAt) : null));
       })
       .catch(() => {});
   }, [sessionStatus]);
@@ -214,7 +211,7 @@ export default function HerramientasClient() {
             {userPlan ? (
               <>
                 <p className="text-sm text-[var(--text-secondary)]">Tu plan</p>
-                <p className="mt-1 font-display text-3xl font-semibold tracking-tight text-[var(--text-primary)]">{PLAN_NAMES[userPlan] ?? userPlan}</p>
+                <p className="mt-1 font-display text-3xl font-semibold tracking-tight text-[var(--text-primary)]">{planDisplayName(userPlan)}</p>
                 <p className="mt-3 text-sm text-[var(--text-secondary)]">
                   <span className="mv-data font-semibold text-[var(--text-primary)]">
                     {availableCount} de {TOOLS.length}
@@ -226,7 +223,7 @@ export default function HerramientasClient() {
               <>
                 <p className="text-sm font-semibold text-[var(--text-primary)]">Qué incluye cada plan</p>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
-                  La calculadora de ROI, las paletas y el calendario de feriados están en el plan Free. Cada tarjeta indica qué plan necesitás.
+                  La calculadora de ROI, las paletas y el calendario de feriados son gratis. Las demás vienen con Mercav Pro.
                 </p>
               </>
             )}
@@ -314,9 +311,9 @@ function ToolCard({ tool, userPlan, onOpen }: { tool: (typeof TOOLS)[number]; us
       </span>
       <span className="block min-h-6 flex-1" aria-hidden />
       <span className="flex w-full items-center justify-between gap-3 border-t border-[var(--mv-hairline)] pt-5">
-        <span className={cn("mv-chip", (known ? allowed : (TOOL_REQUIREMENTS[tool.id] || []).includes("FREE")) && "mv-chip-gold")}>
+        <span className={cn("mv-chip", (known ? allowed : toolTier(tool.id) === "FREE") && "mv-chip-gold")}>
           {!allowed ? <Lock className="h-3 w-3" aria-hidden /> : null}
-          {known && !allowed ? `Requiere ${planChipLabel(tool.id).replace(/^(Desde|Solo) /, "")}` : planChipLabel(tool.id)}
+          {known && !allowed ? "Requiere Mercav Pro" : planChipLabel(tool.id)}
         </span>
         <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--text-secondary)] transition-colors duration-200 group-hover:text-[var(--text-primary)]">
           Abrir
@@ -327,17 +324,9 @@ function ToolCard({ tool, userPlan, onOpen }: { tool: (typeof TOOLS)[number]; us
   );
 }
 
+/** Same rule the server applies (lib/toolAccess.ts). `plan` is the effective plan. */
 function matchesPlan(toolId: ToolId, plan: string) {
-  const access: Record<ToolId, string[]> = {
-    "roi-calculator": ["FREE", "PROFESSIONAL", "EMPRESA", "ELITE"],
-    "contract-generator": ["EMPRESA", "ELITE"],
-    "seo-analyzer": ["PROFESSIONAL", "EMPRESA", "ELITE"],
-    "price-simulator": ["PROFESSIONAL", "EMPRESA", "ELITE"],
-    "palette-generator": ["FREE", "PROFESSIONAL", "EMPRESA", "ELITE"],
-    "prompt-generator": ["ELITE"],
-    "holiday-calendar": ["FREE", "PROFESSIONAL", "EMPRESA", "ELITE"],
-  };
-  return access[toolId]?.includes(plan);
+  return toolAllowedForPlan(toolId, plan);
 }
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -465,17 +454,10 @@ function LockedTool({ tool }: { tool: (typeof TOOLS)[number] }) {
       </span>
       <h3 className="mv-h3 mt-5">Tu plan todavía no incluye esta herramienta</h3>
       <p className="mv-body mx-auto mt-2 max-w-md">
-        Para usar <span className="font-semibold text-[var(--text-primary)]">{tool.title}</span> necesitás uno de estos planes:
+        Para usar <span className="font-semibold text-[var(--text-primary)]">{tool.title}</span> necesitás {tool.plan}.
       </p>
-      <ul className="mt-4 flex flex-wrap justify-center gap-2">
-        {tool.plan.split("/").map((p) => (
-          <li key={p} className="mv-chip">
-            {PLAN_NAMES[p.trim()] ?? p.trim()}
-          </li>
-        ))}
-      </ul>
       <ButtonLink href="/precios" tone="primary" className="mt-8 w-full sm:w-auto">
-        Ver planes
+        Ver Mercav Pro
       </ButtonLink>
     </div>
   );

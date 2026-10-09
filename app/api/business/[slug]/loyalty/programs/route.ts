@@ -7,6 +7,7 @@ import { uniqueSlug } from "@/lib/business/slug";
 import { newKioskSecret } from "@/lib/business/loyalty/codes";
 import { programInclude, programView } from "@/lib/business/loyalty/service";
 import { programSummaries } from "@/lib/business/loyalty/stats";
+import { checkWorkspaceLimit } from "@/lib/checkPlanLimit";
 import { ProgramInputSchema, asJson, fail, normalizeProgram, ok, zodError } from "./_shared";
 
 export const dynamic = "force-dynamic";
@@ -37,6 +38,9 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   if (!normalized.ok) return fail(normalized.error);
   const p = normalized.value;
 
+  // Plan Gratis del dueño: 1 programa (no archivado) por empresa.
+  const limit = await checkWorkspaceLimit(ctx.workspace, "add_loyalty_program");
+  if (!limit.allowed) return fail(limit.message, 403);
   const count = await prisma.loyaltyProgram.count({ where: { workspaceId: ctx.workspace.id, status: { not: "ARCHIVED" } } });
   if (count >= 20) return fail("Llegaste al máximo de 20 programas. Archivá alguno para crear otro.");
 

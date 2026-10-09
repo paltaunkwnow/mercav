@@ -5,6 +5,7 @@ import { Check, Minus } from '@/components/icons';
 import { AuthHeroButton } from '@/components/ui/AuthHeroButton';
 import { cn } from '@/lib/utils';
 import { TOOL_REQUIREMENTS } from '@/lib/toolPlanCatalog';
+import { PRO_ANNUAL_MONTHLY_USD, PRO_ANNUAL_USD, PRO_MONTHLY_USD, PRO_PLAN } from '@/lib/billing/plans';
 import { CTABand, Container, PageHero, Section, SectionHeading, buttonClass } from '@/components/site/primitives';
 
 /** Display names for the tools gated in lib/toolPlanCatalog.ts (same labels as /herramientas). */
@@ -21,65 +22,38 @@ const TOOL_LABELS: Record<string, string> = {
 export default function Precios() {
   const [isAnnual, setIsAnnual] = useState(false);
 
+  // Los límites son los que aplican lib/checkPlanLimit.ts y lib/toolPlanCatalog.ts.
   const plans = [
     {
       name: "FREE",
-      displayName: "Free",
+      displayName: "Gratis",
       price: 0,
-      desc: "Para explorar la plataforma.",
-      features: [
-        "Perfil completo",
-        "10 postulaciones por mes",
-        "1 espacio o servicio publicado",
-        "1 vacante por mes",
-        "Feed y perfiles públicos",
-        "Hasta 5 chats activos"
-      ]
+      annualPrice: 0,
+      desc: "Para empezar, con límites.",
+      popular: false,
+      groups: [
+        { title: "Mercado", items: ["1 espacio publicado", "1 servicio publicado", "1 vacante por mes", "10 postulaciones por mes"] },
+        { title: "Business", items: ["1 empresa", "Hasta 5 trabajadores por empresa", "1 programa de fidelización por empresa"] },
+        { title: "Herramientas", items: ["Calculadora de ROI, paletas y feriados"] },
+      ],
     },
     {
-      name: "PROFESSIONAL",
-      displayName: "Profesional",
-      price: 9.99,
-      desc: "Para freelancers y profesionales.",
-      features: [
-        "Postulaciones ilimitadas",
-        "Hasta 5 espacios o servicios",
-        "Hasta 5 vacantes por mes",
-        "Mensajes ilimitados",
-        "Perfil destacado en búsquedas",
-        "Analytics básico del perfil"
-      ]
-    },
-    {
-      name: "EMPRESA",
-      displayName: "Empresa",
-      price: 29,
-      desc: "Para agencias y negocios.",
+      name: PRO_PLAN,
+      displayName: "Mercav Pro",
+      price: PRO_MONTHLY_USD,
+      annualPrice: PRO_ANNUAL_MONTHLY_USD,
+      desc: "Sin los límites del plan Gratis.",
       popular: true,
-      features: [
-        "Vacantes ilimitadas",
-        "Gestión avanzada de candidatos",
-        "Preguntas de postulación",
-        "Analytics avanzado",
-        "Badge Empresa verificada",
-        "Soporte dedicado"
-      ]
+      groups: [
+        { title: "Mercado", items: ["Espacios y servicios sin límite", "Vacantes y postulaciones sin límite"] },
+        { title: "Business", items: ["Hasta 5 empresas", "Trabajadores sin límite", "Hasta 20 programas de fidelización por empresa"] },
+        { title: "Herramientas", items: ["Todas, también contratos, SEO, precios y prompts"] },
+      ],
     },
-    {
-      name: "ELITE",
-      displayName: "Elite",
-      price: 79,
-      desc: "La suite completa para escalar.",
-      features: [
-        "Hasta 20 espacios o servicios",
-        "Aparición destacada en el inicio",
-        "Mercav Herramientas sin límites",
-        "Generación de contratos con IA",
-        "API de integración completa",
-        "Soporte 24/7 prioritario"
-      ]
-    }
   ];
+
+  /** 9.99 -> "9,99"; 0 -> "0". */
+  const money = (value: number) => (value === 0 ? "0" : value.toFixed(2).replace(".", ","));
 
   const toolRows = Object.entries(TOOL_REQUIREMENTS).map(([id, allowed]) => ({ id, label: TOOL_LABELS[id] ?? id, allowed }));
 
@@ -88,7 +62,7 @@ export default function Precios() {
       <PageHero
         kicker="Precios"
         title="Planes claros. Sin sorpresas."
-        lead="Empezá gratis y subí de plan solo cuando lo necesites. Pagando anualmente ahorrás un 20%."
+        lead="Todo es gratis hasta un límite. Mercav Pro lo quita, y pagando por año ahorrás un 20 %."
       >
         <div role="group" aria-label="Ciclo de facturación" className="mv-panel inline-flex rounded-full p-1">
           {[
@@ -120,10 +94,10 @@ export default function Precios() {
           <h2 id="planes" className="sr-only">
             Planes
           </h2>
-          <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <ul className="mx-auto grid max-w-4xl gap-4 md:grid-cols-2">
             {plans.map((plan, i) => {
-              const displayPrice = isAnnual ? (plan.price * 0.8).toFixed(2) : plan.price;
-              const featured = Boolean(plan.popular);
+              const displayPrice = money(isAnnual ? plan.annualPrice : plan.price);
+              const featured = plan.popular;
               return (
                 <li
                   key={i}
@@ -149,7 +123,7 @@ export default function Precios() {
                         "Sin costo"
                       ) : isAnnual ? (
                         <>
-                          <span className="line-through">${plan.price}</span> · facturación anual
+                          <span className="line-through">${money(plan.price)}</span> · ${money(PRO_ANNUAL_USD)} por año
                         </>
                       ) : (
                         "Facturación mensual"
@@ -161,11 +135,11 @@ export default function Precios() {
                     type="button"
                     onClick={() => {
                       if (plan.price === 0) {
-                        window.location.href = '/dashboard';
+                        window.location.href = '/inicio';
                         return;
                       }
-                      const url = `/checkout?amount=${displayPrice}&plan=${plan.name}${isAnnual ? '&interval=annual' : '&interval=monthly'}`;
-                      window.location.href = url;
+                      // El monto lo fija el servidor (lib/billing/plans.ts): acá solo van el plan y el ciclo.
+                      window.location.href = `/checkout?plan=${PRO_PLAN}&interval=${isAnnual ? 'annual' : 'monthly'}`;
                     }}
                     className={buttonClass(featured ? "primary" : "secondary", "md", "mt-6 w-full")}
                   >
@@ -173,19 +147,26 @@ export default function Precios() {
                   </button>
 
                   <div className="mv-divider my-6" aria-hidden />
-                  <p className="text-sm font-semibold text-[var(--text-primary)]">Incluye</p>
-                  <ul className="mt-3 flex-1 space-y-3">
-                    {plan.features.map((feat, fi) => (
-                      <li key={fi} className="flex items-start gap-3 text-[0.9375rem] leading-snug text-[var(--text-secondary)]">
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden />
-                        {feat}
-                      </li>
+                  <div className="flex-1 space-y-5">
+                    {plan.groups.map((group) => (
+                      <div key={group.title}>
+                        <p className="text-sm font-semibold text-[var(--text-primary)]">{group.title}</p>
+                        <ul className="mt-3 space-y-3">
+                          {group.items.map((item) => (
+                            <li key={item} className="flex items-start gap-3 text-[0.9375rem] leading-snug text-[var(--text-secondary)]">
+                              <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </li>
               );
             })}
           </ul>
+          <p className="mx-auto mt-6 max-w-4xl text-center text-sm text-[var(--text-secondary)]">Pwn, Kosher y el Calendario no tienen límites: son gratis para todos.</p>
         </Container>
       </Section>
 
@@ -258,7 +239,7 @@ export default function Precios() {
 
       <CTABand
         title="Empezá hoy, sin tarjeta."
-        lead="Creá tu cuenta gratis y subí de plan cuando tu negocio lo pida."
+        lead="Creá tu cuenta gratis y pasate a Mercav Pro cuando necesites más."
         action={<AuthHeroButton label="Empezar gratis, sin tarjeta" className="w-full sm:w-auto px-8" />}
       />
     </div>

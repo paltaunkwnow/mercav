@@ -5,6 +5,7 @@ import { apiBusiness } from "@/lib/business/context";
 import { EmployeeInputSchema, changedFields, employeeUpdateData, endDaySchema } from "@/lib/business/employees";
 import { recalcDraftLinesFor } from "@/lib/business/payroll-service";
 import { audit } from "@/lib/business/audit";
+import { checkWorkspaceLimit } from "@/lib/checkPlanLimit";
 
 const StatusSchema = z.object({
   action: z.enum(["deactivate", "reactivate"]),
@@ -51,6 +52,11 @@ export async function PATCH(req: Request, { params }: { params: { slug: string; 
     await prisma.businessEmployee.update({ where: { id: employee.id }, data: { status: "INACTIVE", endDate } });
     await audit(ctx.workspace.id, ctx.userId, "employee.deactivate", "BusinessEmployee", employee.id, { endDate: endDate.toISOString().slice(0, 10) });
   } else {
+    // Reactivar suma un trabajador activo: mismo límite que el alta (plan Gratis del dueño).
+    if (employee.status !== "ACTIVE") {
+      const limit = await checkWorkspaceLimit(ctx.workspace, "add_employee");
+      if (!limit.allowed) return NextResponse.json({ success: false, error: limit.message }, { status: 403 });
+    }
     await prisma.businessEmployee.update({ where: { id: employee.id }, data: { status: "ACTIVE", endDate: null } });
     await audit(ctx.workspace.id, ctx.userId, "employee.reactivate", "BusinessEmployee", employee.id);
   }

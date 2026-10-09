@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { PLAN_MONTHLY_USD } from "@/lib/billing/plans";
 import { Building2, FileText, ImageOff, Inbox, Mail, UserPlus } from "@/components/icons";
 import Link from "next/link";
 
@@ -102,11 +103,8 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
 
   // Summary metrics
   const totalRevenue = transactions.reduce((sum, t) => sum + Number(t.amount), 0);
-  const mrr = subscriptions.reduce((sum, s) => {
-    // Estimating MRR based on plans (needs actual pricing data from a config)
-    const prices: Record<string, number> = { FREE: 0, PROFESSIONAL: 29.99, EMPRESA: 99.99, ELITE: 299.99 };
-    return sum + (prices[s.plan as string] || 0);
-  }, 0);
+  // MRR estimado con los precios de lista reales (lib/billing/plans.ts); antes usaba 29.99/99.99/299.99
+  const mrr = subscriptions.reduce((sum, s) => sum + (PLAN_MONTHLY_USD[s.plan as string] || 0), 0);
 
   const financialSummary = {
     totalRevenue,

@@ -1,6 +1,6 @@
 import { Plan, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { planChargeUsd } from "@/lib/billing/plans";
+import { LEGACY_PLAN_CHARGES_USD, billingInterval, planChargeUsd, planPeriodEnd } from "@/lib/billing/plans";
 
 /**
  * Cumplimiento de un pago de Stripe, compartido por el webhook y la página de confirmación.
@@ -13,8 +13,6 @@ import { planChargeUsd } from "@/lib/billing/plans";
  *   la metadata del PaymentIntent ni en datos del cliente.
  */
 export type FulfillResult = "fulfilled" | "already_processed" | "not_found";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 function str(value: unknown): string {
   return typeof value === "string" ? value : "";
@@ -76,19 +74,25 @@ export async function fulfillPaidTransaction(stripeId: string): Promise<{ result
       return { result: "fulfilled", transaction };
     }
 
-    // 2) Mejora de plan (flujo /checkout?plan=...)
+    // 2) Mercav Pro (flujo /checkout?plan=PROFESSIONAL&interval=...)
     const planKey = str(metadata.plan).toUpperCase();
     if (planKey && userId) {
-      const interval = str(metadata.interval) === "annual" ? "annual" : "monthly";
-      const expected = planChargeUsd(planKey, interval);
+      const interval = billingInterval(str(metadata.interval));
+      const paid = Number(transaction.amount);
+      const matches = (expected: number | null | undefined) => expected != null && Math.abs(paid - expected) <= 0.01;
       const isPaidPlan = (Object.values(Plan) as string[]).includes(planKey) && planKey !== "FREE";
-      // El monto cobrado tiene que corresponder al plan: evita activar un plan caro con un pago menor
-      if (!isPaidPlan || expected == null || Math.abs(Number(transaction.amount) - expected) > 0.01) {
+      // El monto cobrado tiene que corresponder al plan: evita activar un plan caro con un pago menor.
+      // Se aceptan también los montos de antes del cambio para pagos que ya estaban iniciados.
+      if (!isPaidPlan || !(matches(planChargeUsd(planKey, interval)) || matches(LEGACY_PLAN_CHARGES_USD[planKey]?.[interval]))) {
         console.error(`[FULFILL] Pago ${stripeId}: plan/monto inconsistentes (${planKey}, ${String(transaction.amount)})`);
         return { result: "fulfilled", transaction };
       }
 
-      const endDate = new Date(Date.now() + (interval === "annual" ? 365 : 30) * DAY_MS);
+      // Si renueva con un plan pago todavía vigente, el período nuevo empieza cuando termina el actual.
+      const now = new Date();
+      const current = await tx.user.findUnique({ where: { id: userId }, select: { plan: true, planExpiresAt: true } });
+      const startDate = current && current.plan !== "FREE" && current.planExpiresAt && current.planExpiresAt > now ? current.planExpiresAt : now;
+      const endDate = planPeriodEnd(startDate, interval);
       await tx.user.update({
         where: { id: userId },
         data: { plan: planKey as Plan, planExpiresAt: endDate },
@@ -98,7 +102,7 @@ export async function fulfillPaidTransaction(stripeId: string): Promise<{ result
           userId,
           plan: planKey as Plan,
           status: "ACTIVE",
-          startDate: new Date(),
+          startDate,
           endDate,
           paymentId: stripeId,
         },

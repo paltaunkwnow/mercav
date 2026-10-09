@@ -4,6 +4,7 @@ import { audit } from "@/lib/business/audit";
 import { encryptField } from "@/lib/business/crypto";
 import { newKioskSecret } from "@/lib/business/loyalty/codes";
 import { loadProgram, programView } from "@/lib/business/loyalty/service";
+import { checkWorkspaceLimit } from "@/lib/checkPlanLimit";
 import { ProgramInputSchema, apiProgram, asJson, fail, normalizeProgram, ok, zodError } from "../_shared";
 
 export const dynamic = "force-dynamic";
@@ -42,6 +43,11 @@ export async function PATCH(req: Request, { params }: Params) {
     if (program.status === next) return ok({ program: programView(program) });
     if (!FROM[next].includes(program.status)) return fail("Ese cambio de estado no está permitido.");
     if (next === "ACTIVE" && !program.rewards.some((r) => r.active)) return fail("Agregá al menos un premio activo antes de activar.");
+    // Restaurar un archivado vuelve a sumar un programa: mismo límite que el alta (plan Gratis del dueño).
+    if (program.status === "ARCHIVED") {
+      const limit = await checkWorkspaceLimit(ctx.workspace, "add_loyalty_program");
+      if (!limit.allowed) return fail(limit.message, 403);
+    }
     const done = await prisma.loyaltyProgram.updateMany({ where: { id: program.id, workspaceId: ctx.workspace.id, status: { in: FROM[next] } }, data: { status: next } });
     if (done.count !== 1) return fail("El programa cambió mientras tanto. Recargá la página.", 409);
     await audit(ctx.workspace.id, ctx.userId, "loyalty.program.status", "LoyaltyProgram", program.id, { from: program.status, to: next });
