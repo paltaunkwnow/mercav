@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { CalendarDays, Flame, MapPin, Moon } from "@/components/icons";
+import Link from "next/link";
 import { HostLink } from "@/components/layout/HostContext";
 import { PixelMap, CAPITALS } from "./PixelMap";
 import { cn } from "@/lib/utils";
-import { countryFromTimeZone } from "@/lib/geo/latam";
+import { countryFromTimeZone, countrySlug } from "@/lib/geo/latam";
 import { CartelSelect } from "@/components/site/cartel/CartelSelect";
 
 /* ------------------------------------------------------------------ */
@@ -165,9 +166,14 @@ export function RegionPicker({ countries, initial, detected }: { countries: Coun
             <dd className="c-display mt-2 text-[2rem]">{current.currency}</dd>
           </div>
         </dl>
-        <HostLink href="/calendario" className="c-link inline-flex w-fit items-center gap-2 font-semibold">
-          Ver el calendario con tus feriados y el calendario hebreo
-        </HostLink>
+        <div className="flex flex-col gap-2">
+          <Link href={`/feriados/${countrySlug(current.name)}`} className="c-link inline-flex w-fit items-center gap-2 font-semibold">
+            Todos los feriados de {current.name}
+          </Link>
+          <HostLink href="/calendario" className="c-link inline-flex w-fit items-center gap-2 font-semibold">
+            Ver el calendario con tus feriados y el calendario hebreo
+          </HostLink>
+        </div>
       </div>
     </div>
   );

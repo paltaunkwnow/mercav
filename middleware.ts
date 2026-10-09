@@ -297,6 +297,9 @@ async function handle(req: NextRequest): Promise<NextResponse> {
 
   const isPublicPath = publicPaths.includes(pathname) ||
                        pathname.startsWith('/legal/') ||
+                       // Feriados por país: páginas públicas para los buscadores.
+                       pathname === '/feriados' ||
+                       pathname.startsWith('/feriados/') ||
                        pathname === '/pwn' ||
                        pathname.startsWith('/pwn/') ||
                        pathname === '/kosher' ||

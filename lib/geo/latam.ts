@@ -83,6 +83,16 @@ export function formatMoney(value: number | string | null | undefined, country: 
 }
 
 /** Fecha de hoy (yyyy-mm-dd) en una zona horaria. */
+/** Slug del país para las URLs públicas (/feriados/republica-dominicana). */
+export function countrySlug(name: string) {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 export function todayIn(timeZone: string, now = new Date()) {
   try {
     return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);

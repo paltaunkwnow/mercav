@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { canonicalFor } from "@/lib/seo/site";
+import { FERIADO_COUNTRIES, todayFor } from "./feriados/data";
 
 export const revalidate = 3600;
 
@@ -74,6 +75,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency,
     priority,
   }));
+
+  // Feriados: el índice, cada país y su año siguiente (se busca desde octubre).
+  entries.push({ url: canonicalFor("/feriados"), lastModified: now, changeFrequency: "weekly", priority: 0.8 });
+  for (const c of FERIADO_COUNTRIES) {
+    entries.push({ url: canonicalFor(`/feriados/${c.slug}`), lastModified: now, changeFrequency: "weekly", priority: 0.7 });
+    entries.push({ url: canonicalFor(`/feriados/${c.slug}/${todayFor(c).year + 1}`), lastModified: now, changeFrequency: "monthly", priority: 0.5 });
+  }
 
   // Live public listings. A failing query must never break the sitemap.
   const safe = async <T,>(query: () => Promise<T[]>) => {

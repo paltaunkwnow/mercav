@@ -18,6 +18,7 @@ const COMPANY: FooterLink[] = [
   { href: "/nosotros", label: "Quiénes somos" },
   { href: "/pitch", label: "Pitch" },
   { href: "/inversores", label: "Inversores" },
+  { href: "/feriados", label: "Feriados por país" },
 ];
 
 const APPS: FooterLink[] = [
