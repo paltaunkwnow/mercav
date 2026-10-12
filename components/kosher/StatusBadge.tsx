@@ -1,15 +1,20 @@
 import type { KosherPlaceType, KosherStatus } from "@prisma/client";
-import { BadgeCheck, CircleHelp, CircleSlash, MessageCircleWarning, Scale, ShieldCheck } from "@/components/icons";
+import { Ban, BadgeCheck, CircleHelp, CircleSlash, Eye, MessageCircleWarning, Scale, ShieldCheck, ShoppingBasket, Tag, UtensilsCrossed } from "@/components/icons";
 import { STATUS, isFoodPlace, placeTone } from "@/lib/kosher/labels";
 import { cn } from "@/lib/utils";
 
 const ICONS = {
   certified: BadgeCheck,
+  supervised: Eye,
+  self_declared: Tag,
+  some_products: ShoppingBasket,
+  some_dishes: UtensilsCrossed,
   community_report: MessageCircleWarning,
   unknown: CircleHelp,
+  kosher_style: Ban,
   disputed: Scale,
   closed: CircleSlash,
-} as const;
+} as const satisfies Record<KosherStatus, unknown>;
 
 const TONE_CLASS = {
   seal: "bg-[#2ee06f]/15 text-[#5ff09a] ring-[#2ee06f]/25 [.light_&]:bg-[#00773f]/10 [.light_&]:text-[#00773f] [.light_&]:ring-[#00773f]/25",

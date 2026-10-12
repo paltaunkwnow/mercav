@@ -1,4 +1,5 @@
 import type {
+  KosherKashrutPreference,
   KosherChesedKind,
   KosherDenomination,
   KosherEventKind,
@@ -27,19 +28,80 @@ export const PLACE_TYPES: Record<KosherPlaceType, string> = {
 
 export const STATUS: Record<KosherStatus, string> = {
   certified: "Certificado",
+  supervised: "Con supervisión",
+  self_declared: "Kosher autodeclarado",
+  some_products: "Algunos productos kosher",
+  some_dishes: "Algunos platos kosher",
   community_report: "Reporte comunitario",
   unknown: "Sin verificar",
+  kosher_style: "Estilo judío, sin kashrut",
   disputed: "En disputa",
   closed: "Cerrado",
 };
 
 export const STATUS_HINT: Record<KosherStatus, string> = {
   certified: "Certificación de una agencia registrada en la ficha.",
+  supervised: "Se informa supervisión rabínica, pero la ficha no tiene el certificado. Preguntá quién supervisa y qué cubre.",
+  self_declared: "El lugar dice ser kosher. No hay certificación ni supervisión registrada.",
+  some_products: "El local no es kosher: vende algunos productos kosher. Mirá el sello de cada producto.",
+  some_dishes: "No es un lugar kosher: tiene algunos platos kosher hechos en una cocina que también hace comida que no lo es.",
   community_report: "Nota de un miembro. No equivale a un hechsher.",
   unknown: "Todavía nadie confirmó el estado de kashrut.",
+  kosher_style: "Cocina judía o israelí sin supervisión de kashrut. No es un lugar kosher.",
   disputed: "Hay reportes que se contradicen. La revisión sigue abierta.",
   closed: "Reportado como cerrado.",
 };
+
+/** El espectro de confianza, de más a menos, para listas y para la página de kashrut. */
+export const STATUS_ORDER: readonly KosherStatus[] = [
+  "certified",
+  "supervised",
+  "self_declared",
+  "community_report",
+  "some_products",
+  "some_dishes",
+  "unknown",
+  "kosher_style",
+  "disputed",
+  "closed",
+];
+
+export const KASHRUT_PREFERENCE: Record<KosherKashrutPreference, { label: string; hint: string }> = {
+  certified: { label: "Solo certificados", hint: "Para comer y comprar, solo lugares con certificación registrada." },
+  supervised: { label: "Con supervisión me alcanza", hint: "Lugares con certificación o con supervisión rabínica informada." },
+  all: { label: "Mostrame todo", hint: "Todos los niveles, también los que solo tienen algunos productos o platos kosher." },
+};
+
+/**
+ * ¿Se muestra este lugar con la preferencia de la persona? Solo filtra lugares de comida: una sinagoga o una
+ * escuela no tienen nivel de kashrut. Sin preferencia, se muestra todo.
+ */
+export function matchesKashrutPreference(type: KosherPlaceType, status: KosherStatus, preference: KosherKashrutPreference | null | undefined) {
+  if (!preference || preference === "all" || !isFoodPlace(type)) return true;
+  if (preference === "certified") return status === "certified";
+  return status === "certified" || status === "supervised";
+}
+
+/** Servicios de un lugar (KosherPlace.services). */
+export const KOSHER_SERVICES = {
+  breakfast: "Desayuno",
+  lunch: "Almuerzo",
+  dinner: "Cena",
+  takeaway: "Para llevar",
+  delivery: "Delivery",
+  reservations: "Reservas",
+  catering: "Catering",
+  shabbat_meals: "Comidas de Shabat",
+  wifi: "Wi-Fi",
+  accessible: "Accesible",
+} as const;
+
+export type KosherServiceKey = keyof typeof KOSHER_SERVICES;
+
+export const isKosherService = (value: string): value is KosherServiceKey => value in KOSHER_SERVICES;
+
+/** "$$" para priceLevel 2. */
+export const priceLabel = (level: number | null | undefined) => (level && level >= 1 && level <= 4 ? "$".repeat(level) : null);
 
 export const FOOD: Record<KosherFood, string> = {
   meat: "Carne (basari)",
@@ -104,7 +166,7 @@ export function placeTone(type: KosherPlaceType, status: KosherStatus): StatusTo
 
 export function statusTone(status: KosherStatus): StatusTone {
   if (status === "certified") return "seal";
-  if (status === "community_report") return "reported";
+  if (status === "supervised" || status === "community_report" || status === "self_declared") return "reported";
   if (status === "disputed") return "danger";
   return "muted";
 }

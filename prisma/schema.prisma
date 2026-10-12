@@ -56,8 +56,8 @@ model User {
   conversations       Conversation[]  @relation("UserConversations")
   companyMemberships  CompanyMember[]
   transactions        Transaction[]
-  tickets             Ticket[] @relation("UserTickets")
-  involvedTickets     Ticket[] @relation("InvolvedUserTickets")
+  tickets             Ticket[]        @relation("UserTickets")
+  involvedTickets     Ticket[]        @relation("InvolvedUserTickets")
   ticketReplies       TicketReply[]
   posConfig           POSConfig?
   /// MercavClub: código de la cuenta para que cualquier negocio la encuentre (MC-XXXX-XXXX).
@@ -71,20 +71,20 @@ model User {
   businessMemberships     BusinessMember[]
   businessEmployeeRecords BusinessEmployee[]
   calendarPreference      CalendarPreference?
-  
+
   // Sanction System
-  isSanctioned        Boolean   @default(false)
-  sanctionReason      String?
-  sanctionExpiresAt   DateTime?
-  nit                 String?
-  ci                  String?
-  adminLogs           AdminLog[]              @relation("AdminLogs")
-  deletedContents     DeletedContentHistory[] @relation("DeletedContents")
+  isSanctioned      Boolean                 @default(false)
+  sanctionReason    String?
+  sanctionExpiresAt DateTime?
+  nit               String?
+  ci                String?
+  adminLogs         AdminLog[]              @relation("AdminLogs")
+  deletedContents   DeletedContentHistory[] @relation("DeletedContents")
 
   // Mercav Pwn
-  pwnTargets          PwnMonitoringTarget[]
-  pwnAlerts           PwnAlert[]
-  pwnReports          PwnReport[]
+  pwnTargets PwnMonitoringTarget[]
+  pwnAlerts  PwnAlert[]
+  pwnReports PwnReport[]
 
   // Mercav Kosher
   kosherProfile       KosherProfile?
@@ -104,6 +104,8 @@ model User {
   kosherAlerts        KosherAlert[]
   kosherManaged       KosherPlaceManager[]
   kosherClaims        KosherClaim[]
+  kosherPhotos        KosherPhoto[]             @relation("KosherPhotoUploader")
+  kosherFavorites     KosherFavorite[]
   unusualTraffic      UnusualTrafficEvent[]
 }
 
@@ -329,25 +331,25 @@ model SpaceReview {
 }
 
 model Service {
-  id           String           @id @default(uuid())
-  providerId   String
-  title        String
-  description  String
-  category     ServiceCategory
-  subcategory  String?
-  deliveryDays Int?
-  revisions    Int?
-  isActive     Boolean          @default(true)
-  isUnderReview Boolean         @default(false)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  images       ServiceImage[]
-  posts        Post[]
-  provider     User             @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  orders       ServiceOrder[]
-  packages     ServicePackage[]
-  reviews      ServiceReview[]
-  savedBy      SavedService[]
+  id            String           @id @default(uuid())
+  providerId    String
+  title         String
+  description   String
+  category      ServiceCategory
+  subcategory   String?
+  deliveryDays  Int?
+  revisions     Int?
+  isActive      Boolean          @default(true)
+  isUnderReview Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  images        ServiceImage[]
+  posts         Post[]
+  provider      User             @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  orders        ServiceOrder[]
+  packages      ServicePackage[]
+  reviews       ServiceReview[]
+  savedBy       SavedService[]
 }
 
 model ServiceImage {
@@ -443,35 +445,35 @@ model ServiceReview {
 }
 
 model JobPost {
-  id               String                @id @default(uuid())
-  companyId        String
+  id                String                @id @default(uuid())
+  companyId         String
   officialCompanyId String?
-  title            String
-  description      String
-  requirements     String
-  responsibilities String?
-  benefits         String?
-  employmentType   EmploymentType
-  workMode         WorkMode
-  city             String
-  country          String
-  salaryMin        Int?
-  salaryMax        Int?
-  salaryCurrency   String?
-  salaryVisible    Boolean               @default(false)
-  experienceLevel  ExperienceLevel
-  expiresAt        DateTime?
-  isActive         Boolean               @default(true)
-  isUnderReview    Boolean               @default(false)
-  viewCount        Int                   @default(0)
-  createdAt        DateTime              @default(now())
-  updatedAt        DateTime              @updatedAt
-  applications     Application[]
-  questions        ApplicationQuestion[]
-  company          User                  @relation("UserJobPosts", fields: [companyId], references: [id], onDelete: Cascade)
-  officialCompany  Company?              @relation("OfficialCompanyJobs", fields: [officialCompanyId], references: [id])
-  posts            Post[]
-  savedBy          SavedJob[]
+  title             String
+  description       String
+  requirements      String
+  responsibilities  String?
+  benefits          String?
+  employmentType    EmploymentType
+  workMode          WorkMode
+  city              String
+  country           String
+  salaryMin         Int?
+  salaryMax         Int?
+  salaryCurrency    String?
+  salaryVisible     Boolean               @default(false)
+  experienceLevel   ExperienceLevel
+  expiresAt         DateTime?
+  isActive          Boolean               @default(true)
+  isUnderReview     Boolean               @default(false)
+  viewCount         Int                   @default(0)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  applications      Application[]
+  questions         ApplicationQuestion[]
+  company           User                  @relation("UserJobPosts", fields: [companyId], references: [id], onDelete: Cascade)
+  officialCompany   Company?              @relation("OfficialCompanyJobs", fields: [officialCompanyId], references: [id])
+  posts             Post[]
+  savedBy           SavedJob[]
 }
 
 model ApplicationQuestion {
@@ -553,14 +555,14 @@ model SavedService {
 }
 
 model Conversation {
-  id        String              @id @default(uuid())
-  context   ConversationContext
-  contextId String?
-  isEnabled Boolean             @default(true)
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-  messages  Message[]
-  participants User[]           @relation("UserConversations")
+  id           String              @id @default(uuid())
+  context      ConversationContext
+  contextId    String?
+  isEnabled    Boolean             @default(true)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  messages     Message[]
+  participants User[]              @relation("UserConversations")
 }
 
 model Message {
@@ -717,21 +719,21 @@ model Suspension {
 }
 
 model GlobalConfig {
-  id                    String   @id @default("singleton")
-  platformFeePercentage Float    @default(10.0)
-  maintenanceMode       Boolean  @default(false)
-  minVerificationScore  Int      @default(70)
-  supportEmail          String   @default("soporte@mercav.lat")
-  
+  id                    String  @id @default("singleton")
+  platformFeePercentage Float   @default(10.0)
+  maintenanceMode       Boolean @default(false)
+  minVerificationScore  Int     @default(70)
+  supportEmail          String  @default("soporte@mercav.lat")
+
   // Practical Admin Tools
   announcementText      String?
   announcementLink      String?
-  allowNewRegistrations Boolean  @default(true)
+  allowNewRegistrations Boolean @default(true)
   featuredServiceId     String?
   featuredSpaceId       String?
-  maintenanceMessage    String?  @default("El sistema está bajo mantenimiento programado. Volveremos pronto.")
-  
-  updatedAt             DateTime @updatedAt
+  maintenanceMessage    String? @default("El sistema está bajo mantenimiento programado. Volveremos pronto.")
+
+  updatedAt DateTime @updatedAt
 }
 
 enum Plan {
@@ -903,19 +905,19 @@ enum TargetType {
 }
 
 model Transaction {
-  id              String            @id @default(uuid())
-  stripeId        String            @unique
-  amount          Decimal
-  currency        String
-  status          TransactionStatus @default(PENDING)
-  metadata        Json?
-  userId          String?
-  user            User?             @relation(fields: [userId], references: [id])
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  tickets         Ticket[]
-  orderId         String?
-  order           ServiceOrder?     @relation(fields: [orderId], references: [id])
+  id        String            @id @default(uuid())
+  stripeId  String            @unique
+  amount    Decimal
+  currency  String
+  status    TransactionStatus @default(PENDING)
+  metadata  Json?
+  userId    String?
+  user      User?             @relation(fields: [userId], references: [id])
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  tickets   Ticket[]
+  orderId   String?
+  order     ServiceOrder?     @relation(fields: [orderId], references: [id])
 }
 
 enum TransactionStatus {
@@ -932,22 +934,22 @@ enum ReportStatus {
 }
 
 model Ticket {
-  id            String         @id @default(uuid())
-  userId        String
-  subject       String
-  message       String
-  category      TicketCategory
-  status        TicketStatus   @default(OPEN)
-  orderId       String?
-  transactionId String?
+  id             String         @id @default(uuid())
+  userId         String
+  subject        String
+  message        String
+  category       TicketCategory
+  status         TicketStatus   @default(OPEN)
+  orderId        String?
+  transactionId  String?
   involvedUserId String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  user          User           @relation("UserTickets", fields: [userId], references: [id], onDelete: Cascade)
-  involvedUser  User?          @relation("InvolvedUserTickets", fields: [involvedUserId], references: [id])
-  order         ServiceOrder?  @relation(fields: [orderId], references: [id])
-  transaction   Transaction?   @relation(fields: [transactionId], references: [id])
-  replies       TicketReply[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  user           User           @relation("UserTickets", fields: [userId], references: [id], onDelete: Cascade)
+  involvedUser   User?          @relation("InvolvedUserTickets", fields: [involvedUserId], references: [id])
+  order          ServiceOrder?  @relation(fields: [orderId], references: [id])
+  transaction    Transaction?   @relation(fields: [transactionId], references: [id])
+  replies        TicketReply[]
 }
 
 model TicketReply {
@@ -980,31 +982,31 @@ enum TicketStatus {
 /// La caja. Desde Mercav Business es de una empresa (workspaceId) y la usan sus miembros según su rol; la caja
 /// personal de antes (userId) sigue funcionando hasta que el dueño la trae a su empresa.
 model POSConfig {
-  id            String   @id @default(uuid())
-  userId        String?  @unique
-  workspaceId   String?  @unique
-  shopName      String?
-  logoUrl       String?
-  currency      String   @default("USD")
-  country       String?
-  department    String?
-  city          String?
-  address       String?
-  businessType     String   @default("GENERAL")
-  taxName          String   @default("IVA")
-  taxRate          Decimal  @default(0)
-  pricesIncludeTax Boolean  @default(true)
-  paymentMethods   String[] @default(["CASH", "CARD", "TRANSFER", "QR"])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workspace     BusinessWorkspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  categories    POSCategory[]
-  products      POSProduct[]
-  sales         POSSale[]
-  cashSessions  POSCashSession[]
-  staff         POSStaff[]
-  kosherPlaceId String?       // Mercav Kosher place this shop publishes stock to
+  id               String             @id @default(uuid())
+  userId           String?            @unique
+  workspaceId      String?            @unique
+  shopName         String?
+  logoUrl          String?
+  currency         String             @default("USD")
+  country          String?
+  department       String?
+  city             String?
+  address          String?
+  businessType     String             @default("GENERAL")
+  taxName          String             @default("IVA")
+  taxRate          Decimal            @default(0)
+  pricesIncludeTax Boolean            @default(true)
+  paymentMethods   String[]           @default(["CASH", "CARD", "TRANSFER", "QR"])
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  user             User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace        BusinessWorkspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  categories       POSCategory[]
+  products         POSProduct[]
+  sales            POSSale[]
+  cashSessions     POSCashSession[]
+  staff            POSStaff[]
+  kosherPlaceId    String? // Mercav Kosher place this shop publishes stock to
 }
 
 model POSCategory {
@@ -1020,32 +1022,32 @@ model POSCategory {
 }
 
 model POSProduct {
-  id           String         @id @default(uuid())
-  posConfigId  String
-  categoryId   String?
-  name         String
-  description  String?
-  price        Decimal
-  costPrice    Decimal        @default(0)
-  stock        Decimal        @default(0)
-  sku          String?
-  barcode      String?
-  unit         String         @default("UNIT") // UNIT, KG, G, L, M
-  trackStock   Boolean        @default(true)
-  taxRate      Decimal?
-  imageUrl     String?
-  isActive     Boolean        @default(true)
-  isKosher     Boolean        @default(false)
-  isHalal      Boolean        @default(false)
-  isVegan      Boolean        @default(false)
-  isGlutenFree Boolean        @default(false)
-  minStock     Decimal?       // low-stock alert threshold
+  id             String               @id @default(uuid())
+  posConfigId    String
+  categoryId     String?
+  name           String
+  description    String?
+  price          Decimal
+  costPrice      Decimal              @default(0)
+  stock          Decimal              @default(0)
+  sku            String?
+  barcode        String?
+  unit           String               @default("UNIT") // UNIT, KG, G, L, M
+  trackStock     Boolean              @default(true)
+  taxRate        Decimal?
+  imageUrl       String?
+  isActive       Boolean              @default(true)
+  isKosher       Boolean              @default(false)
+  isHalal        Boolean              @default(false)
+  isVegan        Boolean              @default(false)
+  isGlutenFree   Boolean              @default(false)
+  minStock       Decimal? // low-stock alert threshold
   kosherCategory KosherStockCategory? // set to publish this product's stock to Mercav Kosher
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  posConfig    POSConfig      @relation(fields: [posConfigId], references: [id], onDelete: Cascade)
-  category     POSCategory?   @relation(fields: [categoryId], references: [id])
-  saleItems    POSSaleItem[]
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  posConfig      POSConfig            @relation(fields: [posConfigId], references: [id], onDelete: Cascade)
+  category       POSCategory?         @relation(fields: [categoryId], references: [id])
+  saleItems      POSSaleItem[]
 
   @@unique([posConfigId, barcode])
   @@unique([posConfigId, sku])
@@ -1059,9 +1061,9 @@ model POSSale {
   taxAmount       Decimal        @default(0)
   totalAmount     Decimal
   discountAmount  Decimal        @default(0)
-  discountType    String?        // PERCENTAGE or FIXED
+  discountType    String? // PERCENTAGE or FIXED
   orderType       String         @default("COUNTER") // ids from lib/pos/business.ts
-  deliveryChannel String?        // Rappi, PedidosYa, etc.
+  deliveryChannel String? // Rappi, PedidosYa, etc.
   receivedAmount  Decimal        @default(0)
   changeAmount    Decimal        @default(0)
   transactionId   String         @unique @default(cuid())
@@ -1070,9 +1072,9 @@ model POSSale {
   status          String         @default("COMPLETED") // COMPLETED, VOIDED
   voidedAt        DateTime?
   voidReason      String?
-  voidedById      String?        // POSStaff id, null when the owner voided it
-  voidedByUserId  String?        // cuenta Mercav que anuló (caja de empresa)
-  sellerUserId    String?        // cuenta Mercav que vendió (caja de empresa)
+  voidedById      String? // POSStaff id, null when the owner voided it
+  voidedByUserId  String? // cuenta Mercav que anuló (caja de empresa)
+  sellerUserId    String? // cuenta Mercav que vendió (caja de empresa)
   clientRef       String?        @unique // idempotency key for sales queued offline
   staffId         String?
   createdAt       DateTime       @default(now())
@@ -1103,7 +1105,7 @@ model POSSaleItem {
 model POSPayment {
   id        String   @id @default(uuid())
   saleId    String
-  method    String   // CASH, CARD, TRANSFER, QR, OTHER
+  method    String // CASH, CARD, TRANSFER, QR, OTHER
   amount    Decimal
   reference String?
   createdAt DateTime @default(now())
@@ -1113,22 +1115,22 @@ model POSPayment {
 }
 
 model POSCashSession {
-  id              String    @id @default(uuid())
-  posConfigId     String
-  openingAmount   Decimal
-  closingAmount   Decimal?
-  expectedAmount  Decimal?
-  difference      Decimal?
-  salesByMethod   Json?
-  status          String    @default("OPEN") // OPEN, CLOSED
-  openedAt        DateTime  @default(now())
-  closedAt        DateTime?
-  staffId         String?
-  openedByUserId  String?   // cuenta Mercav que abrió la caja (caja de empresa)
-  closedByUserId  String?
-  posConfig       POSConfig @relation(fields: [posConfigId], references: [id], onDelete: Cascade)
-  staff           POSStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
-  sales           POSSale[]
+  id             String    @id @default(uuid())
+  posConfigId    String
+  openingAmount  Decimal
+  closingAmount  Decimal?
+  expectedAmount Decimal?
+  difference     Decimal?
+  salesByMethod  Json?
+  status         String    @default("OPEN") // OPEN, CLOSED
+  openedAt       DateTime  @default(now())
+  closedAt       DateTime?
+  staffId        String?
+  openedByUserId String? // cuenta Mercav que abrió la caja (caja de empresa)
+  closedByUserId String?
+  posConfig      POSConfig @relation(fields: [posConfigId], references: [id], onDelete: Cascade)
+  staff          POSStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  sales          POSSale[]
 
   // En SQL también: una sola caja abierta por tienda (índice parcial "POSCashSession_one_open_per_config").
   @@index([posConfigId, status])
@@ -1164,10 +1166,11 @@ model ToolRun {
 
   @@index([userId, tool, createdAt])
 }
+
 model Badge {
   id          String   @id @default(uuid())
   name        String
-  icon        String   // URL del logo (PNG)
+  icon        String // URL del logo (PNG)
   description String?
   createdAt   DateTime @default(now())
   users       User[]   @relation("UserBadges")
@@ -1194,7 +1197,7 @@ model AdminLog {
 
 model DeletedContentHistory {
   id           String   @id @default(uuid())
-  contentType  String   // POST, SERVICE, SPACE, JOB
+  contentType  String // POST, SERVICE, SPACE, JOB
   contentId    String
   contentOwner String
   contentData  Json
@@ -1279,7 +1282,7 @@ model PwnBreach {
   updatedAt           DateTime              @updatedAt
   source              PwnSource?            @relation(fields: [sourceId], references: [id], onDelete: SetNull)
   exposures           PwnExposure[]
-  forumSignals        PwnForumSignal[] @relation("ForumSignalBreach")
+  forumSignals        PwnForumSignal[]      @relation("ForumSignalBreach")
 
   @@unique([name, sourceId])
   @@index([sourceId])
@@ -1346,27 +1349,27 @@ model PwnOrganization {
 }
 
 model PwnMonitoringTarget {
-  id             String           @id @default(uuid())
-  userId         String
-  organizationId String?
-  targetType     PwnTargetType
-  targetHash     String
-  targetDisplay  String
+  id                       String                      @id @default(uuid())
+  userId                   String
+  organizationId           String?
+  targetType               PwnTargetType
+  targetHash               String
+  targetDisplay            String
   // Domain the owner monitors. Emails stay hash-only and this stays null.
-  targetLookup   String?
-  active         Boolean          @default(true)
+  targetLookup             String?
+  active                   Boolean                     @default(true)
   // Consultation stays pending until an administrator authorizes it.
-  verificationStatus         PwnTargetVerificationStatus @default(PENDING)
-  verificationTokenHash      String?
-  authorizationRequestedAt   DateTime?
-  authorizationMessage       String?                     @db.VarChar(280)
-  verifiedAt                 DateTime?
-  verifiedByUserId           String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization   PwnOrganization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  alerts         PwnAlert[]
+  verificationStatus       PwnTargetVerificationStatus @default(PENDING)
+  verificationTokenHash    String?
+  authorizationRequestedAt DateTime?
+  authorizationMessage     String?                     @db.VarChar(280)
+  verifiedAt               DateTime?
+  verifiedByUserId         String?
+  createdAt                DateTime                    @default(now())
+  updatedAt                DateTime                    @updatedAt
+  user                     User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization             PwnOrganization?            @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  alerts                   PwnAlert[]
 
   @@unique([userId, targetType, targetHash])
   @@index([targetHash])
@@ -1504,12 +1507,26 @@ enum KosherPlaceType {
   museum
 }
 
+// De más a menos confianza. Los niveles nuevos (supervised … kosher_style) separan lo que antes caía en
+// community_report o unknown: así cada persona filtra por su propio estándar.
 enum KosherStatus {
   certified
+  supervised
+  self_declared
+  some_products
+  some_dishes
   community_report
   unknown
+  kosher_style
   disputed
   closed
+}
+
+/// Desde qué nivel de kashrut quiere ver lugares de comida la persona.
+enum KosherKashrutPreference {
+  certified
+  supervised
+  all
 }
 
 enum KosherFood {
@@ -1565,20 +1582,21 @@ enum KosherEditStatus {
 }
 
 model KosherProfile {
-  id             String              @id @default(uuid())
-  userId         String              @unique
-  role           KosherRole          @default(member)
-  denomination   KosherDenomination?
-  orthodoxStream KosherStream?
-  city           String?
-  countryCode    String?
-  lat            Float?
-  lng            Float?
-  shabbatMode    Boolean             @default(false)
-  timezone       String?
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String                   @id @default(uuid())
+  userId            String                   @unique
+  role              KosherRole               @default(member)
+  denomination      KosherDenomination?
+  orthodoxStream    KosherStream?
+  city              String?
+  countryCode       String?
+  lat               Float?
+  lng               Float?
+  shabbatMode       Boolean                  @default(false)
+  timezone          String?
+  kashrutPreference KosherKashrutPreference?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  user              User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model KosherPlace {
@@ -1615,6 +1633,17 @@ model KosherPlace {
   patIsrael      Boolean?
   glatt          Boolean?
   beitYosef      Boolean?
+  /// Horario semanal en hora local del lugar: { "0": [{ "open": "12:00", "close": "15:00" }], … }, 0 = domingo. Ver lib/kosher/hours.ts.
+  hours          Json?
+  /// Zona horaria IANA del lugar; si falta, la del país.
+  timezone       String?
+  /// 1 a 4 ($ a $$$$).
+  priceLevel     Int?
+  /// Claves de KOSHER_SERVICES (lib/kosher/labels.ts).
+  services       String[]               @default([])
+  /// Lugares importados de OpenStreetMap: "node/123", "way/456". Evita duplicarlos al reimportar.
+  osmId          String?                @unique
+  coverPhotoId   String?
   published      Boolean                @default(true)
   createdById    String?
   createdAt      DateTime               @default(now())
@@ -1627,6 +1656,8 @@ model KosherPlace {
   claims         KosherClaim[]
   events         KosherEvent[]
   minyanim       KosherMinyan[]
+  photos         KosherPhoto[]
+  favorites      KosherFavorite[]
 
   @@index([city, countryCode])
   @@index([type])
@@ -1931,6 +1962,37 @@ model KosherClaim {
   @@index([state])
 }
 
+/// Fotos de un lugar. Se guardan en la base (ya achicadas en el navegador) y se sirven desde /api/kosher/photos/[id].
+model KosherPhoto {
+  id           String      @id @default(uuid())
+  placeId      String
+  data         Bytes
+  mime         String      @db.VarChar(40)
+  width        Int
+  height       Int
+  bytes        Int
+  caption      String?     @db.VarChar(140)
+  position     Int         @default(0)
+  uploadedById String?
+  createdAt    DateTime    @default(now())
+  place        KosherPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  uploadedBy   User?       @relation("KosherPhotoUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([placeId, position])
+}
+
+/// Lugares guardados por una persona (Guardar en la ficha).
+model KosherFavorite {
+  userId    String
+  placeId   String
+  createdAt DateTime    @default(now())
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  place     KosherPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, placeId])
+  @@index([placeId])
+}
+
 model KosherInvite {
   id          String    @id @default(uuid())
   token       String    @unique
@@ -1967,21 +2029,21 @@ model UnusualTrafficEvent {
 
 /// Qué feriados y fechas festivas quiere ver cada persona. Sin fila = valores por defecto.
 model CalendarPreference {
-  userId     String   @id
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   /// Fuentes activas, por ejemplo FERIADOS_NACIONALES, FERIADOS_REGIONALES, JUDIO_FIESTAS, JUDIO_AYUNOS.
-  sources    String[] @default([])
+  sources   String[] @default([])
   /// País de los feriados (ISO 3166-1 alfa-2: BO, AR, MX…).
-  country    String?
+  country   String?
   /// Región del país para los feriados regionales (departamento, provincia o estado).
-  region     String?
+  region    String?
   /// Calendario judío según Israel (true) o la diáspora (false).
-  israel     Boolean  @default(false)
+  israel    Boolean  @default(false)
   /// Claves de fechas puntuales que la persona ocultó.
-  hidden     String[] @default([])
+  hidden    String[] @default([])
   /// Token del link secreto para suscribirse desde Google Calendar, Apple o Outlook (webcal). Se puede regenerar.
-  feedToken  String?  @unique
-  updatedAt  DateTime @updatedAt
+  feedToken String?  @unique
+  updatedAt DateTime @updatedAt
 }
 
 // ─── Mercav Business (app.mercav.lat/business) ────────────────────────────────
@@ -2014,33 +2076,33 @@ enum BusinessPayrollStatus {
 
 /// Empresa (tenant privado de RR.HH.). Toda consulta de Business se filtra por workspaceId.
 model BusinessWorkspace {
-  id          String               @id @default(cuid())
-  slug        String               @unique
-  name        String
-  legalName   String?
-  nit         String?
+  id              String               @id @default(cuid())
+  slug            String               @unique
+  name            String
+  legalName       String?
+  nit             String?
   /// País de la empresa (ISO 3166-1 alfa-2). Define feriados, moneda y motor de planillas.
-  country     String               @default("BO")
+  country         String               @default("BO")
   /// Moneda de los sueldos (ISO 4217).
-  currency    String               @default("BOB")
+  currency        String               @default("BOB")
   /// Departamento, provincia o estado.
-  region      String?
-  city        String?
-  logoUrl     String?
-  brandColor  String?
+  region          String?
+  city            String?
+  logoUrl         String?
+  brandColor      String?
   /// Empresa productiva: el bono de antigüedad se calcula sobre 3 salarios mínimos.
-  productive  Boolean              @default(false)
-  ownerId     String
-  owner       User                 @relation("BusinessOwner", fields: [ownerId], references: [id])
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
-  members     BusinessMember[]
-  employees   BusinessEmployee[]
-  invites     BusinessInvite[]
-  payrollRuns BusinessPayrollRun[]
-  auditLogs   BusinessAuditLog[]
+  productive      Boolean              @default(false)
+  ownerId         String
+  owner           User                 @relation("BusinessOwner", fields: [ownerId], references: [id])
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  members         BusinessMember[]
+  employees       BusinessEmployee[]
+  invites         BusinessInvite[]
+  payrollRuns     BusinessPayrollRun[]
+  auditLogs       BusinessAuditLog[]
   loyaltyPrograms LoyaltyProgram[]
-  posConfig   POSConfig?
+  posConfig       POSConfig?
 
   @@index([ownerId])
 }
@@ -2222,30 +2284,30 @@ enum LoyaltyEventSource {
 
 /// Programa de fidelización de una empresa. El slug es la URL pública para sumarse (/c/<slug>).
 model LoyaltyProgram {
-  id           String               @id @default(cuid())
-  workspaceId  String
-  workspace    BusinessWorkspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  slug         String               @unique
-  name         String
-  type         LoyaltyProgramType   @default(STAMPS)
+  id             String               @id @default(cuid())
+  workspaceId    String
+  workspace      BusinessWorkspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  slug           String               @unique
+  name           String
+  type           LoyaltyProgramType   @default(STAMPS)
   /// Rubro (CAFE, PELUQUERIA, GIMNASIO…): define ícono, textos y diseño sugerido.
-  businessType String
+  businessType   String
   /// Reglas del motor (meta de sellos, puntos por monto, topes, vencimiento, bonos, niveles).
-  rules        Json
+  rules          Json
   /// Diseño de la tarjeta (paleta, logo, beneficios, textos).
-  design       Json
-  status       LoyaltyProgramStatus @default(DRAFT)
+  design         Json
+  status         LoyaltyProgramStatus @default(DRAFT)
   /// Secreto del QR rotativo del mostrador (autoservicio), cifrado.
   kioskSecretEnc String?
   /// Próximo número de cliente de este programa (se reserva dentro de la transacción del alta).
-  nextCustomerNo Int                @default(1)
-  createdById  String
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
-  rewards      LoyaltyReward[]
-  cards        LoyaltyCard[]
-  events       LoyaltyEvent[]
-  campaigns    LoyaltyCampaign[]
+  nextCustomerNo Int                  @default(1)
+  createdById    String
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  rewards        LoyaltyReward[]
+  cards          LoyaltyCard[]
+  events         LoyaltyEvent[]
+  campaigns      LoyaltyCampaign[]
 
   @@index([workspaceId])
 }
@@ -2268,75 +2330,75 @@ model LoyaltyReward {
 
 /// Tarjeta de un cliente en un programa. El serial va en el QR y en el link de la tarjeta web.
 model LoyaltyCard {
-  id               String            @id @default(cuid())
-  programId        String
-  program          LoyaltyProgram    @relation(fields: [programId], references: [id], onDelete: Cascade)
-  serial           String            @unique
-  referralCode     String            @unique
+  id                 String              @id @default(cuid())
+  programId          String
+  program            LoyaltyProgram      @relation(fields: [programId], references: [id], onDelete: Cascade)
+  serial             String              @unique
+  referralCode       String              @unique
   /// Número de cliente dentro del programa (#1, #2…). Lo ve solo el personal de ese negocio.
-  customerNo       Int
-  customerName     String
-  phone            String?
-  email            String?
+  customerNo         Int
+  customerName       String
+  phone              String?
+  email              String?
   /// Cumpleaños sin año, MM-DD.
-  birthday         String?
-  marketingConsent Boolean           @default(false)
-  balance          Int               @default(0)
-  lifetime         Int               @default(0)
-  visits           Int               @default(0)
-  lastVisitAt      DateTime?
-  lastBirthdayYear Int?
-  referredById     String?
-  referredBy       LoyaltyCard?      @relation("LoyaltyReferrals", fields: [referredById], references: [id], onDelete: SetNull)
-  referrals        LoyaltyCard[]     @relation("LoyaltyReferrals")
-  referralRewarded Boolean           @default(false)
+  birthday           String?
+  marketingConsent   Boolean             @default(false)
+  balance            Int                 @default(0)
+  lifetime           Int                 @default(0)
+  visits             Int                 @default(0)
+  lastVisitAt        DateTime?
+  lastBirthdayYear   Int?
+  referredById       String?
+  referredBy         LoyaltyCard?        @relation("LoyaltyReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals          LoyaltyCard[]       @relation("LoyaltyReferrals")
+  referralRewarded   Boolean             @default(false)
   /// Cuenta Mercav del cliente: la vincula el cliente desde su tarjeta o el negocio con su código MercavClub.
-  userId           String?
-  user             User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
-  linkedAt         DateTime?
+  userId             String?
+  user               User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  linkedAt           DateTime?
   /// Titular: PENDING al vincular; VERIFIED cuando el negocio revisó su documento en persona.
-  holderStatus     LoyaltyHolderStatus @default(UNVERIFIED)
-  holderVerifiedAt DateTime?
+  holderStatus       LoyaltyHolderStatus @default(UNVERIFIED)
+  holderVerifiedAt   DateTime?
   holderVerifiedById String?
   /// Tipo y últimos 4 dígitos del documento revisado (nunca el número completo).
-  holderDocType    String?
-  holderDocLast4   String?
+  holderDocType      String?
+  holderDocLast4     String?
   /// Quién dio de alta la tarjeta desde el negocio (null: el cliente solo, con el QR).
-  createdById      String?
+  createdById        String?
   /// Cuándo se aceptó el aviso de datos reales (alta o vinculación).
-  realDataAckAt    DateTime?
-  status           LoyaltyCardStatus @default(ACTIVE)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  events           LoyaltyEvent[]
+  realDataAckAt      DateTime?
+  status             LoyaltyCardStatus   @default(ACTIVE)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  events             LoyaltyEvent[]
 
   @@unique([programId, customerNo])
   @@unique([programId, userId])
-  @@index([userId])
   @@unique([programId, phone])
+  @@index([userId])
   @@index([programId, status])
   @@index([programId, lastVisitAt])
 }
 
 /// Cada movimiento de una tarjeta. clientRef evita sellar dos veces si se corta la red.
 model LoyaltyEvent {
-  id           String             @id @default(cuid())
-  cardId       String
-  card         LoyaltyCard        @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  programId    String
-  program      LoyaltyProgram     @relation(fields: [programId], references: [id], onDelete: Cascade)
-  type         LoyaltyEventType
-  amount       Int
-  balanceAfter Int
-  rewardId     String?
-  reward       LoyaltyReward?     @relation(fields: [rewardId], references: [id], onDelete: SetNull)
+  id             String             @id @default(cuid())
+  cardId         String
+  card           LoyaltyCard        @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  programId      String
+  program        LoyaltyProgram     @relation(fields: [programId], references: [id], onDelete: Cascade)
+  type           LoyaltyEventType
+  amount         Int
+  balanceAfter   Int
+  rewardId       String?
+  reward         LoyaltyReward?     @relation(fields: [rewardId], references: [id], onDelete: SetNull)
   /// Monto de la compra (programas por puntos), para estadísticas.
-  purchaseAmount Decimal?         @db.Decimal(12, 2)
-  source       LoyaltyEventSource @default(STAFF)
-  actorUserId  String?
-  note         String?
-  clientRef    String?            @unique
-  createdAt    DateTime           @default(now())
+  purchaseAmount Decimal?           @db.Decimal(12, 2)
+  source         LoyaltyEventSource @default(STAFF)
+  actorUserId    String?
+  note           String?
+  clientRef      String?            @unique
+  createdAt      DateTime           @default(now())
 
   @@index([programId, createdAt])
   @@index([cardId, createdAt])
