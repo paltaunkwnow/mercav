@@ -11,6 +11,7 @@ const schema = z.object({
   lat: z.number().min(-90).max(90).nullable().optional(),
   lng: z.number().min(-180).max(180).nullable().optional(),
   shabbatMode: z.boolean().optional(),
+  kashrutPreference: z.enum(["certified", "supervised", "all"]).nullable().optional(),
   timezone: z
     .string()
     .max(64)
@@ -18,6 +19,16 @@ const schema = z.object({
     .nullable()
     .optional(),
 });
+
+/** Las preferencias de la persona que se leen desde el cliente (el diálogo de kashrut y el perfil). */
+export async function GET() {
+  const viewer = await getKosherViewer();
+  if (!viewer) return unauthorized();
+  return NextResponse.json(
+    { success: true, kashrutPreference: viewer.profile?.kashrutPreference ?? null },
+    { headers: { "Cache-Control": "private, no-store" } },
+  );
+}
 
 export async function PATCH(request: NextRequest) {
   const viewer = await getKosherViewer();
@@ -39,3 +50,4 @@ export async function PATCH(request: NextRequest) {
   });
   return NextResponse.json({ success: true, profile });
 }
+// creado por pato dev y askforvini

@@ -1,12 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import type { KosherKashrutPreference } from "@prisma/client";
 import { MoonStar } from "@/components/icons";
 import { toast } from "sonner";
 import { DENOMINATION, STREAM } from "@/lib/kosher/labels";
 import { kosherFetch } from "@/components/kosher/KosherViewer";
+import { KashrutOptions, storeKashrutPreference } from "@/components/kosher/KashrutPreference";
 import { fieldClass, labelClass, primaryButton } from "@/components/kosher/ui";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +22,8 @@ type Initial = {
   shabbatMode: boolean;
   denomination: string | null;
   orthodoxStream: string | null;
+  /** Si la página no la manda, el formulario la pide a /api/kosher/profile. */
+  kashrutPreference?: KosherKashrutPreference | null;
 };
 
 const field = fieldClass;
@@ -28,7 +32,33 @@ export function KosherProfileForm({ communities, initial, role }: { communities:
   const router = useRouter();
   const [state, setState] = useState(initial);
   const [saving, setSaving] = useState(false);
+  const [kashrut, setKashrut] = useState<KosherKashrutPreference | null>(initial.kashrutPreference ?? null);
+  const [kashrutReady, setKashrutReady] = useState(initial.kashrutPreference !== undefined);
   const reduce = useReducedMotion();
+
+  useEffect(() => {
+    if (initial.kashrutPreference !== undefined) return;
+    kosherFetch<{ kashrutPreference: KosherKashrutPreference | null }>("/api/kosher/profile")
+      .then((data) => setKashrut(data.kashrutPreference))
+      .catch(() => undefined)
+      .finally(() => setKashrutReady(true));
+  }, [initial.kashrutPreference]);
+
+  async function saveKashrut(next: KosherKashrutPreference) {
+    const previous = kashrut;
+    setKashrut(next);
+    setSaving(true);
+    try {
+      await kosherFetch("/api/kosher/profile", { method: "PATCH", json: { kashrutPreference: next } });
+      storeKashrutPreference(next);
+      toast.success("Preferencia de kashrut guardada");
+    } catch (e) {
+      toast.error((e as Error).message);
+      setKashrut(previous);
+    } finally {
+      setSaving(false);
+    }
+  }
   const selected = communities.find((c) => c.city === state.city && c.countryCode === state.countryCode);
   const clock = (iso: string) => new Intl.DateTimeFormat("es", { timeZone: selected!.timezone, weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
 
@@ -104,6 +134,16 @@ export function KosherProfileForm({ communities, initial, role }: { communities:
         </button>
       </section>
 
+      <section aria-labelledby="k-pref-kashrut" className="mv-panel p-6 md:p-8">
+        <h2 id="k-pref-kashrut" className="mv-h3">¿Cómo elegís dónde comer?</h2>
+        <p className="mt-2 text-sm text-[var(--text-secondary)]">
+          El mapa muestra restaurantes y comercios según este nivel. Sinagogas, mikvaot y kehilot se ven siempre. Mercav Kosher no emite hechsher.
+        </p>
+        <div className="mt-6" aria-busy={!kashrutReady}>
+          <KashrutOptions current={kashrut} onChoose={saveKashrut} idPrefix="k-pref-profile" disabled={saving || !kashrutReady} />
+        </div>
+      </section>
+
       <section aria-labelledby="k-pref-shabbat" className="mv-panel p-6 md:p-8">
         <div className="flex items-start justify-between gap-6">
           <div>
@@ -150,3 +190,4 @@ export function KosherProfileForm({ communities, initial, role }: { communities:
     </div>
   );
 }
+// creado por pato dev y askforvini
