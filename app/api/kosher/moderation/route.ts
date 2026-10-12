@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { EDITABLE_FIELDS, editValueProblem, type EditableField } from "@/lib/kosher/edits";
 import { listCities } from "@/lib/kosher/cities";
 import { notifyCity, notifyUser } from "@/lib/kosher/notify";
+import { parseHours } from "@/lib/kosher/hours";
 import { getKosherViewer, kosherError, unauthorized, writeGuard, type KosherViewer } from "@/lib/kosher/server";
 
 const KINDS = ["edit", "place", "message", "event", "host", "chesed", "claim"] as const;
@@ -35,6 +36,21 @@ class AlreadyDecided extends Error {}
 
 async function citySlug(city: string, countryCode: string) {
   return (await listCities()).find((c) => c.city === city && c.countryCode === countryCode)?.slug ?? "";
+}
+
+/** Lo que trae cada lugar sugerido (nivel, horario, precio, servicios), para revisarlo antes de publicarlo. */
+export async function GET() {
+  const viewer = await getKosherViewer();
+  if (!viewer) return unauthorized();
+  if (!viewer.isModerator) return kosherError(403, "Necesitás rol de moderador de Kosher.");
+  const places = await prisma.kosherPlace.findMany({
+    where: { published: false },
+    select: { id: true, type: true, status: true, hours: true, timezone: true, priceLevel: true, services: true },
+  });
+  return NextResponse.json(
+    { success: true, places: places.map((p) => ({ ...p, hours: parseHours(p.hours) })) },
+    { headers: { "Cache-Control": "private, no-store" } },
+  );
 }
 
 export async function POST(request: NextRequest) {

@@ -3,13 +3,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { LocateFixed } from "@/components/icons";
+import { ChevronDown, Clock, LocateFixed } from "@/components/icons";
 import { toast } from "sonner";
-import type { KosherFood, KosherPlaceType } from "@prisma/client";
-import { FOOD, PLACE_TYPES } from "@/lib/kosher/labels";
+import type { KosherFood, KosherPlaceType, KosherStatus } from "@prisma/client";
+import { FOOD, PLACE_TYPES, isFoodPlace } from "@/lib/kosher/labels";
 import { kosherFetch, useKosherViewer } from "@/components/kosher/KosherViewer";
 import { SlideConfirm } from "@/components/motion/SlideConfirm";
 import { SignInCard, fieldClass, labelClass } from "@/components/kosher/ui";
+import { HoursEditor } from "@/components/kosher/manage/HoursEditor";
+import { PricePicker, ServicesPicker, StatusSelect } from "@/components/kosher/manage/PlaceFields";
+import { DEFAULT_SUGGEST_STATUS, SUGGEST_STATUSES, draftProblems, draftToHours, emptyDraft, servicesFor } from "@/components/kosher/manage/details";
 import { buttonClass } from "@/components/site/primitives";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +37,12 @@ export function SuggestPlaceForm() {
     agencyName: "",
     notes: "",
   });
+  // Opcionales: nivel de kashrut, horario, precio y servicios.
+  const [status, setStatus] = useState<KosherStatus>(DEFAULT_SUGGEST_STATUS);
+  const [showHours, setShowHours] = useState(false);
+  const [hours, setHours] = useState(emptyDraft);
+  const [priceLevel, setPriceLevel] = useState<number | null>(null);
+  const [services, setServices] = useState<string[]>([]);
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -52,9 +61,15 @@ export function SuggestPlaceForm() {
     );
   }
 
+  const food = isFoodPlace(form.type);
+  const allowedServices = servicesFor(form.type);
+  const hourProblems = showHours ? draftProblems(hours) : {};
+  const hoursOk = Object.keys(hourProblems).length === 0;
+
   const lat = Number(form.lat);
   const lng = Number(form.lng);
   const valid =
+    hoursOk &&
     form.name.trim().length >= 2 &&
     form.address.trim().length >= 2 &&
     form.city.trim().length >= 2 &&
@@ -70,6 +85,7 @@ export function SuggestPlaceForm() {
     form.country.trim().length < 2 && "país",
     !/^[a-zA-Z]{2}$/.test(form.countryCode) && "código de país",
     !(form.lat !== "" && form.lng !== "" && Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) && "ubicación",
+    !hoursOk && "revisar el horario",
   ].filter(Boolean) as string[];
 
   async function submit() {
@@ -86,8 +102,12 @@ export function SuggestPlaceForm() {
           lat,
           lng,
           foodCategory: form.foodCategory || undefined,
-          agencyName: form.agencyName || undefined,
+          agencyName: (food && form.agencyName) || undefined,
           notes: form.notes || undefined,
+          status: food ? status : undefined,
+          hours: showHours ? (draftToHours(hours) ?? undefined) : undefined,
+          priceLevel: food ? priceLevel : undefined,
+          services: services.filter((s) => allowedServices.includes(s as (typeof allowedServices)[number])),
         },
       });
       if (res.published) {
@@ -188,9 +208,19 @@ export function SuggestPlaceForm() {
       </fieldset>
 
       <fieldset>
-        <legend className={legend}>Kashrut y notas</legend>
+        <legend className={legend}>{food ? "Kashrut y notas" : "Notas"}</legend>
         <div className="grid gap-5">
-          <div>
+          {food && (
+            <StatusSelect
+              id="k-status"
+              type={form.type}
+              value={status}
+              options={SUGGEST_STATUSES}
+              onChange={setStatus}
+              note="«Certificado» lo marca moderación cuando el lugar envía su certificado vigente. Si sabés qué agencia lo certifica, escribila abajo."
+            />
+          )}
+          <div className={food ? "" : "hidden"}>
             <label className={label} htmlFor="k-agency">
               Agencia certificadora <span className="font-normal text-[var(--text-tertiary)]">· si la tiene</span>
             </label>
@@ -200,8 +230,37 @@ export function SuggestPlaceForm() {
             <label className={label} htmlFor="k-notes">
               Notas <span className="font-normal text-[var(--text-tertiary)]">· opcional</span>
             </label>
-            <textarea id="k-notes" className={cn(field, "h-28 resize-none py-3")} value={form.notes} onChange={set("notes")} maxLength={600} placeholder="Horarios, qué se consigue, cómo se maneja la kashrut…" />
+            <textarea id="k-notes" className={cn(field, "h-28 resize-none py-3")} value={form.notes} onChange={set("notes")} maxLength={600} placeholder="Qué se consigue, cómo se maneja la kashrut, si cierra en los jaguim…" />
           </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend className={legend}>Horario{food ? ", precio" : ""} y servicios</legend>
+        <p className="-mt-3 mb-5 text-sm text-[var(--text-secondary)]">Todo opcional. Si no estás seguro de un dato, dejalo vacío.</p>
+        <div className="grid gap-7">
+          <div>
+            <button
+              type="button"
+              aria-expanded={showHours}
+              aria-controls="k-hours-editor"
+              onClick={() => setShowHours((v) => !v)}
+              className={buttonClass("secondary", "sm", "h-10 px-4 text-sm")}
+            >
+              <Clock className="h-4 w-4" aria-hidden /> {showHours ? "Quitar el horario" : "Sumar el horario"}
+              <ChevronDown className={cn("h-4 w-4 transition-transform duration-200 motion-reduce:transition-none", showHours && "rotate-180")} aria-hidden />
+            </button>
+            {showHours && (
+              <div id="k-hours-editor" className="mt-5">
+                <HoursEditor value={hours} onChange={setHours} problems={hourProblems} />
+                <p className="mt-4 text-xs leading-relaxed text-[var(--text-secondary)]">
+                  En la hora local del lugar. Para un turno que pasa la medianoche, poné la hora de cierre del día siguiente: 20:00 a 02:00.
+                </p>
+              </div>
+            )}
+          </div>
+          {food && <PricePicker name="k-price" value={priceLevel} onChange={setPriceLevel} />}
+          <ServicesPicker options={allowedServices} value={services} onChange={setServices} />
         </div>
       </fieldset>
 
