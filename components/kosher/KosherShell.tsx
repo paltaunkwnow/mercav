@@ -14,6 +14,7 @@ const NAV = [
   { href: "/kosher", label: "Inicio" },
   { href: "/kosher/mapa", label: "Mapa" },
   { href: "/kosher/calendario", label: "Calendario" },
+  { href: "/kosher/kashrut", label: "Kashrut" },
   { href: "/kosher/comunidad", label: "Comunidad" },
   { href: "/kosher/viaje", label: "Viaje" },
   { href: "/kosher/chat", label: "Chat" },

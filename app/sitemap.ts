@@ -64,6 +64,8 @@ const STATIC: Array<[path: string, priority: number, freq: Freq]> = [
   ["/kosher/comunidad/jesed", 0.5, "weekly"],
   ["/kosher/comunidad/empleos", 0.5, "weekly"],
   ["/kosher/comunidad/agencias", 0.5, "monthly"],
+  ["/kosher/kashrut", 0.7, "monthly"],
+  ["/kosher/kashrut/pescados", 0.6, "monthly"],
   ["/kosher/comunidades", 0.6, "weekly"],
   ["/kosher/viaje", 0.6, "monthly"],
   ["/kosher/chat", 0.4, "daily"],
