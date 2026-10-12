@@ -4,6 +4,8 @@ import { canonicalFor } from "@/lib/seo/site";
 import { FERIADO_COUNTRIES, todayFor } from "./feriados/data";
 import { GUIDES } from "./guias/guides";
 import { listCitiesWithPlaces } from "@/lib/kosher/cities";
+import { FESTIVALS } from "@/lib/kosher/festivals";
+import { SIDUR } from "@/lib/kosher/sidur";
 
 export const revalidate = 3600;
 
@@ -66,6 +68,8 @@ const STATIC: Array<[path: string, priority: number, freq: Freq]> = [
   ["/kosher/comunidad/agencias", 0.5, "monthly"],
   ["/kosher/kashrut", 0.7, "monthly"],
   ["/kosher/kashrut/pescados", 0.6, "monthly"],
+  ["/kosher/sidur", 0.7, "weekly"],
+  ["/kosher/festividades", 0.7, "weekly"],
   ["/kosher/comunidades", 0.6, "weekly"],
   ["/kosher/viaje", 0.6, "monthly"],
   ["/kosher/chat", 0.4, "daily"],
@@ -88,6 +92,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entries.push({ url: canonicalFor(`/feriados/${c.slug}`), lastModified: now, changeFrequency: "weekly", priority: 0.7 });
     entries.push({ url: canonicalFor(`/feriados/${c.slug}/${todayFor(c).year + 1}`), lastModified: now, changeFrequency: "monthly", priority: 0.5 });
   }
+
+  // Mercav Kosher: cada berajá del sidur y cada festividad.
+  for (const b of SIDUR) entries.push({ url: canonicalFor(`/kosher/sidur/${b.slug}`), lastModified: now, changeFrequency: "monthly", priority: 0.5 });
+  for (const f of FESTIVALS) entries.push({ url: canonicalFor(`/kosher/festividades/${f.slug}`), lastModified: now, changeFrequency: "monthly", priority: 0.6 });
 
   // Guías: el índice y cada guía, con la fecha en que se actualizó.
   entries.push({ url: canonicalFor("/guias"), lastModified: now, changeFrequency: "weekly", priority: 0.7 });

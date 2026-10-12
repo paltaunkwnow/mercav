@@ -146,6 +146,8 @@ function apiMaySkipSession(req: NextRequest, pathname: string) {
     if (publicReads.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) return true;
     if (path === '/api/kosher/places' || /^\/api\/kosher\/places\/[a-z0-9-]+(\/photos)?$/.test(path)) return true;
     if (KOSHER_PHOTO.test(path)) return true;
+    // Calendario hebreo de Mercav Kosher por ciudad: lo leen Google, Apple u Outlook sin sesión.
+    if (/^\/api\/kosher\/calendar\/[a-z0-9-]{1,80}(\.ics)?$/.test(path)) return true;
     // Calendario suscripto: Google, Apple u Outlook lo leen sin sesión; el token del link es la llave.
     if (/^\/api\/calendar\/feed\/[A-Za-z0-9_-]{40,60}(\.ics)?$/.test(path)) return true;
   }
