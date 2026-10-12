@@ -23,12 +23,20 @@ export type AtlasPlaceDTO = {
  * El atlas de Mercav Kosher como en el celular de la portada: el mapa en pixel art con un punto por ciudad, las
  * ciudades como pastillas y los lugares en tarjetas. Pasar por un lugar enciende su ciudad en el mapa.
  */
-export function KosherAtlas({ places }: { places: AtlasPlaceDTO[] }) {
+export function KosherAtlas({
+  places,
+  cityGuides = {},
+}: {
+  places: AtlasPlaceDTO[];
+  /** Nombre de la ciudad → slug de su guía (/kosher/ciudad/[slug]). */
+  cityGuides?: Record<string, string>;
+}) {
   const cities = useMemo(() => Array.from(new Set(places.map((p) => p.city))).filter((c) => cityCell(c)), [places]);
   const [city, setCity] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(places[0]?.slug ?? null);
   const list = places.filter((p) => !city || p.city === city);
   const current = places.find((p) => p.slug === selected) ?? null;
+  const guide = city ? cityGuides[city] : undefined;
 
   // Ciudades muy cercanas en el mapa (Buenos Aires y Montevideo) comparten un punto; tocarlo de nuevo pasa a la siguiente.
   const pins = useMemo(() => {
@@ -133,8 +141,15 @@ export function KosherAtlas({ places }: { places: AtlasPlaceDTO[] }) {
             {list.length === 0 ? <li className="rounded-[1rem] bg-[var(--mv-panel)] px-4 py-6 text-center text-[var(--text-secondary)]">Todavía no hay lugares publicados acá.</li> : null}
           </ul>
 
+          {guide && (
+            <Link href={`/kosher/ciudad/${guide}`} className="mv-focus inline-flex min-h-10 items-center gap-1.5 self-start rounded-md text-[0.95rem] font-semibold text-[var(--k-accent)]">
+              Ver la guía de {city}
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          )}
+
           <div className="mt-1 flex flex-col gap-2 sm:flex-row">
-            <Link href="/kosher/mapa" className="mv-btn mv-focus bg-[var(--k-accent)] text-[var(--k-on-accent)] sm:flex-1">
+            <Link href={guide ? `/kosher/mapa?ciudad=${guide}` : "/kosher/mapa"} className="mv-btn mv-focus bg-[var(--k-accent)] text-[var(--k-on-accent)] sm:flex-1">
               Abrir el mapa
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>

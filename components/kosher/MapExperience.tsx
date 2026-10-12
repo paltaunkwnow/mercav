@@ -5,15 +5,19 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { List, LocateFixed, Search, Users, X } from "@/components/icons";
+import type { KosherKashrutPreference } from "@prisma/client";
+import { ArrowRight, Clock, List, LocateFixed, Search, Users, X } from "@/components/icons";
 import { toast } from "sonner";
-import type { PlaceDTO } from "@/lib/kosher/server";
-import { SCOPES, type ScopeKey } from "@/lib/kosher/labels";
+import type { ExplorePlace } from "@/lib/kosher/explore";
+import { SCOPES, matchesKashrutPreference, priceLabel, type ScopeKey } from "@/lib/kosher/labels";
+import { openLabel, openState, todayKey } from "@/lib/kosher/hours";
 import { formatKm, haversineKm } from "@/lib/kosher/geo";
 import { PlaceIcon } from "@/components/kosher/PlaceIcon";
 import { Stars, StatusBadge } from "@/components/kosher/StatusBadge";
 import { PlacePanel } from "@/components/kosher/PlacePanel";
 import { KosherWordmark } from "@/components/kosher/KosherShell";
+import { KashrutPreferenceDialog, KashrutPreferenceLine, useKashrutPreference } from "@/components/kosher/KashrutPreference";
+import { OpenLine, type OpenInfo } from "@/components/kosher/city/OpenLine";
 import type { MapCommunity } from "@/components/kosher/KosherMap";
 import { cn } from "@/lib/utils";
 
@@ -27,15 +31,31 @@ const KosherMap = dynamic(() => import("@/components/kosher/KosherMap").then((m)
 const spring = { type: "spring", stiffness: 380, damping: 38 } as const;
 
 function normalize(s: string) {
-  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
 
-export function MapExperience({ places, communities }: { places: PlaceDTO[]; communities: (MapCommunity & { city: string })[] }) {
+export type MapCity = MapCommunity & { city: string };
+
+export function MapExperience({
+  places,
+  communities,
+  preference: serverPreference,
+}: {
+  places: ExplorePlace[];
+  communities: MapCity[];
+  /** La preferencia guardada en el perfil (null si no entró o no eligió). */
+  preference: KosherKashrutPreference | null;
+}) {
   const router = useRouter();
   const params = useSearchParams();
   const reduce = useReducedMotion();
   const [query, setQuery] = useState(params?.get("q") ?? "");
   const [scopes, setScopes] = useState<ScopeKey[]>([]);
+  const [citySlug, setCitySlug] = useState<string | null>(() => {
+    const slug = params?.get("ciudad");
+    return slug && communities.some((c) => c.slug === slug) ? slug : null;
+  });
+  const [openOnly, setOpenOnly] = useState(false);
   const [selected, setSelected] = useState<string | null>(params?.get("lugar") ?? null);
   const [showCommunities, setShowCommunities] = useState(false);
   const [listOpen, setListOpen] = useState(false);
@@ -43,30 +63,67 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
   const [locating, setLocating] = useState(false);
   const [focus, setFocus] = useState<{ lat: number; lng: number; zoom: number; key: number } | null>(null);
   const [fitKey, setFitKey] = useState(0);
+  // La hora solo existe en el navegador: el servidor no sabe en qué minuto se va a mirar la lista.
+  const [now, setNow] = useState<Date | null>(null);
+  const kashrut = useKashrutPreference(serverPreference);
+  const [dialog, setDialog] = useState<"ask" | "edit" | null>(null);
 
-  const filtered = useMemo(() => {
+  const city = citySlug ? communities.find((c) => c.slug === citySlug) ?? null : null;
+
+  useEffect(() => {
+    setNow(new Date());
+    const id = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  // Primera visita: se pregunta, salvo que haya llegado con un lugar abierto (un link compartido).
+  const openedWithPlace = useRef(!!params?.get("lugar"));
+  const initialCity = useRef(citySlug);
+  const askedOnce = useRef(false);
+  useEffect(() => {
+    if (!kashrut.shouldAsk || askedOnce.current || params?.get("lugar")) return;
+    askedOnce.current = true;
+    setDialog("ask");
+    // Solo al decidir si preguntar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kashrut.shouldAsk]);
+
+  const hours = useMemo(() => {
+    const out = new Map<string, OpenInfo & { kind: string }>();
+    if (!now) return out;
+    for (const p of places) {
+      if (!p.hours) continue;
+      const state = openState(p.hours, p.timezone, now);
+      out.set(p.slug, { ...openLabel(state, todayKey(p.timezone, now)), kind: state.kind });
+    }
+    return out;
+  }, [places, now]);
+
+  const { filtered, hiddenByPreference } = useMemo(() => {
     const q = normalize(query.trim());
     const types = new Set(scopes.flatMap((s) => SCOPES[s].types as readonly string[]));
-    let list = places.filter((p) => {
+    const base = places.filter((p) => {
+      if (citySlug && p.citySlug !== citySlug) return false;
       if (types.size && !types.has(p.type)) return false;
+      if (openOnly && hours.get(p.slug)?.kind !== "open") return false;
       if (!q) return true;
       return [p.name, p.nameLocal, p.city, p.country, p.address, p.agencyName, p.chainName]
         .filter(Boolean)
         .some((v) => normalize(v!).includes(q));
     });
+    let list = base.filter((p) => matchesKashrutPreference(p.type, p.status, kashrut.preference));
     if (near) list = [...list].sort((a, b) => haversineKm(near, a) - haversineKm(near, b));
-    return list;
-  }, [places, query, scopes, near]);
+    return { filtered: list, hiddenByPreference: base.length - list.length };
+  }, [places, query, scopes, citySlug, openOnly, hours, near, kashrut.preference]);
 
-  const openedWithPlace = useRef(!!params?.get("lugar"));
   useEffect(() => {
     if (openedWithPlace.current) {
-      if (!query && scopes.length === 0) return;
+      if (!query && scopes.length === 0 && citySlug === initialCity.current) return;
       openedWithPlace.current = false;
     }
     const id = window.setTimeout(() => setFitKey((k) => k + 1), query ? 450 : 0);
     return () => window.clearTimeout(id);
-  }, [query, scopes]);
+  }, [query, scopes, citySlug]);
 
   useEffect(() => {
     const slug = params?.get("lugar");
@@ -77,17 +134,38 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /** La ciudad elegida viaja en la URL junto con el lugar abierto, para poder compartir el mapa filtrado. */
+  function urlFor(lugar: string | null, ciudad = citySlug) {
+    const sp = new URLSearchParams();
+    if (ciudad) sp.set("ciudad", ciudad);
+    if (lugar) sp.set("lugar", lugar);
+    const qs = sp.toString();
+    return `/kosher/mapa${qs ? `?${qs}` : ""}`;
+  }
+
   function select(slug: string) {
     setSelected(slug);
     setListOpen(false);
     const p = places.find((x) => x.slug === slug);
     if (p) setFocus({ lat: p.lat, lng: p.lng, zoom: 14, key: Date.now() });
-    router.replace(`/kosher/mapa?lugar=${slug}`, { scroll: false });
+    router.replace(urlFor(slug), { scroll: false });
   }
 
   function close() {
     setSelected(null);
-    router.replace("/kosher/mapa", { scroll: false });
+    router.replace(urlFor(null), { scroll: false });
+  }
+
+  function clearCity() {
+    setCitySlug(null);
+    router.replace(urlFor(selected, null), { scroll: false });
+  }
+
+  function clearFilters() {
+    setQuery("");
+    setScopes([]);
+    setOpenOnly(false);
+    if (citySlug) clearCity();
   }
 
   function locate() {
@@ -157,98 +235,152 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
   );
 
   /** `floating` chips sit directly on the map (mobile), so each carries its own thick material. */
-  const chips = (floating: boolean) => (
-    <div role="group" aria-label="Filtrar por tipo" className="scrollbar-hide -mx-1 flex gap-1.5 overflow-x-auto px-1 py-0.5">
-      {(Object.keys(SCOPES) as ScopeKey[]).map((key) => {
-        const active = scopes.includes(key);
-        return (
+  const chips = (floating: boolean) => {
+    const idle = cn("text-[var(--text-secondary)] hover:text-[var(--text-primary)]", floating ? "mv-menu" : "border border-[var(--mv-hairline-strong)]");
+    return (
+      <div role="group" aria-label="Filtros" className="scrollbar-hide -mx-1 flex gap-1.5 overflow-x-auto px-1 py-0.5">
+        {city && (
           <button
-            key={key}
             type="button"
-            aria-pressed={active}
-            onClick={() => toggleScope(key)}
-            className={cn(
-              "mv-focus relative inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[13px] font-semibold transition-colors duration-200",
-              active ? "text-[var(--mv-on-gold)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
-              !active && (floating ? "mv-menu" : "border border-[var(--mv-hairline-strong)]"),
-            )}
+            onClick={clearCity}
+            aria-label={`Quitar el filtro de ${city.city}`}
+            className="mv-focus inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-[var(--k-accent)] pl-4 pr-3 text-[13px] font-semibold text-[var(--k-on-accent)]"
           >
-            {active && (
-              <motion.span
-                layoutId={`chip-${floating ? "m" : "d"}-${key}`}
-                aria-hidden
-                className="absolute inset-0 rounded-full bg-gold"
-                transition={reduce ? { duration: 0 } : spring}
-              />
-            )}
-            <span className="relative">{SCOPES[key].label}</span>
+            {city.city}
+            <X className="h-3.5 w-3.5" aria-hidden />
           </button>
-        );
-      })}
-      <button
-        type="button"
-        aria-pressed={showCommunities}
-        onClick={() => setShowCommunities((v) => !v)}
-        className={cn(
-          "mv-focus inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-[13px] font-semibold transition-colors duration-200",
-          showCommunities
-            ? "bg-techelet-dim text-techelet ring-1 ring-inset ring-techelet/50"
-            : cn("text-[var(--text-secondary)] hover:text-[var(--text-primary)]", floating ? "mv-menu" : "border border-[var(--mv-hairline-strong)]"),
-          showCommunities && floating && "mv-menu !text-techelet",
         )}
-      >
-        <Users className="h-3.5 w-3.5" aria-hidden /> Kehilot
-      </button>
-    </div>
-  );
+        {(Object.keys(SCOPES) as ScopeKey[]).map((key) => {
+          const active = scopes.includes(key);
+          return (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={active}
+              onClick={() => toggleScope(key)}
+              className={cn(
+                "mv-focus relative inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[13px] font-semibold transition-colors duration-200",
+                active ? "text-[var(--mv-on-gold)]" : idle,
+              )}
+            >
+              {active && (
+                <motion.span
+                  layoutId={`chip-${floating ? "m" : "d"}-${key}`}
+                  aria-hidden
+                  className="absolute inset-0 rounded-full bg-gold"
+                  transition={reduce ? { duration: 0 } : spring}
+                />
+              )}
+              <span className="relative">{SCOPES[key].label}</span>
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          aria-pressed={openOnly}
+          onClick={() => setOpenOnly((v) => !v)}
+          className={cn(
+            "mv-focus inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-[13px] font-semibold transition-colors duration-200",
+            openOnly ? "bg-gold text-[var(--mv-on-gold)]" : idle,
+          )}
+        >
+          <Clock className="h-3.5 w-3.5" aria-hidden /> Abierto ahora
+        </button>
+        <button
+          type="button"
+          aria-pressed={showCommunities}
+          onClick={() => setShowCommunities((v) => !v)}
+          className={cn(
+            "mv-focus inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-[13px] font-semibold transition-colors duration-200",
+            showCommunities ? "bg-techelet-dim text-techelet ring-1 ring-inset ring-techelet/50" : idle,
+            showCommunities && floating && "mv-menu !text-techelet",
+          )}
+        >
+          <Users className="h-3.5 w-3.5" aria-hidden /> Kehilot
+        </button>
+      </div>
+    );
+  };
 
   const countLabel = `${filtered.length} ${filtered.length === 1 ? "lugar" : "lugares"}`;
+  const hiddenLabel =
+    hiddenByPreference > 0 ? `${hiddenByPreference} ${hiddenByPreference === 1 ? "lugar de comida queda" : "lugares de comida quedan"} afuera por tu preferencia.` : null;
+  const filtering = !!query || scopes.length > 0 || openOnly || !!city;
 
   const results = (
     <ul className="space-y-1">
       {filtered.length === 0 && (
         <li className="px-4 py-10 text-center">
-          <p className="text-sm font-semibold text-[var(--text-primary)]">No encontramos lugares con ese filtro.</p>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">
-            Probá con otra ciudad o{" "}
-            <Link href="/kosher/sugerir" className="mv-link">
-              sugerí uno que falte
-            </Link>
-            .
+          <p className="text-sm font-semibold text-[var(--text-primary)]">
+            {openOnly ? "Ningún lugar con horario cargado está abierto ahora." : "No encontramos lugares con ese filtro."}
           </p>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
+            {hiddenLabel ? (
+              <>
+                {hiddenLabel}{" "}
+                <button type="button" onClick={() => setDialog("edit")} className="mv-link mv-focus">
+                  Cambiar la preferencia
+                </button>
+              </>
+            ) : (
+              <>
+                Probá con otra ciudad o{" "}
+                <Link href="/kosher/sugerir" className="mv-link">
+                  sugerí uno que falte
+                </Link>
+                .
+              </>
+            )}
+          </p>
+          {filtering && (
+            <button type="button" onClick={clearFilters} className="mv-btn mv-btn-secondary mv-btn-sm mv-focus mt-4">
+              Quitar filtros
+            </button>
+          )}
         </li>
       )}
-      {filtered.map((p) => (
-        <li key={p.slug}>
-          <button
-            type="button"
-            onClick={() => select(p.slug)}
-            aria-current={selected === p.slug ? "true" : undefined}
-            className={cn(
-              "mv-focus flex w-full gap-3 rounded-2xl px-3 py-3 text-left transition-colors duration-200",
-              selected === p.slug ? "bg-[var(--mv-gold-wash)] ring-1 ring-inset ring-[var(--color-border-gold)]" : "hover:bg-[var(--mv-panel-hover)]",
-            )}
-          >
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--mv-gold-wash)] text-gold">
-              <PlaceIcon type={p.type} className="h-5 w-5" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="flex items-start justify-between gap-2">
-                <span className="truncate text-[15px] font-semibold text-[var(--text-primary)]">{p.name}</span>
-                {near && <span className="mv-data shrink-0 text-xs text-[var(--text-secondary)]">{formatKm(haversineKm(near, p))}</span>}
+      {filtered.map((p) => {
+        const info = hours.get(p.slug);
+        const price = priceLabel(p.priceLevel);
+        return (
+          <li key={p.slug}>
+            <button
+              type="button"
+              onClick={() => select(p.slug)}
+              aria-current={selected === p.slug ? "true" : undefined}
+              className={cn(
+                "mv-focus flex w-full gap-3 rounded-2xl px-3 py-3 text-left transition-colors duration-200",
+                selected === p.slug ? "bg-[var(--mv-gold-wash)] ring-1 ring-inset ring-[var(--color-border-gold)]" : "hover:bg-[var(--mv-panel-hover)]",
+              )}
+            >
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--mv-gold-wash)] text-gold">
+                <PlaceIcon type={p.type} className="h-5 w-5" />
               </span>
-              <span className="block truncate text-xs text-[var(--text-secondary)]">
-                {p.city}, {p.country}
+              <span className="min-w-0 flex-1">
+                <span className="flex items-start justify-between gap-2">
+                  <span className="truncate text-[15px] font-semibold text-[var(--text-primary)]">{p.name}</span>
+                  {near && <span className="mv-data shrink-0 text-xs text-[var(--text-secondary)]">{formatKm(haversineKm(near, p))}</span>}
+                </span>
+                <span className="block truncate text-xs text-[var(--text-secondary)]">
+                  {p.city}, {p.country}
+                  {price && (
+                    <>
+                      <span aria-hidden> · {price}</span>
+                      <span className="sr-only">, precio {price.length} de 4</span>
+                    </>
+                  )}
+                </span>
+                {info && <OpenLine info={info} className="mt-1" />}
+                <span className="mt-1.5 flex flex-wrap items-center gap-2">
+                  <StatusBadge status={p.status} type={p.type} verified={p.verified} />
+                  {p.agencyName && p.status === "certified" && <span className="text-xs text-[var(--text-secondary)]">{p.agencyName}</span>}
+                  {p.rating != null && <Stars value={p.rating} />}
+                </span>
               </span>
-              <span className="mt-1.5 flex flex-wrap items-center gap-2">
-                <StatusBadge status={p.status} type={p.type} verified={!!p.verifiedAt} />
-                {p.agencyName && p.status === "certified" && <span className="text-xs text-[var(--text-secondary)]">{p.agencyName}</span>}
-                {p.rating != null && <Stars value={p.rating} />}
-              </span>
-            </span>
-          </button>
-        </li>
-      ))}
+            </button>
+          </li>
+        );
+      })}
     </ul>
   );
 
@@ -256,7 +388,7 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
 
   return (
     <div className="relative h-full w-full">
-      <h1 className="sr-only">Mapa de Mercav Kosher</h1>
+      <h1 className="sr-only">{city ? `Mapa de Mercav Kosher en ${city.city}` : "Mapa de Mercav Kosher"}</h1>
       <div
         className={cn(
           "absolute inset-0",
@@ -271,7 +403,7 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
           showCommunities={showCommunities}
           selectedSlug={selected}
           onSelect={select}
-          onSelectCommunity={(slug) => router.push(`/kosher/comunidades#${slug}`)}
+          onSelectCommunity={(slug) => router.push(`/kosher/ciudad/${slug}`)}
           focus={focus}
           fitKey={fitKey}
           userLocation={near}
@@ -294,6 +426,15 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
           </div>
           {searchBar}
           {chips(false)}
+          <div className="flex flex-col gap-0.5">
+            <KashrutPreferenceLine preference={kashrut.preference} onChange={() => setDialog("edit")} />
+            {hiddenLabel && filtered.length > 0 && <p className="text-xs text-[var(--text-tertiary)]">{hiddenLabel}</p>}
+            {city && (
+              <Link href={`/kosher/ciudad/${city.slug}`} className="mv-focus inline-flex min-h-9 items-center gap-1.5 self-start rounded-full text-[13px] font-semibold text-[var(--k-accent)]">
+                Ver la guía de {city.city} <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+              </Link>
+            )}
+          </div>
         </div>
         <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto border-t border-[var(--mv-hairline)] px-2 py-2">{results}</div>
         <p className="border-t border-[var(--mv-hairline)] px-4 py-3 text-xs leading-snug text-[var(--text-secondary)]">
@@ -305,6 +446,7 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
       <div className="absolute inset-x-3 top-[calc(max(0.75rem,env(safe-area-inset-top,0px))+4.25rem)] z-10 space-y-2 md:hidden">
         <div className="mv-menu rounded-full p-1.5">{searchBar}</div>
         {chips(true)}
+        <KashrutPreferenceLine preference={kashrut.preference} onChange={() => setDialog("edit")} className="mv-menu px-3.5" />
       </div>
 
       {/* Mobile results toggle, above the bottom nav and the home indicator */}
@@ -349,6 +491,16 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
                   <X className="h-5 w-5" aria-hidden />
                 </button>
               </div>
+              {(hiddenLabel || city) && (
+                <div className="flex flex-col gap-1 px-5 pb-2">
+                  {hiddenLabel && filtered.length > 0 && <p className="text-xs text-[var(--text-tertiary)]">{hiddenLabel}</p>}
+                  {city && (
+                    <Link href={`/kosher/ciudad/${city.slug}`} className="mv-focus inline-flex min-h-9 items-center gap-1.5 self-start rounded-full text-[13px] font-semibold text-[var(--k-accent)]">
+                      Ver la guía de {city.city} <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                    </Link>
+                  )}
+                </div>
+              )}
               <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-6">{results}</div>
             </div>
           </motion.div>
@@ -373,6 +525,21 @@ export function MapExperience({ places, communities }: { places: PlaceDTO[]; com
           </motion.aside>
         )}
       </AnimatePresence>
+
+      <KashrutPreferenceDialog
+        open={dialog !== null}
+        mode={dialog ?? "edit"}
+        current={kashrut.preference}
+        onChoose={(value) => {
+          setDialog(null);
+          void kashrut.choose(value);
+        }}
+        onClose={() => {
+          if (dialog === "ask") kashrut.dismiss();
+          setDialog(null);
+        }}
+      />
     </div>
   );
 }
+// creado por pato dev y askforvini

@@ -5,10 +5,14 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/app/api/pwn/_lib/rate-limit";
 import { slugify } from "@/lib/kosher/geo";
-import { getKosherViewer, kosherError, listPublishedPlaces, unauthorized, writeGuard } from "@/lib/kosher/server";
+import { getKosherViewer, kosherError, unauthorized, writeGuard } from "@/lib/kosher/server";
+import { listExplorePlaces } from "@/lib/kosher/explore";
 
-export async function GET() {
-  const places = await listPublishedPlaces();
+/** Lista liviana para el mapa (lib/kosher/explore.ts). ?ciudad=<slug> la limita a una guía de ciudad. */
+export async function GET(request: NextRequest) {
+  const ciudad = request.nextUrl.searchParams.get("ciudad");
+  if (ciudad && !/^[a-z0-9-]{1,80}$/.test(ciudad)) return kosherError(400, "Ciudad inválida.");
+  const places = await listExplorePlaces(ciudad);
   return NextResponse.json(
     { success: true, places },
     { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } },

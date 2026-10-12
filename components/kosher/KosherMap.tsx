@@ -258,7 +258,8 @@ export function KosherMap({
     for (const p of places) bounds.extend([p.lng, p.lat]);
     const desktop = window.innerWidth >= 768;
     map.fitBounds(bounds, {
-      padding: desktop ? { top: 120, bottom: 60, left: 420, right: 60 } : { top: 170, bottom: 120, left: 30, right: 30 },
+      // En el celular, arriba van el buscador, los filtros y la línea de preferencia.
+      padding: desktop ? { top: 120, bottom: 60, left: 420, right: 60 } : { top: 215, bottom: 120, left: 30, right: 30 },
       maxZoom: 13,
       duration: 900,
     });

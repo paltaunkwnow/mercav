@@ -1,14 +1,41 @@
 import Link from "next/link";
+import { cookies, headers } from "next/headers";
 import { ArrowRight, CalendarDays, Flame, MessagesSquare, MoonStar, Plane, Users } from "@/components/icons";
 import { prisma } from "@/lib/prisma";
 import { KosherAtlas } from "@/components/kosher/KosherAtlas";
 import { StatusBadge } from "@/components/kosher/StatusBadge";
+import { KashrutOnboarding } from "@/components/kosher/KashrutPreference";
+import { LocationSuggestion } from "@/components/kosher/city/LocationSuggestion";
 import { getKosherViewer } from "@/lib/kosher/server";
-import { listCities, pickCity } from "@/lib/kosher/cities";
+import { cityKey, listCities, nearestCity, pickCity, placeCountsByCity, type KosherCity } from "@/lib/kosher/cities";
 import { nextShabbat } from "@/lib/kosher/zmanim";
 import { formatTime } from "@/lib/kosher/time";
 import { LATAM_COUNTRIES } from "@/lib/geo/latam";
 import { PLACE_TYPES } from "@/lib/kosher/labels";
+
+const GEO_HIDE_COOKIE = "k_geo_hide";
+
+/**
+ * La ciudad con guía más cercana a la ubicación aproximada de la conexión (encabezados de IP de Vercel), a menos de 100 km.
+ * No pide permiso ni guarda nada. Sin encabezados (en local), ninguna.
+ */
+function cityFromConnection(cities: KosherCity[]) {
+  const h = headers();
+  const lat = Number.parseFloat(h.get("x-vercel-ip-latitude") ?? "");
+  const lng = Number.parseFloat(h.get("x-vercel-ip-longitude") ?? "");
+  if (Number.isFinite(lat) && Number.isFinite(lng)) return nearestCity(cities, { lat, lng }, 100)?.city ?? null;
+  const raw = h.get("x-vercel-ip-city");
+  const country = h.get("x-vercel-ip-country");
+  if (!raw || !country) return null;
+  let name = raw;
+  try {
+    name = decodeURIComponent(raw);
+  } catch {
+    // Ya venía sin codificar.
+  }
+  const key = cityKey(name, country);
+  return cities.find((c) => cityKey(c.city, c.countryCode) === key) ?? null;
+}
 
 /** El inicio de Mercav Kosher: el atlas como en el celular de la portada y, debajo, la vida de la comunidad. */
 export default async function KosherHome() {
@@ -20,14 +47,24 @@ export default async function KosherHome() {
     prisma.kosherPlace.findMany({
       where: { published: true, countryCode: { in: LATAM_COUNTRIES.map((c) => c.code) } },
       orderBy: [{ verifiedAt: { sort: "desc", nulls: "last" } }, { name: "asc" }],
-      select: { slug: true, name: true, city: true, type: true, status: true, verifiedAt: true },
+      select: { slug: true, name: true, city: true, countryCode: true, type: true, status: true, verifiedAt: true },
       take: 120,
     }),
   ]);
 
-  const [viewer, cities] = await Promise.all([getKosherViewer(), listCities()]);
+  const [viewer, cities, counts] = await Promise.all([getKosherViewer(), listCities(), placeCountsByCity()]);
   const city = pickCity(cities, undefined, viewer);
   const shabbat = city ? nextShabbat(city) : null;
+
+  // Solo ciudades con lugares publicados tienen guía.
+  const guideCities = new Map(cities.filter((c) => counts.get(cityKey(c.city, c.countryCode))).map((c) => [cityKey(c.city, c.countryCode), c]));
+  const here = cityFromConnection([...guideCities.values()]);
+  const suggestion = here && here.slug !== city?.slug && cookies().get(GEO_HIDE_COOKIE)?.value !== here.slug ? here : null;
+  const cityGuides: Record<string, string> = {};
+  for (const p of places) {
+    const guide = guideCities.get(cityKey(p.city, p.countryCode));
+    if (guide) cityGuides[p.city] = guide.slug;
+  }
 
   const stats = [
     { value: placeCount, label: "lugares" },
@@ -44,7 +81,10 @@ export default async function KosherHome() {
 
   return (
     <div className="mv-container mt-8 md:mt-10">
+      {suggestion && <LocationSuggestion slug={suggestion.slug} city={suggestion.city} cookie={GEO_HIDE_COOKIE} />}
+      <KashrutOnboarding server={viewer?.profile?.kashrutPreference ?? null} />
       <KosherAtlas
+        cityGuides={cityGuides}
         places={places.map((p) => ({
           slug: p.slug,
           name: p.name,
