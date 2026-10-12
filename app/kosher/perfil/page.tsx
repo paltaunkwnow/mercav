@@ -7,6 +7,7 @@ import { ALERT_TOPICS } from "@/lib/kosher/notify";
 import { AlertsForm } from "@/components/kosher/CommunityForms";
 import { KosherProfileForm } from "@/components/kosher/KosherProfileForm";
 import { PageIntro, SignInCard } from "@/components/kosher/ui";
+import { SavedPlaces } from "@/components/kosher/place/SavedPlaces";
 
 export const metadata: Metadata = { title: "Mi perfil" };
 
@@ -31,6 +32,7 @@ export default async function KosherProfilePage() {
       <PageIntro eyebrow={`Shalom, ${viewer.name.split(" ")[0]}`} title="Tu perfil Kosher">
         <p>Es tu misma cuenta Mercav. Estas preferencias solo se usan dentro de Mercav Kosher.</p>
       </PageIntro>
+      <SavedPlaces userId={viewer.id} />
       <KosherProfileForm
         communities={communities}
         initial={{
