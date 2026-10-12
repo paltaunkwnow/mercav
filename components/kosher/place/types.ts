@@ -43,6 +43,8 @@ export type PlaceDetail = {
   savedByMe: boolean;
   /** Zona horaria del lugar (la misma que place.timezone). */
   timezone: string;
+  /** Slug de la guía de su ciudad (/kosher/ciudad/[slug]), si la ciudad tiene comunidad. */
+  citySlug: string | null;
   /** Cuándo se armó la respuesta: el "abierto ahora" del primer render usa esta hora y no la del navegador. */
   renderedAt: string;
 };

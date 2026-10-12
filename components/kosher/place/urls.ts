@@ -5,6 +5,7 @@ export const placePath = (slug: string) => `/kosher/lugar/${slug}`;
 /** La imagen la sirve GET /api/kosher/photos/[id]. */
 export const photoUrl = (id: string) => `/api/kosher/photos/${id}`;
 
-/** El mapa filtrado por la ciudad: hace de página de la ciudad mientras no haya una propia. */
-export const cityPath = (city: string) => `/kosher/mapa?q=${encodeURIComponent(city)}`;
+/** La guía de la ciudad; si la ciudad no tiene comunidad, el mapa filtrado por su nombre. */
+export const cityPath = (city: string, citySlug?: string | null) =>
+  citySlug ? `/kosher/ciudad/${citySlug}` : `/kosher/mapa?q=${encodeURIComponent(city)}`;
 // creado por pato dev y askforvini

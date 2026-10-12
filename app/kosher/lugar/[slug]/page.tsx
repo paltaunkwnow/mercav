@@ -57,7 +57,7 @@ export default async function KosherPlacePage({ params }: { params: { slug: stri
               <ChevronRight className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
             </li>
             <li>
-              <Link href={cityPath(place.city)} className="mv-focus rounded-md hover:text-[var(--text-primary)]">
+              <Link href={cityPath(place.city, detail.citySlug)} className="mv-focus rounded-md hover:text-[var(--text-primary)]">
                 {place.city}
               </Link>
             </li>

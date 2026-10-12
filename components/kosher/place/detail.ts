@@ -103,7 +103,7 @@ export async function loadPlaceDetail(slug: string, viewer: KosherViewer | null)
           select: { reportId: true },
         })
       : Promise.resolve([] as { reportId: string }[]),
-    prisma.kosherCommunity.findFirst({ where: { city: place.city, countryCode: place.countryCode }, select: { timezone: true } }),
+    prisma.kosherCommunity.findFirst({ where: { city: place.city, countryCode: place.countryCode }, select: { timezone: true, slug: true } }),
     viewer ? managesPlace(viewer.id, place.id) : Promise.resolve(false),
     viewer
       ? prisma.kosherFavorite.findUnique({ where: { userId_placeId: { userId: viewer.id, placeId: place.id } }, select: { placeId: true } })
@@ -134,6 +134,7 @@ export async function loadPlaceDetail(slug: string, viewer: KosherViewer | null)
     managedByMe: iManage,
     savedByMe: !!saved,
     timezone,
+    citySlug: community?.slug ?? null,
     renderedAt: new Date().toISOString(),
     events: place.events.map((e) => ({ ...e, startsAt: e.startsAt.toISOString() })),
     stock: place.stock.map((s) => ({

@@ -176,7 +176,12 @@ export function placeJsonLd(detail: PlaceDetail, faq: PlaceFaqItem[]) {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Mercav Kosher", item: canonicalFor("/kosher") },
-      { "@type": "ListItem", position: 2, name: place.city, item: `${canonicalFor("/kosher/mapa")}?q=${encodeURIComponent(place.city)}` },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: place.city,
+        item: detail.citySlug ? canonicalFor(`/kosher/ciudad/${detail.citySlug}`) : `${canonicalFor("/kosher/mapa")}?q=${encodeURIComponent(place.city)}`,
+      },
       { "@type": "ListItem", position: 3, name: place.name, item: url },
     ],
   };

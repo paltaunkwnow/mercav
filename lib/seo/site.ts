@@ -128,7 +128,8 @@ export function canonicalFor(appPath: string) {
 
 /** Sections served under kosher.mercav.lat (folders of app/kosher): kosher.mercav.lat/x is rewritten to /kosher/x. */
 const KOSHER_SEGMENTS = new Set([
-  "calendario", "chat", "comunidad", "comunidades", "invitacion", "lugar", "mapa", "moderacion", "perfil", "sugerir", "terminos", "viaje",
+  "calendario", "chat", "ciudad", "comunidad", "comunidades", "festividades", "invitacion", "kashrut", "lugar", "mapa", "moderacion", "perfil", "sidur",
+  "sugerir", "terminos", "viaje",
 ]);
 
 /** Paths kosher.mercav.lat serves as they are, without the /kosher rewrite: auth, API, assets and shared utility pages. */

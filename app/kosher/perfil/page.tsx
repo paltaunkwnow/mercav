@@ -44,6 +44,7 @@ export default async function KosherProfilePage() {
           shabbatMode: viewer.profile?.shabbatMode ?? false,
           denomination: viewer.profile?.denomination ?? null,
           orthodoxStream: viewer.profile?.orthodoxStream ?? null,
+          kashrutPreference: viewer.profile?.kashrutPreference ?? null,
         }}
         role={viewer.isAdmin ? "Administrador" : viewer.profile?.role === "local_moderator" ? "Moderador local" : viewer.profile?.role === "agency" ? "Agencia" : "Miembro"}
       />
