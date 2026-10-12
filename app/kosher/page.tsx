@@ -142,14 +142,18 @@ export default async function KosherHome() {
           </h2>
           <ul className="flex flex-wrap gap-2" aria-label="Ejemplos de estado">
             <li><StatusBadge status="certified" type="restaurant" /></li>
+            <li><StatusBadge status="supervised" type="restaurant" /></li>
             <li><StatusBadge status="community_report" type="restaurant" /></li>
             <li><StatusBadge status="unknown" type="restaurant" /></li>
           </ul>
           <p className="text-[0.95rem] leading-relaxed text-[var(--text-secondary)]">
-            Certificado significa que figura una agencia, con fecha. Un reporte comunitario es la nota de un miembro. Mercav Kosher no emite hechsher ni
-            psak: muestra quién certifica y desde cuándo.
+            Certificado significa que figura una agencia, con fecha. Con supervisión, que se informa un supervisor pero no hay certificado en la ficha. Un
+            reporte comunitario es la nota de un miembro. Mercav Kosher no emite hechsher ni psak: muestra quién certifica y desde cuándo.
           </p>
           <p className="flex flex-wrap gap-x-5 gap-y-2 text-[0.9rem] font-semibold">
+            <Link href="/kosher/kashrut" className="mv-focus inline-flex items-center gap-1.5 rounded-md text-[var(--k-accent)]">
+              Todos los niveles de kashrut <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
             <Link href="/kosher/comunidad/agencias" className="mv-focus inline-flex items-center gap-1.5 rounded-md text-[var(--k-accent)]">
               Agencias de kashrut <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
