@@ -9,6 +9,8 @@ export type Agency = {
   lists?: { label: string; url: string };
   contact?: string;
   address?: string;
+  /** Si se revisó en otra fecha que AGENCIES_VERIFIED_AT. */
+  verifiedAt?: string;
 };
 
 export const AGENCIES_VERIFIED_AT = "29 de septiembre de 2026";
@@ -62,6 +64,18 @@ export const AGENCIES: Agency[] = [
     website: "https://www.kosherkv.cl",
   },
   {
+    slug: "kmd",
+    name: "Kosher Maguen David (KMD)",
+    country: "México",
+    countryCode: "MX",
+    about: "Certificadora kosher de México. Tiene un buscador de productos y establecimientos certificados y listas para descargar, entre ellas la de Pésaj y la de pescados.",
+    website: "https://www.kosher.com.mx",
+    lists: { label: "Listas KMD (productos, Pésaj, pescados)", url: "https://www.kosher.com.mx/pages/listas" },
+    contact: "+52 55 3872 5050 · atencionaclientes@kosher.com.mx",
+    address: "Horacio 1008, Col. Polanco, CDMX",
+    verifiedAt: "12 de octubre de 2026",
+  },
+  {
     slug: "ou",
     name: "OU Kosher",
     country: "Estados Unidos · internacional",
@@ -94,3 +108,4 @@ export const AGENCIES: Agency[] = [
     website: "https://www.klbdkosher.org",
   },
 ];
+// creado por pato dev y askforvini

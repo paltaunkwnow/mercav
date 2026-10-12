@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
-import { ExternalLink, MapPin, Phone } from "@/components/icons";
+import Link from "next/link";
+import { ArrowRight, ExternalLink, MapPin, Phone } from "@/components/icons";
 import { AGENCIES, AGENCIES_VERIFIED_AT, type Agency } from "@/lib/kosher/agencies";
 import { BackLink, PageIntro, primaryButton, secondaryButton } from "@/components/kosher/ui";
 
-export const metadata: Metadata = { title: "Agencias de kashrut" };
+export const metadata: Metadata = {
+  title: "Agencias de kashrut",
+  description: "Quién certifica kosher en Argentina, Brasil, Chile, México y Uruguay, y los sellos internacionales más vistos, con enlace a sus listas oficiales.",
+};
 
 function AgencyCard({ a }: { a: Agency }) {
   const host = new URL(a.website).hostname.replace(/^www\./, "");
@@ -12,6 +16,7 @@ function AgencyCard({ a }: { a: Agency }) {
       <p className="text-sm text-[var(--text-secondary)]">{a.country}</p>
       <h3 className="mv-h3 mt-1">{a.name}</h3>
       <p className="mt-2 flex-1 text-sm leading-relaxed text-[var(--text-secondary)]">{a.about}</p>
+      {a.verifiedAt && <p className="mt-2 text-xs text-[var(--text-secondary)]">Revisado en su sitio el {a.verifiedAt}.</p>}
       {(a.address || a.contact) && (
         <ul className="mt-4 space-y-1.5 text-xs text-[var(--text-secondary)]">
           {a.address && (
@@ -57,12 +62,17 @@ export default function KosherAgenciesPage() {
   return (
     <div>
       <BackLink />
-      <PageIntro eyebrow="Kashrut" title="Agencias certificadoras">
+      <PageIntro title="Agencias certificadoras">
         <p>
           Mercav Kosher no certifica: muestra quién lo hace. Para confirmar un hejsher, consultá siempre la lista oficial de la agencia, que es la
           única fuente vigente.
         </p>
-        <p className="mt-3 text-sm text-[var(--text-secondary)]">Datos revisados en el sitio de cada agencia el {AGENCIES_VERIFIED_AT}.</p>
+        <p className="mt-3 text-sm text-[var(--text-secondary)]">Datos revisados en el sitio de cada agencia el {AGENCIES_VERIFIED_AT}, salvo donde se indica otra fecha.</p>
+        <p className="mt-3 text-sm">
+          <Link href="/kosher/kashrut" className="mv-link inline-flex items-center gap-1.5 font-semibold">
+            Qué significa cada nivel y cada término <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        </p>
       </PageIntro>
 
       <section aria-labelledby="k-local">
@@ -93,3 +103,4 @@ export default function KosherAgenciesPage() {
     </div>
   );
 }
+// creado por pato dev y askforvini
