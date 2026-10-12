@@ -135,12 +135,17 @@ function pwnCsrfBlocked(req: NextRequest, pathname: string) {
   });
 }
 
+/** Fotos de Mercav Kosher: públicas, inmutables por id y cacheadas un año; no cuentan para el límite de pedidos. */
+const KOSHER_PHOTO = /^\/api\/kosher\/photos\/[0-9a-f-]{36}$/;
+const isKosherPhotoRead = (req: NextRequest, pathname: string) => req.method === 'GET' && KOSHER_PHOTO.test(pathname);
+
 function apiMaySkipSession(req: NextRequest, pathname: string) {
   const path = pathname.replace(/\/$/, '');
   if (req.method === 'GET') {
     const publicReads = ['/api/jobs', '/api/services', '/api/spaces', '/api/search', '/api/posts', '/api/users'];
     if (publicReads.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) return true;
-    if (path === '/api/kosher/places' || /^\/api\/kosher\/places\/[a-z0-9-]+$/.test(path)) return true;
+    if (path === '/api/kosher/places' || /^\/api\/kosher\/places\/[a-z0-9-]+(\/photos)?$/.test(path)) return true;
+    if (KOSHER_PHOTO.test(path)) return true;
     // Calendario suscripto: Google, Apple u Outlook lo leen sin sesión; el token del link es la llave.
     if (/^\/api\/calendar\/feed\/[A-Za-z0-9_-]{40,60}(\.ics)?$/.test(path)) return true;
   }
@@ -282,7 +287,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
     return NextResponse.rewrite(url, { request: { headers: forwarded } });
   }
 
-  if (pathname.startsWith('/api/') && rateLimited(req, pathname)) {
+  if (pathname.startsWith('/api/') && !isKosherPhotoRead(req, pathname) && rateLimited(req, pathname)) {
     return NextResponse.json(
       { success: false, error: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' },
       { status: 429, headers: { 'Retry-After': '60', 'Cache-Control': 'no-store' } },

@@ -55,24 +55,50 @@ function localNow(timezone: string, now: Date) {
   return { day: weekday, minute: Number(get("hour")) * 60 + Number(get("minute")) };
 }
 
-/** Turnos como intervalos en minutos desde el domingo 00:00; los que pasan la medianoche siguen en el día de después. */
-function weekIntervals(hours: WeeklyHours) {
-  const out: { start: number; end: number; day: DayKey; period: HoursPeriod }[] = [];
+const WEEK = 7 * 1440;
+
+type Interval = { start: number; end: number; day: DayKey; period: HoursPeriod; closeAt: string };
+
+/**
+ * Turnos como intervalos en minutos desde el domingo 00:00; los que pasan la medianoche siguen en el día de después.
+ * Los turnos pegados (20:00–24:00 y 00:00–02:00 del día siguiente, o días de 24 horas) se unen: así un lugar abierto
+ * de corrido no "cierra" a la medianoche.
+ */
+function weekIntervals(hours: WeeklyHours): Interval[] {
+  const raw: Interval[] = [];
   for (const day of DAY_KEYS) {
     for (const period of hours[day] ?? []) {
       const start = Number(day) * 1440 + minutesOf(period.open);
       let length = minutesOf(period.close) - minutesOf(period.open);
       if (length <= 0) length += 1440;
-      out.push({ start, end: start + length, day, period });
+      raw.push({ start, end: start + length, day, period, closeAt: period.close });
     }
   }
-  return out;
+  raw.sort((a, b) => a.start - b.start);
+  const merged: Interval[] = [];
+  for (const i of raw) {
+    const last = merged[merged.length - 1];
+    if (last && i.start <= last.end) {
+      if (i.end > last.end) {
+        last.end = i.end;
+        last.closeAt = i.closeAt;
+      }
+    } else merged.push({ ...i });
+  }
+  // El último turno de la semana pegado al primero (sábado a la noche → domingo temprano).
+  const first = merged[0];
+  const last = merged[merged.length - 1];
+  if (merged.length > 1 && first && last && last.end >= first.start + WEEK) {
+    last.end = Math.max(last.end, first.end + WEEK);
+    last.closeAt = first.closeAt;
+    merged.shift();
+  }
+  return merged;
 }
-
-const WEEK = 7 * 1440;
 
 export type OpenState =
   | { kind: "unknown" }
+  | { kind: "always" }
   | { kind: "open"; closesAt: string; minutesLeft: number; closesDay: DayKey }
   | { kind: "closed"; opensAt: string; minutesUntil: number; opensDay: DayKey }
   | { kind: "closed_week" };
@@ -82,6 +108,7 @@ export function openState(hours: WeeklyHours | null, timezone: string, now = new
   if (!hours) return { kind: "unknown" };
   const intervals = weekIntervals(hours);
   if (!intervals.length) return { kind: "closed_week" };
+  if (intervals.length === 1 && intervals[0].end - intervals[0].start >= WEEK) return { kind: "always" };
   const { day, minute } = localNow(timezone, now);
   const t = day * 1440 + minute;
 
@@ -91,7 +118,7 @@ export function openState(hours: WeeklyHours | null, timezone: string, now = new
     if (current) {
       const endMinute = (current.end + shift) % WEEK;
       const closesDay = String(Math.floor(((endMinute + WEEK) % WEEK) / 1440)) as DayKey;
-      return { kind: "open", closesAt: current.period.close, minutesLeft: current.end + shift - t, closesDay };
+      return { kind: "open", closesAt: current.closeAt, minutesLeft: current.end + shift - t, closesDay };
     }
   }
 
@@ -106,6 +133,7 @@ export function openState(hours: WeeklyHours | null, timezone: string, now = new
 /** Texto corto del estado: "Abierto · cierra 23:00", "Cierra en 24 min", "Cerrado · abre el miércoles 12:00". */
 export function openLabel(state: OpenState, today?: DayKey): { open: boolean | null; text: string } {
   if (state.kind === "unknown") return { open: null, text: "Sin horario cargado" };
+  if (state.kind === "always") return { open: true, text: "Abierto las 24 horas" };
   if (state.kind === "closed_week") return { open: false, text: "Cerrado" };
   if (state.kind === "open") {
     if (state.minutesLeft <= 60) return { open: true, text: `Cierra en ${state.minutesLeft} min` };
@@ -125,9 +153,10 @@ export function formatTime(time: string) {
   return time === "24:00" ? "00:00" : time;
 }
 
-/** "12:00–15:00 · 20:00–00:00" o "Cerrado". */
+/** "12:00–15:00 · 20:00–00:00", "Abierto las 24 horas" o "Cerrado". */
 export function formatDay(periods: HoursPeriod[] | undefined) {
   if (!periods?.length) return "Cerrado";
+  if (periods.some((p) => p.open === "00:00" && p.close === "24:00")) return "Abierto las 24 horas";
   return periods.map((p) => `${formatTime(p.open)}–${formatTime(p.close)}`).join(" · ");
 }
 

@@ -14,7 +14,7 @@ const notFound = () => kosherError(404, "Foto no encontrada");
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   if (!UUID.test(params.id)) return notFound();
   const etag = `"${params.id}"`;
-  const cache = { "Cache-Control": "public, max-age=31536000, immutable", ETag: etag };
+  const cache = { "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable", ETag: etag };
   if (request.headers.get("if-none-match") === etag) return new NextResponse(null, { status: 304, headers: cache });
 
   const photo = await prisma.kosherPhoto.findUnique({

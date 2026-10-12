@@ -105,7 +105,8 @@ export function MapExperience({
     const base = places.filter((p) => {
       if (citySlug && p.citySlug !== citySlug) return false;
       if (types.size && !types.has(p.type)) return false;
-      if (openOnly && hours.get(p.slug)?.kind !== "open") return false;
+      const state = hours.get(p.slug)?.kind;
+      if (openOnly && state !== "open" && state !== "always") return false;
       if (!q) return true;
       return [p.name, p.nameLocal, p.city, p.country, p.address, p.agencyName, p.chainName]
         .filter(Boolean)
