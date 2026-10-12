@@ -12,6 +12,8 @@ export type CalendarItem = {
   title: string;
   hebrew: string;
   time: string | null;
+  /** Descripción original de hebcal («Pesach I», «Erev Yom Kippur»): sirve para enlazar la festividad. */
+  desc: string;
 };
 
 const CANDLE_MINS = 18;
@@ -82,6 +84,7 @@ export function calendarFor(c: ZmanimCity, days = 70, start = new Date()): Calen
       title: spanishName(e.getDesc()),
       hebrew: e.render("he-x-nonikud").replace(/:.*$/, ""),
       time: timed ? timed.toISOString() : null,
+      desc: e.getDesc(),
     });
   }
   return items;
@@ -156,3 +159,4 @@ export function dayZmanim(c: ZmanimCity, instant = new Date()) {
     rows: rows.filter(([, d]) => !Number.isNaN(d.getTime())).map(([label, d]) => ({ label, time: d.toISOString() })),
   };
 }
+// creado por pato dev y askforvini
