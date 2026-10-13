@@ -1064,6 +1064,31 @@
       "sourceUrl": "https://www.kosher.com.pa/listing/restaurantes-kosher/verde/"
     },
     {
+      "slug": "ciudad-de-panama-yogen-fruz-bal-harbour",
+      "name": "Yogen Fruz Bal Harbour",
+      "type": "restaurant",
+      "lat": 8.977878,
+      "lng": -79.51465,
+      "address": "Plaza Bal Harbour, dentro de Cafein, Punta Paitilla",
+      "city": "Ciudad de Panamá",
+      "country": "Panamá",
+      "countryCode": "PA",
+      "status": "certified",
+      "agencyName": "Kosher Panamá (Shevet Ahim)",
+      "website": "https://www.instagram.com/yogenfruzpanama/",
+      "hours": {
+        "0": [{ "open": "11:00", "close": "22:00" }],
+        "1": [{ "open": "11:30", "close": "22:30" }],
+        "2": [{ "open": "11:30", "close": "22:30" }],
+        "3": [{ "open": "11:30", "close": "22:30" }],
+        "4": [{ "open": "11:30", "close": "22:30" }],
+        "5": [{ "open": "11:00", "close": "16:30" }],
+        "6": [{ "open": "19:30", "close": "23:00" }]
+      },
+      "notes": "Yogur helado certificado según la lista de establecimientos certificados de Kosher Panamá, de la Sociedad Israelita Shevet Ahim (la lista no tiene fecha; la consultamos el 13/10/2026), únicamente la sucursal de Bal Harbour, dentro de Cafein.",
+      "sourceUrl": "https://www.kosher.com.pa/listing/establecimientos-kosher/yogen-fruz/"
+    },
+    {
       "slug": "ciudad-de-panama-yoss-bakery",
       "name": "Yoss Bakery",
       "type": "bakery",
