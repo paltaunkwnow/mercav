@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Sin esto, Next la armaba una sola vez en el build y servía siempre esos conteos (o el error, si la base fallaba).
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const counts = await prisma.service.groupBy({
