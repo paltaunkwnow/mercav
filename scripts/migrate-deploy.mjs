@@ -7,29 +7,43 @@
 //   sesión (5432), o DIRECT_URL si está cargada.
 // - Si una migración falla, el build falla y producción sigue con la versión anterior.
 import { spawnSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
 
-if (process.env.VERCEL_ENV !== "production") {
-  console.log("[migraciones] No es el deploy de producción: no se aplican.");
-  process.exit(0);
+/**
+ * URL para migraciones y scripts del build: DIRECT_URL, o DATABASE_URL con el pooler de Supabase en modo sesión.
+ * También la usa scripts/kosher/import-osm.mjs.
+ */
+export function sessionDatabaseUrl(env = process.env) {
+  const raw = env.DIRECT_URL || env.DATABASE_URL;
+  if (!raw) return null;
+  try {
+    const parsed = new URL(raw);
+    if (!env.DIRECT_URL && parsed.hostname.endsWith("pooler.supabase.com") && parsed.port === "6543") parsed.port = "5432";
+    parsed.searchParams.delete("pgbouncer");
+    return parsed.toString();
+  } catch {
+    // Una URL que no se puede leer se usa tal cual; Prisma dirá qué le falta.
+    return raw;
+  }
 }
 
-const raw = process.env.DIRECT_URL || process.env.DATABASE_URL;
-if (!raw) {
-  console.error("[migraciones] Falta DATABASE_URL.");
-  process.exit(1);
+function main() {
+  if (process.env.VERCEL_ENV !== "production") {
+    console.log("[migraciones] No es el deploy de producción: no se aplican.");
+    process.exit(0);
+  }
+
+  const url = sessionDatabaseUrl();
+  if (!url) {
+    console.error("[migraciones] Falta DATABASE_URL.");
+    process.exit(1);
+  }
+
+  console.log("[migraciones] Aplicando las migraciones pendientes…");
+  const result = spawnSync("npx", ["prisma", "migrate", "deploy"], { stdio: "inherit", env: { ...process.env, DATABASE_URL: url } });
+  process.exit(result.status ?? 1);
 }
 
-let url = raw;
-try {
-  const parsed = new URL(raw);
-  if (!process.env.DIRECT_URL && parsed.hostname.endsWith("pooler.supabase.com") && parsed.port === "6543") parsed.port = "5432";
-  parsed.searchParams.delete("pgbouncer");
-  url = parsed.toString();
-} catch {
-  // Una URL que no se puede leer se usa tal cual; Prisma dirá qué le falta.
-}
-
-console.log("[migraciones] Aplicando las migraciones pendientes…");
-const result = spawnSync("npx", ["prisma", "migrate", "deploy"], { stdio: "inherit", env: { ...process.env, DATABASE_URL: url } });
-process.exit(result.status ?? 1);
+// Solo corre cuando se ejecuta como script, no cuando otro script importa sessionDatabaseUrl.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();
 // creado por pato dev y askforvini
