@@ -1,0 +1,716 @@
+{
+  "verifiedAt": "2026-10-12",
+  "places": [
+    {
+      "slug": "buenos-aires-bambina-pizza",
+      "name": "Bambina Pizza",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": -34.581171,
+      "lng": -58.40955,
+      "address": "Cabello 3486, Palermo",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "notes": "Pizzería láctea con jalav stam y bishul ashkenazí, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026).",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-heladeria-bali-flores",
+      "name": "Heladería Bali · Flores",
+      "chainName": "Heladería Bali",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": -34.621463,
+      "lng": -58.474587,
+      "address": "Neuquén 2950, Flores",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "notes": "Heladería con jalav Israel, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). La misma lista incluye la sucursal de Tucumán 2774, en Once.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-heladeria-bali-once",
+      "name": "Heladería Bali · Once",
+      "chainName": "Heladería Bali",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": -34.601811,
+      "lng": -58.40563,
+      "address": "Tucumán 2774, Balvanera",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "notes": "Heladería con jalav Israel, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). La misma lista incluye la sucursal de Neuquén 2950, en Flores.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-jurichi",
+      "name": "Jurichi",
+      "type": "restaurant",
+      "foodCategory": "parve",
+      "lat": -34.582218,
+      "lng": -58.435865,
+      "address": "Bonpland 1861, Palermo",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "phone": "+54 11 2880-0296",
+      "notes": "Parve, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). El teléfono es el que publica la agencia.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-kosher-deluxe",
+      "name": "Kosher Deluxe",
+      "type": "restaurant",
+      "lat": -34.625971,
+      "lng": -58.473158,
+      "address": "Pasaje Valle, local 1A, Flores",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "hours": {
+        "1": [
+          {
+            "open": "10:00",
+            "close": "15:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "10:00",
+            "close": "15:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "10:00",
+            "close": "15:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "10:00",
+            "close": "15:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "10:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Kashrut mehadrin, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). Está en el local 1A del Pasaje Valle (el pin marca el pasaje). El horario, de lunes a viernes de 10 a 15 h, es el que publica la agencia.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-levana",
+      "name": "Levana",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": -34.625971,
+      "lng": -58.473158,
+      "address": "Pasaje Valle, local 9A, Flores",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "hours": {
+        "1": [
+          {
+            "open": "10:00",
+            "close": "16:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "10:00",
+            "close": "16:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "10:00",
+            "close": "16:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "10:00",
+            "close": "16:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "10:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Jalav Israel, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). Está en el local 9A del Pasaje Valle (el pin marca el pasaje). El horario, de lunes a viernes de 10 a 16 h, es el que publica la agencia.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-lharmonie-libertador",
+      "name": "Lharmonie · Libertador",
+      "chainName": "Lharmonie",
+      "type": "bakery",
+      "foodCategory": "dairy",
+      "lat": -34.576576,
+      "lng": -58.412396,
+      "address": "Av. del Libertador 3118, Palermo",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "hours": {
+        "0": [
+          {
+            "open": "09:00",
+            "close": "23:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "23:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "23:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "23:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "23:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Jalav stam y bishul ashkenazí, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). El horario (domingo a jueves de 9 a 23 h, viernes de 9 a 16 h) es el que publica la agencia.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-lharmonie-maure",
+      "name": "Lharmonie · Maure",
+      "chainName": "Lharmonie",
+      "type": "bakery",
+      "foodCategory": "dairy",
+      "lat": -34.565215,
+      "lng": -58.434595,
+      "address": "Maure 1516, Las Cañitas",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "hours": {
+        "0": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Jalav stam y bishul ashkenazí, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). El horario (domingo a jueves de 9 a 20 h, viernes de 9 a 16 h) es el que publica la agencia.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-lharmonie-nicaragua",
+      "name": "Lharmonie · Nicaragua",
+      "chainName": "Lharmonie",
+      "type": "bakery",
+      "foodCategory": "dairy",
+      "lat": -34.577945,
+      "lng": -58.438318,
+      "address": "Nicaragua 6068, Palermo",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "hours": {
+        "0": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Jalav stam y bishul ashkenazí, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). El horario (domingo a jueves de 9 a 20 h, viernes de 9 a 16 h) es el que publica la agencia.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-lharmonie-zabala",
+      "name": "Lharmonie · Zabala",
+      "chainName": "Lharmonie",
+      "type": "bakery",
+      "foodCategory": "dairy",
+      "lat": -34.564868,
+      "lng": -58.444952,
+      "address": "Zabala 1925, Belgrano",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "hours": {
+        "0": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Jalav stam y bishul ashkenazí, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). El horario (domingo a jueves de 9 a 20 h, viernes de 9 a 16 h) es el que publica la agencia.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-mcdonalds-kosher-abasto",
+      "name": "McDonald's Kosher",
+      "type": "restaurant",
+      "lat": -34.602952,
+      "lng": -58.41069,
+      "address": "Av. Corrientes 3247, Abasto Shopping, Balvanera",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "notes": "Certificado según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). Ojo: la agencia avisa que en el mismo piso del shopping hay otro McDonald's que no es kosher; fijate de pedir en el local kosher.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-my-bagel",
+      "name": "My Bagel",
+      "type": "restaurant",
+      "lat": -34.600062,
+      "lng": -58.401138,
+      "address": "Azcuénaga 758, Balvanera",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "hours": {
+        "0": [
+          {
+            "open": "11:00",
+            "close": "16:30"
+          }
+        ],
+        "1": [
+          {
+            "open": "11:00",
+            "close": "16:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "11:00",
+            "close": "16:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "11:00",
+            "close": "16:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "11:00",
+            "close": "16:30"
+          }
+        ],
+        "5": [
+          {
+            "open": "11:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Kashrut mehadrin, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). El horario (domingo a jueves de 11 a 16:30 h, viernes de 11 a 16 h) es el que publica la agencia.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-open-kosher",
+      "name": "Open Kosher",
+      "type": "grocery_branch",
+      "lat": -34.560355,
+      "lng": -58.462226,
+      "address": "Moldes 2455, Belgrano",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "notes": "Kashrut mehadrin, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). La agencia lista el local con su nombre y dirección.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-pez",
+      "name": "Pez",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": -34.579362,
+      "lng": -58.41537,
+      "address": "República de la India 2899, Palermo",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "notes": "Jalav stam, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026).",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-rimon-cafe",
+      "name": "Rimon Café",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": -34.579444,
+      "lng": -58.411869,
+      "address": "Cerviño 3742, Palermo",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "hours": {
+        "0": [
+          {
+            "open": "09:00",
+            "close": "20:30"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "20:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "20:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "20:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "20:30"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "18:30"
+          }
+        ]
+      },
+      "notes": "Lácteo, con opciones de jalav Israel y de jalav stam a disposición, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). El horario (domingo a jueves de 9 a 20:30 h, viernes de 9 a 18:30 h) es el que publica la agencia.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-roll-and-go",
+      "name": "Roll & Go",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": -34.62494,
+      "lng": -58.470776,
+      "address": "Terrada 592, local 2, Flores",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "hours": {
+        "1": [
+          {
+            "open": "10:00",
+            "close": "15:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "10:00",
+            "close": "15:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "10:00",
+            "close": "15:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "10:00",
+            "close": "15:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "10:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Jalav Israel y bishul ashkenazí, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). El horario, de lunes a viernes de 10 a 15 h, es el que publica la agencia.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-sushi-ko-flores",
+      "name": "Sushi Ko · Flores",
+      "chainName": "Sushi Ko",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": -34.622371,
+      "lng": -58.475133,
+      "address": "Argerich 915, Flores",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "notes": "Jalav Israel y bishul ashkenazí, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026).",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-valle-kosher",
+      "name": "Valle Kosher",
+      "type": "restaurant",
+      "lat": -34.626068,
+      "lng": -58.473433,
+      "address": "Argerich 561, Flores",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "hours": {
+        "1": [
+          {
+            "open": "12:00",
+            "close": "16:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "12:00",
+            "close": "16:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "12:00",
+            "close": "16:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "12:00",
+            "close": "16:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "12:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Kashrut mehadrin, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). El horario, de lunes a viernes de 12 a 16 h, es el que publica la agencia.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-yum-restaurante",
+      "name": "YUM Restaurante",
+      "type": "restaurant",
+      "lat": -34.600784,
+      "lng": -58.408964,
+      "address": "Tucumán 3099, Balvanera",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "phone": "+54 11 7176-3977",
+      "notes": "Kashrut mehadrin, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). El teléfono es el que publica la agencia.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    },
+    {
+      "slug": "buenos-aires-zman-coffee",
+      "name": "Zman Coffee",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": -34.600906,
+      "lng": -58.40334,
+      "address": "Viamonte 2599, Balvanera",
+      "city": "Buenos Aires",
+      "country": "Argentina",
+      "countryCode": "AR",
+      "status": "certified",
+      "agencyName": "Ajdut Kosher",
+      "hours": {
+        "1": [
+          {
+            "open": "08:30",
+            "close": "19:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:30",
+            "close": "19:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:30",
+            "close": "19:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:30",
+            "close": "19:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:30",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Jalav Israel, según la lista de establecimientos de Ajdut Kosher (la lista no tiene fecha; la consultamos el 12/10/2026). El horario (lunes a jueves de 8:30 a 19 h, viernes de 8:30 a 15 h) es el que publica la agencia.",
+      "sourceUrl": "https://kosher.org.ar/establecimientos"
+    }
+  ]
+}
