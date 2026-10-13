@@ -6,7 +6,8 @@ import { PriceBoard } from "@/components/privacy/CatalogBlocks";
 import { DeviceSilhouette } from "@/components/privacy/DeviceArt";
 import { ApproxLine } from "@/components/privacy/Price";
 import { SupportHorizon } from "@/components/privacy/SupportHorizon";
-import { PRIVACY_NAME, loadRates, privacyMetadata, privacyUrl, quoteLabel, usdt, usdtAmount, type Rates } from "@/components/privacy/site";
+import { PRIVACY_NAME, privacyMetadata, privacyUrl, quoteLabel, usdt, usdtAmount, type Rates } from "@/components/privacy/site";
+import { loadRates } from "@/components/privacy/rates-server";
 import { CATEGORIES, DELIVERY, INSTALL_SERVICE, PAYMENT, PHONE_BUNDLE, productsIn } from "@/lib/privacy/catalog";
 import { SITE_URL } from "@/lib/seo/site";
 

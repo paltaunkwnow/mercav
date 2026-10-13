@@ -7,7 +7,8 @@ import { GrapheneNote, JsonLd, MoreLink, OrderCTA, PLink } from "@/components/pr
 import { ConditionTag, PriceBoard, ProductWarning } from "@/components/privacy/CatalogBlocks";
 import { DeviceArt } from "@/components/privacy/DeviceArt";
 import { PriceBlock } from "@/components/privacy/Price";
-import { PRIVACY_NAME, loadRates, privacyMetadata, privacyUrl } from "@/components/privacy/site";
+import { PRIVACY_NAME, privacyMetadata, privacyUrl } from "@/components/privacy/site";
+import { loadRates } from "@/components/privacy/rates-server";
 import { CATEGORIES, DELIVERY, HARDENED_OS_FEATURES, PAYMENT, PHONE_BUNDLE, PRODUCTS, productBySlug, productsIn, type PrivacyProduct } from "@/lib/privacy/catalog";
 import { SITE_URL } from "@/lib/seo/site";
 

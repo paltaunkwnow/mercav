@@ -2,7 +2,8 @@ import { CartelSection } from "@/components/site/cartel/primitives";
 import { JsonLd, MoreLink, OrderCTA, PageIntro } from "@/components/privacy/blocks";
 import { ProductRows } from "@/components/privacy/CatalogBlocks";
 import { QuoteNote } from "@/components/privacy/Price";
-import { loadRates, privacyMetadata, privacyUrl } from "@/components/privacy/site";
+import { privacyMetadata, privacyUrl } from "@/components/privacy/site";
+import { loadRates } from "@/components/privacy/rates-server";
 import { CATEGORIES, DELIVERY, productsIn } from "@/lib/privacy/catalog";
 
 const CATEGORY = CATEGORIES["billeteras-frias"];

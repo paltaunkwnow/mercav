@@ -1,6 +1,7 @@
 import { OrderCTA, PLink } from "@/components/privacy/blocks";
 import { DocPage, DocSection } from "@/components/privacy/Doc";
-import { SUPPORT_EMAIL, hasRates, loadRates, privacyMetadata, quoteLabel, type Rates } from "@/components/privacy/site";
+import { SUPPORT_EMAIL, hasRates, privacyMetadata, quoteLabel, type Rates } from "@/components/privacy/site";
+import { loadRates } from "@/components/privacy/rates-server";
 import { PAYMENT } from "@/lib/privacy/catalog";
 
 export const metadata = privacyMetadata({

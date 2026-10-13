@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getPrivacyRates } from "@/lib/privacy/rates";
+import { EMPTY_RATES, quoteParts, type PrivacyRates } from "@/lib/privacy/quote";
 import { PAYMENT } from "@/lib/privacy/catalog";
 import { X_HANDLE, canonicalFor } from "@/lib/seo/site";
 
@@ -38,38 +38,25 @@ export function privacyMetadata({ path, title, description }: { path: string; ti
 
 const number = (digits: number) => new Intl.NumberFormat("es-BO", { minimumFractionDigits: digits, maximumFractionDigits: digits });
 const two = number(2);
-const none = number(0);
 
 /** "189,99" */
 export const usdtAmount = (n: number) => two.format(n);
 /** "189,99 USDT" */
 export const usdt = (n: number) => `${two.format(n)} USDT`;
 
-export type Rates = Awaited<ReturnType<typeof getPrivacyRates>>;
+export type Rates = PrivacyRates;
 
-const NO_RATES: Rates = { usdtBob: null, solUsd: null, xrpUsd: null, updatedAt: null, source: "" };
-
-/** La cotización del momento. Si el servicio falla, la página sale igual, sin los montos aproximados. */
-export async function loadRates(): Promise<Rates> {
-  try {
-    return await getPrivacyRates();
-  } catch {
-    return NO_RATES;
-  }
-}
+/** La cotización vacía, para cuando el servicio falla: la página sale igual, sin los montos aproximados. */
+export const NO_RATES: Rates = EMPTY_RATES;
 
 const usable = (n: number | null | undefined): n is number => typeof n === "number" && Number.isFinite(n) && n > 0;
 
 /**
- * Equivalentes aproximados de un precio en USDT: ["≈ Bs 1.322", "≈ 1,12 SOL", "≈ 78 XRP"]. SOL y XRP se cotizan en
- * dólares; el USDT se toma 1 a 1 con el dólar. Falta la cotización de alguno, falta ese monto.
+ * Equivalentes aproximados de un precio en USDT: ["≈ Bs 1.322", "≈ 1,12 SOL", "≈ 78 XRP"], con el mismo redondeo que
+ * PriceQuote (lib/privacy/quote.ts). Falta la cotización de alguno, falta ese monto.
  */
 export function approxAmounts(priceUsdt: number, rates: Rates) {
-  const out: string[] = [];
-  if (usable(rates.usdtBob)) out.push(`≈ Bs ${none.format(priceUsdt * rates.usdtBob)}`);
-  if (usable(rates.solUsd)) out.push(`≈ ${two.format(priceUsdt / rates.solUsd)} SOL`);
-  if (usable(rates.xrpUsd)) out.push(`≈ ${none.format(priceUsdt / rates.xrpUsd)} XRP`);
-  return out;
+  return quoteParts(priceUsdt, rates).map((p) => `≈ ${p.text}`);
 }
 
 export const hasRates = (rates: Rates) => usable(rates.usdtBob) || usable(rates.solUsd) || usable(rates.xrpUsd);

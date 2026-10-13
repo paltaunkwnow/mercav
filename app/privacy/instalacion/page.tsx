@@ -3,7 +3,8 @@ import { JsonLd, MoreLink, OrderCTA, PageIntro } from "@/components/privacy/bloc
 import { ProductWarning } from "@/components/privacy/CatalogBlocks";
 import { DeviceSilhouette } from "@/components/privacy/DeviceArt";
 import { PriceBlock } from "@/components/privacy/Price";
-import { PRIVACY_NAME, loadRates, privacyMetadata, privacyUrl } from "@/components/privacy/site";
+import { PRIVACY_NAME, privacyMetadata, privacyUrl } from "@/components/privacy/site";
+import { loadRates } from "@/components/privacy/rates-server";
 import { CATEGORIES, HARDENED_OS_FEATURES, INSTALL_SERVICE, PHONE_BUNDLE, productBySlug } from "@/lib/privacy/catalog";
 import { SITE_URL } from "@/lib/seo/site";
 
