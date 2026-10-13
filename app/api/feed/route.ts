@@ -41,7 +41,7 @@ export async function GET(req: Request) {
     const cursor = searchParams.get("cursor");
     // Validar el módulo contra el enum: un valor arbitrario hacía fallar la consulta con 500.
     const rawModule = searchParams.get("module") || "ALL";
-    const module: PostModule | "ALL" = (Object.values(PostModule) as string[]).includes(rawModule)
+    const feedModule: PostModule | "ALL" = (Object.values(PostModule) as string[]).includes(rawModule)
       ? (rawModule as PostModule)
       : "ALL";
     const take = Math.min(20, Math.max(1, Number(searchParams.get("take") || 10) || 10));
@@ -59,7 +59,7 @@ export async function GET(req: Request) {
     ]);
 
     const feedWhere: Prisma.PostWhereInput = {
-      ...(module !== "ALL" ? { module } : {}),
+      ...(feedModule !== "ALL" ? { module: feedModule } : {}),
       ...(orConditions.length > 0 ? { OR: orConditions } : {}),
       isActive: true,
       isUnderReview: false,

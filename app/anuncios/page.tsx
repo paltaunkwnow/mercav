@@ -135,7 +135,7 @@ export default function AnunciosPage() {
   };
 
   const filteredAndSortedSpaces = useMemo(() => {
-    let result = spaces.filter(space => {
+    const result = spaces.filter(space => {
       const matchesSearch = !appliedSearchQuery ||
                            space.title.toLowerCase().includes(appliedSearchQuery.toLowerCase()) || 
                            space.description?.toLowerCase().includes(appliedSearchQuery.toLowerCase());

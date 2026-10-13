@@ -108,7 +108,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "La publicación está vacía" }, { status: 400 });
     }
 
-    const module: PostModule = (Object.values(PostModule) as string[]).includes(body?.module)
+    const postModule: PostModule = (Object.values(PostModule) as string[]).includes(body?.module)
       ? (body.module as PostModule)
       : "GENERAL";
 
@@ -135,7 +135,7 @@ export async function POST(req: Request) {
         linkTitle,
         linkDescription,
         linkImage,
-        module,
+        module: postModule,
         jobId,
         serviceId,
         spaceId,
