@@ -76,6 +76,16 @@ export const AGENCIES: Agency[] = [
     verifiedAt: "12 de octubre de 2026",
   },
   {
+    slug: "ka-kosher",
+    name: "Ka Kosher (Supervisores en Calidad Kosher)",
+    country: "México",
+    countryCode: "MX",
+    about: "Certificadora kosher de México. Supervisa productos y publica una lista de restaurantes y comercios bajo su supervisión.",
+    website: "https://kakosher.com",
+    lists: { label: "Establecimientos supervisados", url: "https://kakosher.com/establecimientos/" },
+    verifiedAt: "13 de octubre de 2026",
+  },
+  {
     slug: "ou",
     name: "OU Kosher",
     country: "Estados Unidos · internacional",
