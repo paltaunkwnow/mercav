@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 1337",
-    "build": "node scripts/migrate-deploy.mjs && prisma generate && node scripts/kosher/import-osm.mjs && next build",
+    "build": "node scripts/migrate-deploy.mjs && prisma generate && node scripts/kosher/import-osm.mjs && node scripts/kosher/import-verified.mjs && next build",
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
@@ -16,6 +16,8 @@
     "kosher:fetch-osm": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/kosher/ts-register.mjs scripts/kosher/fetch-osm.mjs",
     "kosher:import-osm": "node scripts/kosher/import-osm.mjs",
     "kosher:test-osm": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/kosher/ts-register.mjs --test scripts/kosher/osm-lib.test.mjs",
+    "kosher:import-verified": "node scripts/kosher/import-verified.mjs",
+    "kosher:test-verified": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/kosher/ts-register.mjs --test scripts/kosher/verified-lib.test.mjs",
     "seed:qa": "node --experimental-strip-types --env-file=.env --env-file=.env.local prisma/seed-qa.mts"
   },
   "prisma": {

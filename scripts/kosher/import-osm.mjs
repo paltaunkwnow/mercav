@@ -12,11 +12,13 @@
 //   sugerencias aceptadas, sin confirmación ni certificado, y con el mismo nivel que da el import. Nunca se pisa lo
 //   que cargó la comunidad o el dueño. Ni el slug ni published cambian después de crearlo.
 // - Se saltea lo que ya está en la base con otro origen (a menos de 80 m y con nombre parecido) y lo de osm-exclude.json.
+// - Un lugar de OSM que import-verified.mjs pasó a verificado (source "seed", mismo osmId) ya no es de OSM: no se toca.
 // - Crea la comunidad (KosherCommunity) de cada ciudad nueva con 3 lugares o más.
 // - Nada queda "certified": Mercav no emite hechsher.
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { IMPORT_STATUSES, isUntouchedOsm } from "./osm-lib.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const SNAPSHOT = join(ROOT, "data/kosher/osm-latam.json");
@@ -27,8 +29,6 @@ const UPDATE_BATCH = 50;
 const MIN_PLACES_FOR_COMMUNITY = 3;
 
 const TYPES = new Set(["restaurant", "bakery", "butcher", "grocery_branch", "judaica", "synagogue", "mikvah", "school", "hotel", "community", "museum"]);
-/** Los únicos niveles que puede dar el import. */
-const IMPORT_STATUSES = new Set(["unknown", "self_declared", "some_dishes", "some_products"]);
 const NUSACH = new Set(["ashkenaz", "sefarad", "edot_hamizrach", "spanish_portuguese", "yemenite", "chabad", "other"]);
 const DENOMINATION = new Set(["orthodox", "conservative", "other"]);
 const STREAM = new Set(["modern", "yeshivish", "chabad", "hasidic", "sephardi", "other"]);
@@ -175,7 +175,11 @@ async function run() {
       });
       for (const row of rows) byOsmId.set(row.osmId, row);
     }
-    const others = await prisma.kosherPlace.findMany({ where: { osmId: null }, select: { slug: true, name: true, nameLocal: true, lat: true, lng: true } });
+    // Lo que no es de OSM, incluidos los lugares de OSM que ya pasaron a verificados (tienen osmId y source "seed").
+    const others = await prisma.kosherPlace.findMany({
+      where: { OR: [{ osmId: null }, { NOT: { source: "osm" } }] },
+      select: { slug: true, name: true, nameLocal: true, lat: true, lng: true },
+    });
     const taken = new Set((await prisma.kosherPlace.findMany({ select: { slug: true } })).map((r) => r.slug));
 
     const creates = [];
@@ -188,15 +192,7 @@ async function run() {
       const data = basicFields(p);
       if (row) {
         presentByCity.set(`${p.city}|${p.countryCode}`, (presentByCity.get(`${p.city}|${p.countryCode}`) ?? 0) + 1);
-        const untouched =
-          row.source === "osm" &&
-          row._count.managers === 0 &&
-          row._count.edits === 0 &&
-          row.status === p.status &&
-          !row.confirmedAt &&
-          !row.verifiedAt &&
-          !row.certificateUrl;
-        if (!untouched) {
+        if (!isUntouchedOsm(row, p.status)) {
           counts.edited++;
           continue;
         }

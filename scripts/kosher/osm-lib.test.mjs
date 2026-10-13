@@ -8,6 +8,7 @@ import {
   classifyTags,
   cleanWebsite,
   findDuplicate,
+  isUntouchedOsm,
   mainName,
   osmOpeningHours,
   parseSeedPlaces,
@@ -163,5 +164,18 @@ test("seed: lee los lugares del texto de seed-kosher.mts", () => {
 
 const communities = [];`;
   assert.deepEqual(parseSeedPlaces(source).map((p) => [p.slug, p.name, p.lat, p.lng]), [["lpz-jabad", "Jabad Bolivia", -16.4966, -68.14]]);
+});
+test("import-osm solo refresca lo que sigue siendo de OSM sin tocar", () => {
+  const row = { source: "osm", status: "self_declared", confirmedAt: null, verifiedAt: null, certificateUrl: null, _count: { managers: 0, edits: 0 } };
+  assert.ok(isUntouchedOsm(row, "self_declared"));
+  assert.ok(isUntouchedOsm(row), "sin nivel del snapshot alcanza con un nivel del import");
+  // import-verified.mjs lo pasó a verificado: conserva el osmId pero ya no es de OSM.
+  assert.ok(!isUntouchedOsm({ ...row, source: "seed", status: "certified", verifiedAt: new Date(), confirmedAt: new Date() }, "self_declared"));
+  assert.ok(!isUntouchedOsm({ ...row, source: "seed" }, "self_declared"), "aunque el resto coincida");
+  assert.ok(!isUntouchedOsm({ ...row, _count: { managers: 1, edits: 0 } }, "self_declared"));
+  assert.ok(!isUntouchedOsm({ ...row, _count: { managers: 0, edits: 2 } }, "self_declared"));
+  assert.ok(!isUntouchedOsm({ ...row, status: "certified" }));
+  assert.ok(!isUntouchedOsm({ ...row, status: "some_dishes" }, "self_declared"));
+  assert.ok(!isUntouchedOsm({ ...row, certificateUrl: "https://x.org/c.pdf" }, "self_declared"));
 });
 // creado por pato dev y askforvini
