@@ -604,4 +604,84 @@ button.c-btn { background-color: var(--btn-bg); }
   to { opacity: 1; translate: 0 0; rotate: 0deg; }
 }
 @keyframes c-sheet-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ------------------------------------------------------------------ */
+/* Mercav Privacy: el cartel en blanco y negro                          */
+/* ------------------------------------------------------------------ */
+
+/*
+ * c-mono va junto a .cartel (privacy.mercav.lat). Las cuatro tintas y el dorado pasan a ser la tinta del papel:
+ * blanco sobre la noche, negro sobre el papel. Las franjas (.c-band) y los botones quedan invertidos: blanco con
+ * letras negras en el tema oscuro, negro con letras blancas en el claro. La jerarquía sale de la letra, el peso,
+ * las reglas y la inversión, nunca del color.
+ */
+.cartel.c-mono,
+.c-mono .c-night,
+.light .c-mono .c-inverse,
+.light .c-mono .c-night {
+  --c-magenta: #fffdf8;
+  --c-yellow: #fffdf8;
+  --c-green: #fffdf8;
+  --c-orange: #fffdf8;
+  --c-gold: #fffdf8;
+  --c-magenta-text: #fffdf8;
+  --c-yellow-text: #fffdf8;
+  --c-green-text: #fffdf8;
+  --c-orange-text: #fffdf8;
+  --c-gold-text: #fffdf8;
+  --c-on-ink: #0b0a09;
+  --c-on-ink-soft: #46413a;
+  --c-on-ink-line: rgba(11, 10, 9, 0.22);
+  --c-on-ink-line-strong: rgba(11, 10, 9, 0.5);
+}
+.light .cartel.c-mono,
+.c-mono .c-inverse {
+  --c-magenta: #0b0a09;
+  --c-yellow: #0b0a09;
+  --c-green: #0b0a09;
+  --c-orange: #0b0a09;
+  --c-gold: #0b0a09;
+  --c-magenta-text: #0b0a09;
+  --c-yellow-text: #0b0a09;
+  --c-green-text: #0b0a09;
+  --c-orange-text: #0b0a09;
+  --c-gold-text: #0b0a09;
+  --c-on-ink: #fffdf8;
+  --c-on-ink-soft: #cdc6bb;
+  --c-on-ink-line: rgba(255, 253, 248, 0.24);
+  --c-on-ink-line-strong: rgba(255, 253, 248, 0.55);
+}
+/* La franja invertida: sus reglas toman el color de la letra que lleva encima. */
+.c-mono .c-band {
+  --c-line: var(--c-on-ink-line);
+  --c-line-strong: var(--c-on-ink-line-strong);
+}
+/* El renglón clave de un titular se imprime invertido en los dos temas, no solo en el papel. */
+.c-mono .c-strip {
+  color: var(--c-on-ink);
+  background-color: var(--c-yellow);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+/* Letra calada: solo el contorno, para el renglón que acompaña. */
+.c-mono .c-hollow {
+  color: transparent;
+  -webkit-text-stroke: max(1.5px, 0.022em) var(--c-text);
+}
+@supports not (-webkit-text-stroke: 1px black) {
+  .c-mono .c-hollow { color: var(--c-text); }
+}
+@media (forced-colors: active) {
+  .c-mono .c-hollow { color: CanvasText; -webkit-text-stroke: 0; }
+}
+/* Titulares de sección con un poco más de interlineado: los signos (¿, comas) no tocan el renglón de abajo. */
+.c-mono .c-h2 { line-height: 0.94; }
+/* Dibujos de los equipos: trazo de 2px que no escala con el tamaño. */
+.c-mono .c-device :where(path, rect, circle, line, ellipse) { vector-effect: non-scaling-stroke; }
+@media (prefers-contrast: more) {
+  .cartel.c-mono,
+  .light .cartel.c-mono,
+  .c-mono .c-inverse,
+  .c-mono .c-night { --c-on-ink-soft: var(--c-on-ink); }
+}
 /* creado por pato dev y askforvini */
