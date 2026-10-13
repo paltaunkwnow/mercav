@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cookies, headers } from "next/headers";
 import { ArrowRight, CalendarDays, Flame, MessagesSquare, MoonStar, Plane, Users } from "@/components/icons";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { KosherAtlas } from "@/components/kosher/KosherAtlas";
 import { StatusBadge } from "@/components/kosher/StatusBadge";
@@ -37,22 +38,40 @@ function cityFromConnection(cities: KosherCity[]) {
   return cities.find((c) => cityKey(c.city, c.countryCode) === key) ?? null;
 }
 
+const HOME_PLACE = { slug: true, name: true, city: true, countryCode: true, type: true, status: true, verifiedAt: true } satisfies Prisma.KosherPlaceSelect;
+type HomePlace = Prisma.KosherPlaceGetPayload<{ select: typeof HOME_PLACE }>;
+
+/** Los números y la lista del atlas. Sin base, la portada se muestra igual, sin datos en vivo (como la portada de Mercav). */
+async function loadLiveData() {
+  try {
+    const [placeCount, communityCount, cityRows, messageCount, places] = await Promise.all([
+      prisma.kosherPlace.count({ where: { published: true } }),
+      prisma.kosherCommunity.count(),
+      prisma.kosherPlace.findMany({ where: { published: true }, distinct: ["city", "countryCode"], select: { city: true } }),
+      prisma.kosherMessage.count({ where: { hidden: false } }),
+      prisma.kosherPlace.findMany({
+        where: { published: true, countryCode: { in: LATAM_COUNTRIES.map((c) => c.code) } },
+        orderBy: [{ verifiedAt: { sort: "desc", nulls: "last" } }, { name: "asc" }],
+        select: HOME_PLACE,
+        take: 120,
+      }),
+    ]);
+    return { placeCount, communityCount, cityRows, messageCount, places };
+  } catch (dbError) {
+    console.warn("Inicio de Mercav Kosher sin datos en vivo:", dbError);
+    return { placeCount: 0, communityCount: 0, cityRows: [] as { city: string }[], messageCount: 0, places: [] as HomePlace[] };
+  }
+}
+
 /** El inicio de Mercav Kosher: el atlas como en el celular de la portada y, debajo, la vida de la comunidad. */
 export default async function KosherHome() {
-  const [placeCount, communityCount, cityRows, messageCount, places] = await Promise.all([
-    prisma.kosherPlace.count({ where: { published: true } }),
-    prisma.kosherCommunity.count(),
-    prisma.kosherPlace.findMany({ where: { published: true }, distinct: ["city", "countryCode"], select: { city: true } }),
-    prisma.kosherMessage.count({ where: { hidden: false } }),
-    prisma.kosherPlace.findMany({
-      where: { published: true, countryCode: { in: LATAM_COUNTRIES.map((c) => c.code) } },
-      orderBy: [{ verifiedAt: { sort: "desc", nulls: "last" } }, { name: "asc" }],
-      select: { slug: true, name: true, city: true, countryCode: true, type: true, status: true, verifiedAt: true },
-      take: 120,
-    }),
+  const { placeCount, communityCount, cityRows, messageCount, places } = await loadLiveData();
+  // Si la base no responde, la portada igual se muestra: sin ciudad elegida ni números en vivo.
+  const [viewer, cities, counts] = await Promise.all([
+    getKosherViewer().catch(() => null),
+    listCities().catch(() => []),
+    placeCountsByCity().catch(() => new Map<string, number>()),
   ]);
-
-  const [viewer, cities, counts] = await Promise.all([getKosherViewer(), listCities(), placeCountsByCity()]);
   const city = pickCity(cities, undefined, viewer);
   const shabbat = city ? nextShabbat(city) : null;
 
