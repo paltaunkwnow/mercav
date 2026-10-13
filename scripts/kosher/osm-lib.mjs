@@ -15,7 +15,9 @@ export const CLOSE_METERS = 30;
 /** Radio por defecto (km) de una ciudad de la lista curada. */
 export const DEFAULT_CITY_RADIUS_KM = 50;
 /** Si addr:city nombra una ciudad curada pero el punto queda más lejos que esto, se desconfía de addr:city. */
-const ADDR_CITY_MAX_KM = 120;
+export const ADDR_CITY_MAX_KM = 120;
+/** Los únicos niveles de kashrut que puede dar el import de OSM. */
+export const IMPORT_STATUSES = new Set(["unknown", "self_declared", "some_dishes", "some_products"]);
 
 // ── Overpass ────────────────────────────────────────────────────────────────
 
@@ -473,6 +475,26 @@ export function osmOpeningHours(raw) {
   const out = {};
   for (const [d, periods] of [...week.entries()].sort((a, b) => a[0] - b[0])) if (periods.length) out[String(d)] = periods;
   return Object.keys(out).length ? out : null;
+}
+
+// ── Base: lugares de OSM que nadie tocó ────────────────────────────────────
+
+/**
+ * ¿El lugar sigue tal como lo dejó el import de OSM? Sin administradores, sin sugerencias aceptadas, sin confirmación
+ * ni certificado, con source "osm" y el nivel que da el import (importStatus: el del snapshot; si no está, cualquiera
+ * de IMPORT_STATUSES). row trae _count: { managers, edits } (edits = sugerencias aceptadas). Solo esos lugares los
+ * puede refrescar import-osm.mjs o pasar a verificados import-verified.mjs; uno que ya es "seed" no se toca más.
+ */
+export function isUntouchedOsm(row, importStatus) {
+  return (
+    row.source === "osm" &&
+    row._count?.managers === 0 &&
+    row._count?.edits === 0 &&
+    (importStatus ? row.status === importStatus : IMPORT_STATUSES.has(row.status)) &&
+    !row.confirmedAt &&
+    !row.verifiedAt &&
+    !row.certificateUrl
+  );
 }
 
 // ── Seed (para no duplicar lugares verificados a mano) ──────────────────────

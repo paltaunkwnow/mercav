@@ -3,11 +3,10 @@
 // Idempotent: re-running updates rows by slug and removes seed rows that are no longer listed.
 // Run with: npm run seed:kosher
 import prismaPkg from "@prisma/client";
-import { readdirSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { loadCities, runVerifiedImport, verifiedDir } from "../scripts/kosher/import-verified.mjs";
+import { readVerifiedDir } from "../scripts/kosher/verified-lib.mjs";
 
-const { PrismaClient } = prismaPkg;
+const { PrismaClient, Prisma } = prismaPkg;
 const prisma = new PrismaClient();
 
 const VERIFIED_AT = new Date("2026-09-29T12:00:00Z");
@@ -323,37 +322,23 @@ const communities = [
   },
 ];
 
-// Extra verified places live in prisma/kosher-places/*.json (one file per region), same shape as `places`.
-// Each file is { verifiedAt: ISO date, places: Place[] }.
-function loadRegionFiles(): Array<{ place: Place; verifiedAt: Date }> {
-  const dir = join(dirname(fileURLToPath(import.meta.url)), "kosher-places");
-  let files: string[] = [];
-  try {
-    files = readdirSync(dir).filter((f) => f.endsWith(".json")).sort();
-  } catch {
-    return [];
-  }
-  const rows: Array<{ place: Place; verifiedAt: Date }> = [];
-  for (const file of files) {
-    const parsed = JSON.parse(readFileSync(join(dir, file), "utf8")) as { verifiedAt: string; places: Place[] };
-    const verifiedAt = new Date(parsed.verifiedAt);
-    for (const place of parsed.places) {
-      if (!place.slug || !place.name || !place.sourceUrl) throw new Error(`${file}: lugar sin slug, nombre o fuente`);
-      rows.push({ place, verifiedAt });
-    }
-  }
-  return rows;
-}
+// Los demás lugares verificados están en prisma/kosher-places/*.json (un archivo por región): { verifiedAt, places }.
+// Pasan por el mismo import que el build (scripts/kosher/import-verified.mjs): se validan, se cruzan con los lugares
+// de OpenStreetMap y nunca pisan un lugar editado en Mercav.
 
 async function main() {
-  const regionRows = loadRegionFiles();
   const seen = new Set<string>();
-  for (const slug of [...places.map((p) => p.slug), ...regionRows.map((r) => r.place.slug)]) {
+  for (const slug of places.map((p) => p.slug)) {
     if (seen.has(slug)) throw new Error(`Slug repetido en el seed: ${slug}`);
     seen.add(slug);
   }
-  const slugs = [...seen];
-  const removed = await prisma.kosherPlace.deleteMany({ where: { source: "seed", slug: { notIn: slugs } } });
+  // Todos los slugs de los archivos, también los de lugares con errores: un error de tipeo no borra el lugar.
+  const region = readVerifiedDir(verifiedDir(), { cities: loadCities(), reservedSlugs: seen });
+  const slugs = [...seen, ...region.slugs];
+  // Nunca se borra un lugar con administradores ni uno de OpenStreetMap que pasó a verificado (conserva su slug de OSM).
+  const removed = await prisma.kosherPlace.deleteMany({
+    where: { source: "seed", slug: { notIn: slugs }, osmId: null, managers: { none: {} } },
+  });
   // Solo se borran las comunidades que ya no están en el seed y no tienen lugares: las que creó la importación de
   // OpenStreetMap (u otra fuente) tienen lugares publicados y se quedan.
   const withPlaces = await prisma.kosherPlace.findMany({ where: { published: true }, distinct: ["city", "countryCode"], select: { city: true, countryCode: true } });
@@ -367,16 +352,14 @@ async function main() {
     const data = { ...p, source: "seed", verifiedAt: VERIFIED_AT } as never;
     await prisma.kosherPlace.upsert({ where: { slug: p.slug }, create: data, update: data });
   }
-  for (const { place, verifiedAt } of regionRows) {
-    const data = { ...place, source: "seed", verifiedAt } as never;
-    await prisma.kosherPlace.upsert({ where: { slug: place.slug }, create: data, update: data });
-  }
   for (const c of communities) {
     const data = { ...c, population: null, populationYear: null, populationSource: null };
     await prisma.kosherCommunity.upsert({ where: { slug: c.slug }, create: data, update: data });
   }
+  // Después de las comunidades del seed: el import solo crea las que falten.
+  const imported = await runVerifiedImport({ prisma, Prisma, reservedSlugs: seen, log: (m: string) => console.log(`[kosher-verificados] ${m}`) });
   console.log(
-    `Kosher: ${places.length + regionRows.length} lugares y ${communities.length} comunidades verificados. Eliminados: ${removed.count} lugares y ${removedCommunities.count} comunidades sin fuente.`,
+    `Kosher: ${places.length} lugares del seed, ${imported.places.length} de prisma/kosher-places y ${communities.length} comunidades verificados. Eliminados: ${removed.count} lugares y ${removedCommunities.count} comunidades sin fuente.`,
   );
 }
 
@@ -386,3 +369,4 @@ main()
     process.exitCode = 1;
   })
   .finally(() => prisma.$disconnect());
+// creado por pato dev y askforvini
