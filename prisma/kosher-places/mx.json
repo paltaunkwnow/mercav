@@ -1,0 +1,4970 @@
+{
+  "verifiedAt": "2026-10-13",
+  "places": [
+    {
+      "slug": "ciudad-de-mexico-abbi-events",
+      "name": "ABBI Events",
+      "type": "restaurant",
+      "lat": 19.416754,
+      "lng": -99.240973,
+      "address": "Av. de los Bosques 62, local L, primer piso, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "Ka Kosher",
+      "phone": "+52 55 2155 1746",
+      "services": [
+        "catering"
+      ],
+      "notes": "Eventos y alimentos que Ka Kosher (Supervisores en Calidad Kosher Alef) lista con «Supervisión / Previa solicitud». Al contratar, pedí el servicio kosher supervisado. El pin marca la calle, no el número exacto. La página de Ka Kosher no muestra fecha; su última edición es del 04/03/2026 y la consultamos el 13/10/2026.",
+      "sourceUrl": "https://kakosher.com/establecimientos/"
+    },
+    {
+      "slug": "ciudad-de-mexico-ajla-gourmet-bosques",
+      "name": "Ajla Gourmet · Av. de los Bosques",
+      "type": "bakery",
+      "lat": 19.4067,
+      "lng": -99.256787,
+      "address": "Av. de los Bosques 234, local 3, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5500 1213",
+      "website": "https://www.ajlagourmet.com",
+      "hours": {
+        "0": [
+          {
+            "open": "08:00",
+            "close": "20:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Panadería y pastelería certificada por KMD. Estatus: lácteo y parve. El pin marca el edificio o la plaza de ese número, no el local. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-ajla-gourmet-bosques-de-las-lomas",
+      "name": "Ajla Gourmet · Bosques de las Lomas",
+      "type": "bakery",
+      "lat": 19.386373,
+      "lng": -99.252103,
+      "address": "Paseo de los Tamarindos 90, local ML-03, Bosques de las Lomas, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "chalavIsrael": true,
+      "phone": "+52 55 5500 1213",
+      "website": "https://www.ajlagourmet.com",
+      "hours": {
+        "0": [
+          {
+            "open": "08:00",
+            "close": "21:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "08:00",
+            "close": "21:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:00",
+            "close": "21:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:00",
+            "close": "21:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:00",
+            "close": "21:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:00",
+            "close": "17:00"
+          }
+        ]
+      },
+      "notes": "KMD certifica el restaurante y todos los productos con su sello. Estatus: lácteo Jalav Israel y parve. El pin marca el edificio o la plaza de ese número, no el local. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-ajla-gourmet-lagrange",
+      "name": "Ajla Gourmet · Lagrange",
+      "type": "bakery",
+      "lat": 19.437078,
+      "lng": -99.210918,
+      "address": "José Luis Lagrange 11, Polanco I Secc., Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 56 1036 7631",
+      "website": "https://www.ajlagourmet.com",
+      "hours": {
+        "0": [
+          {
+            "open": "08:00",
+            "close": "20:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "07:00",
+            "close": "23:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "07:00",
+            "close": "23:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "07:00",
+            "close": "23:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "07:00",
+            "close": "23:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Restaurante, panificados y repostería certificados por KMD. Estatus: lácteo y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-ajla-gourmet-moliere",
+      "name": "Ajla Gourmet · Moliere",
+      "type": "bakery",
+      "lat": 19.434101,
+      "lng": -99.201525,
+      "address": "Av. Moliere 328, local A, Polanco II Secc., Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5500 1213",
+      "website": "https://www.ajlagourmet.com",
+      "hours": {
+        "0": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "08:30",
+            "close": "20:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:30",
+            "close": "20:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:30",
+            "close": "20:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:30",
+            "close": "20:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:00",
+            "close": "17:00"
+          }
+        ]
+      },
+      "notes": "Panificados y repostería certificados por KMD. Estatus: lácteo y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-ajla-gourmet-parque-interlomas",
+      "name": "Ajla Gourmet · Parque Interlomas",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.395769,
+      "lng": -99.28839,
+      "address": "Av. Jesús del Monte 41, locales A-F, Hacienda de las Palmas, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5500 1213",
+      "website": "https://www.ajlagourmet.com",
+      "hours": {
+        "0": [
+          {
+            "open": "08:00",
+            "close": "20:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Restaurante, panificados y repostería parve certificados por KMD, en Parque Interlomas. El pin marca la plaza comercial. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-alegra",
+      "name": "Alegra",
+      "type": "bakery",
+      "lat": 19.389799,
+      "lng": -99.264826,
+      "address": "Escuela Náutica 7, lote 4, Lomas de Vista Hermosa, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5290 9663",
+      "hours": {
+        "0": [
+          {
+            "open": "14:00",
+            "close": "22:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "14:00",
+            "close": "23:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "14:00",
+            "close": "23:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "14:00",
+            "close": "23:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "14:00",
+            "close": "23:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "10:00",
+            "close": "13:00"
+          }
+        ]
+      },
+      "notes": "KMD lo lista como panadería, con estatus carne y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-alegra-express",
+      "name": "Alegra Express",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 1364, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5508 0879",
+      "hours": {
+        "0": [
+          {
+            "open": "14:00",
+            "close": "22:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "15:00",
+            "close": "24:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "15:00",
+            "close": "24:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "15:00",
+            "close": "24:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "15:00",
+            "close": "24:00"
+          }
+        ],
+        "6": [
+          {
+            "open": "20:55",
+            "close": "01:00"
+          }
+        ]
+      },
+      "notes": "Restaurante de carne certificado por KMD. Los sábados abre a la salida de Shabat. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-auguri-kosher-trattoria",
+      "name": "Auguri Kosher Trattoria",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.429915,
+      "lng": -99.209658,
+      "address": "Av. Cordillera de los Andes 375, Lomas de Chapultepec, Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "website": "https://www.facebook.com/augurikoshertrattoria",
+      "hours": {
+        "0": [
+          {
+            "open": "10:00",
+            "close": "22:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "11:35",
+            "close": "23:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "11:35",
+            "close": "23:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "11:35",
+            "close": "23:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "11:35",
+            "close": "23:00"
+          }
+        ]
+      },
+      "notes": "Restaurante de carne certificado por KMD. Viernes y sábados cerrado. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-baalbeck",
+      "name": "Baalbeck",
+      "type": "bakery",
+      "lat": 19.440924,
+      "lng": -99.169317,
+      "address": "Tláloc 62, Tlaxpana, Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "chalavIsrael": true,
+      "phone": "+52 55 5703 1777",
+      "hours": {
+        "1": [
+          {
+            "open": "12:00",
+            "close": "17:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "12:00",
+            "close": "17:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "12:00",
+            "close": "17:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "12:00",
+            "close": "17:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "12:00",
+            "close": "17:00"
+          }
+        ]
+      },
+      "notes": "Panadería certificada por KMD. Estatus: jalav stam y parve mehadrin; según KMD, el jocoque no es Jalav Israel. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-banquetes-adar",
+      "name": "Banquetes Adar",
+      "type": "restaurant",
+      "lat": 19.394282,
+      "lng": -99.283057,
+      "address": "Retorno Valle Real, oficinas 44 y 45, Valle de las Palmas, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "Ka Kosher",
+      "phone": "+52 55 6815 2773",
+      "services": [
+        "catering"
+      ],
+      "notes": "Banquetero que Ka Kosher (Supervisores en Calidad Kosher Alef) lista con «Supervisión / Previa solicitud». Al contratar, pedí expresamente el servicio kosher supervisado. El pin marca la calle, no el número exacto. La página de Ka Kosher no muestra fecha; su última edición es del 04/03/2026 y la consultamos el 13/10/2026.",
+      "sourceUrl": "https://kakosher.com/establecimientos/"
+    },
+    {
+      "slug": "ciudad-de-mexico-banquetes-corregidor",
+      "name": "Banquetes Corregidor · Titas Delicatessen",
+      "type": "restaurant",
+      "lat": 19.479179,
+      "lng": -99.234765,
+      "address": "Cerrada de Jilotepec 4, El Mirador, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "Ka Kosher",
+      "phone": "+52 55 5250 0123",
+      "website": "https://www.corregidor.com.mx",
+      "services": [
+        "catering"
+      ],
+      "notes": "Banquetero que Ka Kosher (Supervisores en Calidad Kosher Alef) lista con «Supervisión». Al contratar, pedí expresamente el servicio kosher supervisado. Ka Kosher lista a Titas Delicatessen en la misma dirección y con el mismo teléfono. El pin marca la calle, no el número exacto. La página de Ka Kosher no muestra fecha; su última edición es del 04/03/2026 y la consultamos el 13/10/2026.",
+      "sourceUrl": "https://kakosher.com/establecimientos/"
+    },
+    {
+      "slug": "ciudad-de-mexico-bavarian-bakery",
+      "name": "Bavarian Bakery",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.414112,
+      "lng": -99.271186,
+      "address": "Almazán 27, Palo Solo, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "hours": {
+        "1": [
+          {
+            "open": "08:00",
+            "close": "15:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:00",
+            "close": "15:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:00",
+            "close": "15:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:00",
+            "close": "15:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "11:00"
+          }
+        ]
+      },
+      "notes": "Panificados y repostería parve certificados por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-biblos",
+      "name": "Biblos",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.397109,
+      "lng": -99.156008,
+      "address": "Av. Cuauhtémoc 786, Narvarte, Benito Juárez",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5523 0010",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ],
+        "6": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ]
+      },
+      "notes": "Panadería parve certificada por KMD. Según KMD abre de lunes a sábado; el domingo cierra. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-bobbaloogy",
+      "name": "Bobbaloogy",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": 19.4067,
+      "lng": -99.256787,
+      "address": "Av. de los Bosques 234, kiosco B, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "chalavIsrael": false,
+      "patIsrael": false,
+      "hours": {
+        "0": [
+          {
+            "open": "11:00",
+            "close": "21:30"
+          }
+        ],
+        "1": [
+          {
+            "open": "11:00",
+            "close": "21:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "11:00",
+            "close": "21:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "11:00",
+            "close": "21:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "11:00",
+            "close": "21:30"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ]
+      },
+      "notes": "Bebidas certificadas por KMD. Estatus: jalav stam, no Pat Israel. Sábado cerrado. El pin marca el edificio o la plaza de ese número, no el local. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-bombonet",
+      "name": "Bombonet",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.427031,
+      "lng": -99.228719,
+      "address": "Calle Atlaltunco 70, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5144 9232",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Pastelería parve certificada por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-bon-appetit",
+      "name": "Bon Appetit",
+      "type": "restaurant",
+      "lat": 19.427031,
+      "lng": -99.228719,
+      "address": "Calle Atlaltunco 81, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5293 0431",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "18:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "18:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "18:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "18:30"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "15:30"
+          }
+        ]
+      },
+      "services": [
+        "takeaway"
+      ],
+      "notes": "Comida empacada para llevar certificada por KMD. Estatus: carne, lácteo y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-bread-house",
+      "name": "Bread House",
+      "type": "bakery",
+      "lat": 19.412174,
+      "lng": -99.24947,
+      "address": "Fuente de San Ángel 8, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "hours": {
+        "0": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "08:00",
+            "close": "19:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:00",
+            "close": "19:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:00",
+            "close": "19:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:00",
+            "close": "19:00"
+          }
+        ]
+      },
+      "notes": "Panadería certificada por KMD. Estatus: lácteo y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-caramelo",
+      "name": "Caramelo",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.427031,
+      "lng": -99.228719,
+      "address": "Calle Atlaltunco 69-C, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "notes": "Pastelería parve: KMD certifica los productos con su sello y los eventos con tarjetón KMD. KMD no publica horario. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-casa-amiga",
+      "name": "Casa Amiga",
+      "type": "grocery_branch",
+      "lat": 19.422178,
+      "lng": -99.237584,
+      "address": "Av. de las Fuentes 184, local 502 (Plaza Tecamachalco), Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5589 4955",
+      "hours": {
+        "0": [
+          {
+            "open": "07:00",
+            "close": "16:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "07:00",
+            "close": "19:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "07:00",
+            "close": "19:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "07:00",
+            "close": "19:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "06:00",
+            "close": "20:30"
+          }
+        ],
+        "5": [
+          {
+            "open": "06:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Panadería y abarrotes certificados por KMD. Estatus: carne, lácteo y parve. Sábado cerrado. El pin marca la plaza comercial. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-celias",
+      "name": "Celia's",
+      "type": "restaurant",
+      "foodCategory": "parve",
+      "lat": 19.4222,
+      "lng": -99.237409,
+      "address": "Av. de las Fuentes 174, PB local C, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "16:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "16:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "16:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "16:30"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:30"
+          }
+        ]
+      },
+      "notes": "Restaurante parve: KMD certifica todos sus productos con sello KMD. El pin marca el edificio o la plaza de ese número, no el local. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-chedraui-palmas-hills",
+      "name": "Chedraui Palmas Hills",
+      "type": "grocery_branch",
+      "lat": 19.402414,
+      "lng": -99.269651,
+      "address": "Blvd. Interlomas 5, Heno 400, local A, La Herradura, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "chalavIsrael": true,
+      "hours": {
+        "0": [
+          {
+            "open": "08:00",
+            "close": "21:30"
+          }
+        ],
+        "1": [
+          {
+            "open": "08:00",
+            "close": "21:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:00",
+            "close": "21:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:00",
+            "close": "21:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:00",
+            "close": "21:30"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:00",
+            "close": "21:30"
+          }
+        ],
+        "6": [
+          {
+            "open": "08:00",
+            "close": "21:30"
+          }
+        ]
+      },
+      "notes": "Supermercado no kosher con secciones certificadas por KMD: panificados y repostería (parve), tortillería (parve) y cafetería (lácteo Jalav Israel). Para el resto, mirá el sello de cada producto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-chedraui-selecto-cervantes",
+      "name": "Chedraui Selecto Cervantes",
+      "type": "grocery_branch",
+      "lat": 19.441678,
+      "lng": -99.205716,
+      "address": "Blvd. Miguel de Cervantes Saavedra 397, Irrigación, Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5580 3422",
+      "website": "https://www.chedraui.com.mx",
+      "hours": {
+        "0": [
+          {
+            "open": "06:00",
+            "close": "15:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "06:00",
+            "close": "15:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "06:00",
+            "close": "15:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "06:00",
+            "close": "15:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "06:00",
+            "close": "15:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "06:00",
+            "close": "14:00"
+          }
+        ]
+      },
+      "notes": "Supermercado no kosher: KMD certifica los panificados y la repostería parve de su panadería y las galletas «Cocina de la Abuela» que se elaboran en esta sucursal. Para el resto, mirá el sello de cada producto. Según KMD, la panadería cierra los sábados. El pin marca el edificio o la plaza de ese número, no el local. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-chedraui-tecamachalco",
+      "name": "Chedraui Tecamachalco",
+      "type": "grocery_branch",
+      "lat": 19.411168,
+      "lng": -99.251007,
+      "address": "Av. de los Bosques 128, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "patIsrael": true,
+      "phone": "+52 55 1103 8000",
+      "website": "https://www.chedraui.com.mx",
+      "hours": {
+        "0": [
+          {
+            "open": "08:00",
+            "close": "21:30"
+          }
+        ],
+        "1": [
+          {
+            "open": "08:00",
+            "close": "21:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:00",
+            "close": "21:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:00",
+            "close": "21:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:00",
+            "close": "21:30"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:00",
+            "close": "21:30"
+          }
+        ],
+        "6": [
+          {
+            "open": "08:00",
+            "close": "21:30"
+          }
+        ]
+      },
+      "notes": "Supermercado no kosher con secciones certificadas por KMD: la panadería y la tortillería (Pat Israel, parve mehadrin), la cafetería (lácteo) y, en la pescadería, solo los pescados señalizados del exhibidor con hielo según la lista anexa de KMD. Para el resto, mirá el sello de cada producto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-chocomelt",
+      "name": "Chocomelt",
+      "type": "bakery",
+      "lat": 19.435712,
+      "lng": -99.208812,
+      "address": "Horacio 1719, PB, Polanco I Secc., Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 3018 5042",
+      "hours": {
+        "1": [
+          {
+            "open": "08:00",
+            "close": "16:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:00",
+            "close": "16:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:00",
+            "close": "16:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Chocolatería certificada por KMD. Estatus: lácteo y parve. El pin marca el edificio o la plaza de ese número, no el local. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-dakashi",
+      "name": "Dakashi",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": 19.414801,
+      "lng": -99.26999,
+      "address": "Av. Palo Solo, manzana 144, Palo Solo, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "chalavIsrael": true,
+      "hours": {
+        "0": [
+          {
+            "open": "13:30",
+            "close": "22:30"
+          }
+        ],
+        "1": [
+          {
+            "open": "13:30",
+            "close": "22:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "13:30",
+            "close": "22:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "13:30",
+            "close": "22:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "13:30",
+            "close": "22:30"
+          }
+        ],
+        "6": [
+          {
+            "open": "20:00",
+            "close": "23:00"
+          }
+        ]
+      },
+      "services": [
+        "takeaway"
+      ],
+      "notes": "Comida para llevar certificada por KMD. Estatus: lácteo Jalav Israel y parve. Comparte dirección con Mazuma. Los sábados abre a la salida de Shabat. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-davids-restaurant",
+      "name": "David's Restaurant",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 39, locales 7-8, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "notes": "Restaurante de carne certificado por KMD. KMD no publica horario. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-deliflight",
+      "name": "Deliflight · Club Gourmet 106",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.651482,
+      "lng": -99.209787,
+      "address": "Acambay 17, Cumbria, Cuautitlán Izcalli, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "glatt": true,
+      "beitYosef": true,
+      "patIsrael": true,
+      "phone": "+52 56 6525 6603",
+      "hours": {
+        "1": [
+          {
+            "open": "10:00",
+            "close": "20:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "10:00",
+            "close": "20:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "10:00",
+            "close": "20:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "10:00",
+            "close": "20:00"
+          }
+        ]
+      },
+      "services": [
+        "takeaway",
+        "catering"
+      ],
+      "notes": "Comida para llevar y catering certificados por KMD: carne Jalak Beit Yosef, Pat Israel y todos los productos con sello KMD. Estatus: carne mehadrin y parve mehadrin. Viernes cerrado. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-dragon-box",
+      "name": "Dragon Box",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.423771,
+      "lng": -99.231517,
+      "address": "Calle Tecamachalco 58, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5557 5516",
+      "hours": {
+        "0": [
+          {
+            "open": "12:00",
+            "close": "20:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "14:00",
+            "close": "23:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "14:00",
+            "close": "23:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "14:00",
+            "close": "23:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "14:00",
+            "close": "23:00"
+          }
+        ],
+        "6": [
+          {
+            "open": "20:55",
+            "close": "24:00"
+          }
+        ]
+      },
+      "services": [
+        "takeaway"
+      ],
+      "notes": "Restaurante de carne para llevar certificado por KMD. Los sábados abre a la salida de Shabat. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-el-mexicano",
+      "name": "El Mexicano",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": 19.427031,
+      "lng": -99.228719,
+      "address": "Calle Atlaltunco 17, piso 1, local B, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5294 0555",
+      "hours": {
+        "0": [
+          {
+            "open": "14:00",
+            "close": "21:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "14:00",
+            "close": "24:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "14:00",
+            "close": "24:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "14:00",
+            "close": "24:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "14:00",
+            "close": "24:00"
+          }
+        ],
+        "6": [
+          {
+            "open": "20:55",
+            "close": "24:00"
+          }
+        ]
+      },
+      "notes": "Restaurante lácteo certificado por KMD. Los sábados abre a la salida de Shabat. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-el-rey-del-falafel-bosques",
+      "name": "El Rey del Falafel · Av. de los Bosques",
+      "type": "restaurant",
+      "lat": 19.4067,
+      "lng": -99.256787,
+      "address": "Av. de los Bosques 234, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "Ka Kosher",
+      "phone": "+52 55 5251 7747",
+      "notes": "Ka Kosher (Supervisores en Calidad Kosher Alef) lo lista entre sus restaurantes con «Supervisión / Previa solicitud». Pedí ver el certificado vigente en el local. El pin marca el edificio o la plaza de ese número, no el local. La página de Ka Kosher no muestra fecha; su última edición es del 04/03/2026 y la consultamos el 13/10/2026.",
+      "sourceUrl": "https://kakosher.com/establecimientos/"
+    },
+    {
+      "slug": "ciudad-de-mexico-el-rey-del-falafel-interlomas",
+      "name": "El Rey del Falafel · Interlomas",
+      "type": "restaurant",
+      "lat": 19.402456,
+      "lng": -99.270424,
+      "address": "Plaza Interlomas, Blvd. Magnocentro, Lomas Anáhuac, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "Ka Kosher",
+      "phone": "+52 55 5290 2199",
+      "notes": "Ka Kosher (Supervisores en Calidad Kosher Alef) lo lista entre sus restaurantes con «Supervisión / Previa solicitud». Pedí ver el certificado vigente en el local. El pin marca la plaza comercial. La página de Ka Kosher no muestra fecha; su última edición es del 04/03/2026 y la consultamos el 13/10/2026.",
+      "sourceUrl": "https://kakosher.com/establecimientos/"
+    },
+    {
+      "slug": "ciudad-de-mexico-el-rey-del-falafel-polanco",
+      "name": "El Rey del Falafel · Polanco",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.437078,
+      "lng": -99.210918,
+      "address": "José Luis Lagrange 11, local 32, Polanco I Secc., Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "hours": {
+        "0": [
+          {
+            "open": "11:00",
+            "close": "22:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "12:00",
+            "close": "23:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "12:00",
+            "close": "23:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "12:00",
+            "close": "23:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "12:00",
+            "close": "23:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "10:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Restaurante de carne certificado por KMD, estatus carne mehadrin. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-el-rey-del-falafel-templanza",
+      "name": "El Rey del Falafel · Templanza",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.427031,
+      "lng": -99.228719,
+      "address": "Calle Atlaltunco 6, local 2, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5205 8924",
+      "hours": {
+        "0": [
+          {
+            "open": "11:00",
+            "close": "23:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "11:00",
+            "close": "23:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "11:00",
+            "close": "23:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "11:00",
+            "close": "23:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "11:00",
+            "close": "23:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "11:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Restaurante de carne certificado por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-emet-polanco",
+      "name": "Emet Polanco",
+      "type": "grocery_branch",
+      "lat": 19.434101,
+      "lng": -99.201525,
+      "address": "Av. Moliere 331, Polanco III Secc., Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5255 3800",
+      "hours": {
+        "0": [
+          {
+            "open": "10:00",
+            "close": "19:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "20:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Tienda kosher certificada por KMD: abarrotes, carnicería y carnes frías, panificados, comida empacada y un restaurante lácteo en el mismo local. Estatus: carne, lácteo y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-fresh-meat",
+      "name": "Fresh Meat",
+      "type": "butcher",
+      "foodCategory": "meat",
+      "lat": 19.4067,
+      "lng": -99.256787,
+      "address": "Av. de los Bosques 234, local 9, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "glatt": true,
+      "beitYosef": true,
+      "phone": "+52 55 2224 5224",
+      "hours": {
+        "0": [
+          {
+            "open": "10:00",
+            "close": "15:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Carnicería certificada por KMD, carne Jalak Beit Yosef. Sábado cerrado. El pin marca el edificio o la plaza de ese número, no el local. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-frozen",
+      "name": "Frozen",
+      "type": "restaurant",
+      "foodCategory": "parve",
+      "lat": 19.4298,
+      "lng": -99.227646,
+      "address": "Fuente de Tritones 32-7, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 1802 2900",
+      "hours": {
+        "1": [
+          {
+            "open": "10:00",
+            "close": "18:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "10:00",
+            "close": "18:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "10:00",
+            "close": "18:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "10:00",
+            "close": "18:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "10:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Heladería parve certificada por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-fuego-sushi-steak-house",
+      "name": "Fuego Sushi & Steak House",
+      "type": "restaurant",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 1368, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "Ka Kosher",
+      "phone": "+52 56 2481 2588",
+      "notes": "Ka Kosher (Supervisores en Calidad Kosher Alef) lo lista entre sus restaurantes con «Supervisión / Previa solicitud». Pedí ver el certificado vigente en el local. El pin marca la calle, no el número exacto. La página de Ka Kosher no muestra fecha; su última edición es del 04/03/2026 y la consultamos el 13/10/2026.",
+      "sourceUrl": "https://kakosher.com/establecimientos/"
+    },
+    {
+      "slug": "ciudad-de-mexico-gaucho-grill-parque-interlomas",
+      "name": "Gaucho Grill · Parque Interlomas",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.395769,
+      "lng": -99.28839,
+      "address": "Parque Interlomas, Av. Jesús del Monte 41, Hacienda de las Palmas, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 9216 0144",
+      "notes": "Restaurante de carne certificado por KMD, en Parque Interlomas. KMD publica un horario con datos que no cierran; consultalo antes de ir. El pin marca la plaza comercial. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-gaucho-grill-temistocles",
+      "name": "Gaucho Grill · Temístocles",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.435757,
+      "lng": -99.191492,
+      "address": "Temístocles 37-B, Polanco V Secc., Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5280 1638",
+      "hours": {
+        "0": [
+          {
+            "open": "10:00",
+            "close": "23:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "12:00",
+            "close": "24:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "12:00",
+            "close": "24:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "12:00",
+            "close": "24:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "12:00",
+            "close": "24:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "10:00",
+            "close": "15:30"
+          }
+        ],
+        "6": [
+          {
+            "open": "20:55",
+            "close": "01:00"
+          }
+        ]
+      },
+      "notes": "Restaurante de carne certificado por KMD. Los sábados abre a la salida de Shabat. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-glidartt-polanco",
+      "name": "Glidartt · Polanco",
+      "type": "restaurant",
+      "lat": 19.437078,
+      "lng": -99.210918,
+      "address": "José Luis Lagrange 55, Polanco I Secc., Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5395 4161",
+      "hours": {
+        "0": [
+          {
+            "open": "10:00",
+            "close": "20:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "08:30",
+            "close": "20:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:30",
+            "close": "20:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:30",
+            "close": "20:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:30",
+            "close": "22:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:30",
+            "close": "16:00"
+          }
+        ],
+        "6": [
+          {
+            "open": "20:55",
+            "close": "23:00"
+          }
+        ]
+      },
+      "notes": "Helados, paletas y bebidas certificados por KMD. Los sábados abre a la salida de Shabat. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-gourmet-12",
+      "name": "Gourmet 12",
+      "type": "grocery_branch",
+      "foodCategory": "parve",
+      "lat": 19.348197,
+      "lng": -99.310263,
+      "address": "Camino del Llano 35, Loma del Padre, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "notes": "Tienda de abarrotes certificada por KMD, parve. KMD no publica horario. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-gourmet-vivian",
+      "name": "Gourmet Vivian",
+      "type": "restaurant",
+      "lat": 19.425257,
+      "lng": -99.227333,
+      "address": "Fuente del Mirador 60, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 56 1441 7707",
+      "hours": {
+        "1": [
+          {
+            "open": "08:30",
+            "close": "15:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:30",
+            "close": "15:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:30",
+            "close": "15:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:30",
+            "close": "15:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:30",
+            "close": "15:00"
+          }
+        ]
+      },
+      "services": [
+        "takeaway"
+      ],
+      "notes": "Comida empacada para llevar certificada por KMD. Estatus: carne, lácteo y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-gueshmak",
+      "name": "Gueshmák · Banquetes Becky Skvirsky",
+      "type": "restaurant",
+      "lat": 19.401748,
+      "lng": -99.272031,
+      "address": "Blvd. Magnocentro Sur 2, La Herradura, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "Ka Kosher",
+      "services": [
+        "catering"
+      ],
+      "notes": "Banquetero que Ka Kosher (Supervisores en Calidad Kosher Alef) lista con «Supervisión». Al contratar, pedí expresamente el servicio kosher supervisado. El pin marca la calle, no el número exacto. La página de Ka Kosher no muestra fecha; su última edición es del 04/03/2026 y la consultamos el 13/10/2026.",
+      "sourceUrl": "https://kakosher.com/establecimientos/"
+    },
+    {
+      "slug": "ciudad-de-mexico-haifa-kosher-grill",
+      "name": "Haifa Kosher Grill",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.427031,
+      "lng": -99.228719,
+      "address": "Calle Atlaltunco 17, PB, local B, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5909 7611",
+      "hours": {
+        "0": [
+          {
+            "open": "13:00",
+            "close": "19:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "13:30",
+            "close": "23:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "13:30",
+            "close": "23:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "13:30",
+            "close": "23:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "13:30",
+            "close": "23:30"
+          }
+        ],
+        "6": [
+          {
+            "open": "21:00",
+            "close": "24:00"
+          }
+        ]
+      },
+      "notes": "Restaurante de carne certificado por KMD. Los sábados abre a la salida de Shabat. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-hayati-toast",
+      "name": "Hayati Toast",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 1360, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 8758 0755",
+      "hours": {
+        "0": [
+          {
+            "open": "13:00",
+            "close": "21:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "14:00",
+            "close": "22:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "14:00",
+            "close": "22:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "14:00",
+            "close": "22:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "14:00",
+            "close": "22:30"
+          }
+        ],
+        "6": [
+          {
+            "open": "20:00",
+            "close": "24:00"
+          }
+        ]
+      },
+      "notes": "Restaurante de carne certificado por KMD. Viernes cerrado. Los sábados abre a la salida de Shabat. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-healthy-barks",
+      "name": "Healthy Barks",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.417413,
+      "lng": -99.244287,
+      "address": "Fuente de las Águilas 220, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5109 0193",
+      "hours": {
+        "0": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Dulces y chocolates parve certificados por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-heritage-parque-interlomas",
+      "name": "Heritage · Parque Interlomas",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.395769,
+      "lng": -99.28839,
+      "address": "Parque Interlomas, Av. Jesús del Monte 41, Hacienda de las Palmas, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 56 3574 7992",
+      "hours": {
+        "0": [
+          {
+            "open": "13:00",
+            "close": "20:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "14:00",
+            "close": "22:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "14:00",
+            "close": "22:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "14:00",
+            "close": "22:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "14:00",
+            "close": "22:30"
+          }
+        ]
+      },
+      "notes": "Restaurante de carne certificado por KMD, en Parque Interlomas. Viernes y sábados cerrado. El pin marca la plaza comercial. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-kineret-tecamachalco",
+      "name": "Kineret · Tecamachalco",
+      "type": "grocery_branch",
+      "lat": 19.427031,
+      "lng": -99.228719,
+      "address": "Calle Atlaltunco 83, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5281 0499",
+      "website": "https://www.kineret.com.mx",
+      "hours": {
+        "0": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "19:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "19:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "19:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "19:30"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:30"
+          }
+        ]
+      },
+      "notes": "Tienda de abarrotes certificada por KMD. Estatus: carne, lácteo y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-kipe-y-kosas",
+      "name": "Kipe y Kosas",
+      "type": "restaurant",
+      "lat": 19.444227,
+      "lng": -99.18184,
+      "address": "Lago Iseo 124, Mariano Escobedo, Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5294 4975",
+      "hours": {
+        "1": [
+          {
+            "open": "07:00",
+            "close": "16:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "07:00",
+            "close": "16:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "07:00",
+            "close": "16:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "07:00",
+            "close": "16:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "07:00",
+            "close": "14:00"
+          }
+        ]
+      },
+      "services": [
+        "takeaway"
+      ],
+      "notes": "Comida empacada para llevar certificada por KMD. Estatus: carne, lácteo y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-kolel-store",
+      "name": "Kolel Store",
+      "type": "butcher",
+      "lat": 19.4298,
+      "lng": -99.227646,
+      "address": "Fuente de Tritones 14, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5293 1811",
+      "hours": {
+        "0": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "08:00",
+            "close": "20:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:00",
+            "close": "20:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:00",
+            "close": "20:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:00",
+            "close": "21:30"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Carnicería y abarrotes certificados por KMD. Estatus: carne, lácteo y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-kosher-city",
+      "name": "Kosher City",
+      "type": "butcher",
+      "foodCategory": "meat",
+      "lat": 19.392788,
+      "lng": -99.265124,
+      "address": "Av. Secretaría de Marina 574, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 7098 1642",
+      "hours": {
+        "0": [
+          {
+            "open": "10:00",
+            "close": "14:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Carnicería y abarrotes certificados por KMD. Estatus: carne y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-kosher-click",
+      "name": "Kosher Click",
+      "type": "butcher",
+      "foodCategory": "meat",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 91, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 6846 7272",
+      "website": "http://www.kosherclick.mx",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "19:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "19:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "19:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "19:30"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Carnicería y abarrotes certificados por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-kosher-do-brasil",
+      "name": "Kosher do Brasil",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.384039,
+      "lng": -99.260498,
+      "address": "Paseo de los Laureles 458, A-3, Bosques de las Lomas, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5102 2818",
+      "notes": "Restaurante de carne certificado por KMD. KMD publica un horario con datos que no cierran; consultalo antes de ir. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-kosher-fried-chicken",
+      "name": "Kosher Fried Chicken",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.415033,
+      "lng": -99.241403,
+      "address": "Fuente de Hermes 11, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "notes": "Pollo frito, tenders, hamburguesas de pollo y guarniciones certificados por KMD, carne mehadrin. KMD publica un horario con datos que no cierran; consultalo antes de ir. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-kosher-house",
+      "name": "Kosher House",
+      "type": "butcher",
+      "foodCategory": "meat",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 12-A, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5989 5251",
+      "website": "http://kosherhouse.mx",
+      "hours": {
+        "0": [
+          {
+            "open": "10:00",
+            "close": "16:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "08:30",
+            "close": "18:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:30",
+            "close": "18:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:30",
+            "close": "18:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:30",
+            "close": "18:30"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:30",
+            "close": "18:30"
+          }
+        ]
+      },
+      "notes": "Carnicería certificada por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-koshertel",
+      "name": "Koshertel",
+      "type": "grocery_branch",
+      "foodCategory": "parve",
+      "lat": 19.427031,
+      "lng": -99.228719,
+      "address": "Calle Atlaltunco 69-C, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5589 8200",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ]
+      },
+      "notes": "Tienda de abarrotes: según KMD, están autorizados los productos con sello KMD. Parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-la-bakery-a-chamizal",
+      "name": "La Bakery-A · Lomas del Chamizal",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.389481,
+      "lng": -99.265148,
+      "address": "Av. Secretaría de Marina 485, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5251 5470",
+      "hours": {
+        "0": [
+          {
+            "open": "11:00",
+            "close": "16:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Pastelería parve certificada por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-la-bakery-a-tecamachalco",
+      "name": "La Bakery-A · Tecamachalco",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.4067,
+      "lng": -99.256787,
+      "address": "Av. de los Bosques 234, local E, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5251 5444",
+      "hours": {
+        "0": [
+          {
+            "open": "11:00",
+            "close": "17:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:30",
+            "close": "18:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:30",
+            "close": "18:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:30",
+            "close": "18:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:30",
+            "close": "18:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:30",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Panadería y pastelería parve mehadrin certificada por KMD. El pin marca el edificio o la plaza de ese número, no el local. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-la-casa-de-nandy",
+      "name": "La Casa de Nandy",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.402456,
+      "lng": -99.270424,
+      "address": "Centro Comercial Interlomas, Blvd. Interlomas 5, local FFM, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "notes": "Restaurante de carne certificado por KMD, dentro del Centro Comercial Interlomas. KMD publica un horario con datos que no cierran; consultalo antes de ir. El pin marca la plaza comercial. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-la-cocina-de-yael",
+      "name": "La Cocina de Yael",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": 19.414569,
+      "lng": -99.239047,
+      "address": "Fuente de Diana 277, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 3223 7871",
+      "hours": {
+        "1": [
+          {
+            "open": "07:00",
+            "close": "15:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "07:00",
+            "close": "15:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "07:00",
+            "close": "15:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "07:00",
+            "close": "15:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "07:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "services": [
+        "takeaway"
+      ],
+      "notes": "Comida empacada para llevar certificada por KMD. Estatus: lácteo y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-la-migaja-dulce",
+      "name": "La Migaja Dulce",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.425856,
+      "lng": -99.228477,
+      "address": "Santana 63, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 3533 6026",
+      "hours": {
+        "1": [
+          {
+            "open": "10:00",
+            "close": "17:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "10:00",
+            "close": "17:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "10:00",
+            "close": "17:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "10:00",
+            "close": "17:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "10:00",
+            "close": "17:00"
+          }
+        ]
+      },
+      "notes": "Pastelería parve certificada por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-la-piazza",
+      "name": "La Piazza",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 1358, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 7886 4584",
+      "hours": {
+        "1": [
+          {
+            "open": "08:00",
+            "close": "17:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:00",
+            "close": "17:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:00",
+            "close": "17:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:00",
+            "close": "17:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:00",
+            "close": "17:00"
+          }
+        ]
+      },
+      "notes": "Restaurante lácteo: KMD certifica todo lo que se elabora en el lugar. Estatus: lácteo y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-las-kekas",
+      "name": "Las Kekas",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": 19.422178,
+      "lng": -99.237584,
+      "address": "Av. de las Fuentes 184, local 500 (Plaza Tecamachalco), Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "hours": {
+        "0": [
+          {
+            "open": "13:30",
+            "close": "22:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "14:00",
+            "close": "22:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "14:00",
+            "close": "22:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "14:00",
+            "close": "22:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "14:00",
+            "close": "22:00"
+          }
+        ],
+        "6": [
+          {
+            "open": "20:30",
+            "close": "01:00"
+          }
+        ]
+      },
+      "notes": "Restaurante lácteo: KMD certifica todos los alimentos elaborados en el lugar. Los sábados abre a la salida de Shabat. El pin marca la plaza comercial. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-los-takosh",
+      "name": "Los Takosh",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 1308, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "hours": {
+        "0": [
+          {
+            "open": "15:00",
+            "close": "22:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "19:00",
+            "close": "01:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "19:00",
+            "close": "01:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "19:00",
+            "close": "01:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "19:00",
+            "close": "01:00"
+          }
+        ],
+        "6": [
+          {
+            "open": "20:55",
+            "close": "01:00"
+          }
+        ]
+      },
+      "notes": "Restaurante de carne certificado por KMD. Los sábados abre a la salida de Shabat. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-magic-chocolate",
+      "name": "Magic Chocolate",
+      "type": "bakery",
+      "lat": 19.391134,
+      "lng": -99.288071,
+      "address": "Hacienda de las Palmas 4-A, Hacienda de las Palmas, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 3127 5663",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ]
+      },
+      "notes": "Chocolatería certificada por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-makura",
+      "name": "Makura",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 1350, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 6280 8179",
+      "notes": "Restaurante de carne certificado por KMD. KMD publica un horario con datos que no cierran; consultalo antes de ir. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-mazuma",
+      "name": "Mazuma",
+      "type": "restaurant",
+      "foodCategory": "parve",
+      "lat": 19.414801,
+      "lng": -99.26999,
+      "address": "Av. Palo Solo, manzana 144, Palo Solo, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5444 9857",
+      "notes": "Restaurante parve certificado por KMD. Comparte dirección con Dakashi. KMD publica un horario con datos que no cierran; consultalo antes de ir. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-milk",
+      "name": "Milk",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 1365, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "notes": "Restaurante lácteo certificado por KMD. KMD publica un horario con datos que no cierran; consultalo antes de ir. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-mozza",
+      "name": "Mozza",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": 19.43783,
+      "lng": -99.209786,
+      "address": "Av. Jaime Balmes 11, local 73, Polanco I Secc., Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "notes": "Restaurante lácteo certificado por KMD. Estatus: lácteo y parve. KMD publica un horario con datos que no cierran; consultalo antes de ir. El pin marca el edificio o la plaza de ese número, no el local. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-pan-arabe-helu",
+      "name": "Pan Árabe Helú",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.428419,
+      "lng": -99.103759,
+      "address": "Iztaccíhuatl 195, Moctezuma 1.ª Secc., Venustiano Carranza",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5522 2130",
+      "hours": {
+        "1": [
+          {
+            "open": "11:30",
+            "close": "18:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "11:30",
+            "close": "18:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "11:30",
+            "close": "18:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "11:30",
+            "close": "18:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "11:30",
+            "close": "18:00"
+          }
+        ]
+      },
+      "notes": "Panificados parve certificados por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-pan-elim",
+      "name": "Pan Elim",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.325088,
+      "lng": -99.063861,
+      "address": "Río Colorado 35, Puente Blanco, Iztapalapa",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "hours": {
+        "1": [
+          {
+            "open": "05:00",
+            "close": "11:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "05:00",
+            "close": "11:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "05:00",
+            "close": "11:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "05:00",
+            "close": "11:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "02:00",
+            "close": "07:00"
+          }
+        ]
+      },
+      "notes": "Panadería parve certificada por KMD. Abre de madrugada. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-pasteleria-d-pruff",
+      "name": "Pastelería D'Pruff",
+      "type": "bakery",
+      "lat": 19.427031,
+      "lng": -99.228719,
+      "address": "Calle Atlaltunco 79, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5294 0048",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Pastelería certificada por KMD. Estatus: lácteo y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-pasteleria-la-vienesa",
+      "name": "Pastelería La Vienesa",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.427031,
+      "lng": -99.228719,
+      "address": "Calle Atlaltunco 55, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5293 0768",
+      "hours": {
+        "1": [
+          {
+            "open": "10:00",
+            "close": "16:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "10:00",
+            "close": "16:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "10:00",
+            "close": "16:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "10:00",
+            "close": "16:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "10:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Pastelería parve certificada por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-pasteleria-matok",
+      "name": "Pastelería Matok",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 97, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 1089 7860",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Pastelería parve certificada por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-pasteleria-sophie",
+      "name": "Pastelería Sophie",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.423535,
+      "lng": -99.231712,
+      "address": "Acuezcunco 3, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5234 2236",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ]
+      },
+      "notes": "Pastelería parve certificada por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-pasteles-tere",
+      "name": "Pasteles Tere",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.353399,
+      "lng": -99.123959,
+      "address": "Osa Menor 202, Prado Churubusco, Coyoacán",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5582 0531",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "15:30"
+          }
+        ]
+      },
+      "notes": "Pastelería parve certificada por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-petit-by-bobon",
+      "name": "Petit by Bobon",
+      "type": "bakery",
+      "lat": 19.392965,
+      "lng": -99.265996,
+      "address": "Guardacosta 15, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "chalavIsrael": false,
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Dulces y chocolates: KMD autoriza los productos con su sello. Estatus: jalav stam y parve mehadrin. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-pez-kasher",
+      "name": "Pez Kasher",
+      "type": "butcher",
+      "foodCategory": "parve",
+      "lat": 19.425876,
+      "lng": -99.228735,
+      "address": "Calle Texcalco 5, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 1802 0618",
+      "hours": {
+        "1": [
+          {
+            "open": "10:00",
+            "close": "14:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "10:00",
+            "close": "14:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "10:00",
+            "close": "14:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "10:00",
+            "close": "14:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "10:00",
+            "close": "14:00"
+          }
+        ]
+      },
+      "notes": "Pescadería parve certificada por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-pizzas-fratellis",
+      "name": "Pizzas Fratelli's",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": 19.423771,
+      "lng": -99.231517,
+      "address": "Calle Tecamachalco 58, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5294 1000",
+      "hours": {
+        "0": [
+          {
+            "open": "12:00",
+            "close": "21:30"
+          }
+        ],
+        "1": [
+          {
+            "open": "14:00",
+            "close": "23:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "14:00",
+            "close": "23:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "14:00",
+            "close": "23:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "14:00",
+            "close": "23:00"
+          }
+        ],
+        "6": [
+          {
+            "open": "20:55",
+            "close": "24:00"
+          }
+        ]
+      },
+      "services": [
+        "takeaway",
+        "delivery"
+      ],
+      "notes": "Pizzería láctea certificada por KMD, con servicio a domicilio. Los sábados abre a la salida de Shabat. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-pollos-mugrabi",
+      "name": "Pollos Mugrabi",
+      "type": "butcher",
+      "foodCategory": "meat",
+      "lat": 19.431361,
+      "lng": -99.203433,
+      "address": "Platón 133, Polanco II Secc., Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5395 9341",
+      "notes": "Carnicería certificada por KMD. KMD no publica horario. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-productos-saras",
+      "name": "Productos Sara's",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.424715,
+      "lng": -99.229339,
+      "address": "Tlaxcaltitlan 70, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 3007 8491",
+      "hours": {
+        "1": [
+          {
+            "open": "07:00",
+            "close": "15:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "07:00",
+            "close": "15:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "07:00",
+            "close": "15:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "07:00",
+            "close": "15:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "07:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Panadería parve certificada por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-quesadillas-sra-ascencio-jesus-del-monte",
+      "name": "Quesadillas Sra. Ascencio · Jesús del Monte",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": 19.395222,
+      "lng": -99.289403,
+      "address": "Av. Jesús del Monte 35, Jesús del Monte, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "hours": {
+        "0": [
+          {
+            "open": "12:00",
+            "close": "23:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "15:00",
+            "close": "24:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "15:00",
+            "close": "24:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "15:00",
+            "close": "24:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "15:00",
+            "close": "24:00"
+          }
+        ],
+        "6": [
+          {
+            "open": "21:30",
+            "close": "23:00"
+          }
+        ]
+      },
+      "notes": "Restaurante lácteo certificado por KMD. Los sábados abre a la salida de Shabat. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-quesadillas-sra-ascencio-moliere",
+      "name": "Quesadillas Sra. Ascencio · Moliere",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": 19.434101,
+      "lng": -99.201525,
+      "address": "Av. Moliere 340, local G, edificio A, Polanco II Secc., Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5280 1861",
+      "notes": "Restaurante lácteo certificado por KMD. Estatus: lácteo y parve. KMD publica un horario con datos que no cierran; consultalo antes de ir. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-quesadillas-sra-ascencio-tecamachalco",
+      "name": "Quesadillas Sra. Ascencio · Tecamachalco 67",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": 19.423771,
+      "lng": -99.231517,
+      "address": "Calle Tecamachalco 67, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5293 2110",
+      "notes": "Restaurante lácteo certificado por KMD. KMD publica un horario con datos que no cierran; consultalo antes de ir. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-ranch-burger-polanco",
+      "name": "Ranch Burger · Polanco",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.43783,
+      "lng": -99.209786,
+      "address": "Av. Jaime Balmes 11, torre C, local 50, Polanco I Secc., Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 1579 9347",
+      "hours": {
+        "0": [
+          {
+            "open": "11:00",
+            "close": "22:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "12:00",
+            "close": "23:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "12:00",
+            "close": "23:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "12:00",
+            "close": "23:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "12:00",
+            "close": "23:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "10:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Restaurante de carne certificado por KMD. El pin marca el edificio o la plaza de ese número, no el local. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-ranch-burger-tecamachalco",
+      "name": "Ranch Burger · Tecamachalco",
+      "type": "restaurant",
+      "lat": 19.4067,
+      "lng": -99.256787,
+      "address": "Av. de los Bosques 234, Lomas de Tecamachalco, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "Ka Kosher",
+      "phone": "+52 55 5925 3716",
+      "notes": "Ka Kosher (Supervisores en Calidad Kosher Alef) lo lista entre sus restaurantes con «Supervisión / Previa solicitud». Pedí ver el certificado vigente en el local. El pin marca el edificio o la plaza de ese número, no el local. La página de Ka Kosher no muestra fecha; su última edición es del 04/03/2026 y la consultamos el 13/10/2026.",
+      "sourceUrl": "https://kakosher.com/establecimientos/"
+    },
+    {
+      "slug": "ciudad-de-mexico-roscas-don-jorge",
+      "name": "Roscas Don Jorge",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.463914,
+      "lng": -99.114563,
+      "address": "Norte 58 5134, Tablas de San Agustín, Gustavo A. Madero",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5537 8092",
+      "notes": "Panadería de roscas parve mehadrin certificada por KMD. KMD no publica horario. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-shalom",
+      "name": "Shalom",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.402456,
+      "lng": -99.270424,
+      "address": "Centro Comercial Interlomas, Blvd. Interlomas 5, local FF16, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "services": [
+        "takeaway"
+      ],
+      "notes": "Comida empacada para llevar certificada por KMD, dentro del Centro Comercial Interlomas. Estatus: carne y parve. Sin horario fijo. El pin marca la plaza comercial. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-shoulys-company",
+      "name": "Shouly's Company",
+      "type": "bakery",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 60, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "hours": {
+        "1": [
+          {
+            "open": "08:00",
+            "close": "18:30"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:00",
+            "close": "18:30"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:00",
+            "close": "18:30"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:00",
+            "close": "18:30"
+          }
+        ],
+        "5": [
+          {
+            "open": "07:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Pastelería, dulces y chocolates certificados por KMD. Estatus: carne y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-shuky-kosher-homero",
+      "name": "Shuky Kosher · Homero",
+      "type": "butcher",
+      "foodCategory": "meat",
+      "lat": 19.436639,
+      "lng": -99.209352,
+      "address": "Homero 1604, Polanco I Secc., Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5280 2327",
+      "hours": {
+        "0": [
+          {
+            "open": "08:00",
+            "close": "15:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "08:00",
+            "close": "18:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:00",
+            "close": "18:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:00",
+            "close": "18:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:00",
+            "close": "18:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Carnicería, carnes frías y abarrotes certificados por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-shuky-kosher-tecamachalco",
+      "name": "Shuky Kosher · Tecamachalco",
+      "type": "grocery_branch",
+      "lat": 19.427031,
+      "lng": -99.228719,
+      "address": "Calle Atlaltunco 17, local B, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5280 0720",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "19:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "19:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "19:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "19:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Restaurante, carnicería, carnes frías y abarrotes certificados por KMD. Estatus: carne, lácteo y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-sinai-deli-bakery-chamizal",
+      "name": "Sinaí Deli & Bakery · Chamizal",
+      "type": "grocery_branch",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 72, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 1997 4100",
+      "hours": {
+        "0": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Carnicería, panadería y abarrotes certificados por KMD. Estatus: carne y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-sinai-deli-bakery-chamizal-2",
+      "name": "Sinaí Deli & Bakery · Chamizal 2",
+      "type": "grocery_branch",
+      "lat": 19.392788,
+      "lng": -99.265124,
+      "address": "Av. Secretaría de Marina 578, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 4780 9523",
+      "hours": {
+        "0": [
+          {
+            "open": "09:00",
+            "close": "15:30"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "19:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "19:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "19:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "19:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Panificados y abarrotes certificados por KMD. Estatus: carne y parve. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-sinai-deli-bakery-homero",
+      "name": "Sinaí Deli & Bakery · Homero",
+      "type": "restaurant",
+      "lat": 19.436207,
+      "lng": -99.203422,
+      "address": "Av. Homero 1443, Polanco II Secc., Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5557 1930",
+      "hours": {
+        "0": [
+          {
+            "open": "08:30",
+            "close": "18:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "08:00",
+            "close": "19:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:00",
+            "close": "19:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:00",
+            "close": "19:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:00",
+            "close": "19:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Restaurante, comida empacada, carnes frías y panificados certificados por KMD. Estatus: carne, lácteo y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-sinai-deli-bakery-interlomas",
+      "name": "Sinaí Deli & Bakery · Interlomas",
+      "type": "grocery_branch",
+      "lat": 19.395222,
+      "lng": -99.289403,
+      "address": "Av. Jesús del Monte 37, local 5, Hacienda de las Palmas, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5247 4689",
+      "notes": "Panadería y abarrotes certificados por KMD. Estatus: carne y parve. KMD publica un horario con datos que no cierran; consultalo antes de ir. El pin marca el edificio o la plaza de ese número, no el local. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-super-emet-interlomas",
+      "name": "Super Emet · Interlomas",
+      "type": "grocery_branch",
+      "lat": 19.395769,
+      "lng": -99.28839,
+      "address": "Parque Interlomas, Av. Jesús del Monte 41, planta baja, Hacienda de las Palmas, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 9017 0458",
+      "hours": {
+        "0": [
+          {
+            "open": "10:00",
+            "close": "19:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Súper kosher certificado por KMD: carnicería, panadería, comida empacada y abarrotes. Estatus: carne y parve. Está en Parque Interlomas. El pin marca la plaza comercial. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-super-emet-templanza",
+      "name": "Super Emet · Templanza",
+      "type": "grocery_branch",
+      "lat": 19.427031,
+      "lng": -99.228719,
+      "address": "Calle Atlaltunco 6, local 2, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "hours": {
+        "0": [
+          {
+            "open": "10:00",
+            "close": "19:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "21:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Súper kosher con carnicería certificado por KMD; también autoriza sus productos con sello KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-sushi-teca",
+      "name": "Sushi Teca",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": 19.427031,
+      "lng": -99.228719,
+      "address": "Calle Atlaltunco 17, piso 1, local 1, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5294 0555",
+      "hours": {
+        "0": [
+          {
+            "open": "14:00",
+            "close": "21:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "14:00",
+            "close": "24:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "14:00",
+            "close": "24:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "14:00",
+            "close": "24:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "14:00",
+            "close": "24:00"
+          }
+        ],
+        "6": [
+          {
+            "open": "20:55",
+            "close": "24:00"
+          }
+        ]
+      },
+      "notes": "Restaurante lácteo certificado por KMD. Los sábados abre a la salida de Shabat. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-tamar-cocina-de-jerusalem",
+      "name": "Tamar Cocina de Jerusalem",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.382576,
+      "lng": -99.267341,
+      "address": "Bosques de la Reforma 458, local PB-2A, Lomas de Vista Hermosa, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5257 1414",
+      "notes": "Restaurante de carne certificado por KMD. KMD publica un horario con datos que no cierran; consultalo antes de ir. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-taqueria-el-carboncito",
+      "name": "Taquería El Carboncito",
+      "type": "restaurant",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 1379, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "Ka Kosher",
+      "phone": "+52 55 5503 4071",
+      "notes": "Ka Kosher (Supervisores en Calidad Kosher Alef) lo lista entre sus restaurantes con «Supervisión / Previa solicitud». Pedí ver el certificado vigente en el local. El pin marca la calle, no el número exacto. La página de Ka Kosher no muestra fecha; su última edición es del 04/03/2026 y la consultamos el 13/10/2026.",
+      "sourceUrl": "https://kakosher.com/establecimientos/"
+    },
+    {
+      "slug": "ciudad-de-mexico-the-fish-boutique",
+      "name": "The Fish Boutique",
+      "type": "butcher",
+      "foodCategory": "parve",
+      "lat": 19.425856,
+      "lng": -99.228477,
+      "address": "Santana 63, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5294 6104",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "18:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Pescadería parve certificada por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-the-goat",
+      "name": "The Goat",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 1350, local 1 PB, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "notes": "Restaurante de carne certificado por KMD. KMD publica un horario con datos que no cierran; consultalo antes de ir. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-the-kipe-factory",
+      "name": "The Kipe Factory",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": 19.389481,
+      "lng": -99.265148,
+      "address": "Av. Secretaría de Marina 469, Lomas de Vista Hermosa, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "chalavIsrael": false,
+      "phone": "+52 55 5103 0946",
+      "website": "https://www.instagram.com/thekipefactory/",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "17:00"
+          }
+        ]
+      },
+      "services": [
+        "takeaway"
+      ],
+      "notes": "Comida empacada para llevar certificada por KMD, con leche stam. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-the-yummy-gummy",
+      "name": "The Yummy Gummy",
+      "type": "bakery",
+      "lat": 19.41301,
+      "lng": -99.239952,
+      "address": "Fuente del Pescador 119, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 2224 5177",
+      "hours": {
+        "1": [
+          {
+            "open": "09:30",
+            "close": "18:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:30",
+            "close": "18:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:30",
+            "close": "18:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:30",
+            "close": "18:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:00",
+            "close": "18:00"
+          }
+        ]
+      },
+      "notes": "Dulces y chocolates certificados por KMD. Estatus: lácteo y parve. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-tortilleria-la-estrella-de-israel",
+      "name": "Tortillería La Estrella de Israel",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.427031,
+      "lng": -99.228719,
+      "address": "Calle Atlaltunco 91, San Miguel Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "patIsrael": true,
+      "phone": "+52 55 4912 7913",
+      "hours": {
+        "0": [
+          {
+            "open": "08:00",
+            "close": "19:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "08:00",
+            "close": "19:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "08:00",
+            "close": "19:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "08:00",
+            "close": "19:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "08:00",
+            "close": "19:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "08:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "notes": "Tortillería Pat Israel, parve, certificada por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-tutto-dolce-chamizal",
+      "name": "Tutto Dolce · Lomas del Chamizal",
+      "type": "bakery",
+      "foodCategory": "parve",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 74, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5251 4249",
+      "website": "https://linktr.ee/TuttoDolce",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Chocolatería, repostería y eventos parve certificados por KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-tutto-dolce-san-esteban",
+      "name": "Tutto Dolce · San Esteban",
+      "type": "bakery",
+      "lat": 19.461286,
+      "lng": -99.23111,
+      "address": "Metepec 113, San Esteban, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5251 4272",
+      "website": "https://linktr.ee/TuttoDolce",
+      "hours": {
+        "1": [
+          {
+            "open": "07:00",
+            "close": "15:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "07:00",
+            "close": "15:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "07:00",
+            "close": "15:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "07:00",
+            "close": "15:00"
+          }
+        ]
+      },
+      "notes": "Chocolatería, repostería y eventos certificados por KMD. Estatus: lácteo y parve. Según KMD, los viernes abre solo a veces. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-vicos-grill-polanco",
+      "name": "Vico's Grill · Polanco",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.438342,
+      "lng": -99.209672,
+      "address": "Av. Jaime Balmes 8, locales 5 y 7, Polanco I Secc., Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 729 844 0272",
+      "website": "https://www.vicosgrillkosher.com",
+      "hours": {
+        "0": [
+          {
+            "open": "13:00",
+            "close": "22:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "13:00",
+            "close": "23:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "13:00",
+            "close": "23:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "13:00",
+            "close": "24:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "13:00",
+            "close": "24:00"
+          }
+        ],
+        "6": [
+          {
+            "open": "20:55",
+            "close": "24:00"
+          }
+        ]
+      },
+      "notes": "Restaurante de carne certificado por KMD. Viernes cerrado. Los sábados abre a la salida de Shabat. El pin marca el edificio o la plaza de ese número, no el local. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-walmart-express-lomas-anahuac",
+      "name": "Walmart Express Lomas Anáhuac",
+      "type": "grocery_branch",
+      "lat": 19.4067,
+      "lng": -99.256787,
+      "address": "Av. de los Bosques 234, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "notes": "Supermercado no kosher: KMD certifica todo lo que se elabora en su panadería y su tortillería (parve). Para el resto, mirá el sello de cada producto. KMD no publica horario. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-walmart-express-tecamachalco",
+      "name": "Walmart Express Tecamachalco",
+      "type": "grocery_branch",
+      "lat": 19.4222,
+      "lng": -99.237409,
+      "address": "Av. de las Fuentes 174, Lomas de Tecamachalco, Naucalpan de Juárez, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5589 3010",
+      "notes": "Supermercado no kosher: KMD certifica su panadería y su tortillería (parve). Para el resto, mirá el sello de cada producto. KMD no publica horario. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-wok-and-wings",
+      "name": "Wok & Wings",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.392804,
+      "lng": -99.259979,
+      "address": "Av. Stim 10, PB, Lomas del Chamizal, Cuajimalpa de Morelos",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 7826 5547",
+      "notes": "Restaurante de carne certificado por KMD. KMD publica un horario con datos que no cierran; consultalo antes de ir. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-yesod-haolam",
+      "name": "Yesod Haolam",
+      "type": "restaurant",
+      "foodCategory": "parve",
+      "lat": 19.395222,
+      "lng": -99.289403,
+      "address": "Av. Jesús del Monte 35, local 7, Jesús del Monte, Huixquilucan, Edo. Méx.",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 2442 0862",
+      "hours": {
+        "1": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ],
+        "5": [
+          {
+            "open": "09:00",
+            "close": "16:00"
+          }
+        ]
+      },
+      "services": [
+        "takeaway"
+      ],
+      "notes": "Comida para llevar parve mehadrin: según KMD, solo los productos con etiqueta KMD. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "ciudad-de-mexico-zuman-kosher-deli",
+      "name": "Zuman Kosher Deli",
+      "type": "butcher",
+      "foodCategory": "meat",
+      "lat": 19.404603,
+      "lng": -99.193268,
+      "address": "Gral. José María Cueto 32-2, Observatorio, Miguel Hidalgo",
+      "city": "Ciudad de México",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 55 5574 5525",
+      "notes": "Carnes frías certificadas por KMD. KMD publica un horario que parece copiado de otro local; consultalo antes de ir. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "cuernavaca-moshes-pizza",
+      "name": "Moshe's Pizza",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": 18.932194,
+      "lng": -99.21245,
+      "address": "Río Lerma 17, Vista Hermosa",
+      "city": "Cuernavaca",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "phone": "+52 777 215 0895",
+      "website": "https://moshes-pizza-kosher-kmd.negocio.site",
+      "hours": {
+        "0": [
+          {
+            "open": "13:00",
+            "close": "21:00"
+          }
+        ],
+        "1": [
+          {
+            "open": "14:00",
+            "close": "21:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "13:00",
+            "close": "21:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "13:00",
+            "close": "21:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "13:00",
+            "close": "21:00"
+          }
+        ],
+        "6": [
+          {
+            "open": "20:00",
+            "close": "22:00"
+          }
+        ]
+      },
+      "services": [
+        "takeaway"
+      ],
+      "notes": "Pizzería láctea para llevar certificada por KMD. Viernes cerrado. Los sábados abre a la salida de Shabat. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "cuernavaca-tavlina",
+      "name": "Tavlina",
+      "type": "restaurant",
+      "foodCategory": "parve",
+      "lat": 18.932194,
+      "lng": -99.21245,
+      "address": "Río Lerma 17, Vista Hermosa",
+      "city": "Cuernavaca",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "hours": {
+        "1": [
+          {
+            "open": "14:00",
+            "close": "19:00"
+          }
+        ],
+        "2": [
+          {
+            "open": "14:00",
+            "close": "19:00"
+          }
+        ],
+        "3": [
+          {
+            "open": "14:00",
+            "close": "19:00"
+          }
+        ],
+        "4": [
+          {
+            "open": "14:00",
+            "close": "19:00"
+          }
+        ]
+      },
+      "services": [
+        "takeaway"
+      ],
+      "notes": "Comida empacada parve certificada por KMD. Según KMD, los viernes solo hace entregas a partir de las 14 h. El pin marca la calle, no el número exacto. Lista web de KMD sin fecha, consultada el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/productos/establecimientos"
+    },
+    {
+      "slug": "playa-del-carmen-platinum-kosher-mediterranean",
+      "name": "Platinum Kosher Mediterranean",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 20.631563,
+      "lng": -87.06688,
+      "address": "Calle 28 Norte, local 18, casi esq. Calle Cozumel (Aldea Thai), Gonzalo Guerrero",
+      "city": "Playa del Carmen",
+      "country": "México",
+      "countryCode": "MX",
+      "status": "certified",
+      "agencyName": "KMD",
+      "glatt": true,
+      "beitYosef": true,
+      "patIsrael": true,
+      "phone": "+52 322 124 1247",
+      "notes": "Restaurante de carne según la lista de KMD para Cancún y la Riviera Maya: carne Jalak Beit Yosef y, según el buscador web de KMD, Pat Israel. El pin marca el complejo Aldea Thai. El PDF no tiene fecha; KMD lo subió a su sitio el 16/07/2026 y lo consultamos el 13/10/2026.",
+      "sourceUrl": "https://www.kosher.com.mx/files/kosher_establecimientos_cancun.pdf"
+    }
+  ]
+}
