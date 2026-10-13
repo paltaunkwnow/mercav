@@ -1,0 +1,4 @@
+{
+  "note": "Elementos de OpenStreetMap que no se importan aunque sus etiquetas encajen (mal etiquetados, duplicados de lugares verificados, o borrados por moderación). fetch-osm.mjs e import-osm.mjs los saltean. Para sacar del todo un lugar importado, agregalo acá además de despublicarlo.",
+  "exclude": []
+}
