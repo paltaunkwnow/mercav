@@ -100,6 +100,12 @@ export type KosherServiceKey = keyof typeof KOSHER_SERVICES;
 
 export const isKosherService = (value: string): value is KosherServiceKey => value in KOSHER_SERVICES;
 
+/** La dirección, salvo que sea solo el nombre de la ciudad (pasa con lugares importados sin calle): así no se repite. */
+export function streetAddress(place: { address?: string | null; city: string }) {
+  const address = place.address?.trim();
+  return address && address.toLowerCase() !== place.city.trim().toLowerCase() ? address : null;
+}
+
 /** "$$" para priceLevel 2. */
 export const priceLabel = (level: number | null | undefined) => (level && level >= 1 && level <= 4 ? "$".repeat(level) : null);
 

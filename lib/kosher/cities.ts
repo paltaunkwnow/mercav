@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import type { KosherPlaceType, KosherStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { streetAddress } from "@/lib/kosher/labels";
 import type { KosherViewer } from "@/lib/kosher/server";
 import { haversineKm, slugify } from "@/lib/kosher/geo";
 import { parseHours, placeTimezone, type WeeklyHours } from "@/lib/kosher/hours";
@@ -138,7 +139,8 @@ export const getCityGuide = unstable_cache(
         name: p.name,
         type: p.type,
         status: p.status,
-        address: p.address,
+        // Vacía si solo repite la ciudad (lugares importados sin calle).
+        address: streetAddress(p) ?? "",
         agencyName: p.agencyName,
         verified: !!p.verifiedAt,
         priceLevel: p.priceLevel,

@@ -354,7 +354,14 @@ async function main() {
   }
   const slugs = [...seen];
   const removed = await prisma.kosherPlace.deleteMany({ where: { source: "seed", slug: { notIn: slugs } } });
-  const removedCommunities = await prisma.kosherCommunity.deleteMany({ where: { slug: { notIn: communities.map((c) => c.slug) } } });
+  // Solo se borran las comunidades que ya no están en el seed y no tienen lugares: las que creó la importación de
+  // OpenStreetMap (u otra fuente) tienen lugares publicados y se quedan.
+  const withPlaces = await prisma.kosherPlace.findMany({ where: { published: true }, distinct: ["city", "countryCode"], select: { city: true, countryCode: true } });
+  const keep = new Set(withPlaces.map((p) => `${p.countryCode}:${p.city}`));
+  const stale = await prisma.kosherCommunity.findMany({ where: { slug: { notIn: communities.map((c) => c.slug) } }, select: { id: true, city: true, countryCode: true } });
+  const removedCommunities = await prisma.kosherCommunity.deleteMany({
+    where: { id: { in: stale.filter((c) => !keep.has(`${c.countryCode}:${c.city}`)).map((c) => c.id) } },
+  });
 
   for (const p of places) {
     const data = { ...p, source: "seed", verifiedAt: VERIFIED_AT } as never;

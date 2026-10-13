@@ -3,7 +3,7 @@
 import type { KosherPlaceType } from "@prisma/client";
 import { formatKm } from "@/lib/kosher/geo";
 import { DAY_KEYS, shabbatHours, type DayKey } from "@/lib/kosher/hours";
-import { PLACE_TYPES, STATUS, STATUS_HINT, isFoodPlace, priceLabel } from "@/lib/kosher/labels";
+import { PLACE_TYPES, STATUS, STATUS_HINT, isFoodPlace, priceLabel, streetAddress } from "@/lib/kosher/labels";
 import { KOSHER_URL, canonicalFor } from "@/lib/seo/site";
 import { excerpt } from "@/lib/seo/text";
 import type { PlaceDetail, PlaceView } from "@/components/kosher/place/types";
@@ -21,7 +21,8 @@ export function placeTitle(place: PlaceView) {
 }
 
 export function placeDescription({ place }: PlaceDetail) {
-  const parts = [`${PLACE_TYPES[place.type]} en ${place.address ? `${place.address}, ` : ""}${place.city}, ${place.country}.`];
+  const street = streetAddress(place);
+  const parts = [`${PLACE_TYPES[place.type]} en ${street ? `${street}, ` : ""}${place.city}, ${place.country}.`];
   if (isFoodPlace(place.type)) {
     parts.push(place.status === "certified" && place.agencyName ? `Certificado por ${place.agencyName}.` : `Kashrut: ${STATUS[place.status].toLowerCase()}.`);
   }
@@ -150,7 +151,7 @@ export function placeJsonLd(detail: PlaceDetail, faq: PlaceFaqItem[]) {
     mainEntityOfPage: url,
     address: {
       "@type": "PostalAddress",
-      ...(place.address ? { streetAddress: place.address } : {}),
+      ...(streetAddress(place) ? { streetAddress: streetAddress(place) } : {}),
       addressLocality: place.city,
       addressCountry: place.countryCode,
     },

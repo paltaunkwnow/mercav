@@ -37,7 +37,7 @@ export function StatusBadge({
 }) {
   const institution = !isFoodPlace(type) && status !== "closed" && status !== "disputed";
   const Icon = institution ? (verified ? ShieldCheck : CircleHelp) : ICONS[status];
-  const label = institution ? (verified ? "Fuente verificada" : "Sin fuente") : STATUS[status];
+  const label = institution ? (verified ? "Fuente verificada" : "Sin verificar") : STATUS[status];
   return (
     <span
       className={cn(

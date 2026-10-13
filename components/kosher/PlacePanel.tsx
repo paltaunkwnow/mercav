@@ -7,7 +7,7 @@ import { AlertTriangle, BadgeCheck, CalendarDays, Clock, ExternalLink, Globe, Ma
 import { toast } from "sonner";
 import type { KosherStatus, KosherStockCategory } from "@prisma/client";
 import { cityThreadKey, placeThreadKey } from "@/lib/kosher/geo";
-import { DENOMINATION, EVENT_KIND, FOOD, KOSHER_SERVICES, NUSACH, PLACE_TYPES, STATUS, STATUS_HINT, STATUS_ORDER, STOCK, STOCK_STALE_DAYS, STREAM, isFoodPlace, priceLabel } from "@/lib/kosher/labels";
+import { DENOMINATION, EVENT_KIND, FOOD, KOSHER_SERVICES, NUSACH, PLACE_TYPES, STATUS, STATUS_HINT, STATUS_ORDER, STOCK, STOCK_STALE_DAYS, STREAM, isFoodPlace, priceLabel, streetAddress } from "@/lib/kosher/labels";
 import { formatDateTime } from "@/lib/kosher/time";
 import { InviteButton } from "@/components/kosher/CommunityForms";
 import { EDITABLE_FIELDS, type EditableField } from "@/lib/kosher/edits";
@@ -302,8 +302,8 @@ export function PlacePanel({ slug, onClose, standalone = false, initial }: { slu
                 <li className="flex gap-3 text-[var(--text-primary)]">
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-tertiary)]" aria-hidden />
                   <span>
-                    {place.address}
-                    <span className="block text-[var(--text-secondary)]">
+                    {streetAddress(place)}
+                    <span className={streetAddress(place) ? "block text-[var(--text-secondary)]" : "block"}>
                       {place.city}, {place.country}
                     </span>
                   </span>
