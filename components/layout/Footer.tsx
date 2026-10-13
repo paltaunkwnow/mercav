@@ -31,6 +31,9 @@ const APPS: FooterLink[] = [
   { href: "/kosher", label: "Mercav Kosher" },
 ];
 
+/** Tiendas y servicios aparte de la cuenta, cada uno en su dominio. */
+const EXTRAS: FooterLink[] = [{ href: "/privacy", label: "Mercav Privacy" }];
+
 const APP: FooterLink[] = [
   { href: APP_HOME, label: "Entrar a la app" },
   { href: "/register", label: "Crear cuenta" },
@@ -133,8 +136,9 @@ function SiteFooter() {
               </SocialIcon>
             </div>
           </div>
-          <div className="lg:col-span-2 lg:col-start-5">
+          <div className="flex flex-col gap-10 lg:col-span-2 lg:col-start-5">
             <FooterColumn title="Apps" links={APPS} />
+            <FooterColumn title="Extras" links={EXTRAS} />
           </div>
           <div className="lg:col-span-2">
             <FooterColumn title="Tu cuenta" links={APP} />

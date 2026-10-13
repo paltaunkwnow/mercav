@@ -39,8 +39,9 @@ const APP_LINKS = [
 /** Hide the global chrome on pages that bring their own full-screen shell. */
 export function hidesGlobalChrome(pathname: string | null) {
   const path = pathname ?? "";
-  // La caja (personal o de una empresa en Business) va a pantalla completa, como una terminal.
-  return /^\/(dashboard\/pos|admin)(\/|$)/.test(path) || /^\/business\/[^/]+\/caja(\/|$)/.test(path) || path === "/1337";
+  // La caja (personal o de una empresa en Business) va a pantalla completa, como una terminal. Mercav Privacy trae su
+  // propio shell (en producción el layout raíz ni monta este chrome; esto cubre una navegación en local).
+  return /^\/(dashboard\/pos|admin|privacy)(\/|$)/.test(path) || /^\/business\/[^/]+\/caja(\/|$)/.test(path) || path === "/1337";
 }
 
 function useDismiss(open: boolean, close: (viaKeyboard?: boolean) => void, refs: React.RefObject<HTMLElement>[]) {

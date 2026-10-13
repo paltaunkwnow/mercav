@@ -18,7 +18,7 @@ import { relativeRange } from "@/lib/calendar/dates";
 import { calendarSource } from "@/lib/calendar/sources";
 import { latamCountry, todayIn } from "@/lib/geo/latam";
 import { cn } from "@/lib/utils";
-import { hostHref, hostKindFor, isAbsoluteUrl, type HostKind } from "@/lib/seo/site";
+import { hostHref, hostKindFor, isAbsoluteUrl, isPrivacyPath, type HostKind } from "@/lib/seo/site";
 
 export const metadata: Metadata = { title: "Inicio", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -36,7 +36,8 @@ function longDay(date: string) {
 /** A tile link. The Kosher tile lives on kosher.mercav.lat: a plain <a> there, no cross-origin RSC prefetch. */
 function SectionLink({ href, hostKind, className, children }: { href: string; hostKind: HostKind; className?: string; children: ReactNode }) {
   const target = hostHref(href, hostKind);
-  if (isAbsoluteUrl(target)) {
+  // En local, /privacy tiene su propio layout raíz (sin rastreadores): se entra recargando, como a otro dominio.
+  if (isAbsoluteUrl(target) || isPrivacyPath(target)) {
     return (
       <a href={target} className={className}>
         {children}

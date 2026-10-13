@@ -18,7 +18,7 @@ import { getServerSession } from "next-auth/next";
 import { headers } from "next/headers";
 import { authOptions } from "@/lib/auth";
 import { Zap } from "@/components/icons";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_PROFILES, X_HANDLE, canonicalFor, hostKindFor, isNoindexPath } from "@/lib/seo/site";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_PROFILES, X_HANDLE, canonicalFor, hostKindFor, isNoindexPath, isPrivacyMode } from "@/lib/seo/site";
 
 export const dynamic = "force-dynamic";
 
@@ -169,24 +169,16 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  let config: any = null;
-  let session: any = null;
-
-  try {
-    config = await prisma.globalConfig.findUnique({ where: { id: "singleton" } });
-  } catch (e) {
-    config = null;
-  }
-
-  try {
-    session = await getServerSession(authOptions);
-  } catch (e) {
-    session = null;
-  }
+  const config = await prisma.globalConfig.findUnique({ where: { id: "singleton" } }).catch(() => null);
+  const session = await getServerSession(authOptions).catch(() => null);
 
   const isAdmin = session?.user?.roles?.includes("ADMIN");
   // The chrome can't infer the host from usePathname(): kosher.mercav.lat/mapa renders /kosher/mapa.
   const hostKind = hostKindFor(headers().get("host"));
+  // Mercav Privacy: sin rastreadores ni terceros, y sin el header, el footer ni la barra de Mercav (trae su propio shell
+  // en app/privacy/layout.tsx). El nonce de su CSP (middleware.ts) habilita el script del tema.
+  const privacy = isPrivacyMode(hostKind, headers().get("x-mercav-path"));
+  const nonce = privacy ? headers().get("x-nonce") ?? undefined : undefined;
 
   if (config?.maintenanceMode && !isAdmin) {
     return (
@@ -212,7 +204,7 @@ export default async function RootLayout({
       <head>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
         {/* Prevent flash of wrong theme */}
-        <script dangerouslySetInnerHTML={{
+        <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{
           __html: `
             try {
               const theme = localStorage.getItem('mercav-theme');
@@ -225,16 +217,16 @@ export default async function RootLayout({
         }} />
       </head>
       <body className="flex min-h-dvh flex-col overflow-x-clip antialiased">
-        <Providers>
+        <Providers privacy={privacy}>
           <HostProvider kind={hostKind}>
             <a href="#contenido" className="mv-skip">Saltar al contenido</a>
-            <AnnouncementBar />
-            <Header />
+            {!privacy && <AnnouncementBar />}
+            {!privacy && <Header />}
             <main id="contenido" tabIndex={-1} className="flex-1 w-full flex flex-col outline-none">
               {children}
             </main>
-            <Footer />
-            <BottomNav />
+            {!privacy && <Footer />}
+            {!privacy && <BottomNav />}
           </HostProvider>
         </Providers>
       </body>

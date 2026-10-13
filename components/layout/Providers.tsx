@@ -11,7 +11,19 @@ import { installApiFetch } from "@/lib/api/client";
 // Antes de cualquier llamada: los fetch a /api/… salen por api.mercav.lat cuando está configurado (lib/api/client.ts).
 installApiFetch();
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children, privacy = false }: { children: React.ReactNode; privacy?: boolean }) {
+  // Mercav Privacy (lib/seo/site.ts, isPrivacyMode): sin banner de cookies, sin reCAPTCHA y sin el detector de inspección.
+  // La sesión queda vacía y sin pedidos a /api/auth: useSession() responde "unauthenticated" sin salir a la red.
+  if (privacy) {
+    return (
+      <SessionProvider session={null} refetchOnWindowFocus={false}>
+        <ThemeProvider>
+          <LiquidGlassRoot />
+          {children}
+        </ThemeProvider>
+      </SessionProvider>
+    );
+  }
   return (
     <SessionProvider>
       <ThemeProvider>

@@ -2,6 +2,7 @@
 // - mercav.lat: el sitio público (portada, quiénes somos, pitch, inversores, legales, feriados y páginas de producto).
 // - app.mercav.lat: la app. Todo lo demás, incluidos Herramientas, Pwn, Business y Calendario.
 // - kosher.mercav.lat: Mercav Kosher, servido desde /kosher.
+// - privacy.mercav.lat: Mercav Privacy, servido desde /privacy. Sin rastreadores ni terceros (middleware.ts).
 // - api.mercav.lat: la API (lib/api/origins.ts). pwn.mercav.lat sirve Pwn.
 // www.mercav.lat ya no existe.
 
@@ -9,16 +10,17 @@ export const SITE_HOST = "mercav.lat";
 export const APP_HOST = "app.mercav.lat";
 export const PWN_HOST = "pwn.mercav.lat";
 export const KOSHER_HOST = "kosher.mercav.lat";
+export const PRIVACY_HOST = "privacy.mercav.lat";
 
 /**
  * Origen de una variable de entorno, o el dominio fijo de Mercav. Una variable vieja con www, un *.vercel.app
  * (antes mandaba la portada a Vercel) o, para la app, el dominio del sitio (armaría un bucle de redirecciones) se ignora.
  */
-function originFrom(value: string | undefined, fallback: string, notHost?: string) {
+function originFrom(value: string | undefined, fallback: string, notHosts: string[] = []) {
   if (!value) return fallback;
   try {
     const url = new URL(value.replace(/^(https?:\/\/)www\./i, "$1"));
-    if (url.hostname.endsWith(".vercel.app") || (notHost && url.hostname === notHost)) return fallback;
+    if (url.hostname.endsWith(".vercel.app") || notHosts.includes(url.hostname)) return fallback;
     return url.origin;
   } catch {
     return fallback;
@@ -26,10 +28,12 @@ function originFrom(value: string | undefined, fallback: string, notHost?: strin
 }
 
 export const SITE_URL = originFrom(process.env.NEXT_PUBLIC_SITE_URL, `https://${SITE_HOST}`);
-export const APP_URL = originFrom(process.env.NEXT_PUBLIC_APP_URL, `https://${APP_HOST}`, SITE_HOST);
+export const APP_URL = originFrom(process.env.NEXT_PUBLIC_APP_URL, `https://${APP_HOST}`, [SITE_HOST]);
 export const PWN_URL = `${APP_URL}/pwn`;
 export const KOSHER_URL =
   process.env.NEXT_PUBLIC_KOSHER_URL || "https://kosher.mercav.lat";
+/** Nunca otro dominio de Mercav: mercav.lat/privacy, app.mercav.lat/privacy y kosher.mercav.lat/privacy redirigen acá. */
+export const PRIVACY_URL = originFrom(process.env.NEXT_PUBLIC_PRIVACY_URL, `https://${PRIVACY_HOST}`, [SITE_HOST, APP_HOST, PWN_HOST, KOSHER_HOST]);
 
 export const SITE_NAME = "Mercav";
 export const SITE_DESCRIPTION =
@@ -122,6 +126,7 @@ export function isNoindexPath(path: string) {
 export function canonicalFor(appPath: string) {
   const path = appPath !== "/" ? appPath.replace(/\/+$/, "") : "/";
   if (matchesPrefix(path, "/kosher")) return `${KOSHER_URL}${path.slice(7) || "/"}`;
+  if (isPrivacyPath(path)) return `${PRIVACY_URL}${path.slice(PRIVACY_PREFIX.length) || "/"}`;
   if (isMarketingPath(path)) return `${SITE_URL}${path}`;
   return `${APP_URL}${path}`;
 }
@@ -143,10 +148,40 @@ export function isKosherHostPath(pathname: string) {
   return KOSHER_SEGMENTS.has(pathname.split("/")[1] ?? "");
 }
 
-/** The app path a request on a product subdomain maps to (kosher.mercav.lat/x → /kosher/x). */
+const PRIVACY_PREFIX = "/privacy";
+
+/**
+ * Secciones servidas en privacy.mercav.lat (carpetas de app/privacy): privacy.mercav.lat/x se reescribe a /privacy/x.
+ * Una carpeta nueva en app/privacy se suma acá; lo que no está en la lista se manda a la app.
+ */
+export const PRIVACY_SEGMENTS: ReadonlySet<string> = new Set([
+  "billeteras-frias", "celulares", "envios", "garantia", "instalacion", "pagos", "preguntas-frecuentes", "privacidad", "producto",
+  "terminos",
+]);
+
+/** /privacy y lo que cuelga de ella (no /privacidad, que es la política del sitio). */
+export function isPrivacyPath(path: string) {
+  return matchesPrefix(path, PRIVACY_PREFIX);
+}
+
+/** Lo que privacy.mercav.lat sirve tal cual: API, assets y páginas utilitarias. El login queda en la app: Privacy no pide cuenta. */
+function privacyHostPassthrough(path: string) {
+  return path.startsWith("/api") || path.startsWith("/_next") || isSharedPath(path);
+}
+
+/** Browser paths privacy.mercav.lat serves: its own sections, /privacy/x and the passthrough pages. The rest belongs to another host. */
+export function isPrivacyHostPath(pathname: string) {
+  if (pathname === "/" || isPrivacyPath(pathname) || privacyHostPassthrough(pathname)) return true;
+  return PRIVACY_SEGMENTS.has(pathname.split("/")[1] ?? "");
+}
+
+/** The app path a request on a product subdomain maps to (kosher.mercav.lat/x → /kosher/x, privacy.mercav.lat/x → /privacy/x). */
 export function appPathFor(host: string | undefined, pathname: string) {
   if (host === KOSHER_HOST && !matchesPrefix(pathname, "/kosher") && !kosherHostPassthrough(pathname)) {
     return pathname === "/" ? "/kosher" : `/kosher${pathname}`;
+  }
+  if (host === PRIVACY_HOST && !isPrivacyPath(pathname) && !privacyHostPassthrough(pathname)) {
+    return pathname === "/" ? PRIVACY_PREFIX : `${PRIVACY_PREFIX}${pathname}`;
   }
   return pathname;
 }
@@ -155,14 +190,23 @@ export function appPathFor(host: string | undefined, pathname: string) {
  * Which product the request's host serves. Production hostnames only: 127.0.0.1, localhost and Vercel previews are
  * "dev" (every route on one origin, no host rules). pwn.mercav.lat only redirects to app.mercav.lat/pwn.
  */
-export type HostKind = "site" | "app" | "kosher" | "dev";
+export type HostKind = "site" | "app" | "kosher" | "privacy" | "dev";
 
 export function hostKindFor(host: string | null | undefined): HostKind {
   const name = host?.split(":")[0]?.trim().toLowerCase();
   if (name === SITE_HOST) return "site";
   if (name === APP_HOST || name === PWN_HOST) return "app";
   if (name === KOSHER_HOST) return "kosher";
+  if (name === PRIVACY_HOST) return "privacy";
   return "dev";
+}
+
+/**
+ * Mercav Privacy va sin rastreadores (sin reCAPTCHA, banner de cookies, sesión en el navegador ni terceros) y con su CSP:
+ * siempre en privacy.mercav.lat; en local y en las previews, bajo /privacy.
+ */
+export function isPrivacyMode(hostKind: HostKind, appPath: string | null | undefined) {
+  return hostKind === "privacy" || (hostKind === "dev" && !!appPath && isPrivacyPath(appPath));
 }
 
 export function isAbsoluteUrl(href: string) {
@@ -182,13 +226,16 @@ export function hostHref(href: string, hostKind: HostKind): string {
   if (path.startsWith("/api") || path.startsWith("/_next") || isSharedPath(path)) return href;
 
   const kosher = matchesPrefix(path, "/kosher");
+  const privacy = isPrivacyPath(path);
+  // Here /x already means /kosher/x (or /privacy/x), so every other app path lives on another host.
   if (hostKind === "kosher") {
-    // Here /x already means /kosher/x, so every other app path lives on the main host.
     if (kosher) return `${path.slice(7) || "/"}${suffix}`;
     if (kosherHostPassthrough(path)) return href;
-    return `${isMarketingPath(path) ? SITE_URL : APP_URL}${href}`;
   }
+  if (hostKind === "privacy" && privacy) return `${path.slice(PRIVACY_PREFIX.length) || "/"}${suffix}`;
   if (kosher) return `${KOSHER_URL}${path.slice(7) || "/"}${suffix}`;
+  if (privacy) return `${PRIVACY_URL}${path.slice(PRIVACY_PREFIX.length) || "/"}${suffix}`;
+  if (hostKind === "kosher" || hostKind === "privacy") return `${isMarketingPath(path) ? SITE_URL : APP_URL}${href}`;
   if (hostKind === "site" && !isMarketingPath(path)) return `${APP_URL}${href}`;
   if (hostKind === "app" && isMarketingPath(path)) return `${SITE_URL}${href}`;
   return href;

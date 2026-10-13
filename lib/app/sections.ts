@@ -2,6 +2,7 @@ import {
   Building2,
   Store,
   CalendarDays,
+  Lock,
   MessageSquare,
   PlusSquare,
   Rss,
@@ -85,6 +86,21 @@ export const APP_SECTION_GROUPS: AppSectionGroup[] = [
       { key: "feed", label: "Feed", desc: "Novedades de la gente que seguís", href: "/feed", icon: Rss },
       { key: "mensajes", label: "Mensajes", desc: "Conversaciones y soporte", href: "/mensajes", icon: MessageSquare, needsAccount: true },
       { key: "kosher", label: "Kosher", product: "Mercav Kosher", desc: "Atlas, stock y kehilot", href: "/kosher", icon: StarOfDavid },
+    ],
+  },
+  {
+    key: "extras",
+    title: "Extras",
+    sections: [
+      {
+        key: "privacy",
+        label: "Privacy",
+        product: "Mercav Privacy",
+        desc: "Billeteras frías y celulares con sistema reforzado",
+        href: "/privacy",
+        icon: Lock,
+        isNew: true,
+      },
     ],
   },
   {

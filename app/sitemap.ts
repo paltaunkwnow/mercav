@@ -6,6 +6,7 @@ import { GUIDES } from "./guias/guides";
 import { listCitiesWithPlaces } from "@/lib/kosher/cities";
 import { FESTIVALS } from "@/lib/kosher/festivals";
 import { SIDUR } from "@/lib/kosher/sidur";
+import { CATEGORIES, PRODUCTS, type PrivacyCategory } from "@/lib/privacy/catalog";
 
 export const revalidate = 3600;
 
@@ -75,6 +76,14 @@ const STATIC: Array<[path: string, priority: number, freq: Freq]> = [
   ["/kosher/chat", 0.4, "daily"],
   ["/kosher/sugerir", 0.4, "monthly"],
   ["/kosher/terminos", 0.3, "yearly"],
+  // Mercav Privacy (privacy.mercav.lat). Las categorías y los productos salen del catálogo, más abajo.
+  ["/privacy", 0.8, "weekly"],
+  ["/privacy/pagos", 0.5, "monthly"],
+  ["/privacy/envios", 0.5, "monthly"],
+  ["/privacy/garantia", 0.5, "monthly"],
+  ["/privacy/preguntas-frecuentes", 0.5, "monthly"],
+  ["/privacy/terminos", 0.3, "yearly"],
+  ["/privacy/privacidad", 0.3, "yearly"],
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -96,6 +105,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Mercav Kosher: cada berajá del sidur y cada festividad.
   for (const b of SIDUR) entries.push({ url: canonicalFor(`/kosher/sidur/${b.slug}`), lastModified: now, changeFrequency: "monthly", priority: 0.5 });
   for (const f of FESTIVALS) entries.push({ url: canonicalFor(`/kosher/festividades/${f.slug}`), lastModified: now, changeFrequency: "monthly", priority: 0.6 });
+
+  // Mercav Privacy: cada categoría y cada producto del catálogo.
+  for (const c of Object.keys(CATEGORIES) as PrivacyCategory[]) {
+    entries.push({ url: canonicalFor(`/privacy/${c}`), lastModified: now, changeFrequency: "weekly", priority: 0.7 });
+  }
+  for (const p of PRODUCTS) entries.push({ url: canonicalFor(`/privacy/producto/${p.slug}`), lastModified: now, changeFrequency: "weekly", priority: 0.6 });
 
   // Guías: el índice y cada guía, con la fecha en que se actualizó.
   entries.push({ url: canonicalFor("/guias"), lastModified: now, changeFrequency: "weekly", priority: 0.7 });
