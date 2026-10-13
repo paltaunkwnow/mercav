@@ -21,13 +21,13 @@ export const FOOD_TYPES = ["restaurant", "bakery", "butcher", "hotel", "grocery_
 
 /** Campos que el archivo define por completo: lo que falta en el archivo queda vacío en la base. */
 export const MANAGED_KEYS = [
-  "name", "nameLocal", "type", "lat", "lng", "address", "city", "country", "countryCode", "status", "agencyName",
+  "name", "nameLocal", "chainName", "type", "lat", "lng", "address", "city", "country", "countryCode", "status", "agencyName",
   "foodCategory", "notes", "phone", "website", "sourceUrl", "hours", "timezone", "priceLevel", "services", "nusach",
   "denomination", "orthodoxStream", "glatt", "beitYosef", "chalavIsrael", "patIsrael", "source", "verifiedAt", "confirmedAt",
 ];
 
 const KNOWN_KEYS = new Set([
-  "slug", "name", "nameLocal", "type", "lat", "lng", "address", "city", "country", "countryCode", "status", "agencyName",
+  "slug", "name", "nameLocal", "chainName", "type", "lat", "lng", "address", "city", "country", "countryCode", "status", "agencyName",
   "foodCategory", "notes", "phone", "website", "sourceUrl", "hours", "timezone", "priceLevel", "services", "nusach",
   "denomination", "orthodoxStream", "glatt", "beitYosef", "chalavIsrael", "patIsrael",
 ]);
@@ -218,6 +218,7 @@ export function validateEntry(raw, { verifiedAt, cities }) {
     slug,
     name,
     nameLocal: optionalText("nameLocal", 120),
+    chainName: optionalText("chainName", 120),
     type: raw.type,
     lat,
     lng,
