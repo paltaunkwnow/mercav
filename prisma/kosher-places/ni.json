@@ -1,0 +1,20 @@
+{
+  "verifiedAt": "2026-10-13",
+  "places": [
+    {
+      "slug": "nandaime-nekupe",
+      "name": "Nekupe",
+      "type": "hotel",
+      "lat": 11.7566188,
+      "lng": -86.0529141,
+      "address": "Nekupe, Nandaime",
+      "city": "Nandaime",
+      "country": "Nicaragua",
+      "countryCode": "NI",
+      "status": "supervised",
+      "agencyName": "Jabad San Juan del Sur",
+      "notes": "Hotel de lujo con opción de estadía kosher mehadrin, bajo la supervisión de la casa Jabad de San Juan del Sur según su sitio. Pedí la opción kosher al reservar.",
+      "sourceUrl": "https://chabadnicaragua.com/accommodation/3552/"
+    }
+  ]
+}

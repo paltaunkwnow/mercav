@@ -1,0 +1,69 @@
+{
+  "verifiedAt": "2026-10-13",
+  "places": [
+    {
+      "slug": "cusco-restaurante-de-jabad-cusco",
+      "name": "Restaurante de Jabad Cusco",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": -13.5189797,
+      "lng": -71.9846811,
+      "address": "Calle Vitoque 631",
+      "city": "Cusco",
+      "country": "Perú",
+      "countryCode": "PE",
+      "status": "supervised",
+      "agencyName": "Jabad Cusco",
+      "phone": "+51 913 211 183",
+      "notes": "Restaurante de carne y parve de la casa Jabad de Cusco, a cargo del rabino Ofer Kripor y la rabanit Yael Kripor, según su sitio. El sitio no nombra una certificadora: preguntá quién supervisa.",
+      "sourceUrl": "https://chabadcusco.org/en"
+    },
+    {
+      "slug": "lima-d-myrian",
+      "name": "D'Myrian",
+      "type": "grocery_branch",
+      "lat": -12.0999158,
+      "lng": -77.0367056,
+      "address": "Av. Los Conquistadores 396, int. 209, San Isidro",
+      "city": "Lima",
+      "country": "Perú",
+      "countryCode": "PE",
+      "status": "supervised",
+      "agencyName": "Unión Israelita del Perú",
+      "phone": "+51 946 339 677",
+      "notes": "Tienda de la comunidad con productos pat Israel y comidas preparadas. La lista kosher del Departamento de Certificaciones Kasher de la Unión Israelita del Perú (julio de 2026) la recomienda para eso; en la versión en inglés da otro número, 972 626 100.",
+      "sourceUrl": "https://kosherperu.com/wp-content/uploads/2024/06/lista_productos_kosher.pdf"
+    },
+    {
+      "slug": "lima-la-jala-kosher-beis-jabad-peru",
+      "name": "La Jala Kosher · Beis Jabad Perú",
+      "type": "grocery_branch",
+      "lat": -12.0978214,
+      "lng": -77.0552691,
+      "address": "Av. Salaverry 3075, San Isidro",
+      "city": "Lima",
+      "country": "Perú",
+      "countryCode": "PE",
+      "status": "supervised",
+      "agencyName": "Beis Jabad Perú",
+      "notes": "Tienda kosher de Beis Jabad con lácteos, carne, panificados, vinos y dulces, y panadería por encargo, según su sitio. La supervisión es de Jabad: preguntá qué cubre cada producto.",
+      "sourceUrl": "https://jabadperu.com/en/kosher-food/"
+    },
+    {
+      "slug": "lima-restaurantes-de-beis-jabad-peru",
+      "name": "Restaurantes de Beis Jabad Perú",
+      "type": "restaurant",
+      "lat": -12.0978214,
+      "lng": -77.0552691,
+      "address": "Av. Salaverry 3075, San Isidro",
+      "city": "Lima",
+      "country": "Perú",
+      "countryCode": "PE",
+      "status": "supervised",
+      "agencyName": "Beis Jabad Perú",
+      "services": ["reservations", "shabbat_meals", "delivery"],
+      "notes": "Beis Jabad tiene un restaurante de carne y uno lácteo con jalav Israel, con reserva o pedido previo, comidas de Shabat y envíos de comida kosher a todo el país, según su sitio.",
+      "sourceUrl": "https://jabadperu.com/en/kosher-food/"
+    }
+  ]
+}
