@@ -1,0 +1,121 @@
+{
+  "verifiedAt": "2026-10-12",
+  "places": [
+    {
+      "slug": "montevideo-blanca-cafe",
+      "name": "Blanca Café",
+      "type": "restaurant",
+      "foodCategory": "dairy",
+      "lat": -34.908631,
+      "lng": -56.1484623,
+      "address": "Gabriel Pereira 3125, Pocitos",
+      "city": "Montevideo",
+      "country": "Uruguay",
+      "countryCode": "UY",
+      "status": "certified",
+      "agencyName": "Uruguay Kosher",
+      "website": "https://www.instagram.com/blancacafe.uy/",
+      "hours": {
+        "0": [{ "open": "09:00", "close": "20:00" }],
+        "1": [{ "open": "09:00", "close": "20:00" }],
+        "2": [{ "open": "09:00", "close": "20:00" }],
+        "3": [{ "open": "09:00", "close": "20:00" }],
+        "4": [{ "open": "09:00", "close": "20:00" }],
+        "5": [{ "open": "08:00", "close": "17:00" }]
+      },
+      "notes": "Café kosher lácteo, según la lista de establecimientos gastronómicos de Uruguay Kosher, del Gran Rabinato de la Comunidad Israelita del Uruguay (la página no muestra fecha; la consultamos el 12/10/2026).",
+      "sourceUrl": "https://kehila.org.uy/kasher/establecimientos-gastronomicos/"
+    },
+    {
+      "slug": "montevideo-naru-sushi",
+      "name": "Naru Sushi",
+      "type": "restaurant",
+      "lat": -34.9208362,
+      "lng": -56.1525241,
+      "address": "Roque Graseras 604, Pocitos",
+      "city": "Montevideo",
+      "country": "Uruguay",
+      "countryCode": "UY",
+      "status": "certified",
+      "agencyName": "Uruguay Kosher",
+      "phone": "+598 95 424 438",
+      "website": "https://www.instagram.com/narusushibaruy/",
+      "hours": {
+        "1": [{ "open": "19:30", "close": "22:00" }]
+      },
+      "notes": "Sushi kosher solo los lunes de 19:30 a 22 h, según la lista de establecimientos gastronómicos de Uruguay Kosher, del Gran Rabinato de la Comunidad Israelita del Uruguay (la página no muestra fecha; la consultamos el 12/10/2026). El resto de la semana no es kosher: el horario de la ficha es el del servicio kosher.",
+      "sourceUrl": "https://kehila.org.uy/kasher/establecimientos-gastronomicos/"
+    },
+    {
+      "slug": "montevideo-simja",
+      "name": "Simjá",
+      "type": "bakery",
+      "foodCategory": "dairy",
+      "lat": -34.9159331,
+      "lng": -56.1585437,
+      "address": "Luis Franzini 824, Punta Carretas",
+      "city": "Montevideo",
+      "country": "Uruguay",
+      "countryCode": "UY",
+      "status": "certified",
+      "agencyName": "Uruguay Kosher",
+      "website": "https://www.instagram.com/simjauy/",
+      "hours": {
+        "0": [{ "open": "12:00", "close": "16:00" }],
+        "1": [{ "open": "16:00", "close": "20:00" }],
+        "2": [{ "open": "10:30", "close": "20:00" }],
+        "3": [{ "open": "10:30", "close": "20:00" }],
+        "4": [{ "open": "10:30", "close": "20:00" }],
+        "5": [{ "open": "10:30", "close": "16:00" }]
+      },
+      "notes": "Pastelería y cafetería kosher láctea, según la lista de establecimientos gastronómicos de Uruguay Kosher, del Gran Rabinato de la Comunidad Israelita del Uruguay (la página no muestra fecha; la consultamos el 12/10/2026).",
+      "sourceUrl": "https://kehila.org.uy/kasher/establecimientos-gastronomicos/"
+    },
+    {
+      "slug": "montevideo-trouville-pocitos",
+      "name": "Trouville · Pocitos",
+      "chainName": "Trouville",
+      "type": "restaurant",
+      "lat": -34.9066257,
+      "lng": -56.1396401,
+      "address": "Juan Benito Blanco 3398, Pocitos",
+      "city": "Montevideo",
+      "country": "Uruguay",
+      "countryCode": "UY",
+      "status": "certified",
+      "agencyName": "Uruguay Kosher",
+      "phone": "+598 92 780 712",
+      "website": "https://www.trouville.uy",
+      "hours": {
+        "1": [{ "open": "20:00", "close": "23:00" }],
+        "3": [{ "open": "20:00", "close": "23:00" }],
+        "6": [{ "open": "20:00", "close": "23:00" }]
+      },
+      "notes": "Pizzería kosher solo los lunes, miércoles y sábados de 20 a 23 h, según la lista de establecimientos gastronómicos de Uruguay Kosher, del Gran Rabinato de la Comunidad Israelita del Uruguay (la página no muestra fecha; la consultamos el 12/10/2026). Fuera de ese horario no es kosher: el horario de la ficha es el del servicio kosher. La misma lista incluye la sucursal de Francisco Vidal 650, con otros días.",
+      "sourceUrl": "https://kehila.org.uy/kasher/establecimientos-gastronomicos/"
+    },
+    {
+      "slug": "montevideo-trouville-vidal",
+      "name": "Trouville · Vidal",
+      "chainName": "Trouville",
+      "type": "restaurant",
+      "lat": -34.9203737,
+      "lng": -56.1502669,
+      "address": "Francisco Vidal 650, Punta Carretas",
+      "city": "Montevideo",
+      "country": "Uruguay",
+      "countryCode": "UY",
+      "status": "certified",
+      "agencyName": "Uruguay Kosher",
+      "phone": "+598 2710 3601",
+      "website": "https://www.trouville.uy",
+      "hours": {
+        "0": [{ "open": "20:00", "close": "23:00" }],
+        "2": [{ "open": "20:00", "close": "23:00" }],
+        "4": [{ "open": "20:00", "close": "23:00" }]
+      },
+      "notes": "Pizzería kosher solo los domingos, martes y jueves de 20 a 23 h, según la lista de establecimientos gastronómicos de Uruguay Kosher, del Gran Rabinato de la Comunidad Israelita del Uruguay (la página no muestra fecha; la consultamos el 12/10/2026). Fuera de ese horario no es kosher: el horario de la ficha es el del servicio kosher. La misma lista incluye la sucursal de Juan Benito Blanco 3398, con otros días.",
+      "sourceUrl": "https://kehila.org.uy/kasher/establecimientos-gastronomicos/"
+    }
+  ]
+}

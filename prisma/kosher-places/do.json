@@ -1,0 +1,86 @@
+{
+  "verifiedAt": "2026-10-13",
+  "places": [
+    {
+      "slug": "puerto-plata-hamakolet",
+      "name": "HaMakolet",
+      "type": "grocery_branch",
+      "lat": 19.7696994,
+      "lng": -70.6425116,
+      "address": "Playa Dorada Shopping Centre",
+      "city": "Puerto Plata",
+      "country": "República Dominicana",
+      "countryCode": "DO",
+      "status": "supervised",
+      "agencyName": "Jabad Costa Norte (RD)",
+      "phone": "+1 414 755 9493",
+      "notes": "Almacén kosher con carne, pollo, congelados y secos; el stock depende de las importaciones. Figura en la lista de comida kosher de Jabad de la Costa Norte; la página no dice quién supervisa: preguntá en el local.",
+      "sourceUrl": "https://chabadnorthcoast.com/en/food/6128/"
+    },
+    {
+      "slug": "puerto-plata-koshercoast",
+      "name": "KosherCoast",
+      "type": "restaurant",
+      "foodCategory": "meat",
+      "lat": 19.7696994,
+      "lng": -70.6425116,
+      "address": "Playa Dorada Shopping Centre",
+      "city": "Puerto Plata",
+      "country": "República Dominicana",
+      "countryCode": "DO",
+      "status": "supervised",
+      "agencyName": "Jabad Costa Norte (RD)",
+      "phone": "+1 414 755 9493",
+      "services": ["shabbat_meals", "catering"],
+      "notes": "Restaurante de carne con cocina mediterránea e israelí, comidas de Shabat y catering. El horario varía: consultalo. Figura en la lista de comida kosher de Jabad de la Costa Norte; la página no dice quién supervisa: preguntá en el local.",
+      "sourceUrl": "https://chabadnorthcoast.com/en/food/6096/"
+    },
+    {
+      "slug": "santo-domingo-rimon-kosher-market",
+      "name": "Rimon Kosher Market",
+      "type": "grocery_branch",
+      "lat": 18.4768022,
+      "lng": -69.9423796,
+      "address": "Calle 2B #10, Ensanche Paraíso",
+      "city": "Santo Domingo",
+      "country": "República Dominicana",
+      "countryCode": "DO",
+      "status": "supervised",
+      "agencyName": "Jabad Costa Norte (RD)",
+      "phone": "+1 829 906 2649",
+      "hours": {
+        "1": [{ "open": "10:00", "close": "17:00" }],
+        "2": [{ "open": "10:00", "close": "17:00" }],
+        "3": [{ "open": "10:00", "close": "17:00" }],
+        "4": [{ "open": "10:00", "close": "17:00" }],
+        "5": [{ "open": "10:00", "close": "16:00" }]
+      },
+      "services": ["catering"],
+      "notes": "Supermercado kosher con carnicería, pollería, panadería, pescado, vinos y catering. Figura en la lista de comida kosher de Jabad de la Costa Norte; la página no dice quién supervisa: preguntá en el local. El pin marca la cuadra.",
+      "sourceUrl": "https://chabadnorthcoast.com/en/food/5553/"
+    },
+    {
+      "slug": "santo-domingo-rimon-restaurant",
+      "name": "Rimon Restaurant",
+      "type": "restaurant",
+      "lat": 18.4768022,
+      "lng": -69.9423796,
+      "address": "Calle 2B #10, Ensanche Paraíso",
+      "city": "Santo Domingo",
+      "country": "República Dominicana",
+      "countryCode": "DO",
+      "status": "supervised",
+      "agencyName": "Jabad Costa Norte (RD)",
+      "phone": "+1 829 906 2649",
+      "hours": {
+        "1": [{ "open": "10:00", "close": "17:00" }],
+        "2": [{ "open": "10:00", "close": "17:00" }],
+        "3": [{ "open": "10:00", "close": "17:00" }],
+        "4": [{ "open": "10:00", "close": "17:00" }],
+        "5": [{ "open": "10:00", "close": "16:00" }]
+      },
+      "notes": "Restaurante de carne y lácteos dentro de Rimon Kosher Market. Figura en la lista de comida kosher de Jabad de la Costa Norte; la página no dice quién supervisa: preguntá en el local. El pin marca la cuadra.",
+      "sourceUrl": "https://chabadnorthcoast.com/en/food/5586/"
+    }
+  ]
+}

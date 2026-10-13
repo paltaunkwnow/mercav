@@ -1,0 +1,21 @@
+{
+  "verifiedAt": "2026-10-13",
+  "places": [
+    {
+      "slug": "antigua-guatemala-restaurante-de-jabad-antigua",
+      "name": "Restaurante de Jabad Antigua",
+      "type": "restaurant",
+      "lat": 14.5493928,
+      "lng": -90.7342933,
+      "address": "5a Avenida Sur 38",
+      "city": "Antigua Guatemala",
+      "country": "Guatemala",
+      "countryCode": "GT",
+      "status": "supervised",
+      "agencyName": "Jabad Antigua Guatemala",
+      "phone": "+502 5554 0770",
+      "notes": "La casa Jabad ofrece comida kosher todos los días y comidas de Shabat; su menú tiene platos de carne. Según su sitio la cocina abre de 7:30 a 22 h: confirmá el horario de Shabat. El sitio no nombra una certificadora: preguntá quién supervisa.",
+      "sourceUrl": "https://www.chabadantigua.com/menus"
+    }
+  ]
+}
