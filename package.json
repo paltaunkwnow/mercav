@@ -11,6 +11,7 @@
     "test:pwn": "node --experimental-strip-types --import ./scripts/pwn-test-register.mjs --test lib/pwn/__tests__/*.test.ts",
     "test:calendar": "node --experimental-strip-types --import ./scripts/pwn-test-register.mjs --test lib/calendar/__tests__/*.test.ts",
     "test:business": "node --experimental-strip-types --import ./scripts/pwn-test-register.mjs --test lib/business/__tests__/*.test.ts",
+    "test:privacy": "node --experimental-strip-types --import ./scripts/pwn-test-register.mjs --test lib/privacy/__tests__/*.test.ts",
     "seed": "npx ts-node prisma/seed-admin.ts",
     "seed:kosher": "node --experimental-strip-types prisma/seed-kosher.mts",
     "kosher:fetch-osm": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/kosher/ts-register.mjs scripts/kosher/fetch-osm.mjs",
