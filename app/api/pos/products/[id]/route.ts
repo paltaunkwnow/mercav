@@ -16,14 +16,22 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   const parsed = productInputSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return posError("Revisá los datos del producto");
 
-  const { categoryId, ...data } = parsed.data;
+  const { categoryId, costPrice, costKnown, ...data } = parsed.data;
   if (categoryId) {
     const category = await prisma.pOSCategory.findFirst({ where: { id: categoryId, posConfigId: ctx.config.id } });
     if (!category) return posError("Categoría inválida");
   }
 
   try {
-    const product = await prisma.pOSProduct.update({ where: { id: existing.id }, data: { ...data, categoryId } });
+    const product = await prisma.pOSProduct.update({
+      where: { id: existing.id },
+      data: {
+        ...data,
+        categoryId,
+        ...(costPrice !== undefined ? { costPrice } : {}),
+        ...(costKnown !== undefined ? { costKnown } : costPrice !== undefined ? { costKnown: true } : {}),
+      },
+    });
     return NextResponse.json({ success: true, data: product });
   } catch (error) {
     if (isUniqueCodeError(error)) return posError("Ya existe un producto con ese código de barras o SKU", 409);

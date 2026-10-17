@@ -16,6 +16,7 @@ export function BusinessTabs({ slug, role, active }: { slug: string; role: Busin
         ...(can(role, "loyalty.view") ? [{ key: "fidelizacion", label: "Fidelización", href: `${base}/fidelizacion` }] : []),
         ...(can(role, "loyalty.stamp") ? [{ key: "sellar", label: "Sellar", href: `${base}/sellar` }] : []),
         ...(caja ? [{ key: "caja", label: "Caja", href: caja }] : []),
+        ...(can(role, "publicPage.edit") ? [{ key: "pagina", label: "Mi página", href: `${base}/pagina` }] : []),
         ...(can(role, "workspace.edit") || can(role, "members.manage") ? [{ key: "ajustes", label: "Ajustes", href: `${base}/ajustes` }] : []),
       ]
     : [

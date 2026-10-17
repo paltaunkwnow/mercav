@@ -14,6 +14,8 @@ import { serviceYears } from "@/lib/business/bolivia/seniority";
 import { formatMoney, latamCountry, todayIn } from "@/lib/geo/latam";
 import { dayOffEntries } from "@/lib/calendar";
 import { ROLE_LABELS } from "@/lib/business/permissions";
+import { BusinessMerviGuide } from "@/components/mervi/BusinessMerviGuide";
+import { BusinessLastVisited } from "@/components/business/BusinessLastVisited";
 
 export const metadata: Metadata = { title: "Business" };
 export const dynamic = "force-dynamic";
@@ -104,6 +106,8 @@ export default async function BusinessOverview({ params }: { params: { slug: str
         ) : null
       }
     >
+      <BusinessLastVisited workspaceId={workspace.id} />
+      <BusinessMerviGuide slug={workspace.slug} />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Trabajadores activos" value={active} hint={inactive ? `${inactive} dados de baja` : undefined} />
         {ctx.can("payroll.view") ? (
@@ -133,6 +137,7 @@ export default async function BusinessOverview({ params }: { params: { slug: str
               { href: `/business/${workspace.slug}/fidelizacion`, icon: Gift, title: "Fidelización", desc: "Tarjetas de cliente frecuente con tu marca", show: ctx.can("loyalty.view") },
               { href: `/business/${workspace.slug}/sellar`, icon: ScanLine, title: "Sellar", desc: "Sumá sellos o puntos en el mostrador", show: ctx.can("loyalty.stamp") },
               { href: posLanding(ctx) ?? "", icon: ShoppingCart, title: "Caja", desc: "Vender, inventario y reportes de ventas", show: !!posLanding(ctx) },
+              { href: `/business/${workspace.slug}/pagina`, icon: Gift, title: "Mi página pública", desc: "Tu enlace, menú y contacto para compartir", show: ctx.can("publicPage.edit") },
               { href: `/business/${workspace.slug}/ajustes`, icon: UserPlus, title: "Invitar a tu equipo", desc: "RR.HH., contador o trabajadores", show: ctx.can("invites.manage") },
             ]
               .filter((a) => a.show)

@@ -6,6 +6,7 @@ import { PriceBoard } from "@/components/privacy/CatalogBlocks";
 import { DeviceSilhouette } from "@/components/privacy/DeviceArt";
 import { ApproxLine } from "@/components/privacy/Price";
 import { SupportHorizon } from "@/components/privacy/SupportHorizon";
+import { PrivacyMerviGuide } from "@/components/privacy/PrivacyMerviGuide";
 import { PRIVACY_NAME, privacyMetadata, privacyUrl, quoteLabel, usdt, usdtAmount, type Rates } from "@/components/privacy/site";
 import { loadRates } from "@/components/privacy/rates-server";
 import { CATEGORIES, DELIVERY, INSTALL_SERVICE, PAYMENT, PHONE_BUNDLE, productsIn } from "@/lib/privacy/catalog";
@@ -184,6 +185,7 @@ export default async function PrivacyHome() {
                 Celulares
               </PLink>
             </div>
+            <div className="mt-5"><PrivacyMerviGuide /></div>
           </div>
           {/* slot: FloatingWallet (la pieza visual del hero: reemplazar HeroVisual por el componente interactivo) */}
           <HeroVisual />

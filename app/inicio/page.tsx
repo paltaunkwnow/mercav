@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Clock, LifeBuoy, Megaphone, ShoppingCart, UserCheck } from "@/components/icons";
 import { ModuleGlyph, type ModuleGlyphKey } from "@/components/icons/ModuleGlyph";
 import { Mervi } from "@/components/mervi/Mervi";
+import { AccountMerviGuide } from "@/components/mervi/BusinessMerviGuide";
 import { StarOfDavid } from "@/components/site/StarOfDavid";
 import { TOOL_ROUTES } from "@/app/herramientas/toolRoutes";
 import { getServerSession } from "next-auth/next";
@@ -18,6 +19,7 @@ import { relativeRange } from "@/lib/calendar/dates";
 import { calendarSource } from "@/lib/calendar/sources";
 import { latamCountry, todayIn } from "@/lib/geo/latam";
 import { cn } from "@/lib/utils";
+import { getAccountBusinessPreferences } from "@/lib/business/preferences";
 import { hostHref, hostKindFor, isAbsoluteUrl, isPrivacyPath, type HostKind } from "@/lib/seo/site";
 
 export const metadata: Metadata = { title: "Inicio", robots: { index: false, follow: false } };
@@ -122,28 +124,31 @@ export default async function AppHome() {
 
   let today = todayIn(latamCountry(null).timezone);
   let upcoming: ReturnType<typeof upcomingGroups> = [];
-  let companies: { slug: string; name: string; country: string; currency: string }[] = [];
+  let companies: { id: string; slug: string; name: string; country: string; currency: string }[] = [];
   let activity: Awaited<ReturnType<typeof activityOf>> = null;
   if (userId) {
-    const [locale, prefs, memberships, mine] = await Promise.all([
+    const [locale, prefs, memberships, mine, businessPreferences] = await Promise.all([
       safe("la zona horaria", () => userLocale(userId), null),
       safe("el calendario", () => getCalendarPrefs(userId), null),
       safe("las empresas", () =>
         prisma.businessMember.findMany({
           where: { userId },
-          include: { workspace: { select: { slug: true, name: true, country: true, currency: true } } },
+          include: { workspace: { select: { id: true, slug: true, name: true, country: true, currency: true } } },
           orderBy: { createdAt: "asc" },
           take: 3,
         }),
         [],
       ),
       safe("la actividad", () => activityOf(userId), null),
+      safe("la última empresa", () => getAccountBusinessPreferences(userId), { lastWorkspaceId: null }),
     ]);
     activity = mine;
     if (locale) today = locale.today;
     // Los días seguidos de una misma fecha (Pésaj, Carnaval) van en una sola fila.
     upcoming = prefs ? upcomingGroups(prefs, today, 3) : [];
-    companies = memberships.map((m) => m.workspace);
+    companies = memberships
+      .sort((a, b) => Number(b.workspace.id === businessPreferences.lastWorkspaceId) - Number(a.workspace.id === businessPreferences.lastWorkspaceId))
+      .map((m) => m.workspace);
   }
   const firstName = (session?.user?.name ?? "").split(" ")[0];
   const company = companies[0] ?? null;
@@ -235,6 +240,8 @@ export default async function AppHome() {
               )}
             </section>
           </div>
+
+          {userId ? <div className="mt-3"><AccountMerviGuide /></div> : null}
 
           <ul className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3" aria-label="Módulos">
             {tiles.map((t) => (

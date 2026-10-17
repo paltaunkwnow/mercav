@@ -20,6 +20,7 @@ const EMPTY_FORM = {
   description: '',
   price: '',
   costPrice: '',
+  costKnown: false,
   stock: '',
   sku: '',
   barcode: '',
@@ -198,7 +199,8 @@ export default function POSInventoryPage() {
       name: p.name || '',
       description: p.description || '',
       price: p.price ? p.price.toString() : '',
-      costPrice: p.costPrice ? p.costPrice.toString() : '0',
+      costPrice: p.costKnown === false ? '' : (p.costPrice ?? '').toString(),
+      costKnown: p.costKnown !== false,
       stock: p.stock ? Number(p.stock).toString() : '0',
       sku: p.sku || '',
       barcode: p.barcode || '',
@@ -465,7 +467,7 @@ export default function POSInventoryPage() {
                           </td>
                           {business.dietary && <td className="hidden px-4 py-3 lg:table-cell">{dietBadges(p)}</td>}
                           <td className="hidden px-4 py-3 text-sm text-[var(--text-secondary)] lg:table-cell">{p.category?.name || 'General'}</td>
-                          <td className="mv-data px-4 py-3 text-right text-sm text-[var(--text-secondary)]">{formatMoney(p.costPrice, currency)}</td>
+                          <td className="mv-data px-4 py-3 text-right text-sm text-[var(--text-secondary)]">{p.costKnown === false ? 'Sin costo' : formatMoney(p.costPrice, currency)}</td>
                           <td className="px-4 py-3 text-right">
                             <span className="mv-data text-sm font-semibold text-[var(--text-primary)]">{formatMoney(p.price, currency)}</span>
                             {p.unit && p.unit !== 'UNIT' && <span className="text-xs text-[var(--text-secondary)]"> / {getUnit(p.unit).short}</span>}
@@ -525,7 +527,7 @@ export default function POSInventoryPage() {
                           </div>
                           <div className="min-w-0">
                             <dt className="text-xs text-[var(--text-secondary)]">Costo</dt>
-                            <dd className="mv-data truncate text-sm text-[var(--text-secondary)]">{formatMoney(p.costPrice, currency)}</dd>
+                            <dd className="mv-data truncate text-sm text-[var(--text-secondary)]">{p.costKnown === false ? 'Sin costo' : formatMoney(p.costPrice, currency)}</dd>
                           </div>
                           <div className="min-w-0">
                             <dt className="text-xs text-[var(--text-secondary)]">Stock</dt>
@@ -672,17 +674,30 @@ export default function POSInventoryPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="p-cost" className={fieldLabel}>Costo de compra <span className={hint}>{config?.currency || 'USD'}</span></label>
+                  <div className="flex items-center justify-between gap-3">
+                    <label htmlFor="p-cost" className={fieldLabel}>Costo de compra <span className={hint}>{config?.currency || 'USD'}</span></label>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={formData.costKnown}
+                      onClick={() => setFormData({ ...formData, costKnown: !formData.costKnown, costPrice: formData.costKnown ? '' : formData.costPrice })}
+                      className="mv-focus inline-flex h-11 items-center rounded-full px-2 text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                    >
+                      {formData.costKnown ? 'Lo conozco' : 'Aún no lo sé'}
+                    </button>
+                  </div>
                   <input
                     id="p-cost"
-                    required
                     type="number"
                     inputMode="decimal"
                     step="0.01"
                     value={formData.costPrice}
                     onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
+                    disabled={!formData.costKnown}
+                    placeholder={formData.costKnown ? '0.00' : 'Podés completarlo después'}
                     className="mv-input mv-data"
                   />
+                  <p className={hint}>Si no cargás el costo, los reportes separarán esas ventas del cálculo de ganancia.</p>
                 </div>
                 {showUnits && (
                   <div className="space-y-2">

@@ -143,6 +143,7 @@ export async function POST(req: Request) {
                 unit: product.unit,
                 quantity: line.quantity,
                 unitPrice: line.unitPrice,
+                unitCostPrice: product.costKnown ? product.costPrice : null,
                 subtotal: line.gross,
                 taxRate: line.taxRate,
                 taxAmount: line.tax,

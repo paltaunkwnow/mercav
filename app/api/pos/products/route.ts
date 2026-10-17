@@ -6,11 +6,37 @@ import { requireManager } from "@/lib/pos/staff";
 
 export async function GET(req: Request) {
   const ctx = await getPosContext(req, "pos.sell");
-  if (!ctx.ok) return NextResponse.json({ success: true, data: [] });
+  if (!ctx.ok) return ctx.response;
+
+  const canSeeCosts = !ctx.workspaceId || ["OWNER", "MANAGER", "ACCOUNTANT"].includes(ctx.role ?? "");
 
   const products = await prisma.pOSProduct.findMany({
     where: { posConfigId: ctx.config.id },
-    include: { category: true },
+    select: {
+      id: true,
+      categoryId: true,
+      name: true,
+      description: true,
+      price: true,
+      stock: true,
+      sku: true,
+      barcode: true,
+      unit: true,
+      trackStock: true,
+      taxRate: true,
+      imageUrl: true,
+      isActive: true,
+      isKosher: true,
+      isHalal: true,
+      isVegan: true,
+      isGlutenFree: true,
+      minStock: true,
+      kosherCategory: true,
+      createdAt: true,
+      updatedAt: true,
+      category: true,
+      ...(canSeeCosts ? { costPrice: true, costKnown: true } : {}),
+    },
     orderBy: { createdAt: "desc" },
   });
   return NextResponse.json({ success: true, data: products });
@@ -25,7 +51,7 @@ export async function POST(req: Request) {
   const parsed = productInputSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return posError("Revisá los datos del producto");
 
-  const { categoryId, ...data } = parsed.data;
+  const { categoryId, costPrice, costKnown, ...data } = parsed.data;
   if (categoryId) {
     const category = await prisma.pOSCategory.findFirst({ where: { id: categoryId, posConfigId: ctx.config.id } });
     if (!category) return posError("Categoría inválida");
@@ -33,7 +59,13 @@ export async function POST(req: Request) {
 
   try {
     const product = await prisma.pOSProduct.create({
-      data: { ...data, categoryId, posConfigId: ctx.config.id },
+      data: {
+        ...data,
+        categoryId,
+        posConfigId: ctx.config.id,
+        costPrice: costPrice ?? 0,
+        costKnown: costKnown ?? (costPrice !== undefined),
+      },
     });
     return NextResponse.json({ success: true, data: product });
   } catch (error) {

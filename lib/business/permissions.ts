@@ -3,6 +3,8 @@
 export type BusinessRoleKey = "OWNER" | "HR_ADMIN" | "MANAGER" | "EMPLOYEE" | "ACCOUNTANT";
 
 export type BusinessPermission =
+  | "publicPage.edit"
+  | "publicPage.publish"
   | "workspace.edit"
   | "members.manage"
   | "invites.manage"
@@ -24,6 +26,8 @@ export type BusinessPermission =
   | "pos.configure";
 
 const MATRIX: Record<BusinessPermission, BusinessRoleKey[]> = {
+  "publicPage.edit": ["OWNER", "MANAGER"],
+  "publicPage.publish": ["OWNER"],
   "workspace.edit": ["OWNER", "HR_ADMIN"],
   "members.manage": ["OWNER"],
   "invites.manage": ["OWNER", "HR_ADMIN"],

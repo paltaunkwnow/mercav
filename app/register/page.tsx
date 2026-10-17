@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
+import { useState, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { safeCallbackPath } from '@/lib/security/safe-url';
 import { REAL_DATA_NOTICE_CUSTOMER } from '@/lib/business/loyalty/notice';
 import Link from 'next/link';
-import { Loader2, ArrowRight, CheckCircle2, XCircle } from '@/components/icons';
+import { ArrowRight } from '@/components/icons';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthField, FormAlert, PasswordField, SubmitButton } from '@/components/auth/AuthFields';
 import { getRecaptchaToken } from '@/lib/recaptcha-client';
@@ -32,53 +33,11 @@ function RegisterForm() {
   
   const [formData, setFormData] = useState({
     name: '',
-    username: '',
     email: '',
     password: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
-  const [checkingUsername, setCheckingUsername] = useState(false);
-
-  // Debounce real: antes el clearTimeout devuelto por el onChange se ignoraba, así que cada
-  // tecla disparaba un chequeo y una respuesta vieja podía pisar la del nombre actual.
-  const usernameTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const latestUsername = useRef('');
-  useEffect(() => () => {
-    if (usernameTimer.current) clearTimeout(usernameTimer.current);
-  }, []);
-
-  const checkUsername = async (username: string) => {
-    if (username.length < 3) {
-      setUsernameAvailable(null);
-      return;
-    }
-    setCheckingUsername(true);
-    try {
-      const res = await fetch(`/api/auth/check-username?username=${encodeURIComponent(username)}`);
-      const data = await res.json();
-      if (latestUsername.current === username) setUsernameAvailable(data.available ?? null);
-    } catch {
-      if (latestUsername.current === username) setUsernameAvailable(null);
-    } finally {
-      if (latestUsername.current === username) setCheckingUsername(false);
-    }
-  };
-
-  const handleUsernameChange = (value: string) => {
-    const cleaned = value.toLowerCase().replace(/[^a-z0-9._]/g, '');
-    setFormData({...formData, username: cleaned});
-    latestUsername.current = cleaned;
-    if (usernameTimer.current) clearTimeout(usernameTimer.current);
-    setCheckingUsername(false);
-    if (cleaned.length >= 3) {
-      setUsernameAvailable(null);
-      usernameTimer.current = setTimeout(() => checkUsername(cleaned), 500);
-    } else {
-      setUsernameAvailable(null);
-    }
-  };
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +65,16 @@ function RegisterForm() {
       
       if (!res.ok) throw new Error(data.error || 'Error al registrar');
       
-      router.push(callbackUrl ? `/login?registered=true&callbackUrl=${encodeURIComponent(callbackUrl)}` : '/login?registered=true');
+      const loginToken = await getRecaptchaToken('login', executeRecaptcha);
+      const signedIn = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        recaptchaToken: loginToken || undefined,
+        redirect: false,
+      });
+      if (signedIn?.error) throw new Error('La cuenta fue creada, pero no pudimos iniciar sesión. Probá desde el acceso.');
+      router.replace(callbackUrl || '/inicio');
+      router.refresh();
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
@@ -116,16 +84,6 @@ function RegisterForm() {
   const passwordStrength = formData.password.length === 0 ? 0 : formData.password.length < 6 ? 1 : formData.password.length < 10 ? 2 : 3;
   const strengthLabels = ['', 'Débil', 'Aceptable', 'Fuerte'];
   const strengthColors = ['', 'bg-red-500', 'bg-yellow-500', 'bg-green-500'];
-
-  const usernameHint = checkingUsername ? (
-    <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> Comprobando disponibilidad…</span>
-  ) : usernameAvailable === true ? (
-    <span className="inline-flex items-center gap-1.5 text-green-400"><CheckCircle2 className="h-3.5 w-3.5" aria-hidden /> Disponible</span>
-  ) : usernameAvailable === false ? (
-    <span className="inline-flex items-center gap-1.5 text-red-400"><XCircle className="h-3.5 w-3.5" aria-hidden /> Ese usuario ya está en uso</span>
-  ) : (
-    'Minúsculas, números, punto y guion bajo. Mínimo 3 caracteres.'
-  );
 
   return (
     <AuthShell
@@ -159,23 +117,6 @@ function RegisterForm() {
           value={formData.name}
           onChange={(e) => setFormData({...formData, name: e.target.value})}
           placeholder="Juan Pérez"
-        />
-
-        <AuthField
-          id="register-username"
-          label="Nombre de usuario"
-          type="text"
-          name="username"
-          autoComplete="username"
-          autoCapitalize="none"
-          spellCheck={false}
-          required
-          minLength={3}
-          value={formData.username}
-          onChange={(e) => handleUsernameChange(e.target.value)}
-          placeholder="juanperez"
-          aria-invalid={usernameAvailable === false || undefined}
-          hint={<span aria-live="polite">{usernameHint}</span>}
         />
 
         <AuthField
@@ -224,7 +165,7 @@ function RegisterForm() {
         />
 
         <div className="pt-1">
-          <SubmitButton loading={loading} loadingLabel="Creando cuenta…" disabled={usernameAvailable === false}>
+          <SubmitButton loading={loading} loadingLabel="Creando cuenta…">
             Crear cuenta <ArrowRight className="h-4 w-4" aria-hidden />
           </SubmitButton>
         </div>

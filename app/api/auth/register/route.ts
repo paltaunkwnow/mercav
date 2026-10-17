@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { verifyRecaptchaToken } from "@/lib/recaptcha";
 
 const registerSchema = z.object({
@@ -15,7 +16,8 @@ const registerSchema = z.object({
     .trim()
     .min(3, "El nombre de usuario debe tener al menos 3 caracteres")
     .max(30, "El nombre de usuario es demasiado largo")
-    .regex(/^[a-zA-Z0-9_.-]+$/, "El nombre de usuario solo puede tener letras, números, punto, guion y guion bajo"),
+    .regex(/^[a-zA-Z0-9_.-]+$/, "El nombre de usuario solo puede tener letras, números, punto, guion y guion bajo")
+    .optional(),
   recaptchaToken: z.string().optional()
 });
 
@@ -31,7 +33,7 @@ export async function POST(req: Request) {
       }, { status: 400 });
     }
     
-    const { email, password, name, username, recaptchaToken } = result.data;
+    const { email, password, name, username: requestedUsername, recaptchaToken } = result.data;
 
     if (recaptchaToken) {
       const recaptchaRes = await verifyRecaptchaToken(recaptchaToken);
@@ -43,32 +45,33 @@ export async function POST(req: Request) {
       }
     }
     
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email },
-          { username }
-        ]
-      }
-    });
+    const existingUser = await prisma.user.findUnique({ where: { email } });
     
     if (existingUser) {
       if (existingUser.email === email) {
         return NextResponse.json({ success: false, error: "El email ya está en uso" }, { status: 409 });
       }
-      return NextResponse.json({ success: false, error: "El nombre de usuario no está disponible" }, { status: 409 });
     }
     
     const hashedPassword = await bcrypt.hash(password, 12);
     
-    const user = await prisma.user.create({
-      data: {
-        email,
-        name,
-        username,
-        password: hashedPassword,
+    const base = (requestedUsername || name)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "")
+      .slice(0, 24) || "mercav";
+    const usernameBase = base.length >= 3 ? base : `${base}mercav`;
+    let user = null;
+    for (let attempt = 0; attempt < 20 && !user; attempt += 1) {
+      const candidate = attempt === 0 ? usernameBase : `${usernameBase.slice(0, 24)}${attempt + 1}`;
+      try {
+        user = await prisma.user.create({ data: { email, name, username: candidate, password: hashedPassword } });
+      } catch (error) {
+        if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") throw error;
       }
-    });
+    }
+    if (!user) return NextResponse.json({ success: false, error: "No pudimos asignar un nombre de usuario. Intentá de nuevo." }, { status: 409 });
     
     return NextResponse.json({
       success: true,

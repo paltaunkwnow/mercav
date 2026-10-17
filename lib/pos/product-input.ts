@@ -8,12 +8,17 @@ const optionalCode = z
   .transform((v) => v?.trim() || null);
 
 const money = z.coerce.number().min(0).max(1_000_000_000);
+const optionalMoney = z
+  .union([z.literal(""), z.null(), money])
+  .optional()
+  .transform((v) => (v === "" || v == null ? undefined : v));
 
 export const productInputSchema = z.object({
   name: z.string().trim().min(1).max(120),
   description: z.string().max(1000).nullish().transform((v) => v?.trim() || null),
   price: money,
-  costPrice: money.default(0),
+  costPrice: optionalMoney,
+  costKnown: z.boolean().optional(),
   stock: z.coerce.number().min(0).max(10_000_000).default(0),
   sku: optionalCode,
   barcode: optionalCode,

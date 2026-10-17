@@ -71,6 +71,9 @@ model User {
   businessMemberships     BusinessMember[]
   businessEmployeeRecords BusinessEmployee[]
   calendarPreference      CalendarPreference?
+  /// Última empresa abierta y preferencias de la guía de inicio. No conceden acceso por sí solas.
+  lastBusinessWorkspaceId String?
+  businessGuideProgress  BusinessGuideProgress[]
 
   // Sanction System
   isSanctioned      Boolean                 @default(false)
@@ -1029,6 +1032,7 @@ model POSProduct {
   description    String?
   price          Decimal
   costPrice      Decimal              @default(0)
+  costKnown      Boolean              @default(true)
   stock          Decimal              @default(0)
   sku            String?
   barcode        String?
@@ -1095,6 +1099,7 @@ model POSSaleItem {
   unit        String     @default("UNIT")
   quantity    Decimal
   unitPrice   Decimal
+  unitCostPrice Decimal?
   subtotal    Decimal
   taxRate     Decimal    @default(0)
   taxAmount   Decimal    @default(0)
@@ -2103,8 +2108,26 @@ model BusinessWorkspace {
   auditLogs       BusinessAuditLog[]
   loyaltyPrograms LoyaltyProgram[]
   posConfig       POSConfig?
+  publicPage      BusinessPublicPage?
+  guideProgress   BusinessGuideProgress[]
 
   @@index([ownerId])
+}
+
+/// Estado reanudable de la ayuda contextual. Los hitos operativos siempre se recalculan desde el servidor.
+model BusinessGuideProgress {
+  id          String            @id @default(cuid())
+  userId      String
+  workspaceId String
+  dismissedAt DateTime?
+  completedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   BusinessWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
 }
 
 /// Acceso de un usuario Mercav a una empresa.
@@ -2419,4 +2442,40 @@ model LoyaltyCampaign {
   expiresAt   DateTime?
 
   @@index([programId, createdAt])
+}
+
+
+/// Presentación comercial explícita. El catálogo operativo se consulta por tenant, nunca se duplica.
+model BusinessPublicPage {
+  id          String            @id @default(cuid())
+  workspaceId String            @unique
+  workspace   BusinessWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  publicSlug  String?           @unique
+  status      BusinessPublicPageStatus @default(DRAFT)
+  draft       Json
+  published   Json?
+  version     Int               @default(1)
+  publishedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  aliases     BusinessPublicPageAlias[]
+
+  @@index([status])
+}
+
+enum BusinessPublicPageStatus {
+  DRAFT
+  PUBLISHED
+  PAUSED
+}
+
+/// Un enlace reservado nunca puede ser reclamado por otro negocio, incluso después de pausarlo.
+model BusinessPublicPageAlias {
+  slug      String             @id
+  pageId    String
+  page      BusinessPublicPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  activated Boolean            @default(false)
+  createdAt DateTime           @default(now())
+
+  @@index([pageId])
 }

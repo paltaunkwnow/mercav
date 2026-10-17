@@ -369,6 +369,8 @@ async function handle(req: NextRequest, privacy: PrivacySecurity | null): Promis
                        pathname.startsWith('/feriados/') ||
                        pathname === '/guias' ||
                        pathname.startsWith('/guias/') ||
+                       pathname === '/b' ||
+                       pathname.startsWith('/b/') ||
                        pathname === '/pwn' ||
                        pathname.startsWith('/pwn/') ||
                        pathname === '/kosher' ||

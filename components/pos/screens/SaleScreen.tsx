@@ -113,9 +113,6 @@ export default function POSTerminalPage() {
         if (catsData.success) setCategories(catsData.data);
         if (sessionData.success) setSession(sessionData.data);
 
-        if (!sessionData.data) {
-          setShowCajaModal(true);
-        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -226,7 +223,9 @@ export default function POSTerminalPage() {
         await refreshSession();
         setShowCajaModal(false);
         setOpenPin('');
+        setOpeningAmount('');
         setToast({ visible: true, message: 'Caja abierta con éxito', type: 'success' });
+        if (pendingCheckoutData) setShowPaymentModal(true);
       } else {
         showError(data.error || 'Error al abrir caja');
       }
@@ -251,7 +250,6 @@ export default function POSTerminalPage() {
         setSession(null);
         setShowCloseModal(false);
         setClosingAmount('');
-        setShowCajaModal(true);
         setToast({ visible: true, message: 'Caja cerrada correctamente', type: 'success' });
       }
     } catch (err) {
@@ -263,6 +261,11 @@ export default function POSTerminalPage() {
 
   const handleCheckout = (checkoutData: CheckoutData) => {
     setPendingCheckoutData(checkoutData);
+    if (!session) {
+      setShowCajaModal(true);
+      setToast({ visible: true, message: 'Abrí la caja para cobrar esta venta', type: 'info' });
+      return;
+    }
     setShowPaymentModal(true);
   };
 
@@ -409,10 +412,10 @@ export default function POSTerminalPage() {
       {/* Shift bar */}
       <div className="no-print flex items-center justify-between gap-3 border-b border-[var(--mv-hairline)] px-4 py-2 lg:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-green-500" aria-hidden />
+          <span className={`h-2 w-2 shrink-0 rounded-full ${session ? 'bg-green-500' : 'bg-amber-400'}`} aria-hidden />
           <p className="min-w-0 truncate text-sm text-[var(--text-secondary)]">
-            <span className="hidden sm:inline">Turno abierto · </span>Ventas del turno{' '}
-            <span className="mv-data font-semibold text-[var(--text-primary)]">{formatMoney(currentSessionSalesTotal, config.currency)}</span>
+            {session ? <><span className="hidden sm:inline">Turno abierto · </span>Ventas del turno{' '}
+              <span className="mv-data font-semibold text-[var(--text-primary)]">{formatMoney(currentSessionSalesTotal, config.currency)}</span></> : 'Caja cerrada · Podés preparar el carrito antes de abrirla'}
             {onTill && <span className="hidden md:inline"> · Atiende {onTill.name}{onTill.role === 'MANAGER' ? ' (encargado)' : ''}</span>}
           </p>
         </div>
@@ -428,11 +431,11 @@ export default function POSTerminalPage() {
         </button>
         <button
           type="button"
-          onClick={() => setShowCloseModal(true)}
-          className="mv-focus inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-red-500/30 px-4 text-sm font-semibold text-red-400 transition-colors duration-150 hover:bg-red-500/10"
+          onClick={() => session ? setShowCloseModal(true) : setShowCajaModal(true)}
+          className={`mv-focus inline-flex h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors duration-150 ${session ? 'border-red-500/30 text-red-400 hover:bg-red-500/10' : 'border-[var(--color-border-gold)] text-gold hover:bg-[var(--mv-gold-wash)]'}`}
         >
-          <LogOut size={16} aria-hidden />
-          Cerrar caja
+          {session ? <LogOut size={16} aria-hidden /> : <Wallet size={16} aria-hidden />}
+          {session ? 'Cerrar caja' : 'Abrir caja'}
         </button>
         </div>
       </div>

@@ -127,13 +127,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   };
 
-  const [spaces, services, jobs, places, kosherCities] = await Promise.all([
+  const [spaces, services, jobs, places, kosherCities, businessPages] = await Promise.all([
     safe(() => prisma.space.findMany({ where: { isActive: true }, select: { id: true, updatedAt: true }, take: 5000 })),
     safe(() => prisma.service.findMany({ where: { isActive: true }, select: { id: true, updatedAt: true }, take: 5000 })),
     safe(() => prisma.jobPost.findMany({ where: { isActive: true }, select: { id: true, updatedAt: true }, take: 5000 })),
     safe(() => prisma.kosherPlace.findMany({ where: { published: true }, select: { slug: true, updatedAt: true }, take: 10000 })),
     // Solo las ciudades con lugares publicados: las vacías van con noindex.
     safe(() => listCitiesWithPlaces()),
+    safe(() => prisma.businessPublicPage.findMany({ where: { status: "PUBLISHED", publicSlug: { not: null } }, select: { publicSlug: true, updatedAt: true }, take: 5000 })),
   ]);
 
   for (const s of spaces) entries.push({ url: canonicalFor(`/anuncios/${s.id}`), lastModified: s.updatedAt, changeFrequency: "weekly", priority: 0.7 });
@@ -141,6 +142,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const j of jobs) entries.push({ url: canonicalFor(`/empleos/${j.id}`), lastModified: j.updatedAt, changeFrequency: "daily", priority: 0.7 });
   for (const p of places) entries.push({ url: canonicalFor(`/kosher/lugar/${p.slug}`), lastModified: p.updatedAt, changeFrequency: "weekly", priority: 0.7 });
   for (const c of kosherCities) entries.push({ url: canonicalFor(`/kosher/ciudad/${c.slug}`), lastModified: now, changeFrequency: "weekly", priority: 0.7 });
+  for (const page of businessPages) if (page.publicSlug) entries.push({ url: canonicalFor(`/b/${page.publicSlug}`), lastModified: page.updatedAt, changeFrequency: "weekly", priority: 0.7 });
 
   return entries;
 }

@@ -115,8 +115,8 @@ export async function GET(req: Request) {
         const imageUrl = prod?.imageUrl || null;
         const categoryName = prod?.category?.name || "General";
         const qty = Number(item.quantity);
-        const costPrice = Number(prod?.costPrice || 0);
-        const itemCost = costPrice * qty;
+        const costPrice = item.unitCostPrice == null ? null : Number(item.unitCostPrice);
+        const itemCost = costPrice == null ? 0 : costPrice * qty;
         const itemRevenue = Number(item.subtotal) - (ctx.config!.pricesIncludeTax ? Number(item.taxAmount || 0) : 0);
 
         totalCost += itemCost;
