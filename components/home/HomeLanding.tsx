@@ -124,24 +124,26 @@ export function LandingHero({ data }: { data: LandingData }) {
           <span className="block">Tu negocio entero,</span>
           <span className="c-display c-text-yellow inline-block px-2">en una sola cuenta.</span>
         </h1>
-        <p className="c-lead mx-auto mt-7 text-center">Caja, planillas, fidelización, ciberseguridad y el atlas Kosher. En español, con los precios y las normas de tu país.</p>
+        <p className="c-lead mx-auto mt-7 text-center">Elegí cómo querés empezar: operar un negocio, proteger tu información o encontrar tu comunidad Kosher.</p>
         <AuthCTA className="mt-9 items-center sm:justify-center" />
+        <nav aria-label="Elegí cómo usar Mercav" className="mt-7 grid w-full max-w-3xl gap-2 text-left sm:grid-cols-3">
+          <a href="#pilar-business" className="c-focus rounded-[1rem] border-2 border-[var(--c-line)] bg-[var(--c-ground)] p-3 transition-colors hover:border-[var(--c-yellow)] hover:bg-[var(--c-raised)]">
+            <span className="c-label block text-[0.9rem] text-[var(--c-yellow-text)]">Quiero vender</span>
+            <span className="mt-1 block text-sm font-semibold">Caja, catálogo y página de mi negocio</span>
+          </a>
+          <a href="#pilar-pwn" className="c-focus rounded-[1rem] border-2 border-[var(--c-line)] bg-[var(--c-ground)] p-3 transition-colors hover:border-[var(--c-green)] hover:bg-[var(--c-raised)]">
+            <span className="c-label block text-[0.9rem] text-[var(--c-green-text)]">Quiero protegerme</span>
+            <span className="mt-1 block text-sm font-semibold">Alertas de filtraciones y vulnerabilidades</span>
+          </a>
+          <a href="#pilar-kosher" className="c-focus rounded-[1rem] border-2 border-[var(--c-line)] bg-[var(--c-ground)] p-3 transition-colors hover:border-[#8db4ec] hover:bg-[var(--c-raised)]">
+            <span className="c-label block text-[0.9rem] text-[#8db4ec]">Quiero Kosher</span>
+            <span className="mt-1 block text-sm font-semibold">Atlas, horarios y comunidad</span>
+          </a>
+        </nav>
       </div>
 
       <div className="relative mx-auto mt-32 flex w-full max-w-[76rem] justify-center pb-6 lg:mt-20">
         <div className="pointer-events-none absolute inset-0 hidden lg:block" aria-hidden>
-          <div className="c-drift-l absolute left-[4%] top-[6%]">
-            <div className="c-float" style={{ "--float-s": "6.4s", "--float-d": "-1.2s" } as CSSProperties}>
-              <div className="c-sticker w-[17rem] overflow-hidden rounded-[1.1rem]" style={{ "--tilt": "-8deg" } as CSSProperties}>
-                <LoyaltyCard design={CAFE_DESIGN} type="STAMPS" stampsGoal={10} rewardName={cafe.rewardName} balance={7} customerName="Lucía" side="back" size="sm" className="w-full" />
-              </div>
-            </div>
-          </div>
-          <div className="c-drift-l absolute bottom-[14%] left-[9%]">
-            <div className="c-float" style={{ "--float-s": "5.6s", "--float-d": "-3s" } as CSSProperties}>
-              <PayslipSticker payslip={data.payslip} />
-            </div>
-          </div>
           <div className="c-drift-r absolute right-[2%] top-[26%]">
             <div className="c-float" style={{ "--float-s": "7s", "--float-d": "-2.2s" } as CSSProperties}>
               <PwnSticker />
@@ -209,12 +211,12 @@ export function LandingPillars({ data }: { data: LandingData }) {
             as="h2"
             id="apps-title"
             lines={[
-              { text: "Tres apps.", fit: 25.408 },
-              { text: "Una cuenta.", fit: 22.01, className: "c-text-magenta" },
+              { text: "Elegí tu", fit: 25.408 },
+              { text: "punto de partida.", fit: 22.01, className: "c-text-magenta" },
             ]}
             className="max-w-[34rem]"
           />
-          <p className="c-lead md:pb-3">Business para operar tu negocio, Pwn para protegerlo y Kosher para la comunidad. Las tres se abren con el mismo perfil.</p>
+          <p className="c-lead md:pb-3">No hace falta usar todo Mercav. Business, Pwn y Kosher resuelven necesidades distintas y se abren con el mismo perfil cuando lo necesités.</p>
         </div>
       </CartelSection>
       <div className="relative">
@@ -278,13 +280,33 @@ function BusinessPillar({ data }: { data: LandingData }) {
           id="business-title"
           app="Mercav Business"
           mark={<ModuleGlyph name="business" size={24} />}
-          title="Tu caja, tu equipo y tus clientes."
-          lead="Caja, planillas, fidelización, publicidad y empleo en un mismo lugar. Tu equipo entra con su propia cuenta."
+          title="Empezá a vender sin empezar por lo complicado."
+          lead="Creá tu espacio, cargá lo que ofrecés y elegí si vender en caja o compartir tu página. Equipo, planillas y fidelización llegan cuando los necesités."
           href="/business"
           cta="Abrir Business"
           button="c-btn-ink"
         />
-        <div className="mt-14 grid gap-4 md:grid-cols-2 lg:mt-20 lg:auto-rows-[minmax(15.5rem,auto)] lg:grid-cols-4">
+        <ol className="mt-14 grid gap-3 md:grid-cols-3 lg:mt-20">
+          {[
+            { step: "01", title: "Creá tu negocio", body: "Empezá solo con el nombre y el país. Los datos fiscales y el equipo pueden esperar.", href: "/business", cta: "Preparar mi negocio" },
+            { step: "02", title: "Cargá lo que vendés", body: "Agregá nombre y precio. Podés completar costo, foto, stock y códigos después.", href: "/caja", cta: "Conocer la caja" },
+            { step: "03", title: "Vendé o compartí", body: "Abrí caja cuando llegue una venta o compartí tu página pública con menú y contacto.", href: "/business", cta: "Empezar a vender" },
+          ].map((item) => (
+            <li key={item.step} className="c-tile c-night flex min-h-[15rem] flex-col p-6">
+              <span className="c-display text-[2.5rem] leading-none text-[var(--c-yellow-text)]">{item.step}</span>
+              <h3 className="c-h3 mt-5">{item.title}</h3>
+              <p className="mt-2 text-[0.95rem] leading-relaxed text-[var(--c-soft)]">{item.body}</p>
+              <HostLink href={item.href} className="c-link mt-auto inline-flex w-fit min-h-11 items-center font-semibold">{item.cta}<ArrowRight className="ml-2 h-4 w-4" aria-hidden /></HostLink>
+            </li>
+          ))}
+        </ol>
+        <details className="group mt-6">
+          <summary className="c-focus flex min-h-12 cursor-pointer items-center justify-between gap-4 rounded-[1rem] border-2 border-[var(--c-line)] bg-[var(--c-ground)] px-5 py-3 text-left font-semibold marker:content-none">
+            <span>Todo lo que podés sumar después</span>
+            <Plus className="h-5 w-5 shrink-0 text-[var(--c-yellow-text)] transition-transform group-open:rotate-45" aria-hidden />
+          </summary>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-[var(--c-soft)]">Planillas, fidelización, equipo, publicidad, servicios, empleos y herramientas siguen disponibles cuando tu negocio los necesite.</p>
+        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:auto-rows-[minmax(15.5rem,auto)] lg:grid-cols-4">
           <article className="c-tile c-night flex flex-col gap-5 p-7 md:col-span-2 lg:row-span-2">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -440,14 +462,15 @@ function BusinessPillar({ data }: { data: LandingData }) {
             ))}
           </ul>
         </article>
+        </details>
       </div>
     </section>
   );
 }
 
 function PwnPillar({ data }: { data: LandingData }) {
-  // Fuentes reales a la vista y una celda con las demás: 11 en la grilla de 3 × 4 (compu) o 2 × 6 (tablet), 6 en el celular.
-  const shown = data.pwnSources.slice(0, 11);
+  // Un vistazo da confianza sin convertir la portada en un panel técnico.
+  const shown = data.pwnSources.slice(0, 6);
   const PHONE = 6;
   const date = (iso: string | null) => (iso ? new Intl.DateTimeFormat("es", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(iso)) : "");
   return (
@@ -518,7 +541,12 @@ function PwnPillar({ data }: { data: LandingData }) {
         </figure>
 
         {data.kevs.length > 0 ? (
-          <div className="mt-14">
+          <details className="group mt-10">
+            <summary className="c-focus flex min-h-12 cursor-pointer items-center justify-between gap-4 rounded-[1rem] border border-[var(--c-line-strong)] px-5 py-3 font-semibold marker:content-none">
+              <span>Ver vulnerabilidades explotadas ahora</span>
+              <Plus className="h-5 w-5 shrink-0 text-[var(--c-green-text)] transition-transform group-open:rotate-45" aria-hidden />
+            </summary>
+          <div className="mt-6">
             <p className="c-label text-[1.05rem] text-[var(--c-magenta-text)]">Explotadas ahora, según CISA KEV</p>
             <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {data.kevs.map((k) => (
@@ -541,6 +569,7 @@ function PwnPillar({ data }: { data: LandingData }) {
             </ul>
             <p className="mt-3 text-[0.8rem] text-[var(--c-muted)]">Datos públicos del catálogo de vulnerabilidades explotadas de CISA, tal como los guarda Pwn.</p>
           </div>
+          </details>
         ) : null}
       </div>
     </section>

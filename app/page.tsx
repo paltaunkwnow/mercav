@@ -4,8 +4,6 @@ import {
   LandingCTA,
   LandingFAQ,
   LandingHero,
-  LandingMarquee,
-  LandingMervi,
   LandingPillars,
   LandingRegion,
   LandingTrust,
@@ -143,10 +141,8 @@ export default async function Home() {
   return (
     <div className="cartel flex w-full flex-col overflow-x-clip">
       <LandingHero data={data} />
-      <LandingMarquee />
       <LandingPillars data={data} />
       <LandingRegion data={data} />
-      <LandingMervi />
       <LandingTrust />
       <LandingFAQ />
       <LandingCTA />
