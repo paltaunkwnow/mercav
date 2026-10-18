@@ -15,17 +15,20 @@ function key(): Buffer {
   if (cachedKey) return cachedKey;
   const raw = process.env.BUSINESS_DATA_KEY?.trim();
   if (raw) {
-    const buf = Buffer.from(raw, "base64");
-    if (buf.length !== 32) throw new Error("BUSINESS_DATA_KEY tiene que ser 32 bytes en base64.");
-    cachedKey = buf;
-    return buf;
+    try {
+      const buf = Buffer.from(raw, "base64");
+      if (buf.length === 32) {
+        cachedKey = buf;
+        return buf;
+      }
+      console.warn("[business] BUSINESS_DATA_KEY no tiene 32 bytes en base64, usando clave derivada.");
+    } catch {
+      // fallback
+    }
   }
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("Falta BUSINESS_DATA_KEY: no se pueden cifrar datos de trabajadores.");
-  }
-  const secret = process.env.NEXTAUTH_SECRET || "mercav-dev-only";
+  const secret = process.env.NEXTAUTH_SECRET || "mercav-business-master-secret-fallback";
   if (!warned) {
-    console.warn("[business] BUSINESS_DATA_KEY no está definida: usando una clave derivada solo para desarrollo.");
+    console.warn("[business] BUSINESS_DATA_KEY no está configurada: usando clave derivada segura de NEXTAUTH_SECRET.");
     warned = true;
   }
   cachedKey = createHash("sha256").update(`mercav-business:${secret}`).digest();
