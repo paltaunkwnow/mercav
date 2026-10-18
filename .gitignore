@@ -56,3 +56,6 @@ home_debug.html
 # contexto local para la siguiente conversación con la IA; no va al repositorio
 /CONTEXTO.md
 
+# agent harness / ECC local
+/.agents/
+
