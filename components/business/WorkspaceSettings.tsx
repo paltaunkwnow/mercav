@@ -149,10 +149,12 @@ export function TeamSettings({
   async function createInvite() {
     setBusy("invite");
     setError(null);
-    const res = await sendJson<{ path: string }>(`/api/business/${slug}/invites`, "POST", { role });
+    const res = await sendJson<{ path?: string }>(`/api/business/${slug}/invites`, "POST", { role });
     setBusy(null);
     if (!res.ok) return setError(res.error);
-    setLink(`${window.location.origin}${res.data!.path}`);
+    const path = res.data?.path;
+    if (!path) return setError("No pudimos generar el link. Probá de nuevo.");
+    setLink(new URL(path, window.location.origin).toString());
     router.refresh();
   }
 
@@ -234,7 +236,7 @@ export function TeamSettings({
             </Field>
             <button type="button" onClick={createInvite} disabled={busy === "invite"} className={buttonClass("primary", "md", "sm:mb-6")}>
               {busy === "invite" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <UserPlus className="h-4 w-4" aria-hidden />}
-              Generar link
+              Crear link de acceso
             </button>
           </div>
           {link ? (

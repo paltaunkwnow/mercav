@@ -370,8 +370,8 @@ export default function POSConfigPage({ defaults }: { defaults?: PosConfigDefaul
           </section>
 
           <section aria-labelledby="cfg-staff" className={sectionClass}>
-            <SectionTitle n={5} id="cfg-staff">Personal y PIN</SectionTitle>
-            <p className="mt-2 mb-5 text-sm text-[var(--text-secondary)]">Cada persona abre la caja con su PIN y queda registrada en las ventas de su turno.</p>
+            <SectionTitle n={5} id="cfg-staff">Personal de caja y PIN</SectionTitle>
+            <p className="mt-2 mb-5 text-sm text-[var(--text-secondary)]">Estas personas abren esta caja con su PIN y quedan registradas en las ventas de su turno. Para dar acceso a Mercav Business, invitálas desde su ficha de trabajador.</p>
             {hasConfig ? (
               <StaffManager pinFetch={pinFetch} onMessage={(message, type) => setToast({ visible: true, message, type })} />
             ) : (

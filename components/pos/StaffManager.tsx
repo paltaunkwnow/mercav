@@ -83,45 +83,49 @@ export default function StaffManager({ pinFetch, onMessage }: { pinFetch: PinFet
         <ul className="divide-y divide-[var(--mv-hairline)] rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)]">
           {staff.map((m) => (
             <li key={m.id} className={`space-y-3 p-4 sm:p-5 ${m.isActive ? '' : 'opacity-60'}`}>
-              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_9rem_auto_auto] sm:items-center">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--mv-panel)] text-[var(--text-secondary)]"><UserRound size={18} aria-hidden /></span>
-                <div className="min-w-0 sm:col-start-1 sm:row-start-1 sm:ml-[3.25rem]">
-                  <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{m.name}</p>
-                  <p className="text-xs text-[var(--text-secondary)]">{ROLE_LABEL[m.role] ?? m.role}{m.isActive ? '' : ' · Desactivado'}</p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--mv-panel-hover)] text-[var(--text-secondary)]"><UserRound size={18} aria-hidden /></span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{m.name}</p>
+                    <p className="text-xs text-[var(--text-secondary)]">{ROLE_LABEL[m.role] ?? m.role}{m.isActive ? '' : ' · Desactivado'}</p>
+                  </div>
                 </div>
-                <label className="sr-only" htmlFor={`role-${m.id}`}>Rol de {m.name}</label>
-                <select
-                  id={`role-${m.id}`}
-                  value={m.role}
-                  disabled={busyId === m.id}
-                  onChange={(e) => update(m, { role: e.target.value })}
-                  className="mv-input h-11 w-full px-3 text-sm sm:col-start-2 sm:row-start-1"
-                >
-                  <option value="CASHIER">Cajero</option>
-                  <option value="MANAGER">Encargado</option>
-                </select>
-                <button
-                  type="button"
-                  onClick={() => setPinEdit(pinEdit?.id === m.id ? null : { id: m.id, pin: '' })}
-                  aria-expanded={pinEdit?.id === m.id}
-                  className="mv-focus h-11 whitespace-nowrap rounded-full px-3 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--mv-panel-hover)] sm:col-start-3 sm:row-start-1"
-                >
-                  Cambiar PIN
-                </button>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={m.isActive}
-                  aria-label={`${m.name} puede usar la caja`}
-                  disabled={busyId === m.id}
-                  onClick={() => update(m, { isActive: !m.isActive })}
-                  className="mv-focus inline-flex h-11 items-center justify-between gap-2 rounded-full px-2 text-xs font-semibold text-[var(--text-secondary)] sm:col-start-4 sm:row-start-1"
-                >
-                  <span>{m.isActive ? 'Activo' : 'Pausado'}</span>
-                  <span className={`relative h-6 w-10 rounded-full transition-colors duration-200 ${m.isActive ? 'bg-gold' : 'bg-[var(--mv-hairline-strong)]'}`} aria-hidden>
-                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-[#fff] shadow transition-transform duration-200 ${m.isActive ? 'translate-x-[1.125rem]' : 'translate-x-0.5'}`} />
-                  </span>
-                </button>
+                <div className="grid gap-2 sm:grid-cols-[9rem_auto_auto] sm:items-center">
+                  <label className="sr-only" htmlFor={`role-${m.id}`}>Rol de {m.name}</label>
+                  <select
+                    id={`role-${m.id}`}
+                    value={m.role}
+                    disabled={busyId === m.id}
+                    onChange={(e) => update(m, { role: e.target.value })}
+                    className="mv-input h-11 w-full px-3 text-sm"
+                  >
+                    <option value="CASHIER">Cajero</option>
+                    <option value="MANAGER">Encargado</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setPinEdit(pinEdit?.id === m.id ? null : { id: m.id, pin: '' })}
+                    aria-expanded={pinEdit?.id === m.id}
+                    className="mv-focus h-11 whitespace-nowrap rounded-full px-3 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--mv-panel-hover)]"
+                  >
+                    Cambiar PIN
+                  </button>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={m.isActive}
+                    aria-label={`${m.name} puede usar la caja`}
+                    disabled={busyId === m.id}
+                    onClick={() => update(m, { isActive: !m.isActive })}
+                    className="mv-focus inline-flex h-11 items-center justify-between gap-2 rounded-full px-2 text-xs font-semibold text-[var(--text-secondary)]"
+                  >
+                    <span>{m.isActive ? 'Activo' : 'Pausado'}</span>
+                    <span className={`relative h-6 w-10 rounded-full transition-colors duration-200 ${m.isActive ? 'bg-gold' : 'bg-[var(--mv-hairline-strong)]'}`} aria-hidden>
+                      <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-[#fff] shadow transition-transform duration-200 ${m.isActive ? 'translate-x-[1.125rem]' : 'translate-x-0.5'}`} />
+                    </span>
+                  </button>
+                </div>
               </div>
               {pinEdit?.id === m.id && (
                 <form

@@ -43,10 +43,13 @@ export function EmployeeActions({
   async function invite() {
     setBusy("invite");
     setError(null);
-    const res = await sendJson<{ path: string }>(`/api/business/${slug}/invites`, "POST", { role: "EMPLOYEE", employeeId });
+    const res = await sendJson<{ path?: string }>(`/api/business/${slug}/invites`, "POST", { role: "EMPLOYEE", employeeId });
     setBusy(null);
     if (!res.ok) return setError(res.error);
-    setLink(`${window.location.origin}${res.data!.path}`);
+    const path = res.data?.path;
+    if (!path) return setError("No pudimos generar el link. Probá de nuevo.");
+    setLink(new URL(path, window.location.origin).toString());
+    router.refresh();
   }
 
   async function copy() {
@@ -65,16 +68,22 @@ export function EmployeeActions({
   return (
     <div className="flex flex-col gap-4">
       {canInvite && !linked && status === "ACTIVE" ? (
-        <section className="mv-panel flex flex-col gap-3 p-4">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)]">Invitar a Mercav</h2>
-          <p className="text-xs leading-snug text-[var(--text-secondary)]">Con su cuenta, ve su legajo y descarga sus boletas. El link vale 7 días y se usa una sola vez.</p>
+        <section className="mv-panel flex flex-col gap-4 p-5">
+          <div className="flex items-start gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--mv-panel-hover)] text-gold"><Link2 className="h-5 w-5" aria-hidden /></span>
+            <div>
+              <h2 className="text-sm font-semibold text-[var(--text-primary)]">Dar acceso a {name}</h2>
+              <p className="mt-1 text-xs leading-snug text-[var(--text-secondary)]">Va a ver su legajo y sus boletas. El link es personal, vale 7 días y se usa una sola vez.</p>
+            </div>
+          </div>
           {link ? (
-            <>
+            <div className="rounded-xl border border-[var(--mv-hairline)] bg-[var(--mv-panel-hover)] p-3">
+              <p role="status" className="mb-3 flex items-center gap-2 text-xs font-semibold text-[var(--text-primary)]"><Check className="h-4 w-4 text-emerald-500" aria-hidden /> Link listo para enviar</p>
               <label htmlFor="inv-link" className="sr-only">
                 Link de invitación
               </label>
               <input id="inv-link" readOnly value={link} onFocus={(e) => e.currentTarget.select()} className="mv-input h-10 text-xs" />
-              <div className="flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 <button type="button" onClick={copy} className={buttonClass("secondary", "sm")}>
                   {copied ? <Check className="h-4 w-4" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
                   {copied ? "Copiado" : "Copiar link"}
@@ -84,13 +93,14 @@ export function EmployeeActions({
                   WhatsApp
                 </a>
               </div>
-            </>
+            </div>
           ) : (
-            <button type="button" onClick={invite} disabled={busy === "invite"} className={buttonClass("secondary", "sm", "w-fit")}>
+            <button type="button" onClick={invite} disabled={busy === "invite"} className={buttonClass("primary", "sm", "w-fit")}>
               {busy === "invite" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Link2 className="h-4 w-4" aria-hidden />}
-              Generar link
+              Crear link de acceso
             </button>
           )}
+          {error ? <p role="alert" className="text-sm text-red-500">{error}</p> : null}
         </section>
       ) : null}
 
@@ -114,7 +124,7 @@ export function EmployeeActions({
           </button>
         )}
       </section>
-      {error ? (
+      {error && !(canInvite && !linked && status === "ACTIVE") ? (
         <p role="alert" className="text-sm text-red-500">
           {error}
         </p>
