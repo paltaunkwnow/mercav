@@ -312,13 +312,15 @@ function BusinessPillar({ data }: { data: LandingData }) {
             </li>
           ))}
         </ol>
-        <details className="group mt-6">
-          <summary className="c-focus flex min-h-12 cursor-pointer items-center justify-between gap-4 rounded-[1rem] border-2 border-[var(--c-line)] bg-[var(--c-ground)] px-5 py-3 text-left font-semibold marker:content-none">
-            <span>Todo lo que podés sumar después</span>
-            <Plus className="h-5 w-5 shrink-0 text-[var(--c-yellow-text)] transition-transform group-open:rotate-45" aria-hidden />
-          </summary>
-          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-[var(--c-soft)]">Planillas, fidelización, equipo, publicidad, servicios, empleos y herramientas siguen disponibles cuando tu negocio los necesite.</p>
-        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:auto-rows-[minmax(15.5rem,auto)] lg:grid-cols-4">
+        <section className="mt-16 border-t-2 border-[var(--c-line)] pt-10 lg:mt-20 lg:pt-14" aria-labelledby="business-grow-title">
+          <div className="grid gap-4 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:items-end md:gap-10">
+            <div>
+              <p className="c-label text-[1rem] text-[var(--c-yellow-text)]">CUANDO LO NECESITÉS</p>
+              <h3 id="business-grow-title" className="c-h2 mt-2">Sumá herramientas a tu ritmo.</h3>
+            </div>
+            <p className="max-w-[42rem] text-[1rem] leading-relaxed text-[var(--c-soft)]">Todo está disponible desde el inicio. Empezá con lo esencial y activá planillas, fidelización, equipo, publicidad, servicios o empleos cuando sea el momento.</p>
+          </div>
+        <div className="mt-8 grid gap-4 md:grid-cols-2 lg:auto-rows-[minmax(15.5rem,auto)] lg:grid-cols-4">
           <article className="c-tile c-night flex flex-col gap-5 p-7 md:col-span-2 lg:row-span-2">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -474,7 +476,7 @@ function BusinessPillar({ data }: { data: LandingData }) {
             ))}
           </ul>
         </article>
-        </details>
+        </section>
       </div>
     </section>
   );
