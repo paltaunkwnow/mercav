@@ -218,17 +218,12 @@ export function LandingPillars({ data }: { data: LandingData }) {
   return (
     <>
       <CartelSection labelledBy="apps-title" className="!pb-20">
-        <div className="c-container grid gap-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-end md:gap-14">
-          <FitLines
-            as="h2"
-            id="apps-title"
-            lines={[
-              { text: "Elegí tu", fit: 25.408 },
-              { text: "punto de partida.", fit: 22.01, className: "c-text-magenta" },
-            ]}
-            className="max-w-[34rem]"
-          />
-          <p className="c-lead md:pb-3">No hace falta usar todo Mercav. Business, Pwn y Kosher resuelven necesidades distintas y se abren con el mismo perfil cuando lo necesités.</p>
+        <div className="c-container grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-end lg:gap-14">
+          <h2 id="apps-title" className="c-h2 max-w-[34rem]">
+            <span className="block">Elegí tu</span>
+            <span className="c-text-magenta block">punto de partida.</span>
+          </h2>
+          <p className="c-lead min-w-0 lg:pb-3">No hace falta usar todo Mercav. Business, Pwn y Kosher resuelven necesidades distintas y se abren con el mismo perfil cuando lo necesités.</p>
         </div>
       </CartelSection>
       <div className="relative">
@@ -316,20 +311,23 @@ function BusinessPillar({ data }: { data: LandingData }) {
           <div className="grid gap-4 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:items-end md:gap-10">
             <div>
               <p className="c-label text-[1rem] text-[var(--c-yellow-text)]">ELEGÍ LO QUE QUERÉS HACER</p>
-              <h3 id="business-grow-title" className="c-h2 mt-2">Todo para tu negocio, explicado por tareas.</h3>
+              <h3 id="business-grow-title" className="c-h2 mt-2">Elegí lo que necesitás hoy.</h3>
             </div>
             <p className="max-w-[42rem] text-[1rem] leading-relaxed text-[var(--c-soft)]">No necesitás usar todo. Elegí una necesidad y Mercav te acompaña con lo justo para resolverla. Podés volver por las demás cuando te sirvan.</p>
           </div>
           <ol className="mt-8 grid gap-3 md:grid-cols-3">
             {[
-              { step: "01", title: "Quiero vender hoy", body: "Caja, productos y tu página para compartir." },
-              { step: "02", title: "Quiero ordenar mi negocio", body: "Planillas y equipo para trabajar sin enredos." },
-              { step: "03", title: "Quiero hacerlo crecer", body: "Clientes que vuelven, publicidad, servicios y empleos." },
-            ].map((item) => (
-              <li key={item.step} className="rounded-[1rem] border-2 border-[var(--c-line)] bg-[var(--c-ground)] p-5">
-                <span className="c-label text-[0.95rem] text-[var(--c-yellow-text)]">{item.step}</span>
-                <h4 className="mt-2 text-[1.1rem] font-semibold">{item.title}</h4>
-                <p className="mt-1 text-[0.9rem] leading-relaxed text-[var(--c-soft)]">{item.body}</p>
+              { step: "01", title: "Quiero vender hoy", body: "Caja, productos y tu página para compartir.", icon: ShoppingCart },
+              { step: "02", title: "Quiero ordenar mi negocio", body: "Planillas y equipo para trabajar sin enredos.", icon: FileText },
+              { step: "03", title: "Quiero hacerlo crecer", body: "Clientes que vuelven, publicidad, servicios y empleos.", icon: Sparkles },
+            ].map(({ step, title, body, icon: Icon }) => (
+              <li key={step} className="c-tile c-night flex min-h-[11rem] flex-col p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <span className="c-label text-[0.95rem] text-[var(--c-yellow-text)]">{step}</span>
+                  <Icon className="h-6 w-6 text-[var(--c-yellow-text)]" aria-hidden />
+                </div>
+                <h4 className="mt-5 text-[1.25rem] font-semibold leading-tight text-[var(--c-text)]">{title}</h4>
+                <p className="mt-2 text-[0.9rem] leading-relaxed text-[var(--c-soft)]">{body}</p>
               </li>
             ))}
           </ol>
