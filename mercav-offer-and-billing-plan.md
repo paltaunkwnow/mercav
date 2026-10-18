@@ -3,15 +3,21 @@
 Fecha: 17 de octubre de 2026.  
 Estado: propuesta para aprobación; no cambia precios ni cobros todavía.
 
+## Principio no negociable
+
+**Mercav no quita ni bloquea una función que hoy ofrece gratis.** Ninguna persona pierde caja, catálogo, inventario, costos, planillas, fidelización, página pública, diseños, Pwn, Kosher, calendario, comunidad o herramientas que ya puede usar sin pagar.
+
+Una mejora paga solo puede ser una capacidad nueva, un volumen adicional claramente elegido o un servicio futuro que no exista en la versión gratuita. El plan gratis nunca se achica para empujar una conversión.
+
 ## Decisión recomendada
 
 Mercav conserva una sola cuenta, pero deja de presentar una sola suscripción para productos con públicos y costos distintos. Cada persona elige un punto de partida y solo ve la oferta que corresponde a su necesidad.
 
 | Línea | Persona a la que sirve | Modelo recomendado | No debe mezclarse con |
 | --- | --- | --- | --- |
-| **Mercav Business** | Dueño o equipo de un negocio | Suscripción por negocio | Pwn, Kosher, tienda Privacy y marketplace |
-| **Mercav Pwn** | Persona o equipo que monitorea su exposición | Gratuito personal; plan de equipo cuando exista demanda y costo medible | Planillas, fidelización o catálogo |
-| **Mercav Kosher** | Visitante, comunidad y administradores de lugares | Gratuito para consultar y colaborar; herramientas de operación separadas más adelante | Certificación o estado de kashrut |
+| **Mercav Business** | Dueño o equipo de un negocio | Gratuito completo en lo existente; complementos futuros por negocio | Pwn, Kosher, tienda Privacy y marketplace |
+| **Mercav Pwn** | Persona o equipo que monitorea su exposición | Gratuito en todas las funciones actuales; oferta futura solo para capacidades nuevas de equipo | Planillas, fidelización o catálogo |
+| **Mercav Kosher** | Visitante, comunidad y administradores de lugares | Gratuito para consultar y colaborar; sin vender funciones actuales | Certificación o estado de kashrut |
 | **Mercav Privacy** | Comprador de productos de privacidad | Compra única por pedido | Suscripciones SaaS |
 | **Mercav Mercado** | Quien publica o contrata espacios, servicios y empleos | Comisión o promoción por transacción/publicación | Plan del negocio y postulaciones de candidatos |
 
@@ -45,7 +51,7 @@ El esquema existente permite publicar espacios, servicios y vacantes; hay reserv
 2. **El plan pertenece a la persona, no al negocio.** Si una persona administra varios negocios, el límite y el pago viven en `User.plan`; no en el negocio que recibe el valor. Esto complica sucursales, dueños, agencias y cambios de responsable.
 3. **El cobro no es recurrente.** El checkout crea un `PaymentIntent` de pago único por uno o doce meses. No hay renovación automática, cancelación, actualización de medio de pago ni portal de facturación. No debe llamarse suscripción recurrente hasta implementarlo.
 4. **El registro histórico de suscripciones no refleja estado real.** Cada pago crea una fila `ACTIVE`; al vencer el acceso efectivo vuelve a Gratis, pero esas filas no se vencen. El MRR administrativo puede contar períodos pasados como activos.
-5. **Los límites no tienen una historia de valor uniforme.** Caja, menú público y varias funciones importantes no se comunican en la tabla, mientras Mercado sí aparece aunque no es el primer motivo de uso de Business.
+5. **Los límites no tienen una historia de valor uniforme.** Caja, menú público y varias funciones importantes no se comunican en la tabla, mientras Mercado sí aparece aunque no es el primer motivo de uso de Business. La comunicación debe aclarar qué sigue gratis y qué capacidad adicional es opcional.
 6. **Cobrar por postularse a un empleo es una mala barrera.** El límite de diez postulaciones mensuales afecta al candidato, que no es quien recibe valor SaaS. Conviene monetizar al empleador por publicación destacada o por servicio de selección, no al postulante.
 7. **Kosher no puede monetizar confianza.** Un estado, certificación, fuente o posición en el atlas no puede depender de pago. Dañaría la confianza del producto.
 
@@ -55,19 +61,19 @@ El esquema existente permite publicar espacios, servicios y vacantes; hay reserv
 
 En `/precios`, el producto principal debe llamarse **Planes para tu negocio**. Mantener dos decisiones claras:
 
-| | Business Gratis | Business Pro |
+| | Business Gratis | Business Pro futuro |
 | --- | --- | --- |
-| Precio | USD 0 | Mantener temporalmente USD 9,99/mes o USD 95,88/año hasta validar disposición de pago |
-| Alcance | Un negocio, hasta cinco personas, POS/catálogo básico, una página pública, los tres diseños y un club de fidelización | Un negocio, equipo sin límite, reportes/exportaciones avanzadas, costos, inventario avanzado, varias campañas de fidelización y herramientas Pro |
-| Motivo para cambiar | Empezar y vender sin tarjeta | Ahorrar tiempo al gestionar un equipo y tomar decisiones con datos |
+| Precio | USD 0 | Se define solo al crear capacidades nuevas y opcionales |
+| Alcance | Todo lo que está disponible hoy: negocio, caja, catálogo, inventario, costos, trabajadores dentro de los límites actuales, planillas, fidelización, página pública, los tres diseños y herramientas gratuitas | Capacidades futuras que no existen hoy, por ejemplo sucursales conectadas, automatizaciones opcionales o soporte operativo dedicado |
+| Motivo para cambiar | Empezar, operar y vender sin tarjeta | Resolver una necesidad nueva sin afectar el funcionamiento Gratis |
 
-La página pública y sus tres diseños se mantienen disponibles en Gratis: son la mejor puerta de entrada para que el negocio comparta Mercav. No se debe cobrar por cambiar plantilla. Las funciones básicas de caja tampoco se bloquean; el límite pago debe aparecer al administrar complejidad real, no al intentar hacer la primera venta.
+La página pública y sus tres diseños se mantienen disponibles en Gratis: son la mejor puerta de entrada para que el negocio comparta Mercav. No se debe cobrar por cambiar plantilla. Caja, catálogo, inventario, costos, planillas y fidelización existentes tampoco se mueven a una capa paga.
 
 Cada negocio adicional debe ser un complemento explícito, no una cifra escondida en el plan de una persona. La oferta de varias sucursales se deja para una etapa posterior, cuando haya permisos compartidos, reportes agrupados e inventario entre sucursales.
 
 ### 2. Mercav Pwn
 
-Mantener **Pwn Personal gratis**: consulta propia, alerta personal, contraseña comprometida y aprendizaje. No introducir precio hasta medir costo por objetivo, frecuencia de monitoreo y conversión.
+Mantener **Pwn gratis** con toda la funcionalidad actual: consulta propia, monitoreo autorizado, alertas, informes, fuentes, vulnerabilidades y aprendizaje. No introducir una barrera de pago sobre estas funciones.
 
 Cuando exista uso sostenido de equipos, lanzar **Pwn Equipos** por dominio verificado o por franja de buzones monitoreados: varios administradores, alertas a equipo, historial/exportación, informes y configuración de retención. Nunca cobrar por revelar una exposición crítica ya detectada ni por el primer aviso de seguridad.
 
@@ -75,7 +81,7 @@ El precio debe definirse después de modelar los costos de proveedores y la auto
 
 ### 3. Mercav Kosher
 
-El atlas, calendario, viajes y comunidad permanecen gratuitos. Más adelante puede existir **Kosher Partner** solo para quien administra un lugar: perfil reclamado, herramientas de horario/contacto, menú vinculado a Business, analítica de visitas y enlace de reserva o WhatsApp. No se vende un estado de kashrut, una certificación, prioridad en resultados orgánicos ni moderación.
+El atlas, calendario, viajes y comunidad permanecen gratuitos. Las herramientas actuales de administración también permanecen gratis. Más adelante puede existir **Kosher Partner** únicamente si agrega una capacidad totalmente nueva para un lugar, sin cambiar el acceso actual. No se vende un estado de kashrut, una certificación, prioridad en resultados orgánicos ni moderación.
 
 No lanzar esta capa hasta definir una política editorial y de conflicto de intereses visible.
 
@@ -114,9 +120,9 @@ Como referencia de empaquetado, un POS competitivo mantiene venta, inventario b�
 
 ### Fase 1 — claridad sin cambiar cobros
 
-1. Renombrar la oferta pública a **Business Gratis** y **Business Pro**.
-2. Reescribir `/precios` para explicar solo Business; mover Mercado a una sección propia y enlazar Pwn/Kosher como gratuitos.
-3. Mostrar qué negocio consume cada límite y qué acción concreta lo desbloquea.
+1. Reescribir `/precios` como una explicación honesta de lo que es gratis hoy, sin reducirlo ni ocultarlo; mover Mercado a una sección propia y enlazar Pwn/Kosher como gratuitos.
+2. Mostrar qué negocio consume cada límite actual y qué capacidad nueva sería opcional en el futuro.
+3. Retirar la promesa ambigua de "Mercav Pro" hasta que su valor adicional sea una función nueva y concreta.
 4. Quitar el límite de postulaciones de candidatos y diseñar la tarifa de empleador aparte.
 5. Corregir reportes administrativos para no presentar MRR histórico como recurrente.
 
@@ -148,6 +154,6 @@ Como referencia de empaquetado, un POS competitivo mantiene venta, inventario b�
 - Una persona entiende en una pantalla si necesita Business, Pwn, Kosher, Privacy o Mercado.
 - Ninguna compra única se presenta como suscripción.
 - Un negocio con Pro sigue teniendo acceso aunque cambie el miembro que lo opera; una persona con dos negocios ve planes separados.
-- Al expirar o fallar un pago, el negocio conserva sus datos y pierde solo los derechos de Pro de forma predecible.
+- Al expirar o fallar un pago, el negocio conserva todos sus datos y todas las funciones que ya eran gratuitas; solo se desactiva la capacidad nueva contratada.
 - Los límites, precio, periodo, renovación y cancelación aparecen antes de cobrar.
 - Los datos y la moderación de Kosher permanecen independientes de cualquier pago.
