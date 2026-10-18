@@ -144,6 +144,18 @@ export function LandingHero({ data }: { data: LandingData }) {
 
       <div className="relative mx-auto mt-32 flex w-full max-w-[76rem] justify-center pb-6 lg:mt-20">
         <div className="pointer-events-none absolute inset-0 hidden lg:block" aria-hidden>
+          <div className="c-drift-l absolute left-[4%] top-[6%]">
+            <div className="c-float" style={{ "--float-s": "6.4s", "--float-d": "-1.2s" } as CSSProperties}>
+              <div className="c-sticker w-[17rem] overflow-hidden rounded-[1.1rem]" style={{ "--tilt": "-8deg" } as CSSProperties}>
+                <LoyaltyCard design={CAFE_DESIGN} type="STAMPS" stampsGoal={10} rewardName={cafe.rewardName} balance={7} customerName="Lucía" side="back" size="sm" className="w-full" />
+              </div>
+            </div>
+          </div>
+          <div className="c-drift-l absolute bottom-[14%] left-[9%]">
+            <div className="c-float" style={{ "--float-s": "5.6s", "--float-d": "-3s" } as CSSProperties}>
+              <PayslipSticker payslip={data.payslip} />
+            </div>
+          </div>
           <div className="c-drift-r absolute right-[2%] top-[26%]">
             <div className="c-float" style={{ "--float-s": "7s", "--float-d": "-2.2s" } as CSSProperties}>
               <PwnSticker />
