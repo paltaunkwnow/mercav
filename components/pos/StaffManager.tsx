@@ -80,12 +80,12 @@ export default function StaffManager({ pinFetch, onMessage }: { pinFetch: PinFet
       ) : staff.length === 0 ? (
         <p className="text-sm text-[var(--text-secondary)]">Todavía no agregaste a nadie. Mientras tanto, la caja la abre el dueño de la cuenta sin PIN.</p>
       ) : (
-        <ul className="divide-y divide-[var(--mv-hairline)] rounded-2xl border border-[var(--mv-hairline)]">
+        <ul className="divide-y divide-[var(--mv-hairline)] rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)]">
           {staff.map((m) => (
-            <li key={m.id} className={`space-y-3 p-3 sm:p-4 ${m.isActive ? '' : 'opacity-60'}`}>
-              <div className="flex flex-wrap items-center gap-3">
+            <li key={m.id} className={`space-y-3 p-4 sm:p-5 ${m.isActive ? '' : 'opacity-60'}`}>
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_9rem_auto_auto] sm:items-center">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--mv-panel)] text-[var(--text-secondary)]"><UserRound size={18} aria-hidden /></span>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 sm:col-start-1 sm:row-start-1 sm:ml-[3.25rem]">
                   <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{m.name}</p>
                   <p className="text-xs text-[var(--text-secondary)]">{ROLE_LABEL[m.role] ?? m.role}{m.isActive ? '' : ' · Desactivado'}</p>
                 </div>
@@ -95,7 +95,7 @@ export default function StaffManager({ pinFetch, onMessage }: { pinFetch: PinFet
                   value={m.role}
                   disabled={busyId === m.id}
                   onChange={(e) => update(m, { role: e.target.value })}
-                  className="mv-input h-11 w-auto px-3 text-sm"
+                  className="mv-input h-11 w-full px-3 text-sm sm:col-start-2 sm:row-start-1"
                 >
                   <option value="CASHIER">Cajero</option>
                   <option value="MANAGER">Encargado</option>
@@ -104,7 +104,7 @@ export default function StaffManager({ pinFetch, onMessage }: { pinFetch: PinFet
                   type="button"
                   onClick={() => setPinEdit(pinEdit?.id === m.id ? null : { id: m.id, pin: '' })}
                   aria-expanded={pinEdit?.id === m.id}
-                  className="mv-focus h-11 rounded-full px-3 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--mv-panel-hover)]"
+                  className="mv-focus h-11 whitespace-nowrap rounded-full px-3 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--mv-panel-hover)] sm:col-start-3 sm:row-start-1"
                 >
                   Cambiar PIN
                 </button>
@@ -115,8 +115,9 @@ export default function StaffManager({ pinFetch, onMessage }: { pinFetch: PinFet
                   aria-label={`${m.name} puede usar la caja`}
                   disabled={busyId === m.id}
                   onClick={() => update(m, { isActive: !m.isActive })}
-                  className="mv-focus inline-flex h-11 items-center rounded-full px-1"
+                  className="mv-focus inline-flex h-11 items-center justify-between gap-2 rounded-full px-2 text-xs font-semibold text-[var(--text-secondary)] sm:col-start-4 sm:row-start-1"
                 >
+                  <span>{m.isActive ? 'Activo' : 'Pausado'}</span>
                   <span className={`relative h-6 w-10 rounded-full transition-colors duration-200 ${m.isActive ? 'bg-gold' : 'bg-[var(--mv-hairline-strong)]'}`} aria-hidden>
                     <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-[#fff] shadow transition-transform duration-200 ${m.isActive ? 'translate-x-[1.125rem]' : 'translate-x-0.5'}`} />
                   </span>
@@ -150,8 +151,13 @@ export default function StaffManager({ pinFetch, onMessage }: { pinFetch: PinFet
 
       <form
         onSubmit={(e) => { e.preventDefault(); add(); }}
-        className="grid grid-cols-1 gap-3 rounded-2xl border border-dashed border-[var(--mv-hairline-strong)] p-4 sm:grid-cols-[1fr_auto_auto] sm:items-end"
+        className="rounded-2xl border border-[var(--mv-hairline)] bg-[var(--mv-panel)] p-4 sm:p-5"
       >
+        <div className="mb-4">
+          <p className="text-sm font-semibold text-[var(--text-primary)]">Agregar persona</p>
+          <p className="mt-1 text-xs text-[var(--text-secondary)]">Elegí cómo se identifica en caja, su rol y un PIN personal.</p>
+        </div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_10rem_10rem_auto] md:items-end">
         <div className="space-y-2">
           <label htmlFor="staff-name" className={fieldLabel}>Nombre</label>
           <input
@@ -166,7 +172,7 @@ export default function StaffManager({ pinFetch, onMessage }: { pinFetch: PinFet
         </div>
         <div className="space-y-2">
           <label htmlFor="staff-role" className={fieldLabel}>Rol</label>
-          <select id="staff-role" value={draft.role} onChange={(e) => setDraft({ ...draft, role: e.target.value })} className="mv-input sm:w-40">
+          <select id="staff-role" value={draft.role} onChange={(e) => setDraft({ ...draft, role: e.target.value })} className="mv-input">
             <option value="CASHIER">Cajero</option>
             <option value="MANAGER">Encargado</option>
           </select>
@@ -182,17 +188,18 @@ export default function StaffManager({ pinFetch, onMessage }: { pinFetch: PinFet
             value={draft.pin}
             onChange={(e) => setDraft({ ...draft, pin: pinOnly(e.target.value) })}
             placeholder="4 a 6 números"
-            className="mv-input mv-data placeholder:font-sans sm:w-40"
+            className="mv-input mv-data placeholder:font-sans"
           />
         </div>
         <button
           type="submit"
           disabled={!draft.name.trim() || !validPin(draft.pin) || busyId === 'new'}
-          className="mv-btn mv-btn-primary w-full sm:col-span-3 sm:w-auto sm:justify-self-end"
+          className="mv-btn mv-btn-primary h-11 w-full md:w-auto"
         >
           {busyId === 'new' ? <Loader2 size={18} className="animate-spin" aria-hidden /> : <Plus size={18} aria-hidden />}
           Agregar persona
         </button>
+        </div>
       </form>
       <p className="text-xs text-[var(--text-secondary)]">
         Si un cajero tiene la caja abierta, anular ventas y cambiar inventario o configuración piden el PIN de un encargado. Después de 5 PIN incorrectos en un minuto, la caja espera un minuto.
