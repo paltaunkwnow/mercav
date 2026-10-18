@@ -315,18 +315,32 @@ function BusinessPillar({ data }: { data: LandingData }) {
         <section className="mt-16 border-t-2 border-[var(--c-line)] pt-10 lg:mt-20 lg:pt-14" aria-labelledby="business-grow-title">
           <div className="grid gap-4 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:items-end md:gap-10">
             <div>
-              <p className="c-label text-[1rem] text-[var(--c-yellow-text)]">CUANDO LO NECESITÉS</p>
-              <h3 id="business-grow-title" className="c-h2 mt-2">Sumá herramientas a tu ritmo.</h3>
+              <p className="c-label text-[1rem] text-[var(--c-yellow-text)]">ELEGÍ LO QUE QUERÉS HACER</p>
+              <h3 id="business-grow-title" className="c-h2 mt-2">Todo para tu negocio, explicado por tareas.</h3>
             </div>
-            <p className="max-w-[42rem] text-[1rem] leading-relaxed text-[var(--c-soft)]">Todo está disponible desde el inicio. Empezá con lo esencial y activá planillas, fidelización, equipo, publicidad, servicios o empleos cuando sea el momento.</p>
+            <p className="max-w-[42rem] text-[1rem] leading-relaxed text-[var(--c-soft)]">No necesitás usar todo. Elegí una necesidad y Mercav te acompaña con lo justo para resolverla. Podés volver por las demás cuando te sirvan.</p>
           </div>
+          <ol className="mt-8 grid gap-3 md:grid-cols-3">
+            {[
+              { step: "01", title: "Quiero vender hoy", body: "Caja, productos y tu página para compartir." },
+              { step: "02", title: "Quiero ordenar mi negocio", body: "Planillas y equipo para trabajar sin enredos." },
+              { step: "03", title: "Quiero hacerlo crecer", body: "Clientes que vuelven, publicidad, servicios y empleos." },
+            ].map((item) => (
+              <li key={item.step} className="rounded-[1rem] border-2 border-[var(--c-line)] bg-[var(--c-ground)] p-5">
+                <span className="c-label text-[0.95rem] text-[var(--c-yellow-text)]">{item.step}</span>
+                <h4 className="mt-2 text-[1.1rem] font-semibold">{item.title}</h4>
+                <p className="mt-1 text-[0.9rem] leading-relaxed text-[var(--c-soft)]">{item.body}</p>
+              </li>
+            ))}
+          </ol>
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:auto-rows-[minmax(15.5rem,auto)] lg:grid-cols-4">
           <article className="c-tile c-night flex flex-col gap-5 p-7 md:col-span-2 lg:row-span-2">
             <div className="flex items-start justify-between gap-4">
               <div>
+                <p className="c-label text-[0.9rem] text-[var(--c-yellow-text)]">PARA ORDENAR TU NEGOCIO</p>
                 <h3 className="c-h3">
                   <Link href="/planillas" className="underline-offset-[0.2em] hover:underline">
-                    Planillas de sueldo
+                    Pagá a tu equipo sin cuentas manuales
                   </Link>
                 </h3>
                 <p className="mt-2 max-w-[24rem] text-[0.98rem] text-[var(--c-soft)]">Aportes, RC-IVA y antigüedad calculados solos. Exportás a Excel y cada trabajador ve su boleta.</p>
@@ -356,9 +370,10 @@ function BusinessPillar({ data }: { data: LandingData }) {
 
           <article className="c-tile c-band c-ink-magenta flex flex-col gap-5 p-7 sm:flex-row sm:items-center md:col-span-2">
             <div className="flex-1">
+              <p className="c-label text-[0.9rem]">PARA HACERLO CRECER</p>
               <h3 className="c-h3">
                   <Link href="/fidelizacion" className="underline-offset-[0.2em] hover:underline">
-                    Fidelización
+                    Hacé que tus clientes vuelvan
                   </Link>
                 </h3>
               <p className="mt-2 text-[0.98rem] text-[var(--c-soft)]">Tarjetas de sellos o puntos con tu logo. Tus clientes se suman con un QR y las guardan en su cuenta.</p>
@@ -375,9 +390,10 @@ function BusinessPillar({ data }: { data: LandingData }) {
           <article className="c-tile c-night flex flex-col gap-5 p-7 md:col-span-2">
             <div className="flex items-start justify-between gap-4">
               <div>
+                <p className="c-label text-[0.9rem] text-[var(--c-yellow-text)]">PARA VENDER HOY</p>
                 <h3 className="c-h3">
                   <Link href="/caja" className="underline-offset-[0.2em] hover:underline">
-                    Caja
+                    Cobrá y registrá tus ventas
                   </Link>
                 </h3>
                 <p className="mt-2 max-w-[26rem] text-[0.98rem] text-[var(--c-soft)]">Vendé desde el celular o la compu, con o sin conexión. El reporte te dice quién vendió qué.</p>
@@ -409,7 +425,8 @@ function BusinessPillar({ data }: { data: LandingData }) {
           </article>
 
           <article className="c-tile c-inverse flex flex-col gap-4 p-6">
-            <h3 className="c-h3">Tu equipo, con su cuenta</h3>
+            <p className="c-label text-[0.9rem] text-[var(--c-yellow-text)]">PARA ORDENAR TU NEGOCIO</p>
+            <h3 className="c-h3">Invitá a tu equipo</h3>
             <ul className="flex flex-col gap-2.5">
               {roles.map((r) => (
                 <li key={r.name} className="flex items-center gap-3">
@@ -426,7 +443,8 @@ function BusinessPillar({ data }: { data: LandingData }) {
 
           <article className="c-tile c-band c-ink-orange flex flex-col gap-4 p-6">
             <div>
-              <h3 className="c-h3">Publicidad</h3>
+              <p className="c-label text-[0.9rem]">PARA HACERLO CRECER</p>
+              <h3 className="c-h3">Mostrá tu negocio a más gente</h3>
               <p className="mt-1 text-[0.92rem] text-[var(--c-soft)]">Vallas y pantallas con reserva por fechas. Probá elegir las tuyas.</p>
               <p className="c-label mt-2 text-[0.95rem]">Primer alquiler sin comisión</p>
             </div>
@@ -434,7 +452,8 @@ function BusinessPillar({ data }: { data: LandingData }) {
           </article>
 
           <article className="c-tile c-band c-ink-green flex flex-col p-6">
-            <h3 className="c-h3">Servicios</h3>
+            <p className="c-label text-[0.9rem]">PARA HACERLO CRECER</p>
+            <h3 className="c-h3">Contratá servicios con pagos protegidos</h3>
             <p className="mt-1 text-[0.92rem] text-[var(--c-soft)]">El pago se libera hito por hito.</p>
             <ol className="mt-auto grid gap-2 text-[0.9rem]">
               {[
@@ -454,7 +473,8 @@ function BusinessPillar({ data }: { data: LandingData }) {
           </article>
 
           <article className="c-tile c-inverse flex flex-col p-6">
-            <h3 className="c-h3">Empleos</h3>
+            <p className="c-label text-[0.9rem] text-[var(--c-yellow-text)]">PARA HACERLO CRECER</p>
+            <h3 className="c-h3">Publicá una vacante</h3>
             <div className="c-band c-ink-yellow mt-auto -rotate-2 rounded-[0.9rem] p-4 motion-reduce:rotate-0">
               <p className="c-display text-[1.7rem] leading-[0.9]">Se busca encargada de ventas</p>
               <p className="mt-2 text-[0.8rem]">Salario visible · postulaciones a tu panel</p>
@@ -464,7 +484,8 @@ function BusinessPillar({ data }: { data: LandingData }) {
         </div>
         <article className="c-tile c-night mt-4 flex flex-col gap-5 p-6 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
           <div className="shrink-0">
-            <h3 className="c-h3">Herramientas</h3>
+            <p className="c-label text-[0.9rem] text-[var(--c-yellow-text)]">PARA TAREAS PUNTUALES</p>
+            <h3 className="c-h3">Herramientas útiles cuando las necesitás</h3>
             <p className="mt-1 text-[0.92rem] text-[var(--c-soft)]">Las siete de hoy, incluidas según tu plan.</p>
           </div>
           <ul className="flex flex-wrap gap-2 lg:justify-end">
