@@ -71,6 +71,28 @@ La página pública y sus tres diseños se mantienen disponibles en Gratis: son 
 
 Cada negocio adicional debe ser un complemento explícito, no una cifra escondida en el plan de una persona. La oferta de varias sucursales se deja para una etapa posterior, cuando haya permisos compartidos, reportes agrupados e inventario entre sucursales.
 
+### Presencia y descubrimiento para negocios que crecen
+
+Toda página pública publicada sigue siendo indexable gratis. Ya se publica en el sitemap y entrega datos estructurados de negocio local; no se debe cobrar por la posibilidad de aparecer en Google. Google tampoco acepta pagos para acelerar la inclusión o mejorar el puesto orgánico de una página. [Google Search Essentials](https://developers.google.com/search/docs/essentials) [FAQ sobre posición en Google](https://developers.google.com/search/help/site-position-in-search-faq?authuser=14)
+
+La propuesta opcional debe vender valor adicional y comprobable bajo el nombre **Business Visibilidad** o como parte de un futuro **Business Pro**:
+
+- Un diagnóstico de presencia: categoría, ciudad, horarios, dirección, contacto, menú y datos faltantes antes de publicar.
+- Datos locales más completos y específicos para el rubro, metadatos sociales, imágenes optimizadas y una vista previa de cómo se comparte la ficha.
+- Informe mensual de visitas, clics en WhatsApp, llamadas, menú y consultas; cuando se conecte Search Console, también impresiones y búsquedas reales de Google.
+- Recomendaciones prácticas para completar la ficha y atraer clientes, sin rellenar palabras clave ni generar páginas de poco valor.
+- Aparición en descubrimiento dentro de Mercav por categoría, ciudad e intención. Si existe una ubicación pagada, debe llevar la etiqueta **Patrocinado** y nunca alterar la información orgánica, el estado de kashrut o la calidad editorial.
+- Futuras capacidades nuevas: varias sucursales con páginas propias, dominio personalizado, campañas automatizadas y analítica consolidada.
+
+El mensaje comercial no promete “primer lugar en Google” ni “Google te recomienda por pagar”. Promete una ficha mejor preparada para que Google pueda comprenderla y para que Mercav pueda mostrarla a personas que buscan ese tipo de negocio. Google indica que los datos estructurados locales pueden comunicar horarios, departamentos y más información sobre una empresa, y recomienda sitemap y validación para facilitar el rastreo. [Datos estructurados LocalBusiness](https://developers.google.com/search/docs/appearance/structured-data/local-business)
+
+Copy recomendado:
+
+> **Que te encuentren cuando te buscan.**
+>
+> Tu página Mercav sigue siendo gratis e indexable. Cuando tu negocio necesite crecer, activá Visibilidad para completar tu ficha, medir las consultas que llegan y aparecer en los espacios de descubrimiento de Mercav.
+> No comprás una posición en Google: construís una presencia más clara, útil y lista para encontrar clientes.
+
 ### 2. Mercav Pwn
 
 Mantener **Pwn gratis** con toda la funcionalidad actual: consulta propia, monitoreo autorizado, alertas, informes, fuentes, vulnerabilidades y aprendizaje. No introducir una barrera de pago sobre estas funciones.
