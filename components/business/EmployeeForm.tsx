@@ -13,6 +13,17 @@ import { Field } from "./ui";
 
 const BO_EXT = ["SC", "LP", "CB", "CH", "PT", "OR", "TJ", "BE", "PD"];
 
+function normalizeDateStr(val: unknown): string {
+  if (typeof val !== "string") return "";
+  const s = val.trim();
+  const dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (dmy) {
+    const [, d, m, y] = dmy;
+    return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+  }
+  return s;
+}
+
 export function EmployeeForm({ slug, country, employee }: { slug: string; country: string; employee?: EmployeeView }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -24,9 +35,11 @@ export function EmployeeForm({ slug, country, employee }: { slug: string; countr
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    const body = Object.fromEntries(
-      ["firstName", "lastName", "ci", "ciExt", "birthDate", "sex", "nationality", "email", "phone", "position", "hireDate", "contractType", "baseSalary", "bankName", "bankAccount", "nua", "cnsNumber", "notes"].map((k) => [k, f.get(k) ?? ""]),
+    const body: Record<string, string> = Object.fromEntries(
+      ["firstName", "lastName", "ci", "ciExt", "birthDate", "sex", "nationality", "email", "phone", "position", "hireDate", "contractType", "baseSalary", "bankName", "bankAccount", "nua", "cnsNumber", "notes"].map((k) => [k, String(f.get(k) ?? "")]),
     );
+    if (body.hireDate) body.hireDate = normalizeDateStr(body.hireDate);
+    if (body.birthDate) body.birthDate = normalizeDateStr(body.birthDate);
     setBusy(true);
     setError(null);
     const res = employee
