@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
@@ -20,7 +21,11 @@ export async function POST(request: NextRequest, { params }: { params: { token: 
 
   const gone = () => kosherError(410, "Esta invitación venció o ya se usó. Pedí una nueva al equipo de Mercav Kosher.");
   if (params.token.length > 100) return gone();
-  const invite = await prisma.kosherInvite.findUnique({ where: { token: params.token } });
+  const tokenHash = createHash("sha256").update(params.token).digest("hex");
+  let invite = await prisma.kosherInvite.findUnique({ where: { token: tokenHash } });
+  if (!invite) {
+    invite = await prisma.kosherInvite.findUnique({ where: { token: params.token } });
+  }
   if (!invite || invite.usedAt || invite.expiresAt < new Date()) return gone();
 
   // Consumo atómico: el update solo matchea si nadie la usó todavía. Antes, dos canjes

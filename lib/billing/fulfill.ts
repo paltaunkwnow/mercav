@@ -71,7 +71,7 @@ export async function fulfillPaidTransaction(stripeId: string): Promise<{ result
       }
 
       console.error(`[FULFILL] Pago ${stripeId} referencia un pedido inexistente: ${orderId}`);
-      return { result: "fulfilled", transaction };
+      throw new Error(`[FULFILL] Pedido no encontrado para transacción ${stripeId}: ${orderId}`);
     }
 
     // 2) Mercav Pro (flujo /checkout?plan=PROFESSIONAL&interval=...)
@@ -85,7 +85,7 @@ export async function fulfillPaidTransaction(stripeId: string): Promise<{ result
       // Se aceptan también los montos de antes del cambio para pagos que ya estaban iniciados.
       if (!isPaidPlan || !(matches(planChargeUsd(planKey, interval)) || matches(LEGACY_PLAN_CHARGES_USD[planKey]?.[interval]))) {
         console.error(`[FULFILL] Pago ${stripeId}: plan/monto inconsistentes (${planKey}, ${String(transaction.amount)})`);
-        return { result: "fulfilled", transaction };
+        throw new Error(`[FULFILL] Inconsistencia en monto de suscripción para transacción ${stripeId} (${planKey})`);
       }
 
       // Si renueva con un plan pago todavía vigente, el período nuevo empieza cuando termina el actual.
@@ -110,8 +110,8 @@ export async function fulfillPaidTransaction(stripeId: string): Promise<{ result
       return { result: "fulfilled", transaction };
     }
 
-    console.warn(`[FULFILL] Pago ${stripeId} sin metadata reconocible; marcado como pagado sin cumplimiento.`);
-    return { result: "fulfilled", transaction };
+    console.error(`[FULFILL] Pago ${stripeId} sin metadata reconocible; no se puede procesar.`);
+    throw new Error(`[FULFILL] Transacción ${stripeId} carece de metadatos de cumplimiento reconocibles`);
   });
 }
 // creado por pato dev y askforvini

@@ -38,39 +38,39 @@ export async function POST(
       ? new Date(Date.now() + Number(durationDays) * 24 * 60 * 60 * 1000)
       : null
 
-    // Update User
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        plan: plan as Plan,
-        planExpiresAt
-      }
-    })
+    const safeUser = await prisma.$transaction(async (tx) => {
+      const updatedUser = await tx.user.update({
+        where: { id: userId },
+        data: {
+          plan: plan as Plan,
+          planExpiresAt
+        }
+      });
 
-    // Create Subscription entry
-    await prisma.subscription.create({
-      data: {
-        userId,
-        plan: plan as Plan,
-        status: "ACTIVE",
-        startDate: new Date(),
-        endDate: planExpiresAt,
-        paymentId: `Soporte/Cortesía: ${reason.slice(0, 100)}`
-      }
-    })
+      await tx.subscription.create({
+        data: {
+          userId,
+          plan: plan as Plan,
+          status: "ACTIVE",
+          startDate: new Date(),
+          endDate: planExpiresAt,
+          paymentId: `Soporte/Cortesía: ${reason.slice(0, 100)}`
+        }
+      });
 
-    // Log the audit event in AdminLog
-    await prisma.adminLog.create({
-      data: {
-        adminId: me.id,
-        action: "CHANGE_USER_PLAN",
-        details: `Plan de usuario @${targetUser.username} cambiado a ${plan}. Expiración: ${planExpiresAt ? planExpiresAt.toLocaleDateString() : "Nunca"}. Razón: ${reason}`
-      }
-    })
+      await tx.adminLog.create({
+        data: {
+          adminId: me.id,
+          action: "CHANGE_USER_PLAN",
+          details: `Plan de usuario @${targetUser.username} cambiado a ${plan}. Expiración: ${planExpiresAt ? planExpiresAt.toLocaleDateString() : "Nunca"}. Razón: ${reason}`
+        }
+      });
 
-    // No devolver hash de contraseña ni secreto 2FA
-    const { password: _password, twoFactorSecret: _secret, ...safeUser } = updatedUser
-    return NextResponse.json({ success: true, data: safeUser })
+      const { password: _password, twoFactorSecret: _secret, ...safe } = updatedUser;
+      return safe;
+    });
+
+    return NextResponse.json({ success: true, data: safeUser });
   } catch (error: any) {
     console.error("Error changing user plan:", error)
     return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 })

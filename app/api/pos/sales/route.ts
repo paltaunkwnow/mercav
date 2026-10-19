@@ -156,13 +156,52 @@ export async function POST(req: Request) {
       });
     });
 
-    return NextResponse.json({ success: true, data: sale });
+    const canSeeCosts = !ctx.workspaceId || ["OWNER", "MANAGER", "ACCOUNTANT"].includes(ctx.role ?? "");
+    const sanitizeSale = (data: any) => {
+      if (canSeeCosts || !data) return data;
+      return {
+        ...data,
+        items: data.items?.map((item: any) => {
+          const { unitCostPrice: _cost, product, ...rest } = item;
+          return {
+            ...rest,
+            unitCostPrice: null,
+            product: product ? {
+              id: product.id,
+              name: product.name,
+              unit: product.unit,
+              price: product.price,
+              imageUrl: product.imageUrl,
+            } : null,
+          };
+        }),
+      };
+    };
+
+    return NextResponse.json({ success: true, data: sanitizeSale(sale) });
   } catch (error) {
     if (error instanceof StockError) return posError(error.message, 409);
     // Two copies of the same queued sale raced: return the one that won.
     if (clientRef && error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       const existing = await prisma.pOSSale.findFirst({ where: { clientRef, posConfigId: config.id }, include: saleInclude });
-      if (existing) return NextResponse.json({ success: true, data: existing, duplicate: true });
+      if (existing) {
+        const canSeeCosts = !ctx.workspaceId || ["OWNER", "MANAGER", "ACCOUNTANT"].includes(ctx.role ?? "");
+        return NextResponse.json({
+          success: true,
+          data: canSeeCosts ? existing : {
+            ...existing,
+            items: existing.items?.map((item: any) => {
+              const { unitCostPrice: _cost, product, ...rest } = item;
+              return {
+                ...rest,
+                unitCostPrice: null,
+                product: product ? { id: product.id, name: product.name, unit: product.unit, price: product.price, imageUrl: product.imageUrl } : null,
+              };
+            }),
+          },
+          duplicate: true,
+        });
+      }
     }
     console.error("POS_SALE_POST_ERROR", error);
     return posError("Internal Error", 500);

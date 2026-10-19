@@ -54,49 +54,51 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "El contenido a eliminar no existe en la base de datos" }, { status: 404 })
     }
 
-    // 2. Save content in DeletedContentHistory
-    await prisma.deletedContentHistory.create({
-      data: {
-        contentType: targetType,
-        contentId: targetId,
-        contentOwner: ownerUsername,
-        contentData: JSON.parse(JSON.stringify(contentData)),
-        reason,
-        deletedById: me.id
+    await prisma.$transaction(async (tx) => {
+      // 2. Save content in DeletedContentHistory
+      await tx.deletedContentHistory.create({
+        data: {
+          contentType: targetType,
+          contentId: targetId,
+          contentOwner: ownerUsername,
+          contentData: JSON.parse(JSON.stringify(contentData)),
+          reason,
+          deletedById: me.id
+        }
+      });
+
+      // 3. Delete content permanently from table
+      if (targetType === "POST") {
+        await tx.post.delete({ where: { id: targetId } });
+      } else if (targetType === "SERVICE") {
+        await tx.service.delete({ where: { id: targetId } });
+      } else if (targetType === "SPACE") {
+        await tx.space.delete({ where: { id: targetId } });
+      } else if (targetType === "JOB") {
+        await tx.jobPost.delete({ where: { id: targetId } });
       }
-    })
 
-    // 3. Delete content permanently from table
-    if (targetType === "POST") {
-      await prisma.post.delete({ where: { id: targetId } })
-    } else if (targetType === "SERVICE") {
-      await prisma.service.delete({ where: { id: targetId } })
-    } else if (targetType === "SPACE") {
-      await prisma.space.delete({ where: { id: targetId } })
-    } else if (targetType === "JOB") {
-      await prisma.jobPost.delete({ where: { id: targetId } })
-    }
+      // 4. Resolve all related reports
+      await tx.report.updateMany({
+        where: { targetId, targetType },
+        data: {
+          status: "RESOLVED",
+          resolvedBy: me.id,
+          resolvedAt: new Date()
+        }
+      });
 
-    // 4. Resolve all related reports
-    await prisma.report.updateMany({
-      where: { targetId, targetType },
-      data: {
-        status: "RESOLVED",
-        resolvedBy: me.id,
-        resolvedAt: new Date()
-      }
-    })
+      // 5. Add Admin Log entry
+      await tx.adminLog.create({
+        data: {
+          adminId: me.id,
+          action: `DELETE_${targetType}`,
+          details: `Contenido ${targetType} con ID ${targetId} de @${ownerUsername} eliminado permanentemente. Razón: ${reason}`
+        }
+      });
+    });
 
-    // 5. Add Admin Log entry
-    await prisma.adminLog.create({
-      data: {
-        adminId: me.id,
-        action: `DELETE_${targetType}`,
-        details: `Contenido ${targetType} con ID ${targetId} de @${ownerUsername} eliminado permanentemente. Razón: ${reason}`
-      }
-    })
-
-    return NextResponse.json({ success: true, message: "Contenido eliminado y archivado con éxito" })
+    return NextResponse.json({ success: true, message: "Contenido eliminado y archivado con éxito" });
   } catch (error: any) {
     console.error("Content deletion error:", error)
     return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 })

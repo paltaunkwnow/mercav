@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { forbidden, getKosherViewer, kosherError, unauthorized, writeGuard } from "@/lib/kosher/server";
@@ -14,9 +14,10 @@ export async function POST(_request: Request, { params }: { params: { slug: stri
   const place = await prisma.kosherPlace.findUnique({ where: { slug: params.slug }, select: { id: true, published: true } });
   if (!place?.published) return kosherError(404, "Lugar no encontrado");
 
-  const token = randomBytes(24).toString("base64url");
+  const rawToken = randomBytes(24).toString("base64url");
+  const tokenHash = createHash("sha256").update(rawToken).digest("hex");
   await prisma.kosherInvite.create({
-    data: { token, placeId: place.id, createdById: viewer.id, expiresAt: new Date(Date.now() + INVITE_DAYS * 86_400_000) },
+    data: { token: tokenHash, placeId: place.id, createdById: viewer.id, expiresAt: new Date(Date.now() + INVITE_DAYS * 86_400_000) },
   });
-  return NextResponse.json({ success: true, token }, { status: 201 });
+  return NextResponse.json({ success: true, token: rawToken }, { status: 201 });
 }

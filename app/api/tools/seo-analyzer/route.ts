@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { checkToolAccess } from "@/lib/toolAccess";
-import { assertPublicHttpUrl } from "@/lib/security/safe-url";
+import { assertPublicHttpUrlResolved, readTextLimited } from "@/lib/security/ssrf";
 
 function normalizeUrl(url: string) {
   return /^https?:\/\//i.test(url) ? url : `https://${url}`;
@@ -24,14 +24,15 @@ export async function POST(req: Request) {
     if (!access.allowed) return NextResponse.json({ success: false, error: access.message }, { status: 403 });
 
     const body = await req.json();
-    const url = assertPublicHttpUrl(normalizeUrl(String(body.url || ""))).toString();
+    const target = await assertPublicHttpUrlResolved(normalizeUrl(String(body.url || "")));
+    const url = target.toString();
 
     const response = await fetch(url, {
       headers: { "User-Agent": "MercavSEO/1.0" },
       redirect: "manual",
       signal: AbortSignal.timeout(8000),
     });
-    const html = await response.text();
+    const html = await readTextLimited(response, 500_000);
     const textOnly = html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
     const title = html.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1]?.trim() || url;
@@ -44,8 +45,8 @@ export async function POST(req: Request) {
 
     let hasSitemap = false;
     let hasRobots = false;
-    try { hasSitemap = (await fetch(new URL('/sitemap.xml', url).toString())).ok; } catch {}
-    try { hasRobots = (await fetch(new URL('/robots.txt', url).toString())).ok; } catch {}
+    try { hasSitemap = (await fetch(new URL('/sitemap.xml', url).toString(), { redirect: "manual", signal: AbortSignal.timeout(4000) })).ok; } catch {}
+    try { hasRobots = (await fetch(new URL('/robots.txt', url).toString(), { redirect: "manual", signal: AbortSignal.timeout(4000) })).ok; } catch {}
 
     const frequency: Record<string, number> = {};
     textOnly.toLowerCase().split(/\W+/).filter((word) => word.length > 3).forEach((word) => { frequency[word] = (frequency[word] || 0) + 1; });

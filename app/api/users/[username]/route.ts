@@ -37,6 +37,9 @@ export async function GET(req: Request, { params }: { params: { username: string
       sanctionReason: _sanctionReason,
       sanctionExpiresAt: _sanctionExpiresAt,
       planExpiresAt: _planExpiresAt,
+      lastBusinessWorkspaceId: _lastWorkspace,
+      clubCode: _clubCode,
+      isSanctioned: _isSanctioned,
       ...publicUser
     } = user;
     if (publicUser.profile && !publicUser.profile.salaryVisible) {

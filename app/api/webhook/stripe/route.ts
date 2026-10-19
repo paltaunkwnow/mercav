@@ -12,14 +12,18 @@ export async function POST(req: Request) {
 
   let event: Stripe.Event;
 
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.error('[STRIPE_WEBHOOK_CONFIG_ERROR] Falta STRIPE_WEBHOOK_SECRET');
+    return new NextResponse('Server Configuration Error', { status: 500 });
+  }
+
+  if (!signature) {
+    return new NextResponse('Falta la cabecera Stripe-Signature', { status: 400 });
+  }
+
   try {
-    if (!process.env.STRIPE_WEBHOOK_SECRET) {
-      throw new Error('STRIPE_WEBHOOK_SECRET is not defined');
-    }
-    if (!signature) {
-      throw new Error('Falta la cabecera Stripe-Signature');
-    }
-    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (error: any) {
     console.error(`[STRIPE_WEBHOOK_ERROR]: ${error?.message}`);
     return new NextResponse('Webhook Error', { status: 400 });

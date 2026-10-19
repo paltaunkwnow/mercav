@@ -2,7 +2,7 @@ export const RECAPTCHA_SITE_KEY =
   process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6LcNmd4sAAAAAE0Prx-cXQfDUSbJBAQQFj0JH9Rv";
 
 export const RECAPTCHA_SECRET_KEY =
-  process.env.RECAPTCHA_SECRET_KEY || "6LcNmd4sAAAAAJn3jVcDHj0bUnsPByJF7fJvbCE0";
+  process.env.RECAPTCHA_SECRET_KEY || "";
 
 export const RECAPTCHA_USE_ENTERPRISE =
   process.env.NEXT_PUBLIC_RECAPTCHA_USE_ENTERPRISE === "false" ? false : true;

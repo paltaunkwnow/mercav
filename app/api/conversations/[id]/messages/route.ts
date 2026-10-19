@@ -50,7 +50,7 @@ export async function POST(
 
     const member = await prisma.conversation.findFirst({
       where: { id: params.id, participants: { some: { id: user.id } } },
-      select: { id: true, isEnabled: true },
+      select: { id: true, isEnabled: true, participants: { select: { id: true } } },
     });
     if (!member) return NextResponse.json({ success: false, error: "No autorizado" }, { status: 403 });
     // Conversaciones deshabilitadas (p. ej. por moderación) no aceptan mensajes nuevos
@@ -85,7 +85,12 @@ export async function POST(
     // Emit real-time update
     const io = (globalThis as any).io;
     if (io) {
-      io.emit(`chat:${params.id}`, message);
+      io.to(`chat:${params.id}`).emit(`chat:${params.id}`, message);
+      member.participants.forEach((p) => {
+        if (p.id !== user.id) {
+          io.to(p.id).emit(`chat:${params.id}`, message);
+        }
+      });
     }
 
     return NextResponse.json({ success: true, data: message });

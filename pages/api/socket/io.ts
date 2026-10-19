@@ -2,6 +2,8 @@ import { Server as NetServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { NextApiRequest, NextApiResponse } from "next";
 
+import { getToken } from "next-auth/jwt";
+
 export type NextApiResponseServerIO = NextApiResponse & {
   socket: {
     server: NetServer & {
@@ -18,16 +20,38 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIO) => {
       path: path,
       addTrailingSlash: false,
     });
+
+    io.use(async (socket, next) => {
+      try {
+        const token = await getToken({
+          req: socket.request as any,
+          secret: process.env.NEXTAUTH_SECRET,
+        });
+        if (token?.id) {
+          socket.data.userId = token.id;
+        }
+        next();
+      } catch {
+        next();
+      }
+    });
     
     io.on("connection", (socket) => {
-      console.log("Client connected", socket.id);
-      
       socket.on("join", (userId) => {
-        socket.join(userId);
+        // Solo permitir unirse a su propia sala
+        if (!socket.data.userId || socket.data.userId === userId) {
+          socket.join(userId);
+        }
+      });
+
+      socket.on("joinConv", (convId) => {
+        if (typeof convId === "string" && convId.length <= 100) {
+          socket.join(`chat:${convId}`);
+        }
       });
       
       socket.on("disconnect", () => {
-        console.log("Client disconnected", socket.id);
+        // disconnected
       });
     });
 

@@ -35,14 +35,12 @@ export async function POST(req: Request) {
     
     const { email, password, name, username: requestedUsername, recaptchaToken } = result.data;
 
-    if (recaptchaToken) {
-      const recaptchaRes = await verifyRecaptchaToken(recaptchaToken);
-      if (!recaptchaRes.success) {
-        return NextResponse.json({
-          success: false,
-          error: "Verificación de seguridad (reCAPTCHA) inválida. Por favor recarga e intenta de nuevo."
-        }, { status: 400 });
-      }
+    const recaptchaRes = await verifyRecaptchaToken(recaptchaToken);
+    if (!recaptchaRes.success) {
+      return NextResponse.json({
+        success: false,
+        error: "Verificación de seguridad (reCAPTCHA) requerida o inválida. Por favor recarga e intenta de nuevo."
+      }, { status: 400 });
     }
     
     const existingUser = await prisma.user.findUnique({ where: { email } });

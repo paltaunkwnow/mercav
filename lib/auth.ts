@@ -56,12 +56,10 @@ export const authOptions: AuthOptions = {
           throw new Error("Faltan credenciales");
         }
 
-        if ((credentials as any)?.recaptchaToken) {
-          const recaptchaResult = await verifyRecaptchaToken((credentials as any).recaptchaToken);
-          if (!recaptchaResult.success) {
-            console.warn("reCAPTCHA check failed on login for:", credentials.email);
-            throw new Error("RECAPTCHA_FAILED");
-          }
+        const recaptchaResult = await verifyRecaptchaToken((credentials as any)?.recaptchaToken);
+        if (!recaptchaResult.success) {
+          console.warn("reCAPTCHA check failed on login for:", credentials.email);
+          throw new Error("RECAPTCHA_FAILED");
         }
 
         let user: any = null;
@@ -162,6 +160,9 @@ export const authOptions: AuthOptions = {
             }
           });
         }
+        if (dbUser?.twoFactorEnabled) {
+          return "/login?error=2FA_REQUIRED";
+        }
         user.id = dbUser.id;
       }
       return true;
@@ -201,9 +202,10 @@ export const authOptions: AuthOptions = {
         } else {
           token.roles = [];
         }
-      } catch {
-        token.isSanctioned = false;
-        token.roles = [];
+      } catch (err) {
+        console.error("[AUTH_JWT_REFRESH_ERROR] Error al refrescar estado del usuario:", err);
+        token.isSanctioned = Boolean(token.isSanctioned);
+        token.roles = Array.isArray(token.roles) ? token.roles : [];
       }
 
       return token;

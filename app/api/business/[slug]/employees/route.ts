@@ -30,7 +30,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     return NextResponse.json({ success: true, data: { id: employee.id } });
   } catch (error: any) {
     console.error("[employees/POST] Error:", error);
-    return NextResponse.json({ success: false, error: error?.message ?? "Error al guardar el trabajador" }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Error al guardar el trabajador" }, { status: 500 });
   }
 }
 // creado por pato dev y askforvini

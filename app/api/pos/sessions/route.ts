@@ -73,26 +73,39 @@ export async function POST(req: Request) {
   }
 
   if (action === "CLOSE") {
-    const activeSession = await findOpenSession(config.id);
-    if (!activeSession) return posError("No active session found");
+    const result = await prisma.$transaction(async (tx) => {
+      const activeSession = await tx.pOSCashSession.findFirst({
+        where: { posConfigId: config.id, status: "OPEN" },
+        include: {
+          sales: { where: { status: { not: "VOIDED" } }, include: { payments: true } },
+        },
+      });
+      if (!activeSession) return { error: "No active session found", status: 404 };
 
-    const decimals = currencyDecimals(config.currency);
-    const summary = summarizeSales(activeSession.sales, decimals);
-    const expected = roundMoney(Number(activeSession.openingAmount) + (summary.byMethod.CASH ?? 0), decimals);
+      const decimals = currencyDecimals(config.currency);
+      const summary = summarizeSales(activeSession.sales, decimals);
+      const expected = roundMoney(Number(activeSession.openingAmount) + (summary.byMethod.CASH ?? 0), decimals);
 
-    const closedSession = await prisma.pOSCashSession.update({
-      where: { id: activeSession.id },
-      data: {
-        closingAmount: amount,
-        expectedAmount: expected,
-        difference: roundMoney(amount - expected, decimals),
-        salesByMethod: summary.byMethod,
-        closedByUserId: actorFields(ctx),
-        status: "CLOSED",
-        closedAt: new Date(),
-      },
+      const closed = await tx.pOSCashSession.updateMany({
+        where: { id: activeSession.id, status: "OPEN" },
+        data: {
+          closingAmount: amount,
+          expectedAmount: expected,
+          difference: roundMoney(amount - expected, decimals),
+          salesByMethod: summary.byMethod,
+          closedByUserId: actorFields(ctx),
+          status: "CLOSED",
+          closedAt: new Date(),
+        },
+      });
+
+      if (closed.count === 0) return { error: "La caja ya fue cerrada por otro usuario", status: 409 };
+
+      return { data: await tx.pOSCashSession.findUniqueOrThrow({ where: { id: activeSession.id } }) };
     });
-    return NextResponse.json({ success: true, data: closedSession });
+
+    if (result.error) return posError(result.error, result.status);
+    return NextResponse.json({ success: true, data: result.data });
   }
 
   return posError("Invalid action");

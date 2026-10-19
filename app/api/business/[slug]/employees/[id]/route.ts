@@ -38,7 +38,7 @@ export async function PUT(req: Request, { params }: { params: { slug: string; id
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("[employees/PUT] Error:", error);
-    return NextResponse.json({ success: false, error: error?.message ?? "Error al actualizar el trabajador" }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Error al actualizar el trabajador" }, { status: 500 });
   }
 }
 
@@ -69,7 +69,7 @@ export async function PATCH(req: Request, { params }: { params: { slug: string; 
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("[employees/PATCH] Error:", error);
-    return NextResponse.json({ success: false, error: error?.message ?? "Error al modificar el estado" }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Error al modificar el estado" }, { status: 500 });
   }
 }
 // creado por pato dev y askforvini
