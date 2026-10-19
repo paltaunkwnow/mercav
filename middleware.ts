@@ -5,6 +5,8 @@ import {
   APP_URL,
   KOSHER_HOST,
   KOSHER_URL,
+  MAIL_HOST,
+  MAIL_URL,
   PRIVACY_HOST,
   PRIVACY_URL,
   PWN_HOST,
@@ -13,6 +15,7 @@ import {
   appPathFor,
   hostKindFor,
   isKosherHostPath,
+  isMailHostPath,
   isMarketingPath,
   isNoindexPath,
   isPrivacyHostPath,
@@ -26,6 +29,7 @@ import { looksLikeInterceptor } from '@/lib/security/unusual-traffic';
 import { API_HOST, isMercavOrigin } from '@/lib/api/origins';
 import { apiRouteGroup, evictHitBuckets, pwnCsrfBlockReason, type HitBucket } from '@/lib/pwn/request-guard';
 import { privacySecurity, type PrivacySecurity } from '@/lib/security/privacy-headers';
+import { mailSecurity, type MailSecurity } from '@/lib/security/mail-headers';
 
 const publicPaths = [
   '/',
@@ -167,6 +171,9 @@ function apiMaySkipSession(req: NextRequest, pathname: string) {
     // Mercav Privacy no pide cuenta: cada ruta de /api/privacy valida lo suyo.
     path === '/api/privacy' ||
     path.startsWith('/api/privacy/') ||
+    // Mercav Mail tiene su propia cookie de sesión, aislada de NextAuth.
+    path === '/api/mail' ||
+    path.startsWith('/api/mail/') ||
     path === '/api/webhook/stripe' ||
     path === '/api/security/unusual' ||
     isPwnCronPath(path) ||
@@ -238,7 +245,7 @@ function withApiHeaders(res: NextResponse, req: NextRequest) {
   return res;
 }
 
-async function handle(req: NextRequest, privacy: PrivacySecurity | null): Promise<NextResponse> {
+async function handle(req: NextRequest, privacy: PrivacySecurity | null, mail: MailSecurity | null): Promise<NextResponse> {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const host = req.headers.get('host')?.split(':')[0]?.toLowerCase();
   let { pathname } = req.nextUrl;
@@ -259,6 +266,10 @@ async function handle(req: NextRequest, privacy: PrivacySecurity | null): Promis
     forwarded.set('x-nonce', privacy.nonce);
   } else {
     forwarded.delete('x-nonce');
+  }
+  if (mail) {
+    forwarded.set('content-security-policy', mail.csp);
+    forwarded.set('x-nonce', mail.nonce);
   }
   // En api.mercav.lat la respuesta que sigue es la ruta de /api; en el resto de los dominios, la misma URL.
   const pass = () =>
@@ -310,6 +321,20 @@ async function handle(req: NextRequest, privacy: PrivacySecurity | null): Promis
 
   // privacy.mercav.lat/x sirve /privacy/x. /privacy/x, /api y las páginas utilitarias (/1337…) van tal cual.
   if (host === PRIVACY_HOST) {
+    const appPath = appPathFor(host, pathname);
+    if (appPath !== pathname) {
+      const url = req.nextUrl.clone();
+      url.pathname = appPath;
+      return NextResponse.rewrite(url, { request: { headers: forwarded } });
+    }
+  }
+
+  if (host === MAIL_HOST && !isMailHostPath(pathname)) {
+    return NextResponse.redirect(new URL(`${pathname}${req.nextUrl.search}`, isMarketingPath(pathname) ? SITE_URL : APP_URL));
+  }
+
+  // mail.mercav.lat/x sirve /mail/x. APIs y assets permanecen en su ruta original.
+  if (host === MAIL_HOST) {
     const appPath = appPathFor(host, pathname);
     if (appPath !== pathname) {
       const url = req.nextUrl.clone();
@@ -377,6 +402,8 @@ async function handle(req: NextRequest, privacy: PrivacySecurity | null): Promis
                        pathname.startsWith('/kosher/') ||
                        // Mercav Privacy: todo público, nada pide sesión.
                        isPrivacyPath(pathname) ||
+                       pathname === '/mail' ||
+                       pathname.startsWith('/mail/') ||
                        // Fidelización: join page, customer card and self-service stamp (no login).
                        pathname === '/c' ||
                        pathname.startsWith('/c/') ||
@@ -451,15 +478,19 @@ async function handle(req: NextRequest, privacy: PrivacySecurity | null): Promis
 // un encabezado Link no sirve porque Next lo pisa con el suyo de precarga de fuentes.
 export async function middleware(req: NextRequest) {
   const host = req.headers.get('host')?.split(':')[0]?.toLowerCase();
-  if (host === API_HOST) return withApiHeaders(await handle(req, null), req);
+  if (host === API_HOST) return withApiHeaders(await handle(req, null, null), req);
   const { pathname } = req.nextUrl;
   // Mercav Privacy: CSP estricta con un nonce por pedido, sin orígenes de terceros (lib/security/privacy-headers.ts).
   const kind = hostKindFor(host);
   const privacy = isPrivacyMode(kind, appPathFor(host, pathname))
     ? privacySecurity({ dev: process.env.NODE_ENV === 'development', https: kind === 'privacy' })
     : null;
-  const res = await handle(req, privacy);
+  const mail = kind === 'mail' || (kind === 'dev' && appPathFor(host, pathname).startsWith('/mail'))
+    ? mailSecurity({ dev: process.env.NODE_ENV === 'development', https: kind === 'mail' })
+    : null;
+  const res = await handle(req, privacy, mail);
   if (privacy) for (const [name, value] of Object.entries(privacy.headers)) res.headers.set(name, value);
+  if (mail) for (const [name, value] of Object.entries(mail.headers)) res.headers.set(name, value);
   if (req.method === 'GET' && !pathname.startsWith('/api/') && !pathname.startsWith('/_next') && res.status < 300) {
     if (isNoindexPath(appPathFor(host, pathname))) res.headers.set('X-Robots-Tag', 'noindex, nofollow');
   }

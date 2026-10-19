@@ -1,0 +1,51 @@
+{
+    email {$ACME_EMAIL}
+    admin off
+}
+
+{$MAIL_HOST} {
+    tls {
+        protocols tls1.2 tls1.3
+    }
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options nosniff
+        Referrer-Policy no-referrer
+        X-Frame-Options DENY
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        X-Robots-Tag "noindex, nofollow, noarchive"
+        -Server
+    }
+    request_body {
+        max_size 30MB
+    }
+    # The BFF enforces authentication/authorization and owns CSP for message HTML.
+    # Never proxy this hostname directly to Stalwart's combined JMAP/admin API.
+    reverse_proxy {$MERCAV_MAIL_UPSTREAM} {
+        header_up X-Forwarded-Host {$MAIL_HOST}
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 60s
+        }
+    }
+}
+
+{$MTA_STS_HOST} {
+    tls {
+        protocols tls1.2 tls1.3
+    }
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options nosniff
+        -Server
+    }
+    @policy path /.well-known/mta-sts.txt
+    handle @policy {
+        root * /srv/mail-policy
+        header Content-Type "text/plain; charset=utf-8"
+        file_server
+    }
+    handle {
+        respond "Not found" 404
+    }
+}

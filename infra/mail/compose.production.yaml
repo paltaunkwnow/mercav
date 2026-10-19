@@ -1,0 +1,42 @@
+services:
+  stalwart:
+    # SMTP between MTAs uses opportunistic TLS. Requiring TLS universally on 25
+    # would reject legitimate senders. Authenticated submission uses implicit TLS.
+    ports:
+      - "25:25"
+      - "465:465"
+      - "993:993"
+
+  proxy:
+    image: ${CADDY_IMAGE:?Set CADDY_IMAGE}
+    restart: unless-stopped
+    environment:
+      MAIL_HOST: ${MAIL_HOST:-mail.mercav.lat}
+      MTA_STS_HOST: ${MTA_STS_HOST:-mta-sts.mercav.lat}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL}
+      MERCAV_MAIL_UPSTREAM: ${MERCAV_MAIL_UPSTREAM:?Set MERCAV_MAIL_UPSTREAM}
+    ports:
+      - "80:80"
+      - "443:443"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./public:/srv/mail-policy:ro
+      - ${MAIL_STATE_DIR:-/srv/mercav-mail}/caddy/data:/data
+      - ${MAIL_STATE_DIR:-/srv/mercav-mail}/caddy/config:/config
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    pids_limit: 128
+    mem_limit: 256m
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - mail

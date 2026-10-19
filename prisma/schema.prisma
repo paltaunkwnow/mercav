@@ -2,6 +2,63 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Mercav Mail has its own allowlist and revocable sessions. Public User signup
+// never creates these records or grants access to a corporate mailbox.
+enum MailAccountStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum MailRole {
+  USER
+  ADMIN
+  AUDITOR
+}
+
+model MailAccount {
+  id             String            @id @default(uuid())
+  email          String            @unique
+  name           String
+  role           MailRole          @default(USER)
+  status         MailAccountStatus @default(ACTIVE)
+  signature      String            @default("") @db.VarChar(4000)
+  createdBy      String
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  sessions       MailSession[]
+}
+
+model MailSession {
+  id             String      @id @default(uuid())
+  tokenHash      String      @unique
+  accountId      String
+  credential     String      @db.Text
+  jmapAccountId  String
+  createdAt      DateTime    @default(now())
+  expiresAt      DateTime
+  lastSeenAt     DateTime    @default(now())
+  account        MailAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  @@index([accountId])
+  @@index([expiresAt])
+}
+
+model MailAuditEvent {
+  id         String   @id @default(uuid())
+  actorId    String?
+  targetId   String?
+  action     String
+  createdAt  DateTime @default(now())
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+}
+
+model MailRateLimit {
+  key       String   @id
+  count     Int      @default(1)
+  expiresAt DateTime
+  @@index([expiresAt])
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")

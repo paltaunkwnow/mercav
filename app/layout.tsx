@@ -177,8 +177,10 @@ export default async function RootLayout({
   const hostKind = hostKindFor(headers().get("host"));
   // Mercav Privacy: sin rastreadores ni terceros, y sin el header, el footer ni la barra de Mercav (trae su propio shell
   // en app/privacy/layout.tsx). El nonce de su CSP (middleware.ts) habilita el script del tema.
-  const privacy = isPrivacyMode(hostKind, headers().get("x-mercav-path"));
-  const nonce = privacy ? headers().get("x-nonce") ?? undefined : undefined;
+  const appPath = headers().get("x-mercav-path");
+  const privacy = isPrivacyMode(hostKind, appPath);
+  const mail = hostKind === "mail" || (hostKind === "dev" && !!appPath && appPath.startsWith("/mail"));
+  const nonce = privacy || mail ? headers().get("x-nonce") ?? undefined : undefined;
 
   if (config?.maintenanceMode && !isAdmin) {
     return (
@@ -217,16 +219,16 @@ export default async function RootLayout({
         }} />
       </head>
       <body className="flex min-h-dvh flex-col overflow-x-clip antialiased">
-        <Providers privacy={privacy}>
+        <Providers privacy={privacy || mail}>
           <HostProvider kind={hostKind}>
             <a href="#contenido" className="mv-skip">Saltar al contenido</a>
-            {!privacy && <AnnouncementBar />}
-            {!privacy && <Header />}
+            {!privacy && !mail && <AnnouncementBar />}
+            {!privacy && !mail && <Header />}
             <main id="contenido" tabIndex={-1} className="flex-1 w-full flex flex-col outline-none">
               {children}
             </main>
-            {!privacy && <Footer />}
-            {!privacy && <BottomNav />}
+            {!privacy && !mail && <Footer />}
+            {!privacy && !mail && <BottomNav />}
           </HostProvider>
         </Providers>
       </body>
