@@ -494,6 +494,12 @@ export async function middleware(req: NextRequest) {
   if (req.method === 'GET' && !pathname.startsWith('/api/') && !pathname.startsWith('/_next') && res.status < 300) {
     if (isNoindexPath(appPathFor(host, pathname))) res.headers.set('X-Robots-Tag', 'noindex, nofollow');
   }
+  const origin = req.headers.get('origin');
+  if (origin && isMercavOrigin(origin)) {
+    res.headers.set('Access-Control-Allow-Origin', origin);
+    res.headers.set('Access-Control-Allow-Credentials', 'true');
+    res.headers.append('Vary', 'Origin');
+  }
   return res;
 }
 
