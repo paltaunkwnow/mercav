@@ -10,7 +10,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
     <button
       type="button"
       onClick={toggleTheme}
-      className={`mv-focus liquid-glass liquid-glass-clear relative group flex items-center justify-center w-9 h-9 rounded-full transition-[transform,color] duration-200 active:scale-95
+      className={`mv-focus liquid-glass liquid-glass-clear relative group flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-9 sm:min-w-9 w-11 h-11 sm:w-9 sm:h-9 rounded-full transition-[transform,color] duration-200 active:scale-95
         ${theme === "dark"
           ? "text-gray-300 hover:text-gold"
           : "text-gray-600 hover:text-amber-700"

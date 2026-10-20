@@ -224,20 +224,24 @@ export function TeamSettings({
           <p className="text-xs leading-snug text-[var(--text-secondary)]">
             Generá un link y mandalo por WhatsApp o correo. Vale 7 días y se usa una vez. Para vincular a un trabajador con su legajo, invitalo desde su ficha.
           </p>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-            <Field label="Rol" htmlFor="inv-role" className="flex-1" hint={ROLE_HINTS[role]}>
-              <select id="inv-role" value={role} onChange={(e) => setRole(e.target.value as BusinessRoleKey)} className="mv-input h-11">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="inv-role" className="text-sm font-semibold text-[var(--text-primary)]">
+              Rol
+            </label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <select id="inv-role" value={role} onChange={(e) => setRole(e.target.value as BusinessRoleKey)} className="mv-input h-11 flex-1">
                 {inviteRoles.map((r) => (
                   <option key={r} value={r}>
                     {ROLE_LABELS[r]}
                   </option>
                 ))}
               </select>
-            </Field>
-            <button type="button" onClick={createInvite} disabled={busy === "invite"} className={buttonClass("primary", "md", "sm:mb-6")}>
-              {busy === "invite" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <UserPlus className="h-4 w-4" aria-hidden />}
-              Crear link de acceso
-            </button>
+              <button type="button" onClick={createInvite} disabled={busy === "invite"} className={buttonClass("primary", "md")}>
+                {busy === "invite" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <UserPlus className="h-4 w-4" aria-hidden />}
+                Crear link de acceso
+              </button>
+            </div>
+            {ROLE_HINTS[role] ? <p className="text-xs leading-snug text-[var(--text-secondary)]">{ROLE_HINTS[role]}</p> : null}
           </div>
           {link ? (
             <div className="flex flex-col gap-2">
@@ -263,12 +267,14 @@ export function TeamSettings({
               <ul className="divide-y divide-[var(--mv-hairline)]">
                 {invites.map((i) => (
                   <li key={i.id} className="flex items-center gap-3 py-2">
-                    <span className="min-w-0 flex-1 text-sm text-[var(--text-primary)]">
-                      {ROLE_LABELS[i.role]}
-                      {i.employeeName ? ` · ${i.employeeName}` : ""}
+                    <span className="min-w-0 flex-1 truncate text-sm text-[var(--text-primary)]">
+                      <span className="block truncate font-medium">
+                        {ROLE_LABELS[i.role]}
+                        {i.employeeName ? ` · ${i.employeeName}` : ""}
+                      </span>
                       <span className="block text-xs text-[var(--text-secondary)]">Vence el {formatDate(i.expiresAt)}</span>
                     </span>
-                    <button type="button" onClick={() => revoke(i.id)} disabled={busy === i.id} className="mv-focus h-8 rounded-full px-3 text-xs font-semibold text-red-500 transition-colors hover:bg-red-500/10">
+                    <button type="button" onClick={() => revoke(i.id)} disabled={busy === i.id} className="mv-focus shrink-0 h-8 rounded-full px-3 text-xs font-semibold text-red-500 transition-colors hover:bg-red-500/10">
                       Revocar
                     </button>
                   </li>

@@ -126,7 +126,7 @@
     --popover-foreground: #1A1714;
     
     --primary: var(--color-gold);
-    --primary-foreground: #FFFFFF;
+    --primary-foreground: var(--mv-on-gold);
     
     --secondary: var(--color-bg-tertiary);
     --secondary-foreground: var(--color-gold);
@@ -424,8 +424,8 @@ input[type=number] {
 .light .text-gray-300 { color: #555 !important; }
 .light .text-gray-400 { color: var(--text-secondary) !important; }
 .light .text-gray-500 { color: var(--text-tertiary) !important; }
-.light .text-gray-600 { color: #888 !important; }
-.light .text-gray-700 { color: #aaa !important; }
+.light .text-gray-600 { color: #4b5563 !important; }
+.light .text-gray-700 { color: #374151 !important; }
 .light .text-gold { color: var(--mv-gold-ink) !important; }
 .light .text-gold\/90 { color: rgba(184,148,30,0.9) !important; }
 .light .text-gold\/80 { color: rgba(184,148,30,0.8) !important; }
@@ -433,8 +433,8 @@ input[type=number] {
 .light .text-gold\/50 { color: rgba(184,148,30,0.5) !important; }
 .light .text-gold\/40 { color: rgba(184,148,30,0.4) !important; }
 .light .text-gold\/30 { color: rgba(184,148,30,0.3) !important; }
-.light .placeholder\:text-gray-600::placeholder { color: #bbb !important; }
-.light .placeholder-gray-600::placeholder { color: #bbb !important; }
+.light .placeholder\:text-gray-600::placeholder { color: #6b7280 !important; }
+.light .placeholder-gray-600::placeholder { color: #6b7280 !important; }
 
 /* Hover text */
 .light .hover\:text-white:hover { color: var(--text-primary) !important; }
@@ -770,14 +770,14 @@ input[type=number] {
 .light .bg-black\/95 { background-color: rgba(26,23,20,0.85) !important; }
 .light .bg-black\/90 { background-color: rgba(26,23,20,0.8) !important; }
 
-/* Force readable white text and icon colors on gold buttons/badges in light theme */
+/* Force readable dark text and icon colors on gold buttons/badges in light theme (WCAG AA) */
 .light .bg-gold {
   background-color: var(--color-gold) !important;
-  color: #FFFFFF !important;
+  color: var(--mv-on-gold) !important;
   box-shadow: 0 2px 8px rgba(160,122,20,0.25), 0 1px 2px rgba(0,0,0,0.08) !important;
 }
 .light .bg-gold * {
-  color: #FFFFFF !important;
+  color: var(--mv-on-gold) !important;
 }
 
 /* Beautiful soft shadows for sticky bottom bar in light theme */

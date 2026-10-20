@@ -52,7 +52,7 @@ export function ConfirmationModal({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="mv-menu w-full max-w-md rounded-[2rem] p-8 pointer-events-auto relative overflow-hidden"
+              className="mv-menu max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-[2rem] p-6 sm:p-8 pointer-events-auto relative"
             >
               {/* Background Glow */}
               <div className={`absolute -top-24 -right-24 w-48 h-48 blur-[80px] opacity-20 rounded-full ${variant === 'danger' ? 'bg-red-500' : 'bg-gold'}`} />

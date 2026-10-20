@@ -58,7 +58,7 @@ export default function VoidSaleDialog({ sale, currency, onClose, onVoided }: Vo
   return (
     <div className="fixed inset-0 z-[650] flex items-end justify-center p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="void-title">
       <div className="mv-fade absolute inset-0 bg-black/50" onClick={() => !busy && onClose()} aria-hidden />
-      <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="mv-pop mv-menu relative w-full max-w-md rounded-[1.75rem] p-6">
+      <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="mv-pop mv-menu relative max-h-[calc(100dvh-1.5rem)] w-full max-w-md overflow-y-auto rounded-[1.75rem] p-6">
         <button type="button" onClick={onClose} disabled={busy} aria-label="Cancelar" className="mv-focus absolute right-3 top-3 grid h-11 w-11 place-items-center rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
           <X size={20} aria-hidden />
         </button>

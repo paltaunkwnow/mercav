@@ -19,7 +19,7 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-14 w-full items-center justify-between rounded-2xl border border-white/5 bg-bg-primary px-5 py-4 text-sm ring-offset-background placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-gold/5 focus:border-gold/40 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 text-white transition-all duration-300 shadow-lg shadow-black/20",
+      "flex h-14 w-full items-center justify-between rounded-2xl border border-border bg-bg-primary px-5 py-4 text-sm ring-offset-background placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-4 focus:ring-gold/5 focus:border-gold/40 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 text-[var(--text-primary)] transition-all duration-300 shadow-lg shadow-black/20",
       className
     )}
     {...props}
@@ -140,7 +140,7 @@ const SelectSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Separator
     ref={ref}
-    className={cn("-mx-1 my-2 h-px bg-white/5", className)}
+    className={cn("-mx-1 my-2 h-px bg-[var(--mv-hairline)]", className)}
     {...props}
   />
 ))

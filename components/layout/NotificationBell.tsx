@@ -86,7 +86,7 @@ export default function NotificationBell() {
         onClick={() => setIsOpen(!isOpen)}
         aria-label={unreadCount > 0 ? `Notificaciones, ${unreadCount} sin leer` : "Notificaciones"}
         aria-expanded={isOpen}
-        className={`mv-focus relative h-9 w-9 rounded-full text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)] transition-colors ${isOpen ? 'text-gold bg-gold/10' : ''}`}
+        className={`mv-focus relative min-h-[44px] min-w-[44px] sm:min-h-9 sm:min-w-9 h-11 w-11 sm:h-9 sm:w-9 rounded-full text-[var(--text-secondary)] hover:bg-[var(--mv-panel-hover)] hover:text-[var(--text-primary)] transition-colors ${isOpen ? 'text-gold bg-gold/10' : ''}`}
       >
         <Bell className="h-[18px] w-[18px]" aria-hidden />
         {unreadCount > 0 && (
@@ -118,15 +118,15 @@ export default function NotificationBell() {
               className="mv-menu fixed right-3 top-[calc(max(0.75rem,env(safe-area-inset-top,0px))+4.5rem)] w-[min(24rem,calc(100vw-1.5rem))] rounded-[1.5rem] z-[160] overflow-hidden"
             >
               <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
-                <h3 className="font-bold text-white flex items-center gap-2">
+                <h3 className="font-bold text-[var(--text-primary)] flex items-center gap-2">
                   Notificaciones
                   {unreadCount > 0 && <span className="bg-gold/10 text-gold px-2 py-0.5 rounded-full text-[9px] font-black">{unreadCount} nuevas</span>}
                 </h3>
                 <button 
                   onClick={() => markAsRead()}
-                  className="text-[9px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors"
+                  className="min-h-[44px] px-2 py-2 inline-flex items-center text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 >
-                  Marcar todo leido
+                  Marcar todo leído
                 </button>
               </div>
 

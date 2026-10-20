@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "@/components/icons";
+import { AlertCircle, Loader2 } from "@/components/icons";
 import { buttonClass } from "@/components/site/primitives";
 import type { EmployeeView } from "@/lib/business/employees";
 import { CONTRACT_LABELS } from "@/lib/business/format";
@@ -149,9 +149,10 @@ export function EmployeeForm({ slug, country, employee }: { slug: string; countr
       </Field>
 
       {error ? (
-        <p role="alert" className="text-sm text-red-500 sm:col-span-2">
-          {error}
-        </p>
+        <div role="alert" className="flex items-center gap-2.5 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 sm:col-span-2">
+          <AlertCircle className="h-4 w-4 shrink-0 text-red-400" aria-hidden />
+          <span>{error}</span>
+        </div>
       ) : null}
       <div className="flex flex-wrap gap-2 sm:col-span-2">
         <button type="submit" disabled={busy} className={buttonClass("primary", "md")}>

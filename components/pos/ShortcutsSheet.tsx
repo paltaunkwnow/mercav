@@ -21,7 +21,7 @@ export default function ShortcutsSheet({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[600] flex items-end justify-center p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
-      <div className="mv-menu relative w-full max-w-md rounded-[1.75rem] p-6">
+      <div className="mv-menu relative max-h-[calc(100dvh-1.5rem)] w-full max-w-md overflow-y-auto rounded-[1.75rem] p-6">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 id="shortcuts-title" className="mv-h3">Atajos de teclado</h2>

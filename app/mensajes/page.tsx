@@ -520,7 +520,7 @@ function MensajesUI() {
               </div>
 
               <div className="border-t border-[var(--mv-hairline)] p-2.5 sm:p-3">
-                <form onSubmit={handleSendMessage} className="mv-menu flex items-center gap-2 rounded-full p-1.5 pl-4">
+                <form onSubmit={handleSendMessage} className="mv-menu flex items-center gap-2 rounded-full p-1.5 pl-4 focus-within:ring-2 focus-within:ring-gold focus-within:ring-offset-2 focus-within:ring-offset-[var(--color-bg-primary)]">
                   <label htmlFor="composer" className="sr-only">Mensaje para {otherInThread?.name}</label>
                   <input
                     id="composer"

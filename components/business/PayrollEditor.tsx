@@ -157,7 +157,7 @@ function LineCard({
             {[e.position, e.sensitive ? `Haber ${money(e.sensitive.baseSalary)}` : null].filter(Boolean).join(" · ")}
           </p>
         </div>
-        <div className="flex items-center gap-4 text-right">
+        <div className="flex flex-wrap items-center justify-end gap-2.5 text-right sm:gap-4">
           <div>
             <p className="text-[11px] text-[var(--text-tertiary)]">Ganado</p>
             <p className="text-sm tabular-nums text-[var(--text-primary)]">{money(line.result.earned.total)}</p>

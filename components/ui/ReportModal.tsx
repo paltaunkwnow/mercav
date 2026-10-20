@@ -106,7 +106,7 @@ export function ReportModal({ isOpen, onClose, targetId, targetType, onSuccess }
             initial={{ opacity: 0, scale: 0.9, y: 40 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 40 }}
-            className="mv-menu relative w-full max-w-lg overflow-hidden rounded-[2rem] p-7 md:p-10"
+            className="mv-menu relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-[2rem] p-6 sm:p-8 md:p-10"
           >
             {/* Close Button */}
             <button
@@ -126,7 +126,7 @@ export function ReportModal({ isOpen, onClose, targetId, targetType, onSuccess }
                     <ShieldAlert size={28} />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-black text-white tracking-tighter uppercase">Reportar Contenido</h3>
+                    <h3 className="text-2xl font-black text-[var(--text-primary)] tracking-tighter uppercase">Reportar Contenido</h3>
                     <p className="text-xs text-gray-500 tracking-wide uppercase font-mono">
                       Ayúdanos a mantener la comunidad segura
                     </p>
@@ -177,7 +177,7 @@ export function ReportModal({ isOpen, onClose, targetId, targetType, onSuccess }
                           type="text"
                           value={otherText}
                           onChange={(e) => setOtherText(e.target.value.slice(0, 100))}
-                          className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-white text-xs outline-none focus:border-gold/40 transition-colors font-medium"
+                          className="w-full bg-[var(--mv-panel)] border border-[var(--mv-hairline-strong)] rounded-xl px-4 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] text-xs outline-none focus:border-gold/40 transition-colors font-medium"
                           placeholder="Describe brevemente la infracción..."
                           maxLength={100}
                         />
@@ -194,7 +194,7 @@ export function ReportModal({ isOpen, onClose, targetId, targetType, onSuccess }
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value.slice(0, 300))}
-                      className="w-full bg-white/[0.02] border border-white/5 rounded-2xl p-4 text-white text-xs outline-none focus:border-gold/40 h-24 resize-none transition-colors placeholder:text-gray-700"
+                      className="w-full bg-[var(--mv-panel)] border border-[var(--mv-hairline-strong)] rounded-2xl p-4 text-[var(--text-primary)] text-xs outline-none focus:border-gold/40 h-24 resize-none transition-colors placeholder:text-[var(--text-tertiary)]"
                       placeholder="Proporciona detalles adicionales para ayudarnos a entender el problema..."
                       maxLength={300}
                     />

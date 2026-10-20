@@ -568,7 +568,7 @@ export default function POSReportsPage() {
                  </div>
               </div>
               <div className="text-right">
-                 <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37] mb-1">Periodo de Análisis</p>
+                 <p className="text-[10px] font-black uppercase tracking-widest text-[#785600] mb-1">Periodo de Análisis</p>
                  <p className="text-3xl font-black uppercase tracking-tighter">{range === 'day' ? 'Hoy' : range === 'week' ? 'Semanal' : 'Mensual'}</p>
                  <p className="text-xs font-bold text-gray-400 mt-2">{format(new Date(), "eeee, d 'de' MMMM 'de' yyyy", { locale: es })}</p>
               </div>
@@ -578,7 +578,7 @@ export default function POSReportsPage() {
              <>
                <div className="grid grid-cols-2 gap-6 mb-12">
                   {[
-                    { l: "Ingreso Bruto Total", v: Number(data?.stats?.totalRevenue || 0).toFixed(2), c: "#D4AF37", p: currency },
+                    { l: "Ingreso Bruto Total", v: Number(data?.stats?.totalRevenue || 0).toFixed(2), c: "#785600", p: currency },
                     { l: "Órdenes Procesadas", v: data?.stats?.totalOrders || 0, c: "black", p: "" },
                     { l: "Ticket Promedio", v: Number(data?.stats?.averageOrder || 0).toFixed(2), c: "black", p: currency },
                     { l: "Descuentos Aplicados", v: Number(data?.stats?.totalDiscounts || 0).toFixed(2), c: "#ef4444", p: `-${currency}` }
@@ -588,7 +588,7 @@ export default function POSReportsPage() {
                           <p className="text-[11px] font-black uppercase tracking-widest text-gray-400 leading-tight">{s.l}</p>
                        </div>
                        <div className="flex items-center gap-5 text-right whitespace-nowrap">
-                          {s.p && <span className="text-xs font-black text-gray-300">{s.p}</span>}
+                          {s.p && <span className="text-xs font-black text-gray-400">{s.p}</span>}
                           <p style={{ color: s.c }} className="text-2xl font-black tracking-tighter leading-none">{s.v}</p>
                        </div>
                     </div>
@@ -596,7 +596,7 @@ export default function POSReportsPage() {
                </div>
 
                <div className="flex-1">
-                  <h2 className="text-xs font-black uppercase tracking-[0.5em] mb-6 text-[#D4AF37] flex items-center gap-4">
+                  <h2 className="text-xs font-black uppercase tracking-[0.5em] mb-6 text-[#785600] flex items-center gap-4">
                     <span>Registro de Transacciones</span>
                     <div className="h-[2px] flex-1 bg-gray-100" />
                   </h2>

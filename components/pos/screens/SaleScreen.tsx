@@ -509,7 +509,7 @@ export default function POSTerminalPage() {
           <div className="mv-fade absolute inset-0 bg-black/50" aria-hidden />
           <form
             onSubmit={(e) => { e.preventDefault(); handleOpenCaja(); }}
-            className="mv-pop mv-menu relative w-full max-w-md rounded-[1.75rem] p-6 sm:p-8"
+            className="mv-pop mv-menu relative max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-[1.75rem] p-6 sm:p-8"
           >
             <Link
               href={pos.exitHref}
