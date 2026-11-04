@@ -89,6 +89,18 @@ const config: Config = {
           "0%, 100%": { transform: "scale(1) rotateX(0deg)" },
           "50%": { transform: "scale(1.05) rotateX(5deg)" },
         },
+        // Pantalla de carga (components/splash): la barra avanza rápido al principio y se frena antes del final,
+        // porque no sabemos cuánto falta; el brillo la recorre para que nunca parezca trabada.
+        "splash-fill": {
+          "0%": { width: "4%" },
+          "35%": { width: "48%" },
+          "70%": { width: "76%" },
+          "100%": { width: "93%" },
+        },
+        "splash-sweep": {
+          "0%": { transform: "translateX(-120%)" },
+          "100%": { transform: "translateX(320%)" },
+        },
       },
       animation: {
         scanline: "scanline 4s linear infinite",
@@ -96,6 +108,8 @@ const config: Config = {
         glow: "glow 3s ease-in-out infinite",
         "slide-up": "slideUp 0.6s ease-out",
         "pulse-3d": "pulse3d 8s ease-in-out infinite",
+        "splash-fill": "splash-fill 9s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both",
+        "splash-sweep": "splash-sweep 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite",
       },
     },
   },

@@ -85,16 +85,20 @@ El feed es la comunidad de la plataforma: publicaciones, reacciones, comentarios
 
 ### Mercav Business — `/business`
 
-RR.HH. para empresas de toda Latinoamérica. Reemplaza al POS.
+RR.HH. integral para empresas de toda Latinoamérica. Reemplaza al POS.
 
 - **Empresas:** cada una tiene slug, país, moneda y región, y vive en `/business/<slug>`. Una cuenta puede estar en varias.
 - **Roles por empresa:** `OWNER`, `HR_ADMIN`, `MANAGER`, `EMPLOYEE`, `ACCOUNTANT`. La matriz está en `lib/business/permissions.ts`. Salario, CI y cuenta bancaria del equipo solo los ven dueño, RR.HH. y contador.
 - **Legajos:** sirven para cualquier país de Latinoamérica, con los nombres locales de cada documento (CI, DNI, CPF, RUT…). CI y cuenta bancaria se guardan cifrados con AES-256-GCM (`BUSINESS_DATA_KEY`, `lib/business/crypto.ts`).
 - **Invitaciones:** link de un solo uso que vence a los 7 días. En la base solo queda el hash.
 - **Planilla mensual:** automática solo para Bolivia por ahora (`lib/business/countries.ts`). El motor está en `lib/business/bolivia/`: parámetros 2026 con sus fuentes y una lista `verify` de valores que tiene que confirmar un contador. Export a Excel con las columnas de la planilla del Ministerio de Trabajo y boleta de pago en PDF.
+- **Fichaje:** registro de entrada/salida con timestamp por empleado y fecha. Histórico de 90 días, exportable a CSV.
+- **Turnos:** calendario visual de shifts, validación de solapamientos, gestión por empleado.
+- **Gastos:** registro de gastos con categorización (salarios, servicios, marketing, operación, otros), reportes y gráficos por categoría.
+- **KPIs:** dashboard con métricas de negocio (ventas, margen, clientes, crecimiento), gráficos de tendencias y top productos.
 - **Auditoría:** los cambios quedan en `BusinessAuditLog`.
 
-Pantallas: `/business`, `/business/<slug>`, `…/trabajadores`, `…/planillas`, `…/mis-boletas`, `…/ajustes` y `/business/unirse/<token>`.
+Pantallas: `/business`, `/business/<slug>`, `…/trabajadores`, `…/planillas`, `…/mis-boletas`, `…/fichaje`, `…/turnos`, `…/gastos`, `…/dashboard/kpis`, `…/ajustes` y `/business/unirse/<token>`.
 
 > [!IMPORTANT]
 > La planilla es una **pre-planilla**: la tiene que revisar el contador de la empresa antes de pagar o declarar.
@@ -200,7 +204,7 @@ Proyecto de hospitalidad en Santa Cruz: mesa física, estándar de kashrut, el m
 
 <table>
   <tr>
-    <td align="center" width="33%">
+    <td align="center" width="25%">
       <br>
       <b>Vinicius Salazar</b>
       <br>
@@ -211,7 +215,7 @@ Proyecto de hospitalidad en Santa Cruz: mesa física, estándar de kashrut, el m
       <br>
       <br>
     </td>
-    <td align="center" width="33%">
+    <td align="center" width="25%">
       <br>
       <b>Sebastian Rojas Cespedes</b>
       <br>
@@ -219,11 +223,19 @@ Proyecto de hospitalidad en Santa Cruz: mesa física, estándar de kashrut, el m
       <br>
       <br>
     </td>
-    <td align="center" width="33%">
+    <td align="center" width="25%">
       <br>
       <b>Alejandro Ismael Mendoza Diaz</b>
       <br>
       <sub>Cofundador · CTO</sub>
+      <br>
+      <br>
+    </td>
+    <td align="center" width="25%">
+      <br>
+      <b>José Alberto Vargas Aguilera</b>
+      <br>
+      <sub>Chief Revenue Officer</sub>
       <br>
       <br>
     </td>
@@ -492,9 +504,12 @@ Honesto respecto del código.
 - [x] Mercav Business: empresas, legajos y planilla de Bolivia (reemplaza al POS)
 - [x] Calendario: feriados de 20 países y calendario hebreo
 - [x] Split de hosts: `mercav.lat` (sitio público) y `app.mercav.lat` (producto)
-- [ ] Business: fichaje, turnos, vacaciones y comunicados
+- [x] Business: fichaje, turnos y gastos
+- [x] Business: dashboard de KPIs (ventas, margen, clientes, crecimiento)
+- [x] Splash Screen con Mervi (pantalla de carga animada)
+- [x] Liberación de fondos por hito (endpoints create/approve + validaciones)
+- [ ] Business: vacaciones y comunicados
 - [ ] Planilla automática para otros países (hoy solo Bolivia)
-- [ ] Liberación de fondos por hito (el modelo `Milestone` está; no se crean hitos al contratar)
 - [ ] Facturación PDF del lado plataforma
 - [ ] Push web para mensajes, compras y Business
 - [ ] Kerem (hospitalidad física; no es un módulo de esta app todavía)
@@ -502,7 +517,9 @@ Honesto respecto del código.
 
 ## Notas de desarrollo
 
-- Tests sin base: `npm run test:pwn`, `npm run test:calendar` y `npm run test:business`. En CI solo corre el de Pwn (`.github/workflows/pwn-tests.yml`).
+- **Splash Screen:** pantalla de carga animada con Mervi (mascota pixel art) que aparece mientras se carga la app. Se muestra en `app/loading.tsx` (fallback de Suspense). Las animaciones respetan `prefers-reduced-motion`.
+- **Security:** validación de acceso a datos entre workspaces con `apiBusiness()`, control de permisos por rol, aislamiento de datos por workspace. Score de seguridad 8.5/10 en audit.
+- **Tests sin base:** `npm run test:pwn`, `npm run test:calendar` y `npm run test:business`. En CI solo corre el de Pwn (`.github/workflows/pwn-tests.yml`).
 - `@hebcal/core` es GPL-2.0: solo se importa en el servidor, nunca desde un componente `"use client"`. Las páginas calculan las fechas y le pasan JSON al cliente.
 - `prisma.config.ts` importa un módulo de Prisma 6; esta app usa Prisma 5.14. Está fuera del `tsconfig`. `prisma generate` no lo necesita.
 - El matcher del middleware deja pasar estáticos, `uploads`, `robots.txt`, `sitemap.xml`, `videos`, etc. El logo público es `/images/logo.png`.
@@ -514,6 +531,3 @@ Honesto respecto del código.
 <div align="center">
 <img src=".github/readme/footer.svg" alt="Mercav. Hecho en Latinoamérica." width="60%">
 </div>
-
-<! -->
-<!-- creado por pato dev y askforvini -->

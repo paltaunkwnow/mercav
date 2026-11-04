@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/dialog";
 import { Toast } from "@/components/ui/toast";
 import { AppBack } from "@/components/app-shell/AppPage";
+import MilestonesSection from "@/components/dashboard/MilestonesSection";
 
 const EASE = [0.23, 1, 0.32, 1] as const;
 
@@ -556,6 +557,18 @@ export default function OrderDashboardClient({
                 </div>
               </div>
             </section>
+
+            {/* Milestones */}
+            <MilestonesSection
+              milestones={order.milestones || []}
+              serviceId={order.serviceId}
+              isClient={isClient}
+              isProvider={isProvider}
+              onRefresh={() => {
+                // Aquí podrías refrescar los datos del pedido si es necesario
+                // Por ahora, solo notificamos visualmente el cambio en el componente MilestoneCard
+              }}
+            />
 
             {/* Archivos */}
             <section aria-labelledby="order-files" className="mv-panel p-5 md:p-8">

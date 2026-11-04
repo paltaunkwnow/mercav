@@ -4,6 +4,7 @@ import { useEffect } from "react";
 
 export function LiquidGlassRoot() {
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const root = document.documentElement;
     const reduce = window.matchMedia("(prefers-reduced-transparency: reduce)").matches;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

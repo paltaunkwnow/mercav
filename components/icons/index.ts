@@ -308,6 +308,7 @@ export const TriangleAlert = /*#__PURE__*/ animated(TriangleAlertBase, "ring");
 
 export const BadgeCheck = /*#__PURE__*/ animated(BadgeCheckBase, "pop");
 export const BadgePercent = /*#__PURE__*/ animated(BadgePercentBase, "pop");
+export const Percent = /*#__PURE__*/ animated(BadgePercentBase, "pop");
 export const BookOpenCheck = /*#__PURE__*/ animated(BookOpenCheckBase, "pop");
 export const Bookmark = /*#__PURE__*/ animated(BookmarkBase, "pop");
 export const Cake = /*#__PURE__*/ animated(CakeBase, "pop");

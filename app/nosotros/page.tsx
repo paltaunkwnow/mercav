@@ -65,10 +65,17 @@ function orderRule(i: number) {
 }
 
 /**
- * Foto del equipo como afiche pegado, con el Mervi de cada persona sentado en la esquina de abajo. Mervi va fuera del
- * afiche: si girara con la inclinación, el pixel art perdería la nitidez.
+ * Foto del equipo como afiche pegado, con la mascota correspondiente en la esquina de abajo. Mervi sigue siendo la
+ * mascota principal de Mercav; los personajes propios de cada integrante se usan solamente en su perfil. La mascota
+ * va fuera del afiche: si girara con la inclinación, el pixel art perdería la nitidez.
  */
-function TeamPhoto({ tilt, pose, side, tag, children }: { tilt: string; pose: MerviPose; side: "left" | "right"; tag: ReactNode; children: ReactNode }) {
+type TeamMascot = {
+  src: string;
+  alt: string;
+};
+
+function TeamPhoto({ tilt, pose, mascot, side, tag, children }: { tilt: string; pose?: MerviPose; mascot?: TeamMascot; side: "left" | "right"; tag: ReactNode; children: ReactNode }) {
+  const mascotPosition = side === "right" ? "right-2 sm:right-[-3rem]" : "left-2 sm:left-[-3rem]";
   return (
     <div className="relative mx-auto w-full max-w-sm lg:mx-0">
       <figure className="c-poster c-inverse w-full p-2" style={{ "--tilt": tilt } as CSSProperties}>
@@ -77,15 +84,29 @@ function TeamPhoto({ tilt, pose, side, tag, children }: { tilt: string; pose: Me
           <span className="c-label absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-[2px] bg-[#0b0a09] px-2.5 py-1.5 text-[0.95rem] text-[#fffdf8]">{tag}</span>
         </div>
       </figure>
-      <Mervi
-        pose={pose}
-        scale={1}
-        scaleLg={2}
-        className={cn(
-          "pointer-events-none absolute bottom-[calc(var(--mervi-unit)*-12)] z-10",
-          side === "right" ? "right-2 sm:right-[calc(var(--mervi-unit)*-30)]" : "left-2 sm:left-[calc(var(--mervi-unit)*-30)]",
-        )}
-      />
+      {mascot ? (
+        <img
+          src={mascot.src}
+          alt={mascot.alt}
+          width={192}
+          height={192}
+          decoding="async"
+          className={cn(
+            "pointer-events-none absolute bottom-[-12px] z-10 h-24 w-24 object-contain [image-rendering:pixelated] sm:bottom-[-24px] sm:h-48 sm:w-48",
+            mascotPosition,
+          )}
+        />
+      ) : pose ? (
+        <Mervi
+          pose={pose}
+          scale={1}
+          scaleLg={2}
+          className={cn(
+            "pointer-events-none absolute bottom-[calc(var(--mervi-unit)*-12)] z-10",
+            side === "right" ? "right-2 sm:right-[calc(var(--mervi-unit)*-30)]" : "left-2 sm:left-[calc(var(--mervi-unit)*-30)]",
+          )}
+        />
+      ) : null}
     </div>
   );
 }
@@ -245,7 +266,12 @@ export default function Nosotros() {
               ))}
             </ul>
           </div>
-          <TeamPhoto tilt="1.2deg" pose="smartphone" side="left" tag="Cofundador · Mercav">
+          <TeamPhoto
+            tilt="1.2deg"
+            mascot={{ src: "/team-mascots/sebastian-avocado.png", alt: "Mascota de Sebastian: una palta desarrolladora trabajando en una interfaz web" }}
+            side="left"
+            tag="Cofundador · Mercav"
+          >
             <ProfilePhoto src="/images/sebastian-rojas.jpg" alt="Sebastian Rojas Cespedes, cofundador de Mercav" initials="SR" position="44% 30%" />
           </TeamPhoto>
         </div>
@@ -289,7 +315,12 @@ export default function Nosotros() {
             </ul>
           </div>
           <div className="flex flex-col gap-8 lg:order-1 lg:sticky lg:top-[calc(var(--c-nav-h)+2rem)] lg:self-start">
-            <TeamPhoto tilt="-1.2deg" pose="programador" side="right" tag="CTO · Mercav">
+            <TeamPhoto
+              tilt="-1.2deg"
+              mascot={{ src: "/team-mascots/alejandro-penguin.png", alt: "Mascota de Alejandro: un pingüino CTO revisando una terminal de backend" }}
+              side="right"
+              tag="CTO · Mercav"
+            >
               <ProfilePhoto src="/images/alejandro-mendoza.jpg" alt="Alejandro Mendoza, CTO de Mercav" initials="AM" />
             </TeamPhoto>
             <ul className="mx-auto w-full max-w-sm border-t-2 border-[var(--c-line)] lg:mx-0" aria-label="Perfiles de Alejandro">
@@ -309,6 +340,56 @@ export default function Nosotros() {
                 </li>
               ))}
             </ul>
+          </div>
+        </div>
+      </CartelSection>
+
+      {/* José Alberto, CRO */}
+      <CartelSection id="jose-alberto" labelledBy="jose-alberto-title" className="scroll-mt-[var(--c-nav-h)] border-t-2 border-[var(--c-line)]">
+        <div className="c-container grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-x-20 lg:gap-y-10">
+          <div className="lg:col-start-2 lg:row-start-1">
+            <FitLines
+              as="h2"
+              id="jose-alberto-title"
+              lines={[
+                { text: "José", fit: 33.015 },
+                { text: "Alberto", fit: 32.923, className: "c-text-green" },
+              ]}
+              className="max-w-[30rem]"
+            />
+            <p className="c-label mt-5 text-[1.25rem] md:text-[1.45rem]">Chief Revenue Officer</p>
+          </div>
+
+          <div className="flex flex-col gap-8 lg:sticky lg:top-[calc(var(--c-nav-h)+2rem)] lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:self-start">
+            <TeamPhoto
+              tilt="-1deg"
+              mascot={{ src: "/team-mascots/jose-crow-cro.png", alt: "Mascota de José Alberto: un cuervo CRO mostrando crecimiento de ingresos" }}
+              side="right"
+              tag={
+                <>
+                  <MapPin className="h-4 w-4" aria-hidden />
+                  Mercav · CRO
+                </>
+              }
+            >
+              <img
+                src="/images/java.jpg"
+                alt="José Alberto Vargas Aguilera, Chief Revenue Officer de Mercav"
+                width={960}
+                height={1280}
+                decoding="async"
+                className="h-full w-full object-cover object-center"
+              />
+            </TeamPhoto>
+          </div>
+
+          <div className="flex max-w-[65ch] flex-col gap-6 text-[1.0625rem] leading-[1.75] text-[var(--c-soft)] lg:col-start-2">
+            <p>
+              <span className="font-semibold text-[var(--c-text)]">José Alberto Vargas Aguilera</span> es Chief Revenue Officer de Mercav. Se encarga de la estrategia comercial, crecimiento de ventas y expansión de la plataforma en Latinoamérica. Lidera las iniciativas de go-to-market y relaciones comerciales con empresas y socios estratégicos.
+            </p>
+            <p>
+              Su experiencia en desarrollo empresarial y estrategia comercial ayuda a Mercav a crecer de manera sostenible, llevando la plataforma a nuevos mercados y asegurando que el producto resuelva las necesidades reales de las empresas de la región.
+            </p>
           </div>
         </div>
       </CartelSection>

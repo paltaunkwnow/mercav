@@ -238,7 +238,7 @@ export default function PitchPage() {
             <h2 id="pitch-equipo" className="c-h2">
               Un equipo, un mismo producto.
             </h2>
-            <p className="c-lead md:pb-2">Vinicius Salazar fundó Mercav y lo dirige. Con su equipo lo diseñan, construyen y operan desde Santa Cruz de la Sierra, y Marco Sánchez lo lleva a Costa Rica.</p>
+            <p className="c-lead md:pb-2">Vinicius Salazar fundó Mercav y lo dirige. Con su equipo técnico y comercial lo diseñan, construyen y operan desde Santa Cruz de la Sierra. Marco Sánchez lo lleva a Costa Rica y José Alberto Vargas Aguilera lidera la estrategia comercial.</p>
           </div>
           <FounderRoll size="lg" className="mt-14 md:mt-20" />
         </div>

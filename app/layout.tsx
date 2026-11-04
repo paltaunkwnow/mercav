@@ -18,6 +18,8 @@ import { getServerSession } from "next-auth/next";
 import { headers } from "next/headers";
 import { authOptions } from "@/lib/auth";
 import { Zap } from "@/components/icons";
+import { Suspense } from "react";
+import { SplashScreen } from "@/components/splash/SplashScreen";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_PROFILES, X_HANDLE, canonicalFor, hostKindFor, isNoindexPath, isPrivacyMode } from "@/lib/seo/site";
 
 export const dynamic = "force-dynamic";
@@ -225,7 +227,9 @@ export default async function RootLayout({
             {!privacy && !mail && <AnnouncementBar />}
             {!privacy && !mail && <Header />}
             <main id="contenido" tabIndex={-1} className="flex-1 w-full flex flex-col outline-none">
-              {children}
+              {/* Al entrar a la app, Mervi tapa la pantalla mientras la página termina de cargar en el servidor. Las
+                  rutas con su propio loading.tsx muestran el suyo; Privacy y Mail traen su propio shell, sin Mervi. */}
+              {privacy || mail ? children : <Suspense fallback={<SplashScreen fullscreen />}>{children}</Suspense>}
             </main>
             {!privacy && !mail && <Footer />}
             {!privacy && !mail && <BottomNav />}
@@ -235,4 +239,3 @@ export default async function RootLayout({
     </html>
   );
 }
-// creado por pato dev y askforvini

@@ -48,4 +48,3 @@ export function FounderRoll({ size = "md", className, label = "Equipo de Mercav"
     </ul>
   );
 }
-// creado por pato dev y askforvini

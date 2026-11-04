@@ -11,6 +11,15 @@ import {
   type LandingData,
   type PlaceItem,
 } from "@/components/home/HomeLanding";
+import {
+  LandingHeroSimple,
+  LandingProblemsMini,
+  LandingFeaturesMini,
+  LandingMoreFeatures,
+  LandingProofMini,
+  LandingCTAMini,
+  LandingFAQMini,
+} from "@/components/home/HomeLandingSimple";
 import type { CountryInfo, ShabbatCity } from "@/components/home/LandingClient";
 import { payslipDemo } from "@/lib/business/bolivia/payslip-demo";
 import { PWN_FEED_SOURCES } from "@/lib/integrations/pwn/feed-catalog";
@@ -140,12 +149,13 @@ export default async function Home() {
 
   return (
     <div className="cartel flex w-full flex-col overflow-x-clip">
-      <LandingHero data={data} />
-      <LandingPillars data={data} />
-      <LandingRegion data={data} />
-      <LandingTrust />
-      <LandingFAQ />
-      <LandingCTA />
+      <LandingHeroSimple data={data} />
+      <LandingProblemsMini />
+      <LandingFeaturesMini />
+      <LandingMoreFeatures />
+      <LandingProofMini />
+      <LandingCTAMini />
+      <LandingFAQMini />
     </div>
   );
 }

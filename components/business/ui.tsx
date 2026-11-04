@@ -11,8 +11,12 @@ export function BusinessTabs({ slug, role, active }: { slug: string; role: Busin
   const items = can(role, "employees.view")
     ? [
         { key: "resumen", label: "Resumen", href: base },
+        ...(can(role, "pos.reports") ? [{ key: "dashboard", label: "KPIs", href: `${base}/dashboard/kpis` }] : []),
         { key: "trabajadores", label: "Trabajadores", href: `${base}/trabajadores` },
+        { key: "turnos", label: "Turnos", href: `${base}/turnos` },
+        { key: "fichaje", label: "Fichaje", href: `${base}/fichaje` },
         ...(can(role, "payroll.view") ? [{ key: "planillas", label: "Planillas", href: `${base}/planillas` }] : []),
+        ...(can(role, "expenses.view") ? [{ key: "gastos", label: "Gastos", href: `${base}/gastos` }] : []),
         ...(can(role, "loyalty.view") ? [{ key: "fidelizacion", label: "Fidelización", href: `${base}/fidelizacion` }] : []),
         ...(can(role, "loyalty.stamp") ? [{ key: "sellar", label: "Sellar", href: `${base}/sellar` }] : []),
         ...(caja ? [{ key: "caja", label: "Caja", href: caja }] : []),

@@ -16,6 +16,8 @@ export type BusinessPermission =
   | "payroll.close"
   | "payroll.reopen"
   | "payroll.export"
+  | "expenses.view"
+  | "expenses.manage"
   | "loyalty.manage"
   | "loyalty.view"
   | "loyalty.stamp"
@@ -40,6 +42,9 @@ const MATRIX: Record<BusinessPermission, BusinessRoleKey[]> = {
   "payroll.close": ["OWNER", "HR_ADMIN"],
   "payroll.reopen": ["OWNER"],
   "payroll.export": ["OWNER", "HR_ADMIN", "ACCOUNTANT"],
+  // Gastos: registrar y ver gastos de la empresa.
+  "expenses.view": ["OWNER", "HR_ADMIN", "ACCOUNTANT"],
+  "expenses.manage": ["OWNER", "HR_ADMIN"],
   // Fidelización: crear y editar programas, campañas y saldos.
   "loyalty.manage": ["OWNER", "HR_ADMIN"],
   // Ver clientes y estadísticas (datos personales de clientes: no el contador).

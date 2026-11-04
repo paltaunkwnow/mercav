@@ -18,6 +18,7 @@ const isPreference = (value: unknown): value is KosherKashrutPreference => typeo
 
 function readStored(): KosherKashrutPreference | "later" | null {
   try {
+    if (typeof window === "undefined") return null;
     const value = window.localStorage.getItem(KASHRUT_STORAGE_KEY);
     return value === "later" || isPreference(value) ? value : null;
   } catch {
@@ -27,6 +28,7 @@ function readStored(): KosherKashrutPreference | "later" | null {
 
 export function storeKashrutPreference(value: KosherKashrutPreference | "later") {
   try {
+    if (typeof window === "undefined") return;
     window.localStorage.setItem(KASHRUT_STORAGE_KEY, value);
   } catch {
     // Navegación privada o almacenamiento bloqueado: la preferencia dura lo que dure la página.

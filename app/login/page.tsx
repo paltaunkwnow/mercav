@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
-import { Mail, Loader2, ArrowLeft, ArrowRight, ShieldCheck } from '@/components/icons';
+import { Mail, ArrowLeft, ArrowRight, ShieldCheck } from '@/components/icons';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { BodyPortal } from '@/components/auth/BodyPortal';
 import { AuthDivider, AuthField, FormAlert, GoogleIcon, PasswordField, SubmitButton } from '@/components/auth/AuthFields';
@@ -14,6 +14,7 @@ import { useCookieConsent } from '@/components/legal/CookieConsentProvider';
 import { safeCallbackPath } from '@/lib/security/safe-url';
 import { getRecaptchaToken } from '@/lib/recaptcha-client';
 import { RecaptchaNotice } from '@/components/legal/RecaptchaNotice';
+import { SplashScreen } from '@/components/splash/SplashScreen';
 
 function LoginForm() {
   const router = useRouter();
@@ -28,6 +29,8 @@ function LoginForm() {
   const [show2FA, setShow2FA] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  // Credenciales aceptadas: Mervi tapa la pantalla mientras se abre la cuenta (hasta que la navegación desmonta esto).
+  const [entering, setEntering] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
 
   const reduce = useReducedMotion();
@@ -79,6 +82,7 @@ function LoginForm() {
           setLoading(false);
         }
       } else {
+        setEntering(true);
         router.push(callbackUrl);
         router.refresh();
       }
@@ -285,18 +289,18 @@ function LoginForm() {
         )}
       </AnimatePresence>
       </BodyPortal>
+      {entering && (
+        <BodyPortal>
+          <SplashScreen variant="welcome" fullscreen />
+        </BodyPortal>
+      )}
     </AuthShell>
   );
 }
 
 export default function Login() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-[100svh] items-center justify-center bg-bg-primary" role="status">
-        <Loader2 className="h-7 w-7 animate-spin text-gold" aria-hidden />
-        <span className="sr-only">Cargando</span>
-      </div>
-    }>
+    <Suspense fallback={<SplashScreen variant="login" />}>
       <LoginForm />
     </Suspense>
   );

@@ -684,4 +684,227 @@ button.c-btn { background-color: var(--btn-bg); }
   .c-mono .c-inverse,
   .c-mono .c-night { --c-on-ink-soft: var(--c-on-ink); }
 }
+
+/*
+ * Pantalla de carga (components/splash): Mervi sobre un fondo líquido dorado y azul noche, dentro de una tarjeta de
+ * vidrio. Se usa en los loading.tsx y en el Suspense del layout raíz.
+ * - Aparece con un fundido que espera 140 ms: si la página llega antes, no hay parpadeo.
+ * - Mervi cambia de pose cada --c-splash-slot (tres poses apiladas, la de turno entra con un saltito de 2 px del sprite).
+ * - Los mensajes rotan con el mismo ritmo que las poses.
+ * - Con "reducir movimiento" queda la primera pose quieta, el primer mensaje y la barra respirando (solo opacidad).
+ * - Con "reducir transparencia" la tarjeta es sólida.
+ */
+.c-splash {
+  --c-splash-gold: #d4af37;
+  --c-splash-gold-hi: #f1d77a;
+  --c-splash-navy: #1a1f3a;
+  --c-splash-base: #0b0d1a;
+  --c-splash-blob-gold: rgba(212, 175, 55, 0.42);
+  --c-splash-blob-navy: rgba(58, 72, 150, 0.55);
+  --c-splash-glass: rgba(26, 31, 58, 0.46);
+  --c-splash-glass-edge: rgba(255, 253, 248, 0.14);
+  --c-splash-glass-hi: rgba(255, 253, 248, 0.16);
+  --c-splash-track: rgba(255, 253, 248, 0.1);
+  --c-splash-gold-text: #e0bd4f;
+  --c-splash-slot: 2.8s;
+
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: max(1.5rem, env(safe-area-inset-top)) 1rem max(1.5rem, env(safe-area-inset-bottom));
+  background:
+    radial-gradient(120% 80% at 50% 110%, rgba(212, 175, 55, 0.16), transparent 60%),
+    linear-gradient(160deg, var(--c-splash-navy) 0%, var(--c-splash-base) 55%, #070708 100%);
+  color: var(--c-text);
+}
+.light .c-splash {
+  --c-splash-base: #f6f1e6;
+  --c-splash-blob-gold: rgba(212, 175, 55, 0.38);
+  --c-splash-blob-navy: rgba(26, 31, 58, 0.18);
+  --c-splash-glass: rgba(255, 253, 248, 0.58);
+  --c-splash-glass-edge: rgba(26, 31, 58, 0.1);
+  --c-splash-glass-hi: rgba(255, 255, 255, 0.9);
+  --c-splash-track: rgba(26, 31, 58, 0.1);
+  --c-splash-gold-text: #8a6810;
+  background:
+    radial-gradient(120% 80% at 50% 110%, rgba(212, 175, 55, 0.18), transparent 60%),
+    linear-gradient(160deg, #fffdf8 0%, var(--c-splash-base) 60%, #ece6f5 100%);
+}
+.c-splash-full { position: fixed; inset: 0; z-index: 300; }
+.c-splash-inline { min-height: 72svh; width: 100%; }
+
+/* Manchas líquidas del fondo. */
+.c-splash-blob {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(48px);
+  pointer-events: none;
+}
+.c-splash-blob-a { width: 26rem; height: 26rem; top: -8rem; left: -6rem; background: var(--c-splash-blob-gold); }
+.c-splash-blob-b { width: 30rem; height: 30rem; bottom: -12rem; right: -8rem; background: var(--c-splash-blob-navy); }
+.c-splash-blob-c { width: 16rem; height: 16rem; top: 40%; left: 60%; background: var(--c-splash-blob-gold); opacity: 0.55; }
+
+/* Tarjeta de vidrio. */
+.c-splash-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 24rem);
+  padding: 2rem 1.5rem 1.75rem;
+  border-radius: 2rem;
+  background: var(--c-splash-glass);
+  border: 1px solid var(--c-splash-glass-edge);
+  box-shadow:
+    inset 0 1px 0 var(--c-splash-glass-hi),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.08),
+    var(--c-shadow);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  backdrop-filter: blur(22px) saturate(1.5);
+  text-align: center;
+}
+/* Brillo especular arriba de la tarjeta. */
+.c-splash-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--c-splash-glass-hi) 0%, transparent 38%);
+  opacity: 0.5;
+  pointer-events: none;
+}
+@media (min-width: 640px) { .c-splash-card { padding: 2.5rem 2.25rem 2rem; } }
+@media (prefers-reduced-transparency: reduce) {
+  .c-splash-card { background: var(--c-raised); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .c-splash-card::before { display: none; }
+}
+
+/* Escenario de Mervi: aro dorado que gira, sombra en el piso, destellos de píxel y las poses apiladas. */
+.c-splash-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 15rem;
+  height: 13.5rem;
+}
+.c-splash-halo {
+  position: absolute;
+  width: 13rem;
+  height: 13rem;
+  top: 0.25rem;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(212, 175, 55, 0.28), transparent 72%);
+}
+.c-splash-ring {
+  position: absolute;
+  width: 13rem;
+  height: 13rem;
+  top: 0.25rem;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0 62%, rgba(212, 175, 55, 0.15) 72%, var(--c-splash-gold) 92%, var(--c-splash-gold-hi) 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  opacity: 0.9;
+}
+.c-splash-floor {
+  position: absolute;
+  bottom: 0.4rem;
+  width: 7.5rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.45), transparent);
+}
+.light .c-splash-floor { background: radial-gradient(closest-side, rgba(26, 31, 58, 0.22), transparent); }
+.c-splash-mervi {
+  position: relative;
+  width: 192px;
+  height: 192px;
+  margin-top: -0.5rem;
+}
+.c-splash-pose { position: absolute; inset: 0; opacity: 0; }
+.c-splash-pose:first-child { opacity: 1; }
+.c-splash-spark {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--c-splash-gold-hi);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.35);
+  opacity: 0;
+}
+.c-splash-spark:nth-child(1) { top: 18%; left: 12%; }
+.c-splash-spark:nth-child(2) { top: 10%; right: 16%; width: 4px; height: 4px; }
+.c-splash-spark:nth-child(3) { top: 52%; right: 6%; }
+.c-splash-spark:nth-child(4) { top: 60%; left: 7%; width: 4px; height: 4px; }
+
+/* Mensajes apilados en la misma celda: la caja toma el alto del más largo y no salta. */
+.c-splash-lines { display: grid; }
+.c-splash-line { grid-area: 1 / 1; opacity: 0; }
+.c-splash-line:first-child { opacity: 1; }
+
+.c-splash-dot { display: inline-block; width: 4px; height: 4px; border-radius: 1px; background: currentColor; opacity: 0.35; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .c-splash { animation: c-splash-in 520ms cubic-bezier(0.22, 1, 0.36, 1) 0ms both; }
+  .c-splash-card { animation: c-splash-card-in 640ms cubic-bezier(0.22, 1, 0.36, 1) 50ms both; }
+  .c-splash-blob-a { animation: c-splash-drift-a 16s ease-in-out infinite alternate; }
+  .c-splash-blob-b { animation: c-splash-drift-b 19s ease-in-out infinite alternate; }
+  .c-splash-blob-c { animation: c-splash-drift-c 13s ease-in-out infinite alternate; }
+  .c-splash-ring { animation: c-splash-spin 1.6s linear infinite; }
+  .c-splash-halo { animation: c-splash-breathe 2.8s ease-in-out infinite; }
+  .c-splash-mervi { animation: c-splash-bob 2.8s ease-in-out infinite; }
+  .c-splash-floor { animation: c-splash-floor 2.8s ease-in-out infinite; }
+  .c-splash-pose,
+  .c-splash-line {
+    animation: c-splash-turn calc(var(--c-splash-slot) * 3) linear infinite both;
+    animation-delay: calc(var(--c-splash-slot) * var(--i, 0));
+  }
+  .c-splash-pose { animation-name: c-splash-pose-turn; }
+  .c-splash-spark { animation: c-splash-twinkle 2.4s steps(4, end) infinite; }
+  .c-splash-spark:nth-child(2) { animation-delay: 0.6s; }
+  .c-splash-spark:nth-child(3) { animation-delay: 1.2s; }
+  .c-splash-spark:nth-child(4) { animation-delay: 1.8s; }
+  .c-splash-dot { animation: c-splash-dot 1.2s ease-in-out infinite; }
+  .c-splash-dot:nth-child(2) { animation-delay: 0.15s; }
+  .c-splash-dot:nth-child(3) { animation-delay: 0.3s; }
+}
+
+@keyframes c-splash-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes c-splash-card-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes c-splash-drift-a { to { transform: translate(5rem, 4rem) scale(1.15); } }
+@keyframes c-splash-drift-b { to { transform: translate(-6rem, -3rem) scale(0.9); } }
+@keyframes c-splash-drift-c { to { transform: translate(-9rem, 2rem) scale(1.25); } }
+@keyframes c-splash-spin { to { transform: rotate(360deg); } }
+@keyframes c-splash-breathe { 50% { opacity: 0.55; transform: scale(0.94); } }
+/* Flota 4 px (2 píxeles del sprite a escala 2): múltiplos enteros para que el pixel art no se empaste. */
+@keyframes c-splash-bob { 50% { transform: translateY(-4px); } }
+@keyframes c-splash-floor { 50% { transform: scaleX(0.86); opacity: 0.7; } }
+/* Turno de una pose: entra con un saltito, se queda un tercio del ciclo y sale cruzándose con la siguiente. */
+@keyframes c-splash-pose-turn {
+  0% { opacity: 0; transform: translateY(4px); }
+  3% { opacity: 1; transform: translateY(-6px); }
+  6% { transform: translateY(0); }
+  33.3% { opacity: 1; transform: translateY(0); }
+  36% { opacity: 0; transform: translateY(0); }
+  100% { opacity: 0; }
+}
+@keyframes c-splash-turn {
+  0% { opacity: 0; transform: translateY(6px); }
+  4% { opacity: 1; transform: none; }
+  31% { opacity: 1; transform: none; }
+  34% { opacity: 0; transform: translateY(-6px); }
+  100% { opacity: 0; }
+}
+@keyframes c-splash-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  25% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.75) rotate(45deg); }
+  75% { opacity: 0; }
+}
+@keyframes c-splash-dot { 0%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
 /* creado por pato dev y askforvini */

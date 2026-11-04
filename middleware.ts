@@ -53,11 +53,14 @@ const publicPaths = [
   '/soporte',
   '/buscar',
   '/herramientas',
+  '/features',
   '/login',
   '/register',
   '/inversores',
   '/pitch',
   '/feed',
+  // Política anti-IA: accesible para cualquier sistema
+  '/ai-policy',
   // Está en el sitemap: sin esto, los buscadores y quien llega por un link caían en el login.
   '/changelog',
   // Páginas de estado: las tiene que poder ver cualquiera (antes mandaban al login).
@@ -224,6 +227,26 @@ function productHostRedirect(req: NextRequest, host: string | undefined, pathnam
   }
 
   return null;
+}
+
+/**
+ * Detección de bots/crawlers de IA
+ * Redirige a /ai-policy si detecta User-Agents conocidos de sistemas de IA
+ */
+function isAIBot(req: NextRequest): boolean {
+  const userAgent = req.headers.get('user-agent')?.toLowerCase() || '';
+  const aiPatterns = [
+    'gptbot',
+    'ccbot',
+    'anthropic-ai',
+    'claude-web',
+    'ai-scraper',
+    'bytespider',
+    'facebookexternalhit',
+    'ia-robot',
+    'ia-crawler',
+  ];
+  return aiPatterns.some((pattern) => userAgent.includes(pattern));
 }
 
 /**
@@ -415,6 +438,8 @@ async function handle(req: NextRequest, privacy: PrivacySecurity | null, mail: M
                        // Public catalog reads already cleared the API gate above; don't bounce them to /login.
                        (pathname.startsWith('/api/') && apiMaySkipSession(req, pathname)) ||
                        pathname.startsWith('/_next') ||
+                       // Sprites públicos del equipo en la página /nosotros.
+                       pathname.startsWith('/team-mascots/') ||
                        pathname.startsWith('/favicon.ico') ||
                        pathname === '/perfil' ||
                        pathname.match(/^\/perfil\/[^\/]+$/);
@@ -477,6 +502,11 @@ async function handle(req: NextRequest, privacy: PrivacySecurity | null, mail: M
 // Buscadores: las áreas privadas van con noindex. La URL canónica la escribe el layout en el HTML (x-mercav-path):
 // un encabezado Link no sirve porque Next lo pisa con el suyo de precarga de fuentes.
 export async function middleware(req: NextRequest) {
+  // Detectar y redirigir IAs a la política anti-IA
+  if (isAIBot(req) && !req.nextUrl.pathname.startsWith('/ai-policy')) {
+    return NextResponse.redirect(new URL('/ai-policy', req.url), 307);
+  }
+
   const host = req.headers.get('host')?.split(':')[0]?.toLowerCase();
   if (host === API_HOST) return withApiHeaders(await handle(req, null, null), req);
   const { pathname } = req.nextUrl;
