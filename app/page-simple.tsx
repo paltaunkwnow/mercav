@@ -12,22 +12,22 @@
 
 import {
   LandingHeroSimple,
-  LandingProblems,
-  LandingFeatures,
-  LandingSocialProof,
-  LandingCTASimple,
-  LandingFAQSimple,
+  LandingProblemsMini,
+  LandingFeaturesMini,
+  LandingProofMini,
+  LandingCTAMini,
+  LandingFAQMini,
 } from "@/components/home/HomeLandingSimple";
 
 export default function SimpleHome() {
   return (
     <div className="flex w-full flex-col overflow-x-clip">
       <LandingHeroSimple />
-      <LandingProblems />
-      <LandingFeatures />
-      <LandingSocialProof />
-      <LandingCTASimple />
-      <LandingFAQSimple />
+      <LandingProblemsMini />
+      <LandingFeaturesMini />
+      <LandingProofMini />
+      <LandingCTAMini />
+      <LandingFAQMini />
     </div>
   );
 }

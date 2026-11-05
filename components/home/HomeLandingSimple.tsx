@@ -17,7 +17,7 @@ import type { LandingData } from "./HomeLanding";
  * Crema + Oro + Liquid glass effects
  */
 
-export function LandingHeroSimple({ data }: { data: LandingData }) {
+export function LandingHeroSimple({ data }: { data?: LandingData } = {}) {
   return (
     <section aria-labelledby="hero-title" className="relative pt-[calc(var(--c-nav-h)+4rem)] md:pt-[calc(var(--c-nav-h)+6rem)] pb-12">
       <div className="c-container flex flex-col items-center text-center">
@@ -43,7 +43,7 @@ export function LandingHeroSimple({ data }: { data: LandingData }) {
           <div className="h-64 w-64 flex items-center justify-center">
             <Mervi
               pose="celebrando"
-              scale={1.5}
+              scale={1}
               scaleLg={2}
               label="Mervi celebra tu éxito"
               className="w-full h-full"

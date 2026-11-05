@@ -17,21 +17,25 @@ const dateSchema = z.string().refine((v) => {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
 }, "Fecha inválida");
 
-export const ShiftInputSchema = z.object({
+const BaseShiftSchema = z.object({
   employeeId: z.string().min(1, "ID de empleado requerido"),
   date: dateSchema,
   startTime: timeSchema,
   endTime: timeSchema,
   shiftType: z.enum(["MATUTINO", "VESPERTINO", "NOCTURNO", "COMPLETO", "OTRO"]).default("OTRO"),
   notes: z.string().max(500).optional().nullable(),
-}).refine((data) => {
-  // Validate that endTime is after startTime
+});
+
+function validateShiftTimes(data: { startTime?: string; endTime?: string }) {
+  if (!data.startTime || !data.endTime) return true;
   const [startH, startM] = data.startTime.split(":").map(Number);
   const [endH, endM] = data.endTime.split(":").map(Number);
   const startMinutes = startH * 60 + startM;
   const endMinutes = endH * 60 + endM;
   return endMinutes > startMinutes;
-}, {
+}
+
+export const ShiftInputSchema = BaseShiftSchema.refine(validateShiftTimes, {
   message: "La hora de fin debe ser posterior a la hora de inicio",
   path: ["endTime"],
 });
@@ -39,8 +43,11 @@ export const ShiftInputSchema = z.object({
 export type ShiftInput = z.infer<typeof ShiftInputSchema>;
 
 export const CreateShiftSchema = ShiftInputSchema;
-export const UpdateShiftSchema = ShiftInputSchema.partial().extend({
+export const UpdateShiftSchema = BaseShiftSchema.partial().extend({
   id: z.string().min(1),
+}).refine(validateShiftTimes, {
+  message: "La hora de fin debe ser posterior a la hora de inicio",
+  path: ["endTime"],
 });
 
 /** Convert shift input to Prisma format */
