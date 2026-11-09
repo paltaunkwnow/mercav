@@ -58,6 +58,8 @@ const publicPaths = [
   '/register',
   '/inversores',
   '/pitch',
+  '/news',
+  '/ciberseguridad',
   '/feed',
   // Política anti-IA: accesible para cualquier sistema
   '/ai-policy',
@@ -166,6 +168,7 @@ function apiMaySkipSession(req: NextRequest, pathname: string) {
     if (/^\/api\/calendar\/feed\/[A-Za-z0-9_-]{40,60}(\.ics)?$/.test(path)) return true;
   }
   return (
+    path === '/api/contact/cybersecurity' ||
     path.startsWith('/api/auth') ||
     path.startsWith('/api/location') ||
     // Fidelización: the customer's card works without a Mercav account (the routes rate-limit themselves).
@@ -411,6 +414,7 @@ async function handle(req: NextRequest, privacy: PrivacySecurity | null, mail: M
   }
 
   const isPublicPath = publicPaths.includes(pathname) ||
+                       pathname.startsWith('/ciberseguridad/') ||
                        pathname.startsWith('/legal/') ||
                        // Feriados por país: páginas públicas para los buscadores.
                        pathname === '/feriados' ||

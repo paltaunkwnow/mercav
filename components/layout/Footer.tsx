@@ -7,7 +7,6 @@ import { hidesGlobalChrome, isSiteChrome } from "@/components/layout/Header";
 import { HostLink, useAppPathname, useHostKind } from "@/components/layout/HostContext";
 import { SOCIAL_PROFILES, APP_HOME } from "@/lib/seo/site";
 import { FitLines, Starburst } from "@/components/site/cartel/primitives";
-import { Mervi } from "@/components/mervi/Mervi";
 
 const focusLink =
   "rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary";
@@ -104,7 +103,6 @@ function SiteFooter() {
   return (
     <footer data-site-footer className="cartel c-night relative w-full pb-10 pt-16 md:pt-24">
       <div className="c-container">
-        <Mervi pose="durmiendo" scale={1} className="absolute right-[max(var(--c-gutter),calc((100vw-80rem)/2+var(--c-gutter)))] top-[calc(var(--mervi-unit)*-91)]" label="Mervi, la mascota de Mercav, durmiendo" />
         <FitLines as="p" lines={[{ text: "Mercav", fit: 34.531, className: "c-text-gold" }]} className="max-w-[40rem]" />
         <div className="mt-14 grid grid-cols-2 gap-x-6 gap-y-12 md:grid-cols-4 lg:grid-cols-12 lg:gap-10">
           <div className="col-span-2 flex flex-col gap-6 md:col-span-4 lg:col-span-4">

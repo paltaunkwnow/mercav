@@ -17,6 +17,7 @@ const APPS = [
   { href: "/#pilar-business", label: "Business" },
   { href: "/#pilar-pwn", label: "Pwn" },
   { href: "/#pilar-kosher", label: "Kosher" },
+  { href: "/news", label: "News" },
 ];
 
 const LINKS = [

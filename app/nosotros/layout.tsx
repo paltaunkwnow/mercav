@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Quiénes somos — Equipo y Cofundadores",
-  description: "El equipo de Mercav en Santa Cruz de la Sierra y Costa Rica: Vinicius Salazar (CEO), Sebastian Rojas Cespedes (Cofundador), Alejandro Ismael Mendoza Diaz (CTO) y Marco Sánchez.",
+  description: "Conocé al equipo de Mercav: Vinicius Salazar, Jaider Alejandro Pinto Ribera, CSO y Director de Seguridad, y el equipo que construye la plataforma.",
   openGraph: {
     title: "Quiénes somos — Equipo y Cofundadores",
-    description: "El equipo de Mercav en Santa Cruz de la Sierra y Costa Rica: Vinicius Salazar (CEO), Sebastian Rojas Cespedes (Cofundador), Alejandro Ismael Mendoza Diaz (CTO) y Marco Sánchez.",
+    description: "Conocé al equipo de Mercav: Vinicius Salazar, Jaider Alejandro Pinto Ribera, CSO y Director de Seguridad, y el equipo que construye la plataforma.",
     url: "/nosotros",
     type: "website",
     images: [{ url: "/opengraph-image.png", width: 1200, height: 630, alt: "Equipo y Cofundadores de Mercav" }],
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Quiénes somos — Equipo y Cofundadores",
-    description: "El equipo de Mercav en Santa Cruz de la Sierra y Costa Rica: Vinicius Salazar (CEO), Sebastian Rojas Cespedes (Cofundador), Alejandro Ismael Mendoza Diaz (CTO) y Marco Sánchez.",
+    description: "Conocé al equipo de Mercav: Vinicius Salazar, Jaider Alejandro Pinto Ribera, CSO y Director de Seguridad, y el equipo que construye la plataforma.",
     images: ["/twitter-image.png"],
   },
 };

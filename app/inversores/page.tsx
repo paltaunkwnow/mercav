@@ -10,7 +10,7 @@ import { InvestorContactForm } from "./InvestorContactForm";
 
 const FACTS = [
   { k: "Etapa", v: "Búsqueda de capital semilla" },
-  { k: "Equipo", v: "Fundador y CEO, cofundador, CTO y Mercav Costa Rica" },
+  { k: "Equipo", v: "Fundador y CEO, CSO y Director de Seguridad, equipo técnico y comercial" },
   { k: "Producto", v: "Plataforma construida" },
   { k: "Sede", v: "Santa Cruz de la Sierra, Bolivia" },
   { k: "Modelo", v: "Comisiones, suscripciones y herramientas" },
@@ -166,7 +166,7 @@ export default function InversoresPage() {
                 Un equipo que construye desde adentro.
               </h2>
               <div className="mt-8 flex flex-col gap-4">
-                <p className="c-body text-[1.0625rem]">Vinicius Salazar fundó Mercav en Santa Cruz de la Sierra, lo dirige como CEO y está a cargo de la ciberseguridad. Lo acompañan Sebastian Rojas Cespedes, cofundador, y Alejandro Ismael Mendoza Diaz, CTO. Marco Sánchez representa a Mercav en Costa Rica, donde vive: lleva la plataforma a ese país y está a cargo de su imagen y su marketing allí.</p>
+                <p className="c-body text-[1.0625rem]">Vinicius Salazar fundó Mercav en Santa Cruz de la Sierra y lo dirige como CEO. Jaider Alejandro Pinto Ribera es CSO, cofundador y Director de Seguridad, responsable de la estrategia de ciberseguridad y de los servicios profesionales para empresas. Los acompañan Sebastian Rojas Cespedes, cofundador, Alejandro Ismael Mendoza Diaz, CTO, y el equipo comercial y regional.</p>
                 <p className="c-body text-[1.0625rem]">
                   Mercav no es una maqueta: anuncios, servicios, empleo, planillas de sueldo, herramientas y ciberinteligencia ya corren con una sola cuenta, hechos desde Bolivia.
                 </p>

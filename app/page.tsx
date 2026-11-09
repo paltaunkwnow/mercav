@@ -17,9 +17,11 @@ import {
   LandingFeaturesMini,
   LandingMoreFeatures,
   LandingProofMini,
+  LandingNews,
   LandingCTAMini,
   LandingFAQMini,
 } from "@/components/home/HomeLandingSimple";
+import { LandingSecurityInquiry, LandingSecurityServices } from "@/components/home/HomeLanding";
 import type { CountryInfo, ShabbatCity } from "@/components/home/LandingClient";
 import { payslipDemo } from "@/lib/business/bolivia/payslip-demo";
 import { PWN_FEED_SOURCES } from "@/lib/integrations/pwn/feed-catalog";
@@ -154,6 +156,9 @@ export default async function Home() {
       <LandingFeaturesMini />
       <LandingMoreFeatures />
       <LandingProofMini />
+      <LandingNews />
+      <LandingSecurityServices />
+      <LandingSecurityInquiry />
       <LandingCTAMini />
       <LandingFAQMini />
     </div>

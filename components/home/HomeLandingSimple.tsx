@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import {
   Package,
   Users,
@@ -294,6 +295,37 @@ export function LandingProofMini() {
         <p className="text-[var(--c-soft)] text-lg">
           Hecho en Latinoamérica, para negocios de Latinoamérica.
         </p>
+      </div>
+    </CartelSection>
+  );
+}
+
+/** News destacada: logro del equipo SweetBerry en Cursor AI Security. */
+export function LandingNews() {
+  return (
+    <CartelSection labelledBy="news-sweetberry" className="border-y-2 border-[var(--c-line)]">
+      <div className="c-container grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(16rem,0.85fr)] lg:items-center lg:gap-16">
+        <div>
+          <p className="c-label text-[var(--c-yellow-text)]">News · 31 de octubre de 2026</p>
+          <h2 id="news-sweetberry" className="c-h2 mt-3">SweetBerry: primer lugar en Cursor AI Security.</h2>
+          <p className="c-body mt-5 max-w-3xl">En la AI Security Hackathon — Halloween Edition de Grok Bot Santa Cruz, nuestro equipo presentó SweetBerry y obtuvo el primer lugar, con USD 240 en premios. Éramos tres personas —aunque el mínimo era cuatro— y construimos el prototipo desde cero en seis horas.</p>
+          <p className="c-body mt-4 max-w-3xl">Aplicamos IA ofensiva e IA defensiva en una infraestructura de laboratorio con contenedores y servicios funcionales: simulamos una empresa, expusimos vulnerabilidades intencionales y ejecutamos un ataque real dentro de ese entorno controlado. SweetBerry observa cada paso y adapta los señuelos mientras su SOC asistido por IA analiza la evidencia. No es solo un honeypot: es una plataforma de deception adaptativa y análisis de incidentes.</p>
+          <p className="c-body mt-3 max-w-3xl text-sm"><span className="font-semibold text-[var(--c-text)]">Presentado por el equipo de Mercav:</span> Jaider Alejandro Pinto Ribera, Vinicius Salazar y Sebastian Rojas.</p>
+          <a href="https://github.com/Suredials/SWEET-BERRY" target="_blank" rel="noopener noreferrer" className="c-btn c-btn-ghost mt-7">Explorar SweetBerry en GitHub <ArrowRight className="h-4 w-4" aria-hidden /></a>
+          <Link href="/news#tracks" className="c-link ml-4 inline-flex items-center font-semibold">Ver cómo aplicamos los tracks <ArrowRight className="ml-2 h-4 w-4" aria-hidden /></Link>
+        </div>
+        <aside className="c-paste c-news-award p-5 sm:p-7" aria-label="SweetBerry obtuvo el primer lugar">
+          <div className="c-news-award-top">
+            <div className="c-news-brand"><span className="c-news-brand-dot" /> MERCAV PRESENTA <span className="c-news-brand-sep">/</span> SWEETBERRY</div>
+          </div>
+          <div className="c-news-award-main">
+            <div className="c-news-logo-stage"><img src="/images/news/sweetberry-logo.webp" alt="Logo de SweetBerry" width={384} height={384} decoding="async" className="c-news-logo h-24 w-24 object-contain sm:h-28 sm:w-28" /></div>
+            <div className="c-news-award-copy"><p className="c-label">Cursor AI Security · Halloween Edition</p><p className="c-news-award-rank">#1 <span>PRIMER LUGAR</span></p><p className="c-news-award-title">SweetBerry</p><p className="c-news-award-subtitle">De cero a ganador en seis horas.</p></div>
+          </div>
+          <dl className="c-news-award-stats"><div><dd>$240</dd><dt>premio</dt></div><div><dd>3</dd><dt>personas</dt></div><div><dd>6 h</dd><dt>desde cero</dt></div></dl>
+          <div className="c-news-award-mascot-art"><img src="/images/news/sweetberry-award-mascots.webp" alt="Mervi, el gato tuxedo de Jaider y la palta de Sebastian, abrazados con una medalla de primer lugar cada uno" width={640} height={427} loading="lazy" decoding="async" /></div>
+          <p className="c-news-award-team">Equipo Mercav <span>·</span> Jaider Alejandro, Vinicius Salazar y Sebastian Rojas</p>
+        </aside>
       </div>
     </CartelSection>
   );

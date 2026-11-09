@@ -238,9 +238,10 @@ export default function PitchPage() {
             <h2 id="pitch-equipo" className="c-h2">
               Un equipo, un mismo producto.
             </h2>
-            <p className="c-lead md:pb-2">Vinicius Salazar fundó Mercav y lo dirige. Con su equipo técnico y comercial lo diseñan, construyen y operan desde Santa Cruz de la Sierra. Marco Sánchez lo lleva a Costa Rica y José Alberto Vargas Aguilera lidera la estrategia comercial.</p>
+            <p className="c-lead md:pb-2">Vinicius Salazar fundó Mercav y lo dirige junto a Jaider Alejandro Pinto Ribera, CSO, cofundador y Director de Seguridad. Con el equipo técnico y comercial diseñan, construyen y operan la plataforma desde Santa Cruz de la Sierra; Jaider lidera además los servicios de auditoría y ciberseguridad autorizada.</p>
           </div>
           <FounderRoll size="lg" className="mt-14 md:mt-20" />
+          <p className="c-body mt-8 max-w-3xl">Pentesting ético, auditorías y respuesta a incidentes se realizan bajo alcance acordado y contrato de confidencialidad. <Link href="/nosotros#jaider" className="c-link font-semibold">Conocé a Jaider y al equipo de seguridad.</Link></p>
         </div>
       </CartelSection>
 

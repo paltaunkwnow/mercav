@@ -907,4 +907,101 @@ button.c-btn { background-color: var(--btn-bg); }
   75% { opacity: 0; }
 }
 @keyframes c-splash-dot { 0%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
+/* SweetBerry: banner editorial con acabados luminosos y movimiento sutil. */
+.cartel .c-news-award {
+  --c-line: rgba(255, 255, 255, 0.14);
+  --c-soft: rgba(255, 255, 255, 0.68);
+  position: relative; isolation: isolate; overflow: hidden;
+  color: #fffdf8; background: radial-gradient(ellipse at 88% 8%, rgba(255, 225, 26, 0.16), transparent 30%), radial-gradient(ellipse at 0% 100%, rgba(255, 40, 95, 0.15), transparent 36%), linear-gradient(145deg, #17191e 0%, #0c0d11 72%);
+  border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 1.6rem;
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.3), inset 0 1px rgba(255, 255, 255, 0.12);
+}
+.c-news-award::before,
+.c-news-award::after { content: ""; position: absolute; z-index: -1; pointer-events: none; border-radius: 999px; }
+.c-news-award::before { width: 13rem; height: 13rem; right: -7rem; top: 5rem; border: 1px solid rgba(255, 225, 26, 0.3); box-shadow: 0 0 0 1rem rgba(255, 225, 26, 0.035), 0 0 5rem rgba(255, 225, 26, 0.1); }
+.c-news-award::after { width: 0.3rem; height: 0.3rem; right: 18%; top: 18%; background: #ffe11a; box-shadow: -3rem 2rem 0 #55df86, -1.5rem -1rem 0 #ff4f89, 2rem 2.7rem 0 #ff9b65; }
+.c-news-award-top { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; min-height: 2.75rem; padding-bottom: 0.85rem; border-bottom: 1px solid var(--c-line); }
+.c-news-brand { display: flex; align-items: center; gap: 0.45rem; color: rgba(255,255,255,.72); font: 700 0.61rem/1.2 var(--font-cartel); letter-spacing: .11em; }
+.c-news-brand-dot { width: .45rem; height: .45rem; border-radius: 50%; background: #ffe11a; box-shadow: 0 0 .8rem rgba(255,225,26,.75); }
+.c-news-brand-sep { color: #ffe11a; }
+.c-news-mervi { position: absolute; z-index: 2; right: 0; top: 5.2rem; transform-origin: center bottom; width: 4rem; height: 4rem; }
+.c-news-award-main { position: relative; z-index: 1; display: grid; grid-template-columns: 5.2rem minmax(0,1fr); align-items: center; gap: 1rem; padding: 1.5rem 0 1.2rem; }
+.c-news-logo-stage { position: relative; display: grid; width: 5.3rem; height: 5.3rem; place-items: center; }
+.c-news-logo-stage img { filter: drop-shadow(0 0 .9rem rgba(80, 215, 103, .24)) drop-shadow(0 0 1.2rem rgba(255, 45, 102, .12)) drop-shadow(0 .3rem .65rem rgba(0,0,0,.28)); }
+.c-news-award-copy { min-width: 0; padding-right: 2.2rem; }
+.c-news-award-copy .c-label { color: #ffe11a; font-size: .62rem; line-height: 1.35; }
+.c-news-award-rank { display: flex; align-items: center; gap: .48rem; margin-top: .22rem; color: #ffe11a; font: 900 clamp(2.4rem, 7vw, 3.25rem)/.95 var(--font-cartel); letter-spacing: -.04em; }
+.c-news-award-rank span { max-width: 5rem; color: #fffdf8; font: 700 .57rem/1.25 var(--font-cartel); letter-spacing: .1em; }
+.c-news-award-title { margin-top: .18rem; color: #fffdf8; font: 900 clamp(1.2rem, 4vw, 1.75rem)/1 var(--font-cartel); letter-spacing: .015em; }
+.c-news-award-subtitle { margin-top: .38rem; color: var(--c-soft); font-size: .78rem; }
+.c-news-award-stats { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border-top: 1px solid var(--c-line); border-bottom: 1px solid var(--c-line); }
+.c-news-award-stats > div { padding: .75rem .35rem .7rem; text-align: center; }
+.c-news-award-stats > div + div { border-left: 1px solid var(--c-line); }
+.c-news-award-stats dd { color: #fffdf8; font: 800 1rem/1 var(--font-cartel); }
+.c-news-award-stats dt { margin-top: .32rem; color: var(--c-soft); font-size: .65rem; }
+.c-news-award-team { position: relative; z-index: 1; margin-top: .75rem; color: rgba(255,255,255,.72); font-size: .63rem; line-height: 1.45; }
+.c-news-award-team:first-letter { color: #ffe11a; }
+.c-news-award-mascot-art { position: relative; z-index: 1; display: grid; place-items: center; margin-top: 1.15rem; padding: .35rem 0 .2rem; }
+.c-news-award-mascot-art img { display: block; width: min(100%, 17rem); max-height: 11.4rem; height: auto; object-fit: contain; filter: drop-shadow(0 .45rem .5rem rgba(0,0,0,.4)); }
+.c-news-photo-stage { position: relative; overflow: hidden; isolation: isolate; }
+.c-news-photo-stage > img { display: block; }
+.c-news-starfield { position: absolute; z-index: 1; inset: 0; overflow: hidden; pointer-events: none; opacity: .46; mix-blend-mode: screen; background-image: radial-gradient(circle, rgba(255,250,216,.85) .65px, transparent 1.5px), radial-gradient(circle, rgba(194,231,255,.7) .7px, transparent 1.7px), radial-gradient(circle, rgba(255,225,26,.65) .6px, transparent 1.5px); background-size: 107px 89px, 149px 137px, 191px 163px; background-position: 8px 14px, 58px 72px, 28px 49px; }
+.c-news-shooting-star { --star-x: 8rem; --star-y: 4.5rem; position: absolute; width: clamp(2.4rem, 7vw, 5.5rem); height: 1.5px; border-radius: 99px; opacity: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.45) 38%, #fff9d6 100%); filter: drop-shadow(0 0 .3rem rgba(255,245,188,.8)); transform: rotate(-30deg); }
+.c-news-shooting-star-one { top: 11%; left: 11%; }
+.c-news-shooting-star-two { --star-x: -7rem; --star-y: 4rem; top: 26%; left: 78%; transform: rotate(210deg); }
+.c-news-shooting-star-three { --star-x: 9rem; --star-y: 5rem; top: 51%; left: 26%; }
+.c-news-shooting-star-four { --star-x: -6rem; --star-y: 3.5rem; top: 69%; left: 84%; transform: rotate(210deg); }
+.c-news-huddle { position: absolute; z-index: 2; right: 1.5%; bottom: 2%; width: clamp(9rem, 24vw, 17rem); pointer-events: none; transform-origin: 80% 100%; }
+.c-news-huddle img { display: block; width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 .45rem .35rem rgba(0,0,0,.46)); }
+@media (min-width: 640px) {
+  .c-news-award-main { grid-template-columns: 6.3rem minmax(0,1fr); gap: 1.2rem; padding: 1.7rem 0 1.35rem; }
+  .c-news-logo-stage { width: 6.1rem; height: 6.1rem; }
+  .c-news-award-copy .c-label { font-size: .7rem; }
+  .c-news-award-stats > div { padding: .9rem .5rem .8rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .c-news-award::before { animation: c-news-ring 5.5s ease-in-out infinite; }
+  .c-news-award::after { animation: c-news-confetti 3.4s ease-in-out infinite; }
+  .c-news-logo-stage { animation: c-news-stage-float 5s ease-in-out infinite; }
+  .c-news-huddle { animation: c-news-team-pose 4.2s ease-in-out infinite; }
+  .c-news-award-mascot-art img { animation: c-news-team-pose 4.2s ease-in-out infinite; }
+  .c-news-shooting-star-one { animation: c-news-shoot 7.6s ease-out 250ms infinite; }
+  .c-news-shooting-star-two { animation: c-news-shoot-reverse 8.5s ease-out 2.2s infinite; }
+  .c-news-shooting-star-three { animation: c-news-shoot 9.4s ease-out 4.5s infinite; }
+  .c-news-shooting-star-four { animation: c-news-shoot-reverse 8s ease-out 6.3s infinite; }
+  .c-news-mervi { animation: c-news-celebrate 2.8s ease-in-out infinite; }
+}
+@keyframes c-news-ring { 0%, 100% { opacity: .5; transform: scale(.94); } 50% { opacity: 1; transform: scale(1.06); } }
+@keyframes c-news-confetti { 0%, 100% { opacity: .4; transform: translateY(0); } 50% { opacity: 1; transform: translateY(.25rem); } }
+@keyframes c-news-stage-float { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-.22rem) rotate(1deg); } }
+@keyframes c-news-celebrate { 0%,100% { transform: translateY(0) rotate(0); } 25% { transform: translateY(-.3rem) rotate(-4deg); } 70% { transform: translateY(-.1rem) rotate(3deg); } }
+@keyframes c-news-team-pose { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-.25rem) rotate(-1.5deg); } }
+@keyframes c-news-shoot { 0%,4% { opacity: 0; transform: translate3d(0,0,0) rotate(-30deg); } 8% { opacity: .9; } 23%,100% { opacity: 0; transform: translate3d(var(--star-x),var(--star-y),0) rotate(-30deg); } }
+@keyframes c-news-shoot-reverse { 0%,4% { opacity: 0; transform: translate3d(0,0,0) rotate(210deg); } 8% { opacity: .85; } 23%,100% { opacity: 0; transform: translate3d(var(--star-x),var(--star-y),0) rotate(210deg); } }
+
+.cybersecurity-mascots-sprite {
+  aspect-ratio: 1262 / 1246;
+  background-image: url("/mervi/cybersecurity-duo-sprite-v3.webp");
+  background-size: 300% 300%;
+  background-position: 0 0;
+  background-repeat: no-repeat;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cybersecurity-mascots-sprite { animation: c-cybersecurity-mascots-frames 1s steps(1, end) infinite; }
+}
+@keyframes c-cybersecurity-mascots-frames {
+  0%, 12.49% { background-position: 0 0; }
+  12.5%, 24.99% { background-position: 50% 0; }
+  25%, 37.49% { background-position: 100% 0; }
+  37.5%, 49.99% { background-position: 0 50%; }
+  50%, 62.49% { background-position: 50% 50%; }
+  62.5%, 74.99% { background-position: 100% 50%; }
+  75%, 87.49% { background-position: 0 100%; }
+  87.5%, 99.99% { background-position: 50% 100%; }
+  100% { background-position: 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cybersecurity-mascots-sprite { animation: none !important; }
+}
+
 /* creado por pato dev y askforvini */

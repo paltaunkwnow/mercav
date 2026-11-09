@@ -51,8 +51,8 @@ export const SOCIAL_PROFILES = {
 export const X_HANDLE = "@mercavlat";
 
 /** Pages that live on the public site (mercav.lat). Everything else belongs to app.mercav.lat. */
-const MARKETING_EXACT = ["/", "/nosotros", "/pitch", "/inversores", "/terminos", "/privacidad", "/cookies", "/aviso-legal", "/caja", "/planillas", "/fidelizacion"];
-const MARKETING_PREFIXES = ["/legal", "/feriados", "/guias", "/b"];
+const MARKETING_EXACT = ["/", "/nosotros", "/pitch", "/inversores", "/ciberseguridad", "/news", "/terminos", "/privacidad", "/cookies", "/aviso-legal", "/caja", "/planillas", "/fidelizacion"];
+const MARKETING_PREFIXES = ["/legal", "/feriados", "/guias", "/b", "/ciberseguridad"];
 /** Utility pages both hosts may serve. */
 const SHARED_EXACT = ["/1337", "/maintenance", "/offline", "/forbidden"];
 

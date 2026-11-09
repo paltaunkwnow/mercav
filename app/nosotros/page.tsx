@@ -47,6 +47,11 @@ const ALEJANDRO_SOCIALS: { name: string; icon: ComponentType<{ className?: strin
   { name: "Instagram", icon: InstagramIcon, href: "https://www.instagram.com/alejondre._/" },
 ];
 
+const JAIDER_SOCIALS: { name: string; icon: ComponentType<{ className?: string }>; href: string }[] = [
+  { name: "LinkedIn", icon: LinkedinIcon, href: "https://www.linkedin.com/in/jaider-alejandro/" },
+  { name: "GitHub", icon: GithubIcon, href: "https://github.com/Suredials" },
+];
+
 const ORDER = [
   { time: "Oficio", title: "Sistemas y seguridad", desc: "Backend, pentesting autorizado, defensa y respuesta post-incidente. El detalle está en askforvini.pw." },
   { time: "Fe", title: "Observancia", desc: "El día se ordena ante el Creador. El trabajo se mide con esa misma seriedad." },
@@ -233,6 +238,44 @@ export default function Nosotros() {
               Quiero ayudar. Mercav tiene que ser usable de punta a punta: publicar, contratar, buscar empleo o consultar una herramienta sin perderse. Kerem y Mercav Kosher siguen el mismo criterio: un estándar verificable y un servicio que se pueda usar.
             </p>
           </div>
+        </div>
+      </CartelSection>
+
+      {/* Jaider, cofundador y director de seguridad */}
+      <CartelSection id="jaider" labelledBy="jaider-title" className="scroll-mt-[var(--c-nav-h)] border-t-2 border-[var(--c-line)]">
+        <div className="c-container grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-center lg:gap-x-20">
+          <div className="flex flex-col gap-8">
+            <div>
+              <h2 id="jaider-title" className="c-display text-[clamp(3rem,1.6rem+4.4vw,5.75rem)] [text-wrap:balance]">
+                Jaider Alejandro <span className="text-red-500">Pinto Ribera</span>
+              </h2>
+              <p className="c-label mt-5 text-[1.25rem] md:text-[1.45rem]">CSO, Cofundador y Director de Seguridad</p>
+            </div>
+            <div className="flex max-w-[65ch] flex-col gap-6 text-[1.0625rem] leading-[1.75] text-[var(--c-soft)]">
+              <p><span className="font-semibold text-[var(--c-text)]">Jaider Alejandro Pinto Ribera</span> dirige la estrategia de seguridad de Mercav y cofundó la nueva línea de auditorías de ciberseguridad para empresas.</p>
+              <p>El equipo ofrece pentesting ético autorizado, auditorías y respuesta a incidentes con alcance previamente acordado. Los datos, evidencias, alcances y contratos de cada cliente se manejan de forma confidencial bajo contrato.</p>
+            </div>
+            <ul className="max-w-[44rem] border-t-2 border-[var(--c-line)]" aria-label="Perfiles de Jaider">
+              {JAIDER_SOCIALS.map(({ name, icon: Icon, href }) => (
+                <li key={name} className="border-b-2 border-[var(--c-line)]">
+                  <a href={href} target="_blank" rel="noopener noreferrer" className="c-label flex items-center gap-3 rounded-[2px] py-3 text-[1.15rem] text-[var(--c-soft)] transition-colors duration-150 hover:text-[var(--c-text)]">
+                    <Icon className="h-5 w-5 shrink-0" />
+                    <span className="flex-1">{name}</span>
+                    <ArrowUpRight className="h-5 w-5 shrink-0" aria-hidden />
+                    <span className="sr-only"> (se abre en otra pestaña)</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <TeamPhoto
+            tilt="1deg"
+            mascot={{ src: "/team-mascots/jaider-tuxedo.png", alt: "Mascota de Jaider: su gato tuxedo de pelo largo, con pecho blanco, ojos amarillo verdosos y una mancha oscura junto a la nariz" }}
+            side="right"
+            tag="CSO · Dirección de Seguridad"
+          >
+            <ProfilePhoto src="/images/jaider.png" alt="Jaider Alejandro Pinto Ribera, CSO, cofundador y director de seguridad de Mercav" initials="JP" position="55% 35%" />
+          </TeamPhoto>
         </div>
       </CartelSection>
 

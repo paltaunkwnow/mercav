@@ -735,6 +735,44 @@ export function LandingTrust() {
   );
 }
 
+/** Servicios profesionales de seguridad, contratados y autorizados por cada empresa. */
+export function LandingSecurityServices() {
+  return (
+    <CartelSection labelledBy="security-services-title" className="border-t-2 border-[var(--c-line)]">
+      <div className="c-container grid gap-10 md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-12">
+        <div className="max-w-3xl">
+          <p className="c-label text-[var(--c-green-text)]">Mercav · Seguridad para empresas</p>
+          <h2 id="security-services-title" className="c-h2 mt-3">Probá tus defensas con un equipo autorizado.</h2>
+          <p className="c-body mt-5 max-w-2xl">Pentesting ético, auditorías de seguridad y respuesta a incidentes, con alcance acordado y trabajo bajo contrato de confidencialidad.</p>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[var(--c-muted)]">El alcance, los datos, las evidencias y los contratos se tratan de forma confidencial y con acceso limitado al equipo asignado. No envíes información técnica sensible por canales públicos.</p>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <Link href="/ciberseguridad" className="c-btn">Conocer los servicios <ArrowRight className="h-4 w-4" aria-hidden /></Link>
+            <Link href="/nosotros#jaider" className="c-btn c-btn-ghost">Conocer al equipo</Link>
+          </div>
+        </div>
+        <img src="/mervi/pentester-duo.webp" alt="Mervi y el gato tuxedo de Jaider colaboran en una prueba de penetración autorizada" width={704} height={587} loading="lazy" decoding="async" className="mx-auto w-[min(22rem,76vw)] drop-shadow-[0_1rem_2rem_rgba(0,0,0,0.28)]" />
+      </div>
+    </CartelSection>
+  );
+}
+
+/** Canal de consultas comerciales sobre auditorías y servicios de ciberseguridad. */
+export function LandingSecurityInquiry() {
+  return (
+    <CartelSection id="security-inquiry" labelledBy="security-inquiry-title" className="c-band c-ink-green scroll-mt-[var(--c-nav-h)]">
+      <div className="c-container grid gap-8 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+        <div className="max-w-3xl">
+          <p className="c-label">Servicios para empresas · Consultas de trabajo</p>
+          <h2 id="security-inquiry-title" className="c-h2 mt-3">¿Necesitás evaluar o fortalecer la seguridad de tu empresa?</h2>
+          <p className="c-body mt-4">Contanos a nivel general qué servicio estás buscando. Coordinaremos una conversación inicial para entender la necesidad y, antes de intercambiar información técnica, acordaremos confidencialidad y alcance.</p>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-[var(--c-muted)]">Este canal es para consultas comerciales de pentesting autorizado, auditorías y respuesta a incidentes. No incluyas dominios, direcciones IP, credenciales, evidencias ni detalles sensibles en el primer mensaje.</p>
+        </div>
+        <Link href="/contacto" className="c-btn c-btn-ghost w-fit">Ir a contacto <ArrowRight className="h-4 w-4" aria-hidden /></Link>
+      </div>
+    </CartelSection>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Preguntas frecuentes                                                */
 /* ------------------------------------------------------------------ */

@@ -17,6 +17,7 @@ export type Founder = {
  */
 export const FOUNDERS: Founder[] = [
   { name: "Vinicius Salazar", role: "Fundador, CEO y encargado de Ciberseguridad", initials: "VS", lead: true, profile: "/nosotros#vinicius" },
+  { name: "Jaider Alejandro Pinto Ribera", role: "CSO, Cofundador y Director de Seguridad", initials: "JP", profile: "/nosotros#jaider" },
   { name: "Sebastian Rojas Cespedes", role: "Cofundador", initials: "SR", profile: "/nosotros#sebastian" },
   { name: "Alejandro Ismael Mendoza Diaz", role: "CTO", initials: "AM", profile: "/nosotros#alejandro" },
   { name: "José Alberto Vargas Aguilera", role: "Chief Revenue Officer", initials: "JA", profile: "/nosotros#jose-alberto" },
