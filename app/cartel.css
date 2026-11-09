@@ -1004,4 +1004,51 @@ button.c-btn { background-color: var(--btn-bg); }
   .cybersecurity-mascots-sprite { animation: none !important; }
 }
 
+.cyber-service-field { position: relative; display: block; color: var(--c-text); }
+.cyber-service-trigger {
+  display: flex; min-height: 3.25rem; align-items: center; justify-content: space-between; gap: .9rem;
+  border: 1px solid var(--c-line-strong); border-radius: .7rem; padding: .75rem 1rem;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c-raised) 94%, transparent), var(--c-ground));
+  color: var(--c-text); text-align: left; box-shadow: inset 0 1px rgba(255,255,255,.035);
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease, transform .18s ease;
+}
+.cyber-service-trigger:hover { border-color: color-mix(in srgb, var(--c-yellow) 62%, var(--c-line-strong)); background: var(--c-raised); }
+.cyber-service-trigger[aria-expanded="true"] { border-color: var(--c-yellow); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-yellow) 13%, transparent), 0 0 1.5rem color-mix(in srgb, var(--c-yellow) 9%, transparent); }
+.cyber-service-trigger[aria-invalid="true"] { border-color: #f87171; }
+.cyber-service-trigger:focus-visible { outline: 2px solid var(--c-yellow); outline-offset: 3px; }
+.cyber-service-value { color: var(--c-text); }
+.cyber-service-placeholder { color: var(--c-muted); font-weight: 500; }
+.cyber-service-chevron { width: 1.2rem; height: 1.2rem; flex: none; color: var(--c-yellow); transition: transform .2s ease; }
+.cyber-service-chevron.is-open { transform: rotate(180deg); }
+.cyber-service-menu {
+  position: absolute; z-index: 30; top: calc(100% + .55rem); right: 0; left: 0; max-height: min(20rem, 48vh); overflow-y: auto;
+  border: 1px solid var(--c-line-strong); border-radius: .9rem; padding: .4rem;
+  background: color-mix(in srgb, var(--c-ground) 95%, transparent); color: var(--c-text);
+  box-shadow: 0 1.25rem 3.5rem rgba(0,0,0,.44), inset 0 1px rgba(255,255,255,.045);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  animation: c-cyber-service-menu-in .16s cubic-bezier(.2,.8,.2,1) both;
+}
+.cyber-service-menu.is-above { top: auto; bottom: calc(100% + .55rem); transform-origin: bottom; animation-name: c-cyber-service-menu-in-up; }
+.cyber-service-option {
+  display: flex; min-height: 3.8rem; align-items: center; justify-content: space-between; gap: .8rem;
+  border-radius: .58rem; padding: .7rem .78rem; cursor: pointer; transition: background .15s ease, color .15s ease;
+}
+.cyber-service-option + .cyber-service-option { margin-top: .15rem; }
+.cyber-service-option.is-active,
+.cyber-service-option[aria-selected="true"] { background: color-mix(in srgb, var(--c-yellow) 10%, var(--c-raised)); }
+.cyber-service-option.is-active .cyber-service-option-title,
+.cyber-service-option[aria-selected="true"] .cyber-service-option-title { color: var(--c-yellow-text); }
+.cyber-service-option-copy { display: grid; gap: .22rem; }
+.cyber-service-option-title { color: var(--c-text); font-size: .88rem; font-weight: 700; line-height: 1.25; transition: color .15s ease; }
+.cyber-service-option-note { color: var(--c-muted); font-size: .72rem; font-weight: 400; line-height: 1.35; }
+.cyber-service-check { width: 1.05rem; height: 1.05rem; flex: none; color: var(--c-yellow); opacity: 0; transform: scale(.75); transition: opacity .15s ease, transform .15s ease; }
+.cyber-service-option[aria-selected="true"] .cyber-service-check { opacity: 1; transform: scale(1); }
+.cyber-service-error { display: block; margin-top: .45rem; color: #f87171; font-size: .75rem; font-weight: 500; }
+@keyframes c-cyber-service-menu-in { from { opacity: 0; transform: translateY(-.3rem) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes c-cyber-service-menu-in-up { from { opacity: 0; transform: translateY(.3rem) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .cyber-service-trigger, .cyber-service-chevron, .cyber-service-option, .cyber-service-check { transition: none; }
+  .cyber-service-menu { animation: none; }
+}
+
 /* creado por pato dev y askforvini */
