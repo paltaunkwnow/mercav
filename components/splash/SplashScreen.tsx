@@ -42,6 +42,13 @@ export const SPLASH_VARIANTS = {
     poses: ["saludando", "smartphone", "cool"],
     progress: "Conectando",
   },
+  mail: {
+    kicker: "Mercav Mail",
+    title: "Abriendo tu correo",
+    lines: ["Conectando con tu equipo…", "Sincronizando la bandeja…", "Preparando tu espacio seguro…"],
+    poses: ["programador", "pensativo", "saludando"],
+    progress: "Conectando con Mercav Mail",
+  },
   welcome: {
     kicker: "Sesión iniciada",
     title: "¡Bienvenido de nuevo!",
