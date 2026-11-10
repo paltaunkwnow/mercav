@@ -175,7 +175,7 @@ function privacyHostPassthrough(path: string) {
 
 /** mail.mercav.lat es un producto privado: solo sus rutas, API y assets deben quedarse en el host. */
 function mailHostPassthrough(path: string) {
-  return path.startsWith("/api") || path.startsWith("/_next") || path === "/favicon.ico" || isSharedPath(path);
+  return path.startsWith("/api") || path.startsWith("/_next") || path === "/favicon.ico" || path.startsWith("/mervi/") || path.startsWith("/team-mascots/") || isSharedPath(path);
 }
 
 export function isMailHostPath(pathname: string) {

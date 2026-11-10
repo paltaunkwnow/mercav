@@ -25,11 +25,11 @@ export function MailLogin({ onLogin, serviceError }: { onLogin: () => Promise<vo
   }
 
   const mascots = [
-    { name: "Mervi", image: "/mervi/pentester.png", alt: "Mervi, el gato de Mercav" },
-    { name: "Jaider", image: "/team-mascots/jaider-tuxedo.png", alt: "Gato tuxedo de Jaider" },
-    { name: "Sebastian", image: "/team-mascots/sebastian-avocado.png", alt: "Mascota palta de Sebastian" },
-    { name: "Alejandro", image: "/team-mascots/alejandro-penguin.png", alt: "Pingüino de Alejandro" },
-    { name: "Jose", image: "/team-mascots/jose-crow-cro.png", alt: "Cuervo de Jose" },
+    { name: "Mervi", image: "/mervi/pentester.webp", alt: "Mervi, el gato de Mercav" },
+    { name: "Jaider", image: "/team-mascots/jaider-tuxedo.webp", alt: "Gato tuxedo de Jaider" },
+    { name: "Sebastian", image: "/team-mascots/sebastian-avocado.webp", alt: "Mascota palta de Sebastian" },
+    { name: "Alejandro", image: "/team-mascots/alejandro-penguin.webp", alt: "Pingüino de Alejandro" },
+    { name: "Jose", image: "/team-mascots/jose-crow-cro.webp", alt: "Cuervo de Jose" },
   ];
 
   return <main className="mail-login">
@@ -47,7 +47,7 @@ export function MailLogin({ onLogin, serviceError }: { onLogin: () => Promise<vo
         <div className="mail-mascot-glow" aria-hidden />
         <div className="mail-mascot-row">
           {mascots.map((mascot, index) => <div className={`mail-mascot mail-mascot-${index + 1}`} key={mascot.name}>
-            <img src={mascot.image} alt={mascot.alt} />
+            <img src={mascot.image} alt={mascot.alt} decoding="async" />
             <span>{mascot.name}</span>
           </div>)}
         </div>
