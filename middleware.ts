@@ -208,17 +208,22 @@ function productHostRedirect(req: NextRequest, host: string | undefined, pathnam
   if (!host || pathname.startsWith('/api') || pathname.startsWith('/_next') || isSharedPath(pathname)) return null;
   const search = req.nextUrl.search;
   const kosherPath = pathname === '/kosher' || pathname.startsWith('/kosher/');
+  const mailPath = pathname === '/mail' || pathname.startsWith('/mail/');
 
   // Mercav Privacy vive solo en su dominio. En local y en las previews /privacy se sirve en el mismo origen.
   const kind = hostKindFor(host);
   if (isPrivacyPath(pathname) && (kind === 'site' || kind === 'app' || kind === 'kosher')) {
     return moved(new URL(`${pathname.slice(8) || '/'}${search}`, PRIVACY_URL));
   }
+  if (mailPath && (kind === 'site' || kind === 'app' || kind === 'kosher' || kind === 'privacy')) {
+    return moved(new URL(`${pathname.slice(5) || '/'}${search}`, MAIL_URL));
+  }
 
   // El sitio público vive en mercav.lat y la app en app.mercav.lat: cada uno manda al otro lo que no le toca.
   // Los destinos son dominios fijos (lib/seo/site.ts), así que una variable vieja no puede armar un bucle.
   if (host === SITE_HOST && new URL(APP_URL).host !== SITE_HOST) {
     if (kosherPath) return moved(new URL(`${pathname.slice(7) || '/'}${search}`, KOSHER_URL));
+    if (mailPath) return moved(new URL(`${pathname.slice(5) || '/'}${search}`, MAIL_URL));
     if (isMarketingPath(pathname)) return null;
     return moved(new URL(`${pathname}${search}`, APP_URL));
   }
@@ -226,6 +231,7 @@ function productHostRedirect(req: NextRequest, host: string | undefined, pathnam
   if (host === APP_HOST) {
     if (pathname === '/') return NextResponse.redirect(new URL(`${APP_HOME}${search}`, APP_URL));
     if (kosherPath) return moved(new URL(`${pathname.slice(7) || '/'}${search}`, KOSHER_URL));
+    if (mailPath) return moved(new URL(`${pathname.slice(5) || '/'}${search}`, MAIL_URL));
     if (isMarketingPath(pathname)) return moved(new URL(`${pathname}${search}`, SITE_URL));
   }
 

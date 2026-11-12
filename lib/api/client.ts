@@ -8,14 +8,19 @@
  * Quedan en el dominio de la app: /api/auth (next-auth arma sus llamadas y Google tiene registradas esas URLs) y
  * /api/socket (el socket de los pedidos).
  */
-import { PRIVACY_HOST } from "@/lib/seo/site";
+import { MAIL_HOST, PRIVACY_HOST } from "@/lib/seo/site";
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
 
 /** "/api/jobs?x=1" → "/jobs?x=1", o null si esa ruta no pasa por api.mercav.lat. */
 function apiPath(pathAndQuery: string): string | null {
   if (!pathAndQuery.startsWith("/api/")) return null;
-  if (pathAndQuery.startsWith("/api/auth/") || pathAndQuery.startsWith("/api/socket")) return null;
+  if (
+    pathAndQuery.startsWith("/api/auth/") ||
+    pathAndQuery.startsWith("/api/socket") ||
+    pathAndQuery.startsWith("/api/mail/") ||
+    pathAndQuery === "/api/mail"
+  ) return null;
   return pathAndQuery.slice("/api".length);
 }
 
@@ -23,8 +28,8 @@ function apiPath(pathAndQuery: string): string | null {
 export function installApiFetch() {
   if (!API_BASE || typeof window === "undefined") return;
   if (!/(^|\.)mercav\.lat$/.test(window.location.hostname)) return;
-  // Mercav Privacy solo habla con su propio origen (connect-src 'self' en su CSP).
-  if (window.location.hostname === PRIVACY_HOST) return;
+  // Mercav Privacy y Mercav Mail solo hablan con su propio origen (connect-src 'self' en su CSP).
+  if (window.location.hostname === PRIVACY_HOST || window.location.hostname === MAIL_HOST) return;
   const w = window as Window & { __mercavApiFetch?: boolean };
   if (w.__mercavApiFetch) return;
   w.__mercavApiFetch = true;
